@@ -1,0 +1,113 @@
+# Tools and tasks for the whole repository. Install mise (https://mise.jdx.dev), then:
+#
+#   mise install         install the pinned toolchains
+#   mise run check       run everything CI runs
+#   mise tasks --all     list every task, including each app's
+#
+# Each app under apps/ has its own mise.toml. Its tasks are addressed by path
+# (`mise run //apps/web:dev`) or by alias (`mise run //web:dev`).
+
+min_version = "2026.10.0"
+monorepo_root = true
+
+[monorepo]
+config_roots = ["apps/*"]
+lockfile = true
+
+[monorepo.path_aliases]
+desktop = "apps/desktop"
+mobile = "apps/mobile"
+web = "apps/web"
+
+[tools]
+node = "26.13.1"
+pnpm = "12.19.0"
+rust = { version = "1.99.1", components = "rustfmt,clippy" }
+actionlint = "1.7.12"
+
+[vars]
+# Everything a generator writes. `check:generated` fails if any of it is out of date.
+generated = "crates/acme-tokens/src/generated.rs packages/tokens/src/generated"
+
+# ---------------------------------------------------------------- setup
+
+[tasks.install]
+description = "Install JavaScript dependencies"
+run = "pnpm install"
+sources = [
+  "package.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  "apps/*/package.json",
+  "packages/*/package.json",
+  "tools/*/package.json",
+]
+outputs = { auto = true }
+
+# ---------------------------------------------------------------- generated code
+#
+# The generator is quick and always runs: skipping it when its inputs look unchanged would let
+# `check:generated` pass on a fresh checkout without regenerating anything.
+
+[tasks.tokens]
+description = "Generate the platform token files from design/tokens"
+depends = ["install"]
+run = "pnpm --filter @acme/design-build build"
+
+[tasks."check:generated"]
+description = "Fail if committed generated code is out of date"
+depends = ["tokens"]
+# Compares the regenerated files with the index, and catches new files that were never added.
+run = '''
+stale="$(git diff --name-only -- {{vars.generated}}; git ls-files --others --exclude-standard -- {{vars.generated}})"
+if [ -n "$stale" ]; then
+  echo "$stale"
+  echo "Generated code is out of date. Run 'mise run tokens' and commit the result." >&2
+  exit 1
+fi
+'''
+
+# ---------------------------------------------------------------- checks
+
+[tasks.fmt]
+description = "Format everything"
+depends = ["install"]
+run = ["cargo fmt --all", "pnpm exec biome check --write"]
+
+[tasks."check:js"]
+description = "Lint, type-check, test, and build the TypeScript workspace"
+depends = ["install"]
+run = [
+  "pnpm exec biome ci",
+  "pnpm --recursive --if-present run typecheck",
+  "pnpm --recursive --if-present run test",
+  "pnpm --filter @acme/web build",
+]
+
+[tasks."check:rust"]
+description = "Format-check the Rust workspace, then lint and test the crates that build on any OS"
+run = [
+  "cargo fmt --all --check",
+  "cargo clippy --workspace --exclude acme-desktop --exclude acme-ui --all-targets -- --deny warnings",
+  "cargo test --workspace --exclude acme-desktop --exclude acme-ui",
+]
+
+[tasks."check:desktop"]
+description = "Lint, test, and build the desktop app and its UI crate (macOS)"
+run = [
+  "cargo clippy --package acme-desktop --package acme-ui --all-targets -- --deny warnings",
+  "cargo test --package acme-desktop --package acme-ui",
+  "cargo build --package acme-desktop",
+]
+
+[tasks."check:workflows"]
+description = "Lint the GitHub Actions workflows"
+run = "actionlint"
+
+[tasks.check]
+description = "Run everything CI runs"
+# Regenerate first: the generator rewrites files that the other checks read.
+run = [
+  { task = "check:generated" },
+  { tasks = ["check:js", "check:rust", "check:desktop", "check:workflows"] },
+]

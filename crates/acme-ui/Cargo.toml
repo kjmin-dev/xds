@@ -1,0 +1,15 @@
+[package]
+name = "acme-ui"
+description = "Acme's GPUI components and the bridge from design tokens to GPUI."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+acme-tokens = { workspace = true }
+
+gpui-kit = { workspace = true }
+
+[lints]
+workspace = true

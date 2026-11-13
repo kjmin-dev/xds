@@ -1,0 +1,293 @@
+{
+  "color": {
+    "$type": "color",
+    "background": {
+      "base": {
+        "$value": "{palette.neutral.950}",
+        "$description": "Page background."
+      },
+      "surface": {
+        "$value": "{palette.neutral.900}",
+        "$description": "Cards and panels on top of the page."
+      },
+      "raised": {
+        "$value": "{palette.neutral.850}",
+        "$description": "Surfaces that float above the page: menus, dialogs. Lighter than the page in dark mode, where shadows barely show."
+      },
+      "disabled": {
+        "$value": "{palette.neutral.800}",
+        "$description": "Fill of a disabled control."
+      }
+    },
+    "text": {
+      "primary": {
+        "$value": "{palette.neutral.50}"
+      },
+      "secondary": {
+        "$value": "{palette.neutral.400}",
+        "$description": "Supporting text. Still readable: 4.5:1 on every background."
+      },
+      "disabled": {
+        "$value": "{palette.neutral.600}",
+        "$description": "Text of a disabled control. Exempt from contrast rules, and meant to look unavailable."
+      },
+      "accent": {
+        "$value": "{palette.accent.300}",
+        "$description": "Links and accent-colored text on a neutral background."
+      },
+      "on-accent": {
+        "$value": "{palette.neutral.0}",
+        "$description": "Text on an accent-colored surface."
+      },
+      "on-danger": {
+        "$value": "{palette.neutral.0}",
+        "$description": "Text on a danger-colored surface."
+      }
+    },
+    "border": {
+      "default": {
+        "$value": "{palette.neutral.800}",
+        "$description": "Dividers and card outlines. Decorative, so low contrast is fine."
+      },
+      "strong": {
+        "$value": "{palette.neutral.500}",
+        "$description": "Outline of a control that would be invisible without it, such as a text field: 3:1 against the background."
+      },
+      "focus": {
+        "$value": "{palette.accent.400}",
+        "$description": "Focus ring: 3:1 against the background."
+      }
+    },
+    "accent": {
+      "default": {
+        "$value": "{palette.accent.500}",
+        "$description": "The one action a view is for, and selected states."
+      },
+      "hover": {
+        "$value": "{palette.accent.600}"
+      },
+      "pressed": {
+        "$value": "{palette.accent.700}"
+      },
+      "subtle": {
+        "$value": "{palette.accent.950}",
+        "$description": "Tinted background for accent-colored text."
+      }
+    },
+    "control": {
+      "default": {
+        "$value": "{palette.neutral.800}",
+        "$description": "Fill of a neutral control, such as a secondary button."
+      },
+      "hover": {
+        "$value": "{palette.neutral.700}"
+      },
+      "pressed": {
+        "$value": "{palette.neutral.600}"
+      }
+    },
+    "danger": {
+      "default": {
+        "$value": "{palette.red.600}",
+        "$description": "Fill of a destructive action."
+      },
+      "hover": {
+        "$value": "{palette.red.700}"
+      },
+      "pressed": {
+        "$value": "{palette.red.800}"
+      }
+    },
+    "status": {
+      "danger": {
+        "$value": "{palette.red.400}",
+        "$description": "Status colors are for text and icons. Never the only signal: pair them with a word or an icon."
+      },
+      "danger-subtle": {
+        "$value": "{palette.red.950}"
+      },
+      "success": {
+        "$value": "{palette.green.400}"
+      },
+      "success-subtle": {
+        "$value": "{palette.green.950}"
+      },
+      "warning": {
+        "$value": "{palette.amber.400}"
+      },
+      "warning-subtle": {
+        "$value": "{palette.amber.950}"
+      },
+      "info": {
+        "$value": "{palette.blue.400}"
+      },
+      "info-subtle": {
+        "$value": "{palette.blue.950}"
+      }
+    },
+    "button": {
+      "primary": {
+        "background": {
+          "$value": "{color.accent.default}"
+        },
+        "background-hover": {
+          "$value": "{color.accent.hover}"
+        },
+        "background-pressed": {
+          "$value": "{color.accent.pressed}"
+        },
+        "text": {
+          "$value": "{color.text.on-accent}"
+        }
+      },
+      "secondary": {
+        "background": {
+          "$value": "{color.control.default}"
+        },
+        "background-hover": {
+          "$value": "{color.control.hover}"
+        },
+        "background-pressed": {
+          "$value": "{color.control.pressed}"
+        },
+        "text": {
+          "$value": "{color.text.primary}"
+        }
+      },
+      "ghost": {
+        "background-hover": {
+          "$value": "{color.control.default}",
+          "$description": "A ghost button has no fill until it is hovered."
+        },
+        "background-pressed": {
+          "$value": "{color.control.hover}"
+        },
+        "text": {
+          "$value": "{color.text.primary}"
+        }
+      },
+      "danger": {
+        "background": {
+          "$value": "{color.danger.default}"
+        },
+        "background-hover": {
+          "$value": "{color.danger.hover}"
+        },
+        "background-pressed": {
+          "$value": "{color.danger.pressed}"
+        },
+        "text": {
+          "$value": "{color.text.on-danger}"
+        }
+      },
+      "disabled": {
+        "background": {
+          "$value": "{color.background.disabled}"
+        },
+        "text": {
+          "$value": "{color.text.disabled}"
+        }
+      }
+    },
+    "field": {
+      "background": {
+        "$value": "{color.background.base}"
+      },
+      "border": {
+        "$value": "{color.border.strong}"
+      },
+      "border-focus": {
+        "$value": "{color.border.focus}"
+      },
+      "border-invalid": {
+        "$value": "{color.status.danger}"
+      },
+      "text": {
+        "$value": "{color.text.primary}"
+      },
+      "placeholder": {
+        "$value": "{color.text.secondary}",
+        "$description": "Placeholder text is text: it meets 4.5:1 like any other."
+      }
+    },
+    "badge": {
+      "neutral": {
+        "background": {
+          "$value": "{color.control.default}"
+        },
+        "text": {
+          "$value": "{color.text.secondary}"
+        }
+      },
+      "accent": {
+        "background": {
+          "$value": "{color.accent.subtle}"
+        },
+        "text": {
+          "$value": "{color.text.accent}"
+        }
+      },
+      "success": {
+        "background": {
+          "$value": "{color.status.success-subtle}"
+        },
+        "text": {
+          "$value": "{color.status.success}"
+        }
+      },
+      "warning": {
+        "background": {
+          "$value": "{color.status.warning-subtle}"
+        },
+        "text": {
+          "$value": "{color.status.warning}"
+        }
+      },
+      "danger": {
+        "background": {
+          "$value": "{color.status.danger-subtle}"
+        },
+        "text": {
+          "$value": "{color.status.danger}"
+        }
+      }
+    },
+    "banner": {
+      "success": {
+        "background": {
+          "$value": "{color.status.success-subtle}"
+        },
+        "accent": {
+          "$value": "{color.status.success}"
+        }
+      },
+      "warning": {
+        "background": {
+          "$value": "{color.status.warning-subtle}"
+        },
+        "accent": {
+          "$value": "{color.status.warning}"
+        }
+      },
+      "danger": {
+        "background": {
+          "$value": "{color.status.danger-subtle}"
+        },
+        "accent": {
+          "$value": "{color.status.danger}"
+        }
+      },
+      "info": {
+        "background": {
+          "$value": "{color.status.info-subtle}"
+        },
+        "accent": {
+          "$value": "{color.status.info}"
+        }
+      },
+      "text": {
+        "$value": "{color.text.primary}"
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+[tasks.dev]
+description = "Run the desktop app"
+# Arguments after the task name go to the app: `mise run //desktop:dev --light`.
+run = "cargo run --package acme-desktop --"
+
+[tasks.build]
+description = "Build the desktop app for release"
+run = "cargo build --release --package acme-desktop"
+
+[tasks.design]
+description = "Open the design preview: every token and GPUI component (add --light or --dark)"
+run = "cargo run --package acme-desktop -- --design"

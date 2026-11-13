@@ -1,0 +1,6 @@
+# Generated files: collapsed in pull request diffs and left out of language statistics.
+Cargo.lock                                linguist-generated
+mise.lock                                 linguist-generated
+pnpm-lock.yaml                            linguist-generated
+crates/acme-tokens/src/generated.rs       linguist-generated
+packages/tokens/src/generated/**          linguist-generated

@@ -1,0 +1,22 @@
+# OS
+.DS_Store
+
+# Editors
+.idea/
+.vscode/
+
+# Rust
+target/
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# mise
+mise.local.toml
+mise.*.local.toml
+
+# Environment
+.env
+.env.*

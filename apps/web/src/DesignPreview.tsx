@@ -1,0 +1,243 @@
+// The design preview: every token group and every component in every variant and state, at
+// `/design`. The mobile app has the same screen at `/design`, and the desktop app opens it with
+// `acme --design`.
+
+import { colors, radius, size, space, typography } from "@acme/tokens";
+import {
+  Badge,
+  type BadgeTone,
+  Banner,
+  type BannerTone,
+  Button,
+  type ButtonVariant,
+  Card,
+  type ControlSize,
+  Divider,
+  Spinner,
+  Text,
+  TextField,
+  type TextVariant,
+} from "@acme/ui";
+import { type ReactNode, useState } from "react";
+
+type Theme = "light" | "dark";
+
+const kebab = (name: string) => name.replace(/[A-Z0-9]+/g, (match) => `-${match.toLowerCase()}`);
+
+/** Semantic colors by group. Component colors are shown by the components that use them. */
+const COMPONENT_COLORS = /^(button|field|badge|banner)/;
+const COLOR_GROUPS = Object.entries(
+  Object.groupBy(
+    Object.keys(colors.light).filter((name) => !COMPONENT_COLORS.test(name)),
+    (name) => kebab(name).split("-")[0] ?? name,
+  ),
+);
+
+const VARIANTS: ButtonVariant[] = ["primary", "secondary", "ghost", "danger"];
+const SIZES: ControlSize[] = ["sm", "md", "lg"];
+const BADGE_TONES: BadgeTone[] = ["neutral", "accent", "success", "warning", "danger"];
+const BANNER_TONES: BannerTone[] = ["info", "success", "warning", "danger"];
+const TEXT_VARIANTS = Object.keys(typography) as (keyof typeof typography)[];
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="flex flex-col gap-4">
+      <Text variant="title" as="h2">
+        {title}
+      </Text>
+      {children}
+    </section>
+  );
+}
+
+function Row({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <Text variant="detail" tone="secondary" as="span" className="w-24 shrink-0">
+        {label}
+      </Text>
+      {children}
+    </div>
+  );
+}
+
+export function DesignPreview() {
+  const [theme, setTheme] = useState(document.documentElement.dataset.theme as Theme);
+  const [value, setValue] = useState("");
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    setTheme(next);
+  };
+
+  return (
+    <main className="mx-auto flex max-w-4xl flex-col gap-12 p-6">
+      <header className="flex items-center justify-between">
+        <Text variant="display" as="h1">
+          Acme design system
+        </Text>
+        <div className="flex items-center gap-3">
+          <a className="text-acme-detail text-acme-text-accent underline" href="/">
+            Back to the app
+          </a>
+          <Button variant="ghost" size="sm" onPress={toggleTheme}>
+            {theme === "dark" ? "Light mode" : "Dark mode"}
+          </Button>
+        </div>
+      </header>
+
+      <Section title="Colors">
+        {COLOR_GROUPS.map(([group, names]) => (
+          <div key={group} className="flex flex-col gap-2">
+            <Text variant="label" tone="secondary">
+              {group}
+            </Text>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(names ?? []).map((name) => (
+                <div key={name} className="flex items-center gap-2">
+                  <span
+                    className="size-8 shrink-0 rounded-acme-sm border border-acme-border-default"
+                    style={{ background: `var(--acme-color-${kebab(name)})` }}
+                  />
+                  <Text variant="footnote" tone="secondary" as="span" className="break-all">
+                    {kebab(name)}
+                  </Text>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </Section>
+
+      <Section title="Typography">
+        {TEXT_VARIANTS.map((name) => (
+          <Row key={name} label={`${kebab(name)} ${typography[name].fontSize}`}>
+            <Text variant={kebab(name) as TextVariant} as="span">
+              다람쥐 헌 쳇바퀴에 타고파. The quick brown fox 123
+            </Text>
+          </Row>
+        ))}
+      </Section>
+
+      <Section title="Space, radius, size">
+        <Row label="space">
+          {Object.entries(space).map(([name, px]) => (
+            <span key={name} className="flex flex-col items-center gap-1">
+              <span className="bg-acme-accent-default" style={{ width: px, height: px }} />
+              <Text variant="footnote" tone="secondary" as="span">
+                {name}
+              </Text>
+            </span>
+          ))}
+        </Row>
+        <Row label="radius">
+          {Object.entries(radius).map(([name, px]) => (
+            <span
+              key={name}
+              className="flex size-12 items-center justify-center border border-acme-border-strong"
+              style={{ borderRadius: px }}
+            >
+              <Text variant="footnote" tone="secondary" as="span">
+                {name}
+              </Text>
+            </span>
+          ))}
+        </Row>
+        <Row label="control">
+          <Text variant="detail" tone="secondary" as="span">
+            Pointer {size.pointer.controlSm}/{size.pointer.controlMd}/{size.pointer.controlLg},
+            touch {size.touch.controlSm}/{size.touch.controlMd}/{size.touch.controlLg}. This page
+            uses the sizes of the input device it is viewed with.
+          </Text>
+        </Row>
+      </Section>
+
+      <Section title="Buttons">
+        {VARIANTS.map((variant) => (
+          <Row key={variant} label={variant}>
+            {SIZES.map((buttonSize) => (
+              <Button key={buttonSize} variant={variant} size={buttonSize}>
+                Save
+              </Button>
+            ))}
+            <Button variant={variant} disabled>
+              Disabled
+            </Button>
+            <Button variant={variant} loading>
+              Saving
+            </Button>
+          </Row>
+        ))}
+      </Section>
+
+      <Section title="Text fields">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <TextField
+            label="Email"
+            placeholder="name@example.com"
+            description="We send the sign-in code to this address."
+            value={value}
+            onChange={setValue}
+          />
+          <TextField label="Project name" value="Weekly report" onChange={() => {}} required />
+          <TextField
+            label="Sign-in code"
+            value="12345"
+            onChange={() => {}}
+            error="That code is wrong or has expired."
+          />
+          <TextField label="Organization" value="Acme Inc." onChange={() => {}} disabled />
+        </div>
+      </Section>
+
+      <Section title="Badges">
+        <Row label="tone">
+          {BADGE_TONES.map((tone) => (
+            <Badge key={tone} tone={tone}>
+              {tone}
+            </Badge>
+          ))}
+        </Row>
+        <Row label="dot">
+          <Badge tone="success" dot>
+            Online
+          </Badge>
+          <Badge tone="warning" dot>
+            Connecting
+          </Badge>
+          <Badge tone="danger" dot>
+            Offline
+          </Badge>
+        </Row>
+      </Section>
+
+      <Section title="Banners">
+        {BANNER_TONES.map((tone) => (
+          <Banner key={tone} tone={tone} title={tone}>
+            Your changes are saved on this device. They sync when you are back online.
+          </Banner>
+        ))}
+      </Section>
+
+      <Section title="Card, divider, spinner">
+        <Card
+          title="Weekly report"
+          description="Updated a few minutes ago."
+          actions={
+            <Badge tone="success" dot>
+              Online
+            </Badge>
+          }
+        >
+          <Text tone="secondary">A card groups related content.</Text>
+          <Divider />
+          <Row label="spinner">
+            <Spinner size="sm" />
+            <Spinner size="md" />
+            <Spinner size="lg" label="Loading" />
+          </Row>
+        </Card>
+      </Section>
+    </main>
+  );
+}

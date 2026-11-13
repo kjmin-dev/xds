@@ -1,0 +1,24 @@
+{
+  "name": "@acme/ui-native",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@acme/tokens": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "catalog:",
+    "react-native": "0.88.1"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "react": "catalog:",
+    "react-native": "0.88.1",
+    "typescript": "catalog:"
+  }
+}

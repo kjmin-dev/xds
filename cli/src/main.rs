@@ -3,9 +3,11 @@
 
 mod commands;
 mod error;
+mod inspect;
 mod json;
 mod manifest;
 mod markers;
+mod output;
 mod preview;
 mod prompt;
 mod rename;
@@ -23,6 +25,8 @@ use clap::{ColorChoice, CommandFactory, FromArgMatches, Parser, Subcommand};
 
 use crate::commands::{AddArgs, CreateArgs, ThemeArgs};
 use crate::error::Error;
+use crate::inspect::{ComponentsArgs, ContrastArgs, DoctorArgs, TokensArgs};
+use crate::output::{Out, exit};
 use crate::style::Style;
 
 #[derive(Debug, Parser)]
@@ -37,6 +41,9 @@ struct Cli {
     /// Print without colors (also: the NO_COLOR environment variable)
     #[arg(long, global = true)]
     no_color: bool,
+    /// Print the result as JSON on stdout, and errors as JSON on stderr. Never asks anything
+    #[arg(long, global = true)]
+    json: bool,
     #[command(subcommand)]
     command: Command,
 }
@@ -56,6 +63,14 @@ enum Command {
     Add(AddArgs),
     /// Apply a color theme to a project
     Theme(ThemeArgs),
+    /// Show the design tokens with their values in each mode
+    Tokens(TokensArgs),
+    /// List the components, or describe one: its options and where it is on each client
+    Components(ComponentsArgs),
+    /// Measure the WCAG contrast between two colors or color tokens
+    Contrast(ContrastArgs),
+    /// Check a project: its record, its tokens, and whether the generated files are current
+    Doctor(DoctorArgs),
 }
 
 fn main() -> ExitCode {
@@ -70,28 +85,65 @@ fn main() -> ExitCode {
     } else {
         ColorChoice::Never
     });
-    let cli = match Cli::from_arg_matches(&command.get_matches()) {
+    // The same for `--json`: a usage error is then reported as JSON too.
+    let json = std::env::args_os().any(|argument| argument == "--json");
+    let matches = match command.try_get_matches() {
+        Ok(matches) => matches,
+        Err(error) if json && error.use_stderr() => {
+            let message = error.render().to_string();
+            eprintln!("{}", output::error_json("usage", message.trim()));
+            return ExitCode::from(exit::USAGE);
+        }
+        Err(error) => error.exit(),
+    };
+    let cli = match Cli::from_arg_matches(&matches) {
         Ok(cli) => cli,
         Err(error) => error.exit(),
     };
+    let out = Out::new(style, cli.json);
 
     let result = match &cli.command {
-        Command::List => commands::list(style),
-        Command::Themes { name } => commands::themes(name.as_deref(), style),
-        Command::Create(args) => commands::create(args, style),
-        Command::Add(args) => commands::add(args, style),
-        Command::Theme(args) => commands::theme(args, style),
+        Command::List => commands::list(out),
+        Command::Themes { name } => commands::themes(name.as_deref(), out),
+        Command::Create(args) => commands::create(args, out),
+        Command::Add(args) => commands::add(args, out),
+        Command::Theme(args) => commands::theme(args, out),
+        Command::Tokens(args) => inspect::tokens(args, out),
+        Command::Components(args) => inspect::components(args, out),
+        Command::Contrast(args) => inspect::contrast(args, out),
+        Command::Doctor(args) => inspect::doctor(args, out),
     };
     match result {
-        Ok(()) => ExitCode::SUCCESS,
+        Ok(value) => {
+            if out.json {
+                output::print_json(&value);
+            }
+            ExitCode::from(exit::OK)
+        }
+        // The command has said what it found; with --json that is the result.
+        Err(Error::Failed(value)) => {
+            if out.json {
+                output::print_json(&value);
+            }
+            ExitCode::from(exit::FAILURE)
+        }
+        Err(error) if out.json => {
+            eprintln!(
+                "{}",
+                output::error_json(output::error_kind(&error), &error.to_string())
+            );
+            ExitCode::from(match error {
+                Error::Cancelled => exit::CANCELLED,
+                _ => exit::FAILURE,
+            })
+        }
         Err(Error::Cancelled) => {
             eprintln!("Cancelled. Nothing was written.");
-            // What a shell reports for a command stopped with Ctrl-C.
-            ExitCode::from(130)
+            ExitCode::from(exit::CANCELLED)
         }
-        Err(Error::Message(message)) => {
-            eprintln!("{} {message}", style.red("error:"));
-            ExitCode::FAILURE
+        Err(error) => {
+            eprintln!("{} {error}", style.red("error:"));
+            ExitCode::from(exit::FAILURE)
         }
     }
 }

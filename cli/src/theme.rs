@@ -74,7 +74,7 @@ pub enum Source<'a> {
 }
 
 impl Source<'_> {
-    fn read(&self, path: &str) -> Result<String> {
+    pub fn read(&self, path: &str) -> Result<String> {
         match self {
             Self::Embedded(template) => {
                 let file = template
@@ -162,6 +162,14 @@ impl Theme {
 
     /// The steps of one ramp from light to dark, for drawing swatches.
     pub fn ramp(&self, ramp: &str) -> Vec<Rgb> {
+        self.steps(ramp)
+            .into_iter()
+            .map(|(_, color)| color)
+            .collect()
+    }
+
+    /// The steps of one ramp with their numbers (50, 100, ...), from light to dark.
+    pub fn steps(&self, ramp: &str) -> Vec<(u32, Rgb)> {
         let Some(Value::Object(steps)) = self.ramps.get(ramp) else {
             return Vec::new();
         };
@@ -172,7 +180,7 @@ impl Theme {
             })
             .collect();
         steps.sort_by_key(|(step, _)| *step);
-        steps.into_iter().map(|(_, color)| color).collect()
+        steps
     }
 }
 

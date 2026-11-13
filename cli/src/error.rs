@@ -8,6 +8,10 @@ pub enum Error {
     Message(String),
     /// Esc or Ctrl-C in a prompt. Nothing was written; the process exits with 130.
     Cancelled,
+    /// A check ran and did not pass (`doctor`, `contrast --min`). The command has already
+    /// reported what it found, so only the exit code, 1, says so again. With `--json` the
+    /// findings are printed on stdout like any other result.
+    Failed(serde_json::Value),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -17,6 +21,7 @@ impl fmt::Display for Error {
         match self {
             Self::Message(message) => formatter.write_str(message),
             Self::Cancelled => formatter.write_str("Cancelled."),
+            Self::Failed(_) => formatter.write_str("A check did not pass."),
         }
     }
 }

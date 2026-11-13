@@ -42,11 +42,16 @@ fn every_command_has_help() {
         vec!["create", "--help"],
         vec!["add", "--help"],
         vec!["theme", "--help"],
+        vec!["tokens", "--help"],
+        vec!["components", "--help"],
+        vec!["contrast", "--help"],
+        vec!["doctor", "--help"],
     ] {
         let (output, stdout, _) = run(xds().args(&arguments));
         assert!(output.status.success(), "{arguments:?}");
         assert!(stdout.contains("Usage:"), "{arguments:?}");
         assert!(stdout.contains("--no-color"), "{arguments:?}");
+        assert!(stdout.contains("--json"), "{arguments:?}");
     }
     let (_, stdout, _) = run(xds().args(["create", "--help"]));
     for flag in [
@@ -265,4 +270,171 @@ fn rejects_a_name_that_would_not_work() {
     assert_eq!(output.status.code(), Some(1));
     assert!(stderr.contains("lowercase"), "{stderr}");
     assert!(is_empty(&directory));
+}
+
+fn parse(text: &str) -> serde_json::Value {
+    serde_json::from_str(text).unwrap_or_else(|error| panic!("not JSON ({error}): {text}"))
+}
+
+#[test]
+fn json_output_is_one_document_and_nothing_else() {
+    let temp = TempDir::new().expect("a temporary directory");
+
+    let (output, stdout, stderr) = run(xds().args(["list", "--json"]).current_dir(temp.path()));
+    assert!(output.status.success(), "{stderr}");
+    let list = parse(&stdout);
+    assert_eq!(list["targets"].as_array().expect("targets").len(), 4);
+    assert!(list["themes"][0]["accent"]["600"].is_string(), "{stdout}");
+
+    let (output, stdout, _) = run(xds().args(["themes", "ocean", "--json"]));
+    assert!(output.status.success());
+    assert_eq!(parse(&stdout)["themes"][0]["name"], "ocean");
+
+    // Outside a project the answers come from the template inside the binary.
+    let (output, stdout, _) = run(xds()
+        .args(["tokens", "button.primary", "--json"])
+        .current_dir(temp.path()));
+    assert!(output.status.success());
+    let tokens = parse(&stdout);
+    assert_eq!(tokens["source"], "template");
+    assert_eq!(
+        tokens["tokens"][0]["path"],
+        "color.button.primary.background"
+    );
+    assert_eq!(tokens["tokens"][0]["values"]["light"], "#4f46e5");
+
+    let (output, stdout, _) = run(xds()
+        .args([
+            "components",
+            "button",
+            "--client",
+            "web-react",
+            "--code",
+            "--json",
+        ])
+        .current_dir(temp.path()));
+    assert!(output.status.success());
+    let client = &parse(&stdout)["component"]["clients"]["web-react"];
+    assert_eq!(client["source"], "packages/ui/src/Button.tsx");
+    assert!(
+        client["code"]
+            .as_str()
+            .expect("code")
+            .contains("export function Button")
+    );
+}
+
+#[test]
+fn json_create_reports_the_files_and_reads_the_project_afterwards() {
+    let temp = TempDir::new().expect("a temporary directory");
+    let directory = temp.path().join("project");
+    let create = |dry_run: bool| {
+        let mut command = xds();
+        command.arg("create").arg(&directory).args([
+            "--name",
+            "orbit",
+            "--targets",
+            "web-react",
+            "--json",
+        ]);
+        if dry_run {
+            command.arg("--dry-run");
+        }
+        run(&mut command)
+    };
+
+    let (output, stdout, stderr) = create(true);
+    assert!(output.status.success(), "{stderr}");
+    let planned = parse(&stdout);
+    assert_eq!(planned["dryRun"], true);
+    assert!(is_empty(&directory));
+
+    let (output, stdout, stderr) = create(false);
+    assert!(output.status.success(), "{stderr}");
+    let created = parse(&stdout);
+    assert_eq!(created["dryRun"], false);
+    assert_eq!(created["files"], planned["files"]);
+    assert_eq!(created["targets"][0], "web-react");
+    assert_eq!(created["nextSteps"][0], "mise trust");
+
+    // In the project the same commands read the project's own files.
+    let (output, stdout, _) = run(xds().args(["components", "--json"]).current_dir(&directory));
+    assert!(output.status.success());
+    let components = parse(&stdout);
+    assert_eq!(components["source"], "project");
+    let names: Vec<&str> = components["components"]
+        .as_array()
+        .expect("components")
+        .iter()
+        .filter_map(|component| component["name"].as_str())
+        .collect();
+    assert!(
+        names.contains(&"Button") && !names.contains(&"TabBar"),
+        "{names:?}"
+    );
+
+    let (output, stdout, stderr) = run(xds().args(["doctor", "--json"]).current_dir(&directory));
+    let report = parse(&stdout);
+    assert_eq!(
+        output.status.success(),
+        report["ok"] == true,
+        "{stdout}{stderr}"
+    );
+    let record = &report["checks"][0];
+    assert_eq!(record["name"], "record");
+    assert_eq!(record["status"], "ok", "{stdout}");
+
+    let (output, stdout, _) = run(xds()
+        .args(["add", "kotlin-compose", "--json"])
+        .current_dir(&directory));
+    assert!(output.status.success());
+    let added = parse(&stdout);
+    assert_eq!(added["added"][0], "kotlin-compose");
+    assert!(added["newFiles"].as_u64().expect("a count") > 0);
+}
+
+#[test]
+fn json_errors_go_to_stderr_with_the_documented_exit_codes() {
+    // A failure.
+    let (output, stdout, stderr) = run(xds().args(["themes", "nope", "--json"]));
+    assert_eq!(output.status.code(), Some(1));
+    assert!(stdout.is_empty(), "{stdout}");
+    let error = parse(&stderr);
+    assert_eq!(error["error"]["kind"], "error");
+    assert!(
+        error["error"]["message"]
+            .as_str()
+            .expect("a message")
+            .contains("nope")
+    );
+
+    // Wrong arguments.
+    let (output, stdout, stderr) = run(xds().args(["contrast", "#fff", "--json"]));
+    assert_eq!(output.status.code(), Some(2));
+    assert!(stdout.is_empty(), "{stdout}");
+    assert_eq!(parse(&stderr)["error"]["kind"], "usage");
+
+    // A check that did not pass is a result, not an error: stdout, and exit 1.
+    let (output, stdout, stderr) =
+        run(xds().args(["contrast", "#84848f", "#ffffff", "--min", "4.5", "--json"]));
+    assert_eq!(output.status.code(), Some(1));
+    assert!(stderr.is_empty(), "{stderr}");
+    let result = parse(&stdout);
+    assert_eq!(result["ok"], false);
+    assert_eq!(result["results"][0]["ratio"], 3.69);
+    assert_eq!(result["results"][0]["passes"]["ui"], true);
+
+    // Tokens are measured in both modes.
+    let (output, stdout, _) = run(xds().args([
+        "contrast",
+        "text.secondary",
+        "background.surface",
+        "--min",
+        "4.5",
+        "--json",
+    ]));
+    assert!(output.status.success());
+    let result = parse(&stdout);
+    assert_eq!(result["results"][0]["mode"], "light");
+    assert_eq!(result["results"][1]["mode"], "dark");
 }

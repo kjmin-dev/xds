@@ -1,5 +1,6 @@
 package acme.ui
 
+import acme.tokens.Space
 import acme.tokens.Radius
 import acme.tokens.Typography
 import androidx.compose.foundation.background
@@ -40,13 +41,13 @@ fun Badge(
     }
     Row(
         modifier = modifier
-            .defaultMinSize(minHeight = 24.dp)
+            .defaultMinSize(minHeight = LocalSizes.current.badge)
             .background(background, RoundedCornerShape(Radius.full))
-            .padding(horizontal = 10.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+            .padding(horizontal = Space.s2_5),
+        horizontalArrangement = Arrangement.spacedBy(Space.s1_5),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (dot) Box(Modifier.size(6.dp).background(text, CircleShape))
+        if (dot) Box(Modifier.size(Space.s1_5).background(text, CircleShape))
         BasicText(label, style = Typography.footnote.resolved(text), maxLines = 1)
     }
 }

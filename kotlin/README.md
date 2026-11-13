@@ -51,7 +51,7 @@ The interactive desktop, emulator, and simulator runs were performed before caps
 ## Known limitations
 
 - Korean text wraps between syllables rather than at word boundaries. Compose does not support word-based line breaking outside Android 13 and later.
-- The spinner always spins. Nothing in this stack reports the OS reduced-motion setting.
+- On desktop, the spinner always spins and presses always animate because the JVM cannot read the OS reduced-motion setting. The Android ("Remove animations") and iOS ("Reduce Motion") settings are read when the theme is first composed.
 - As on the other platforms, font files are not bundled in the repository, so text renders using the system default font.
 - The sample apps do not include app icons.
 - When the mode switch inside the design preview overrides the OS color scheme, the Android status bar icons remain in the OS mode's color.

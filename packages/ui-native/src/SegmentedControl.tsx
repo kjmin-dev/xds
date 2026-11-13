@@ -1,8 +1,8 @@
-import { border, radius, space, typography } from "@acme/tokens";
+import { border, radius, shadow, space, typography } from "@acme/tokens";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { CONTROL_HEIGHT, useColors } from "./theme.ts";
 
-const INSET = 2;
+const INSET = space["0_5"];
 
 export type SegmentedControlProps<Value extends string> = {
   options: readonly { value: Value; label: string }[];
@@ -47,10 +47,13 @@ export function SegmentedControl<Value extends string>({
             style={[
               styles.segment,
               fullWidth && styles.grow,
-              selected && {
-                backgroundColor: colors.segmentedSelectedBackground,
-                borderColor: colors.segmentedSelectedBorder,
-              },
+              selected && [
+                styles.selected,
+                {
+                  backgroundColor: colors.segmentedSelectedBackground,
+                  borderColor: colors.segmentedSelectedBorder,
+                },
+              ],
             ]}
           >
             <Text
@@ -86,6 +89,14 @@ const styles = StyleSheet.create({
     borderWidth: border.width.thin,
     borderColor: "transparent",
     borderRadius: radius.md - INSET,
+  },
+  // Raised: a faint shadow under the hairline sets the selected segment apart from the track.
+  selected: {
+    shadowColor: shadow.subtle.color,
+    shadowOffset: { width: shadow.subtle.offsetX, height: shadow.subtle.offsetY },
+    shadowRadius: shadow.subtle.blur,
+    shadowOpacity: 1,
+    elevation: 1,
   },
   grow: { flex: 1 },
 });

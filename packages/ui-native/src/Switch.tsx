@@ -1,10 +1,10 @@
 import { motion, radius, space } from "@acme/tokens";
-import { useEffect, useRef } from "react";
-import { Animated, Easing, Pressable, StyleSheet } from "react-native";
+import { Animated, Pressable, StyleSheet } from "react-native";
+import { useSpring } from "./motion.ts";
 import { Text } from "./Text.tsx";
 import { control, useColors } from "./theme.ts";
 
-const INSET = 2;
+const INSET = space["0_5"];
 const THUMB = control.switchHeight - INSET * 2;
 const TRAVEL = control.switchWidth - control.switchHeight;
 
@@ -30,15 +30,8 @@ export function Switch({
   disabled = false,
 }: SwitchProps) {
   const colors = useColors();
-  const position = useRef(new Animated.Value(checked ? 1 : 0)).current;
-  useEffect(() => {
-    Animated.timing(position, {
-      toValue: checked ? 1 : 0,
-      duration: motion.duration.fast,
-      easing: Easing.bezier(...motion.easing.standard),
-      useNativeDriver: true,
-    }).start();
-  }, [checked, position]);
+  // The thumb settles on a spring, or jumps when the person asked for less motion.
+  const position = useSpring(checked ? 1 : 0, motion.spring.fast);
 
   const track = disabled
     ? colors.switchDisabledTrack

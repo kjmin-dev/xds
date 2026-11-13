@@ -40,6 +40,12 @@
         "unit": "px"
       }
     },
+    "5": {
+      "$value": {
+        "value": 20,
+        "unit": "px"
+      }
+    },
     "6": {
       "$value": {
         "value": 24,
@@ -52,14 +58,44 @@
         "unit": "px"
       }
     },
+    "10": {
+      "$value": {
+        "value": 40,
+        "unit": "px"
+      }
+    },
     "12": {
       "$value": {
         "value": 48,
         "unit": "px"
       }
     },
+    "16": {
+      "$value": {
+        "value": 64,
+        "unit": "px"
+      }
+    },
+    "0-5": {
+      "$value": {
+        "value": 2,
+        "unit": "px"
+      }
+    },
+    "1-5": {
+      "$value": {
+        "value": 6,
+        "unit": "px"
+      }
+    },
+    "2-5": {
+      "$value": {
+        "value": 10,
+        "unit": "px"
+      }
+    },
     "$type": "dimension",
-    "$description": "A 4px grid. The name is the multiple of 4."
+    "$description": "A 4px grid. The name is the multiple of 4; 0-5, 1-5 and 2-5 are the half steps used inside controls."
   },
   "radius": {
     "$type": "dimension",
@@ -139,13 +175,20 @@
       "$type": "fontFamily",
       "sans": {
         "$value": [
+          "Pretendard Variable",
           "Pretendard",
-          "Apple SD Gothic Neo",
-          "Malgun Gothic",
+          "-apple-system",
+          "BlinkMacSystemFont",
           "system-ui",
+          "Roboto",
+          "Helvetica Neue",
+          "Segoe UI",
+          "Apple SD Gothic Neo",
+          "Noto Sans KR",
+          "Malgun Gothic",
           "sans-serif"
         ],
-        "$description": "Pretendard covers Hangul, Latin and Kana with matching metrics. The rest are the system fonts it falls back to."
+        "$description": "Pretendard covers Hangul, Latin and Kana with matching metrics. Where it is not loaded, Latin text falls to the system's own font and Hangul to the system's Korean font, in that order."
       }
     },
     "size": {
@@ -193,6 +236,10 @@
       "$type": "fontWeight",
       "regular": {
         "$value": 400
+      },
+      "medium": {
+        "$value": 500,
+        "$description": "Labels on controls: heavier than body text without shouting."
       },
       "semibold": {
         "$value": 600
@@ -289,7 +336,7 @@
       "$value": {
         "fontFamily": "{font.family.sans}",
         "fontSize": "{font.size.sm}",
-        "fontWeight": "{font.weight.semibold}",
+        "fontWeight": "{font.weight.medium}",
         "lineHeight": "{font.line-height.snug}",
         "letterSpacing": {
           "value": 0,
@@ -315,7 +362,7 @@
       "$value": {
         "fontFamily": "{font.family.sans}",
         "fontSize": "{font.size.xs}",
-        "fontWeight": "{font.weight.semibold}",
+        "fontWeight": "{font.weight.medium}",
         "lineHeight": "{font.line-height.snug}",
         "letterSpacing": {
           "value": 0,
@@ -384,6 +431,26 @@
       "$type": "number",
       "$value": 0.97,
       "$description": "How far a button shrinks while it is pressed. Feedback that does not depend on color."
+    },
+    "spring": {
+      "$type": "number",
+      "$description": "Springs for things a finger moves or that settle into place. Stiffness as in a mass-spring system with mass 1; damping as a ratio, where 1 does not overshoot.",
+      "default": {
+        "stiffness": {
+          "$value": 700
+        },
+        "damping": {
+          "$value": 0.9
+        }
+      },
+      "fast": {
+        "stiffness": {
+          "$value": 1400
+        },
+        "damping": {
+          "$value": 0.9
+        }
+      }
     }
   },
   "shadow": {

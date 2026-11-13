@@ -386,7 +386,7 @@ mod tests {
         );
         for theme in &themes {
             assert_eq!(theme.ramp("accent").len(), 11, "{}", theme.name);
-            assert_eq!(theme.ramp("neutral").len(), 13, "{}", theme.name);
+            assert_eq!(theme.ramp("neutral").len(), 14, "{}", theme.name);
         }
     }
 

@@ -22,7 +22,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 
 // The gap between the thumb and the edge of the track.
-private val Inset = 2.dp
+private val Inset = Space.s0_5
 
 /**
  * A setting that is on or off and takes effect at once. For a choice that is sent with a form,
@@ -49,7 +49,8 @@ fun Switch(
     val travel = sizes.switchWidth - sizes.switchHeight
     val position by animateDpAsState(
         targetValue = if (checked) travel else 0.dp,
-        animationSpec = tween(Motion.durationFast, easing = Motion.easingStandard),
+        // The thumb settles on a spring, or jumps when the person asked for less motion.
+        animationSpec = motionSpec(Motion.springFastDamping, Motion.springFastStiffness),
     )
 
     Row(

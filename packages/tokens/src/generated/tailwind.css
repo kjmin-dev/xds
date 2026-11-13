@@ -8,6 +8,7 @@
   --color-acme-background-disabled: var(--acme-color-background-disabled);
   --color-acme-text-primary: var(--acme-color-text-primary);
   --color-acme-text-secondary: var(--acme-color-text-secondary);
+  --color-acme-text-tertiary: var(--acme-color-text-tertiary);
   --color-acme-text-disabled: var(--acme-color-text-disabled);
   --color-acme-text-accent: var(--acme-color-text-accent);
   --color-acme-text-on-accent: var(--acme-color-text-on-accent);
@@ -119,6 +120,7 @@
   --font-acme-sans: var(--acme-font-family-sans);
 
   --font-weight-acme-regular: var(--acme-font-weight-regular);
+  --font-weight-acme-medium: var(--acme-font-weight-medium);
   --font-weight-acme-semibold: var(--acme-font-weight-semibold);
   --font-weight-acme-bold: var(--acme-font-weight-bold);
 
@@ -177,4 +179,15 @@
   --spacing-acme-list-row: var(--acme-size-list-row);
   --spacing-acme-bar: var(--acme-size-bar);
   --spacing-acme-button-radius: var(--acme-size-button-radius);
+  --spacing-acme-icon-sm: var(--acme-size-icon-sm);
+  --spacing-acme-icon-md: var(--acme-size-icon-md);
+  --spacing-acme-icon-lg: var(--acme-size-icon-lg);
+  --spacing-acme-avatar-sm: var(--acme-size-avatar-sm);
+  --spacing-acme-avatar-md: var(--acme-size-avatar-md);
+  --spacing-acme-avatar-lg: var(--acme-size-avatar-lg);
+  --spacing-acme-badge: var(--acme-size-badge);
+  --spacing-acme-progress: var(--acme-size-progress);
+  --spacing-acme-spinner-sm: var(--acme-size-spinner-sm);
+  --spacing-acme-spinner-md: var(--acme-size-spinner-md);
+  --spacing-acme-spinner-lg: var(--acme-size-spinner-lg);
 }

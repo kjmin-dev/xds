@@ -1,5 +1,7 @@
 package acme.ui
 
+import acme.tokens.Shadow
+import acme.tokens.Border
 import acme.tokens.Radius
 import acme.tokens.Space
 import acme.tokens.Typography
@@ -25,7 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 // The gap between the track's edge and the segments.
-private val Inset = 2.dp
+private val Inset = Space.s0_5
 
 /**
  * A choice of one among a few, all visible at once: a view mode, a period. Each option is a
@@ -64,12 +66,13 @@ fun <T> SegmentedControl(
                     .fillMaxHeight()
                     .focusRing(segment)
                     .then(
-                        // Outlined as well as filled: the fill alone is too close to the track
-                        // to tell which segment is chosen.
+                        // Raised: a hairline and a faint shadow set the chosen segment apart
+                        // from the track, together with its darker label.
                         if (isSelected) {
                             Modifier
+                                .shadow(Shadow.subtle, segment)
                                 .background(colors.segmentedSelectedBackground, segment)
-                                .border(1.dp, colors.segmentedSelectedBorder, segment)
+                                .border(Border.widthThin, colors.segmentedSelectedBorder, segment)
                         } else {
                             Modifier
                         },

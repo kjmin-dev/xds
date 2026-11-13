@@ -1,4 +1,4 @@
-import { border, radius, shadow, typography } from "@acme/tokens";
+import { border, radius, shadow, space, typography } from "@acme/tokens";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { control, useColors } from "./theme.ts";
@@ -16,7 +16,7 @@ export type TabBarProps<Key extends string> = {
   onChange: (key: Key) => void;
 };
 
-const INSET = 4;
+const INSET = space[1];
 
 /**
  * The bar that switches between the top-level places of an app: three to five of them. It is
@@ -78,12 +78,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 2,
+    gap: space["0_5"],
     borderRadius: radius.full,
   },
   icon: {
-    width: 24,
-    height: 24,
+    width: control.iconLg,
+    height: control.iconLg,
     alignItems: "center",
     justifyContent: "center",
   },

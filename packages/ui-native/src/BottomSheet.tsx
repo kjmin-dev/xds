@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useReducedMotion } from "./motion.ts";
 import { Text } from "./Text.tsx";
 import { useColors } from "./theme.ts";
 
@@ -37,6 +38,7 @@ export function BottomSheet({
   children,
 }: BottomSheetProps) {
   const colors = useColors();
+  const reduced = useReducedMotion();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   // 0 is fully open, 1 fully off screen. The modal stays mounted until the way out has played.
@@ -49,13 +51,14 @@ export function BottomSheet({
     const [x1, y1, x2, y2] = open ? motion.easing.enter : motion.easing.exit;
     Animated.timing(progress, {
       toValue: open ? 0 : 1,
-      duration: motion.duration.slow,
+      // With less motion asked for, the sheet appears in place instead of sliding.
+      duration: reduced ? 0 : motion.duration.slow,
       easing: Easing.bezier(x1, y1, x2, y2),
       useNativeDriver: true,
     }).start(({ finished }) => {
       if (finished && !open) setMounted(false);
     });
-  }, [open, progress]);
+  }, [open, progress, reduced]);
 
   const drag = useRef(new Animated.Value(0)).current;
   const pan = useRef(

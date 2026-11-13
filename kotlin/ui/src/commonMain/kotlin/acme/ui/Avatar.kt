@@ -26,10 +26,11 @@ fun Avatar(
     size: AvatarSize = AvatarSize.Md,
 ) {
     val colors = LocalColors.current
+    val sizes = LocalSizes.current
     val diameter = when (size) {
-        AvatarSize.Sm -> 24.dp
-        AvatarSize.Md -> 32.dp
-        AvatarSize.Lg -> 40.dp
+        AvatarSize.Sm -> sizes.avatarSm
+        AvatarSize.Md -> sizes.avatarMd
+        AvatarSize.Lg -> sizes.avatarLg
     }
     val style = when (size) {
         AvatarSize.Sm -> Typography.footnote

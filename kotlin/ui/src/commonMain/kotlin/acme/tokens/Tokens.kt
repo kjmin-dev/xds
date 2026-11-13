@@ -27,6 +27,8 @@ interface Colors {
     val textPrimary: Color
     /** Supporting text. Still readable: 4.5:1 on every background. */
     val textSecondary: Color
+    /** Placeholders, timestamps and marks such as chevrons. 4.5:1 on the page and on a surface; not for raised surfaces. */
+    val textTertiary: Color
     /** Text of a disabled control. Exempt from contrast rules, and meant to look unavailable. */
     val textDisabled: Color
     /** Links and accent-colored text on a neutral background. */
@@ -91,7 +93,7 @@ interface Colors {
     val fieldBorderFocus: Color
     val fieldBorderInvalid: Color
     val fieldText: Color
-    /** Placeholder text is text: it meets 4.5:1 like any other. */
+    /** Placeholder text is text, so it meets 4.5:1, but it is lighter than a value so the two are not confused. */
     val fieldPlaceholder: Color
     val badgeNeutralBackground: Color
     val badgeNeutralText: Color
@@ -127,7 +129,7 @@ interface Colors {
     val segmentedTrack: Color
     val segmentedText: Color
     val segmentedSelectedBackground: Color
-    /** The selected segment is outlined: its fill alone is too close to the track to tell which one is chosen. */
+    /** A hairline around the selected segment. Together with a faint shadow and the darker label it sets the segment apart from the track. */
     val segmentedSelectedBorder: Color
     val segmentedSelectedText: Color
     val avatarBackground: Color
@@ -162,6 +164,7 @@ interface Colors {
         "background-disabled" to backgroundDisabled,
         "text-primary" to textPrimary,
         "text-secondary" to textSecondary,
+        "text-tertiary" to textTertiary,
         "text-disabled" to textDisabled,
         "text-accent" to textAccent,
         "text-on-accent" to textOnAccent,
@@ -274,6 +277,7 @@ object LightColors : Colors {
     override val backgroundDisabled = Color(0xFFECECF0)
     override val textPrimary = Color(0xFF18181C)
     override val textSecondary = Color(0xFF5C5C66)
+    override val textTertiary = Color(0xFF6E6E79)
     override val textDisabled = Color(0xFFA9A9B4)
     override val textAccent = Color(0xFF4F46E5)
     override val textOnAccent = Color(0xFFFFFFFF)
@@ -323,7 +327,7 @@ object LightColors : Colors {
     override val fieldBorderFocus = Color(0xFF4F46E5)
     override val fieldBorderInvalid = Color(0xFFB42318)
     override val fieldText = Color(0xFF18181C)
-    override val fieldPlaceholder = Color(0xFF5C5C66)
+    override val fieldPlaceholder = Color(0xFF6E6E79)
     override val badgeNeutralBackground = Color(0xFFECECF0)
     override val badgeNeutralText = Color(0xFF5C5C66)
     override val badgeAccentBackground = Color(0xFFEEF2FF)
@@ -356,7 +360,7 @@ object LightColors : Colors {
     override val segmentedTrack = Color(0xFFECECF0)
     override val segmentedText = Color(0xFF5C5C66)
     override val segmentedSelectedBackground = Color(0xFFFFFFFF)
-    override val segmentedSelectedBorder = Color(0xFF84848F)
+    override val segmentedSelectedBorder = Color(0xFFC9C9D1)
     override val segmentedSelectedText = Color(0xFF18181C)
     override val avatarBackground = Color(0xFFEEF2FF)
     override val avatarText = Color(0xFF4F46E5)
@@ -385,6 +389,7 @@ object DarkColors : Colors {
     override val backgroundDisabled = Color(0xFF2C2C33)
     override val textPrimary = Color(0xFFF5F5F7)
     override val textSecondary = Color(0xFFA9A9B4)
+    override val textTertiary = Color(0xFF84848F)
     override val textDisabled = Color(0xFF5C5C66)
     override val textAccent = Color(0xFFA5B4FC)
     override val textOnAccent = Color(0xFFFFFFFF)
@@ -434,7 +439,7 @@ object DarkColors : Colors {
     override val fieldBorderFocus = Color(0xFF818CF8)
     override val fieldBorderInvalid = Color(0xFFF97066)
     override val fieldText = Color(0xFFF5F5F7)
-    override val fieldPlaceholder = Color(0xFFA9A9B4)
+    override val fieldPlaceholder = Color(0xFF84848F)
     override val badgeNeutralBackground = Color(0xFF2C2C33)
     override val badgeNeutralText = Color(0xFFA9A9B4)
     override val badgeAccentBackground = Color(0xFF1E1B4B)
@@ -467,7 +472,7 @@ object DarkColors : Colors {
     override val segmentedTrack = Color(0xFF2C2C33)
     override val segmentedText = Color(0xFFA9A9B4)
     override val segmentedSelectedBackground = Color(0xFF222228)
-    override val segmentedSelectedBorder = Color(0xFF84848F)
+    override val segmentedSelectedBorder = Color(0xFF44444C)
     override val segmentedSelectedText = Color(0xFFF5F5F7)
     override val avatarBackground = Color(0xFF1E1B4B)
     override val avatarText = Color(0xFFA5B4FC)
@@ -493,9 +498,15 @@ object Space {
     val s2: Dp = 8.dp
     val s3: Dp = 12.dp
     val s4: Dp = 16.dp
+    val s5: Dp = 20.dp
     val s6: Dp = 24.dp
     val s8: Dp = 32.dp
+    val s10: Dp = 40.dp
     val s12: Dp = 48.dp
+    val s16: Dp = 64.dp
+    val s0_5: Dp = 2.dp
+    val s1_5: Dp = 6.dp
+    val s2_5: Dp = 10.dp
 }
 
 object Radius {
@@ -525,8 +536,8 @@ object Focus {
 }
 
 object Font {
-    /** Pretendard covers Hangul, Latin and Kana with matching metrics. The rest are the system fonts it falls back to. */
-    val familySans: List<String> = listOf("Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "system-ui", "sans-serif")
+    /** Pretendard covers Hangul, Latin and Kana with matching metrics. Where it is not loaded, Latin text falls to the system's own font and Hangul to the system's Korean font, in that order. */
+    val familySans: List<String> = listOf("Pretendard Variable", "Pretendard", "-apple-system", "BlinkMacSystemFont", "system-ui", "Roboto", "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "sans-serif")
     /** The smallest size Hangul stays legible at. */
     val sizeXs: TextUnit = 12.sp
     val sizeSm: TextUnit = 14.sp
@@ -536,6 +547,8 @@ object Font {
     val sizeXl: TextUnit = 22.sp
     val size2xl: TextUnit = 28.sp
     val weightRegular: FontWeight = FontWeight(400)
+    /** Labels on controls: heavier than body text without shouting. */
+    val weightMedium: FontWeight = FontWeight(500)
     val weightSemibold: FontWeight = FontWeight(600)
     val weightBold: FontWeight = FontWeight(700)
     /** Large type and single-line labels. */
@@ -558,11 +571,11 @@ object Typography {
     /** Emphasis inside running text. */
     val bodyStrong: TextStyle = TextStyle(fontSize = 16.sp, lineHeight = 24.sp, fontWeight = FontWeight(600), letterSpacing = 0.sp)
     /** Button labels and field labels. */
-    val label: TextStyle = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight(600), letterSpacing = 0.sp)
+    val label: TextStyle = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight(500), letterSpacing = 0.sp)
     /** Descriptions, hints and secondary lines. */
     val detail: TextStyle = TextStyle(fontSize = 14.sp, lineHeight = 21.sp, fontWeight = FontWeight(400), letterSpacing = 0.sp)
     /** Badges and timestamps. */
-    val footnote: TextStyle = TextStyle(fontSize = 12.sp, lineHeight = 17.sp, fontWeight = FontWeight(600), letterSpacing = 0.sp)
+    val footnote: TextStyle = TextStyle(fontSize = 12.sp, lineHeight = 17.sp, fontWeight = FontWeight(500), letterSpacing = 0.sp)
 }
 
 object Motion {
@@ -580,6 +593,10 @@ object Motion {
     val easingExit: Easing = CubicBezierEasing(0.3f, 0.0f, 1.0f, 1.0f)
     /** How far a button shrinks while it is pressed. Feedback that does not depend on color. */
     val pressScale: Float = 0.97f
+    val springDefaultStiffness: Float = 700.0f
+    val springDefaultDamping: Float = 0.9f
+    val springFastStiffness: Float = 1400.0f
+    val springFastDamping: Float = 0.9f
 }
 
 object Shadow {
@@ -608,6 +625,21 @@ class Sizes(
     val bar: Dp,
     /** Buttons are rounded rectangles where a pointer is used. */
     val buttonRadius: Dp,
+    val iconSm: Dp,
+    /** Icons beside text. */
+    val iconMd: Dp,
+    /** Icons that stand alone: tab bars, top bars. */
+    val iconLg: Dp,
+    val avatarSm: Dp,
+    val avatarMd: Dp,
+    val avatarLg: Dp,
+    /** The height of a badge. */
+    val badge: Dp,
+    /** The thickness of a progress bar. */
+    val progress: Dp,
+    val spinnerSm: Dp,
+    val spinnerMd: Dp,
+    val spinnerLg: Dp,
 )
 
 val PointerSizes = Sizes(
@@ -621,6 +653,17 @@ val PointerSizes = Sizes(
     listRow = 40.dp,
     bar = 48.dp,
     buttonRadius = 10.dp,
+    iconSm = 16.dp,
+    iconMd = 20.dp,
+    iconLg = 24.dp,
+    avatarSm = 24.dp,
+    avatarMd = 32.dp,
+    avatarLg = 40.dp,
+    badge = 24.dp,
+    progress = 8.dp,
+    spinnerSm = 16.dp,
+    spinnerMd = 24.dp,
+    spinnerLg = 32.dp,
 )
 
 val TouchSizes = Sizes(
@@ -634,4 +677,15 @@ val TouchSizes = Sizes(
     listRow = 56.dp,
     bar = 56.dp,
     buttonRadius = 9999.dp,
+    iconSm = 16.dp,
+    iconMd = 20.dp,
+    iconLg = 24.dp,
+    avatarSm = 24.dp,
+    avatarMd = 32.dp,
+    avatarLg = 40.dp,
+    badge = 24.dp,
+    progress = 8.dp,
+    spinnerSm = 16.dp,
+    spinnerMd = 24.dp,
+    spinnerLg = 32.dp,
 )

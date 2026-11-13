@@ -1,9 +1,9 @@
 import { initials } from "./initials.ts";
 
 const SIZE = {
-  sm: "size-6 text-acme-footnote",
-  md: "size-8 text-acme-label",
-  lg: "size-10 text-acme-body-strong",
+  sm: "size-acme-avatar-sm text-acme-footnote",
+  md: "size-acme-avatar-md text-acme-label",
+  lg: "size-acme-avatar-lg text-acme-body-strong",
 } as const;
 
 export type AvatarSize = keyof typeof SIZE;

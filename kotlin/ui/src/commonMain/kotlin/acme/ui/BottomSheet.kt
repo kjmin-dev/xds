@@ -63,14 +63,16 @@ fun BottomSheet(
     // How much of the sheet is off the bottom of the screen: 1 is all of it, 0 is none. One
     // number for sliding in, sliding out and dragging, so each picks up where the last one was.
     val hidden = remember { Animatable(1f) }
+    // With less motion asked for, the sheet appears in place instead of sliding.
+    val slide = if (LocalReducedMotion.current) 0 else Motion.durationSlow
     // The layer outlives `open` by the time the sheet takes to slide out.
     var present by remember { mutableStateOf(false) }
     LaunchedEffect(open) {
         if (open) {
             present = true
-            hidden.animateTo(0f, tween(Motion.durationSlow, easing = Motion.easingEnter))
+            hidden.animateTo(0f, tween(slide, easing = Motion.easingEnter))
         } else if (present) {
-            hidden.animateTo(1f, tween(Motion.durationSlow, easing = Motion.easingExit))
+            hidden.animateTo(1f, tween(slide, easing = Motion.easingExit))
             present = false
         }
     }

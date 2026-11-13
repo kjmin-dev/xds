@@ -46,7 +46,7 @@ Generated files are committed to the repository. CI runs `mise run check:generat
 | A pressable area is at least 24px (2.5.8); touch follows iOS 44pt and Android 48dp | Size tokens are separated by input device. Touch uses 48, satisfying both platform guidelines |
 | A focus indicator is at least 2px thick (2.4.13) | Focus ring width and offset are defined as tokens |
 | People can enlarge text (1.4.4) | Mobile respects the system text size setting, and controls set a minimum height rather than a fixed height |
-| Reduced-motion settings are respected | When reduced motion is active, the spinner pulses slowly instead of rotating and button transitions are disabled |
+| Reduced-motion settings are respected | When reduced motion is active, the spinner pulses slowly instead of rotating, and presses, switches, and sheets change state without animating. The Compose desktop app is the exception, since the JVM cannot read the OS setting |
 
 The three-tier token structure follows the same model used in Material Design 3 (reference, system, component) and GitHub Primer (base, functional, component).
 
@@ -83,7 +83,7 @@ Semantic color groups:
 | Group | Tokens | Use |
 | --- | --- | --- |
 | background | base, surface, raised, disabled | Page backgrounds, cards, floating surfaces, disabled controls |
-| text | primary, secondary, disabled, accent, on-accent, on-danger | Text colors (`on-*` is used for text drawn on a colored fill) |
+| text | primary, secondary, tertiary, disabled, accent, on-accent, on-danger | Text colors (`on-*` is used for text drawn on a colored fill). `tertiary` is used for placeholders, timestamps, and marks such as chevrons; it maintains 4.5:1 contrast on the page and on surfaces, and is not used on raised surfaces |
 | border | default, control, strong, focus | Decorative dividers; outlines on controls already identified by a label; control boundaries that require 3:1 contrast; focus rings |
 | accent | default, hover, pressed, subtle | Primary view actions and selected states |
 | control | default, hover, pressed | Neutral control fills |
@@ -130,16 +130,16 @@ Screens select a typographic role rather than a raw font size. Each role bundles
 | title | 22 / 1.25 / 700 | Section and dialog titles |
 | heading | 18 / 1.4 / 600 | Card titles |
 | body, body-strong | 16 / 1.5 / 400, 600 | Body copy and inline emphasis |
-| label | 14 / 1.4 / 600 | Button and form field labels |
+| label | 14 / 1.4 / 500 | Button and form field labels |
 | detail | 14 / 1.5 / 400 | Helper descriptions and secondary text |
-| footnote | 12 / 1.4 / 600 | Badges and timestamps |
+| footnote | 12 / 1.4 / 500 | Badges and timestamps |
 
 - Body text is set at 16px, preventing iOS Safari from auto-zooming the page when a text input receives focus.
 - The minimum font size is 12px, since Hangul glyphs become indistinct below that size.
 - Body copy uses a 1.5 line height to give Hangul the extra vertical clearance it requires compared to Latin text at the same point size.
 - Korean text wraps at word boundaries via `word-break: keep-all` on the web and `lineBreakStrategyIOS` on iOS.
 
-The font stack lists Pretendard first and falls back to the platform's default Korean system fonts. Because font files are not bundled in this repository, each platform renders with the system font unless the application loads Pretendard itself. To change the typeface, update `font.family.sans` in `base.json`.
+The font stack lists Pretendard first, followed by the system Latin fonts and then the system Korean fonts. This order matters when Pretendard is not loaded: Latin text falls back to the system font rather than the Latin glyphs of a Korean font. Because font files are not bundled in this repository, each platform renders with the system font unless the application loads Pretendard itself. To change the typeface, update `font.family.sans` in `base.json`.
 
 On the web, the Tailwind configuration generates utility classes for typographic roles (such as `text-acme-body`) and omits utilities for raw font sizes.
 
@@ -156,6 +156,11 @@ On the web, the Tailwind configuration generates utility classes for typographic
 | `size.list-row` | 40 | 56 |
 | `size.bar` | 48 | 56 |
 | `size.button-radius` | 10 | capsule |
+| `size.icon.sm`, `md`, `lg` | 16, 20, 24 | 16, 20, 24 |
+| `size.avatar.sm`, `md`, `lg` | 24, 32, 40 | 24, 32, 40 |
+| `size.spinner.sm`, `md`, `lg` | 16, 24, 32 | 16, 24, 32 |
+| `size.badge` | 24 | 24 |
+| `size.progress` | 8 | 8 |
 
 On the web, `@media (pointer: coarse)` switches between the pointer and touch scales. Keying off the input device rather than viewport width avoids common edge cases: a narrow browser window on a laptop is still used with a mouse, and a large tablet is still used with touch. The GPUI desktop app always uses pointer sizes, the React Native app always uses touch sizes, and the Compose client uses touch sizes on Android and iOS and pointer sizes on desktop.
 
@@ -165,13 +170,14 @@ Even when a control is visually smaller than `target-min`, its hit area expands 
 
 | Group | Values | Rule |
 | --- | --- | --- |
-| space | 4, 8, 12, 16, 24, 32, 48 | 4px grid; each token name corresponds to its multiple of 4 |
+| space | 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 40, 48, 64 | 4px grid; each token name corresponds to its multiple of 4. `0-5`, `1-5`, and `2-5` are half steps used inside controls |
 | radius | sm 6, md 10, lg 16, xl 24, full | Inner control elements, standard controls, containers, and floating surfaces detached from screen edges (sheets) |
 | border.width | thin 1, thick 2 | `thick` is reserved for states that cannot rely on color alone |
 | focus | width 2, offset 2 | The 2px offset separates the focus ring from the control's fill |
 | motion.duration | fast 120, normal 200, slow 320 | Press feedback, elements appearing, and large surface transitions |
 | motion.easing | standard, enter, exit | On-screen movement, entering elements, and exiting elements |
 | motion.press-scale | 0.97 | Scale factor applied to a button while pressed |
+| motion.spring | default 700 / 0.9, fast 1400 / 0.9 | Spring stiffness and damping ratio used by React Native and Compose for presses, switches, and touch-driven motion. Web and GPUI use the duration and easing tokens instead |
 | shadow | subtle, raised, overlay | Cards and outlined controls, floating bars and menus, and modal sheets. Because shadows are barely visible in dark mode, dark surfaces rely on lighter background fills to convey elevation |
 
 ### What the build rejects
@@ -198,7 +204,7 @@ Every platform exposes the same component names, variants, sizes, and tones.
 | Divider, Spinner | | A spinner is announced to assistive technologies only when given a label |
 | Switch | checked, label, disabled | Used for settings that take effect immediately. Remains clearly visible when off, with a track that holds 3:1 contrast against the page |
 | Checkbox | checked, label, disabled | Used for selections that are applied later when submitting a form |
-| SegmentedControl | options, value, full width | The active segment is both outlined and filled so selection does not rely on color alone |
+| SegmentedControl | options, value, full width | The active segment is raised: a hairline border, a faint shadow, and a darker label set it apart from the track |
 | Avatar | name. size: sm, md, lg | Displays initials visually while exposing the full name to assistive technologies |
 | ProgressBar | value from 0 to 1, label | Used for operations with known progress; use a Spinner for indeterminate work |
 | ListRow | title, description, leading, trailing, chevron, disabled | Interactive when given an action. Separate adjacent rows with a Divider |

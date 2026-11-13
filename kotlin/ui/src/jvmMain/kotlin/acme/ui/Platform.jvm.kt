@@ -10,6 +10,10 @@ import androidx.compose.ui.window.DialogProperties
 /** A desktop is used with a mouse. */
 actual val platformSizes: Sizes = PointerSizes
 
+// The JVM has no API for the desktop's reduce-motion setting.
+@Composable
+internal actual fun systemReducedMotion(): Boolean = false
+
 @Composable
 internal actual fun SheetWindow(onDismiss: () -> Unit, content: @Composable () -> Unit) {
     Dialog(

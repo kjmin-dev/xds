@@ -54,14 +54,20 @@ const TEXT_STYLES: [(&str, tokens::Typography); 8] = [
     ("footnote", tokens::TYPOGRAPHY_FOOTNOTE),
 ];
 
-const SPACES: [(&str, f32); 7] = [
+const SPACES: [(&str, f32); 13] = [
+    ("0.5", tokens::SPACE_0_5),
     ("1", tokens::SPACE_1),
+    ("1.5", tokens::SPACE_1_5),
     ("2", tokens::SPACE_2),
+    ("2.5", tokens::SPACE_2_5),
     ("3", tokens::SPACE_3),
     ("4", tokens::SPACE_4),
+    ("5", tokens::SPACE_5),
     ("6", tokens::SPACE_6),
     ("8", tokens::SPACE_8),
+    ("10", tokens::SPACE_10),
     ("12", tokens::SPACE_12),
+    ("16", tokens::SPACE_16),
 ];
 
 const RADII: [(&str, f32); 5] = [

@@ -10,6 +10,7 @@
   --acme-color-background-disabled: light-dark(#ececf0, #2c2c33);
   --acme-color-text-primary: light-dark(#18181c, #f5f5f7);
   --acme-color-text-secondary: light-dark(#5c5c66, #a9a9b4);
+  --acme-color-text-tertiary: light-dark(#6e6e79, #84848f);
   --acme-color-text-disabled: light-dark(#a9a9b4, #5c5c66);
   --acme-color-text-accent: light-dark(#4f46e5, #a5b4fc);
   --acme-color-text-on-accent: #ffffff;
@@ -59,7 +60,7 @@
   --acme-color-field-border-focus: light-dark(#4f46e5, #818cf8);
   --acme-color-field-border-invalid: light-dark(#b42318, #f97066);
   --acme-color-field-text: light-dark(#18181c, #f5f5f7);
-  --acme-color-field-placeholder: light-dark(#5c5c66, #a9a9b4);
+  --acme-color-field-placeholder: light-dark(#6e6e79, #84848f);
   --acme-color-badge-neutral-background: light-dark(#ececf0, #2c2c33);
   --acme-color-badge-neutral-text: light-dark(#5c5c66, #a9a9b4);
   --acme-color-badge-accent-background: light-dark(#eef2ff, #1e1b4b);
@@ -92,7 +93,7 @@
   --acme-color-segmented-track: light-dark(#ececf0, #2c2c33);
   --acme-color-segmented-text: light-dark(#5c5c66, #a9a9b4);
   --acme-color-segmented-selected-background: light-dark(#ffffff, #222228);
-  --acme-color-segmented-selected-border: #84848f;
+  --acme-color-segmented-selected-border: light-dark(#c9c9d1, #44444c);
   --acme-color-segmented-selected-text: light-dark(#18181c, #f5f5f7);
   --acme-color-avatar-background: light-dark(#eef2ff, #1e1b4b);
   --acme-color-avatar-text: light-dark(#4f46e5, #a5b4fc);
@@ -116,9 +117,15 @@
   --acme-space-2: 8px;
   --acme-space-3: 12px;
   --acme-space-4: 16px;
+  --acme-space-5: 20px;
   --acme-space-6: 24px;
   --acme-space-8: 32px;
+  --acme-space-10: 40px;
   --acme-space-12: 48px;
+  --acme-space-16: 64px;
+  --acme-space-0-5: 2px;
+  --acme-space-1-5: 6px;
+  --acme-space-2-5: 10px;
   --acme-radius-sm: 6px;
   --acme-radius-md: 10px;
   --acme-radius-lg: 16px;
@@ -128,7 +135,7 @@
   --acme-border-width-thick: 2px;
   --acme-focus-width: 2px;
   --acme-focus-offset: 2px;
-  --acme-font-family-sans: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --acme-font-family-sans: "Pretendard Variable", "Pretendard", "-apple-system", "BlinkMacSystemFont", system-ui, "Roboto", "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
   --acme-font-size-xs: 12px;
   --acme-font-size-sm: 14px;
   --acme-font-size-md: 16px;
@@ -136,6 +143,7 @@
   --acme-font-size-xl: 22px;
   --acme-font-size-2xl: 28px;
   --acme-font-weight-regular: 400;
+  --acme-font-weight-medium: 500;
   --acme-font-weight-semibold: 600;
   --acme-font-weight-bold: 700;
   --acme-font-line-height-tight: 1.25;
@@ -162,7 +170,7 @@
   --acme-typography-body-strong-line-height: 1.5;
   --acme-typography-body-strong-letter-spacing: 0px;
   --acme-typography-label-size: 14px;
-  --acme-typography-label-weight: 600;
+  --acme-typography-label-weight: 500;
   --acme-typography-label-line-height: 1.4;
   --acme-typography-label-letter-spacing: 0px;
   --acme-typography-detail-size: 14px;
@@ -170,7 +178,7 @@
   --acme-typography-detail-line-height: 1.5;
   --acme-typography-detail-letter-spacing: 0px;
   --acme-typography-footnote-size: 12px;
-  --acme-typography-footnote-weight: 600;
+  --acme-typography-footnote-weight: 500;
   --acme-typography-footnote-line-height: 1.4;
   --acme-typography-footnote-letter-spacing: 0px;
   --acme-motion-duration-fast: 120ms;
@@ -180,6 +188,10 @@
   --acme-motion-easing-enter: cubic-bezier(0, 0, 0, 1);
   --acme-motion-easing-exit: cubic-bezier(0.3, 0, 1, 1);
   --acme-motion-press-scale: 0.97;
+  --acme-motion-spring-default-stiffness: 700;
+  --acme-motion-spring-default-damping: 0.9;
+  --acme-motion-spring-fast-stiffness: 1400;
+  --acme-motion-spring-fast-damping: 0.9;
   --acme-shadow-subtle: 0px 1px 2px 0px rgb(0 0 0 / 0.06);
   --acme-shadow-raised: 0px 4px 16px 0px rgb(0 0 0 / 0.12);
   --acme-shadow-overlay: 0px 12px 32px 0px rgb(0 0 0 / 0.35);
@@ -194,6 +206,17 @@
   --acme-size-list-row: 40px;
   --acme-size-bar: 48px;
   --acme-size-button-radius: 10px;
+  --acme-size-icon-sm: 16px;
+  --acme-size-icon-md: 20px;
+  --acme-size-icon-lg: 24px;
+  --acme-size-avatar-sm: 24px;
+  --acme-size-avatar-md: 32px;
+  --acme-size-avatar-lg: 40px;
+  --acme-size-badge: 24px;
+  --acme-size-progress: 8px;
+  --acme-size-spinner-sm: 16px;
+  --acme-size-spinner-md: 24px;
+  --acme-size-spinner-lg: 32px;
 }
 
 /* Fingers need larger controls than a mouse. This asks about the primary input, not the
@@ -210,6 +233,17 @@
     --acme-size-list-row: 56px;
     --acme-size-bar: 56px;
     --acme-size-button-radius: 9999px;
+    --acme-size-icon-sm: 16px;
+    --acme-size-icon-md: 20px;
+    --acme-size-icon-lg: 24px;
+    --acme-size-avatar-sm: 24px;
+    --acme-size-avatar-md: 32px;
+    --acme-size-avatar-lg: 40px;
+    --acme-size-badge: 24px;
+    --acme-size-progress: 8px;
+    --acme-size-spinner-sm: 16px;
+    --acme-size-spinner-md: 24px;
+    --acme-size-spinner-lg: 32px;
   }
 }
 

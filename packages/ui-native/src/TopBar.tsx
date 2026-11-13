@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   chevron: {
     width: 10,
     height: 10,
-    marginLeft: 4,
+    marginStart: space[1],
     borderLeftWidth: 2,
     borderBottomWidth: 2,
     transform: [{ rotate: "45deg" }],

@@ -2,7 +2,7 @@ import { radius, space, typography } from "@acme/tokens";
 import type { ReactNode } from "react";
 import { Text as NativeText, StyleSheet, View } from "react-native";
 import { Text } from "./Text.tsx";
-import { type Colors, useColors } from "./theme.ts";
+import { type Colors, control, useColors } from "./theme.ts";
 
 export type BannerTone = "info" | "success" | "warning" | "danger";
 
@@ -71,8 +71,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
   },
   mark: {
-    width: 20,
-    height: 20,
+    width: control.iconMd,
+    height: control.iconMd,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: radius.full,
@@ -84,6 +84,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    gap: 2,
+    gap: space["0_5"],
   },
 });

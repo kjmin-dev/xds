@@ -87,6 +87,6 @@ fun ListRow(
             if (description != null) Text(description, style = Typography.detail, tone = TextTone.Secondary)
         }
         trailing?.invoke()
-        if (chevron) Chevron(colors.textSecondary, pointsForward = true, modifier = Modifier.size(8.dp, 14.dp))
+        if (chevron) Chevron(colors.textTertiary, pointsForward = true, modifier = Modifier.size(8.dp, 14.dp))
     }
 }

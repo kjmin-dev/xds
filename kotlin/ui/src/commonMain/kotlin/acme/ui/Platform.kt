@@ -8,6 +8,10 @@ import androidx.compose.runtime.Composable
 /** The sizes for the platform's input device: pointer on the desktop, touch on Android and iOS. */
 expect val platformSizes: Sizes
 
+/** Whether the system is set to reduce motion. False where the platform has no such setting to read. */
+@Composable
+internal expect fun systemReducedMotion(): Boolean
+
 /**
  * A layer over the whole window, above everything else in it, for a sheet and its scrim. Back
  * and Escape call [onDismiss]. The layer draws nothing itself: the content fills it.

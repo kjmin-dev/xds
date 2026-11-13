@@ -1,9 +1,9 @@
 import { radius, typography } from "@acme/tokens";
 import { StyleSheet, Text, View } from "react-native";
 import { initials } from "./initials.ts";
-import { useColors } from "./theme.ts";
+import { control, useColors } from "./theme.ts";
 
-const SIZE = { sm: 24, md: 32, lg: 40 } as const;
+const SIZE = { sm: control.avatarSm, md: control.avatarMd, lg: control.avatarLg } as const;
 const TEXT = { sm: typography.footnote, md: typography.label, lg: typography.bodyStrong } as const;
 
 export type AvatarSize = keyof typeof SIZE;

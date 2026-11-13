@@ -80,6 +80,17 @@
           "hex": "#84848f"
         }
       },
+      "550": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.4314,
+            0.4314,
+            0.4745
+          ],
+          "hex": "#6e6e79"
+        }
+      },
       "600": {
         "$value": {
           "colorSpace": "srgb",

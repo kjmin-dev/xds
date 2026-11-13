@@ -1,4 +1,8 @@
-const SIZE = { sm: "size-4", md: "size-6", lg: "size-8" } as const;
+const SIZE = {
+  sm: "size-acme-spinner-sm",
+  md: "size-acme-spinner-md",
+  lg: "size-acme-spinner-lg",
+} as const;
 
 /**
  * Says that something is in progress and how long is unknown. Takes the color of the text around

@@ -86,8 +86,9 @@ private val TextRoles = listOf(
 
 // The generated tokens list the colors but not these, so they are written out here.
 private val Spaces = listOf(
-    "1" to Space.s1, "2" to Space.s2, "3" to Space.s3, "4" to Space.s4,
-    "6" to Space.s6, "8" to Space.s8, "12" to Space.s12,
+    "0.5" to Space.s0_5, "1" to Space.s1, "1.5" to Space.s1_5, "2" to Space.s2, "2.5" to Space.s2_5,
+    "3" to Space.s3, "4" to Space.s4, "5" to Space.s5, "6" to Space.s6, "8" to Space.s8,
+    "10" to Space.s10, "12" to Space.s12, "16" to Space.s16,
 )
 private val Radii = listOf(
     "sm" to Radius.sm, "md" to Radius.md, "lg" to Radius.lg, "xl" to Radius.xl, "full" to Radius.full,

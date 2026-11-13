@@ -1,0 +1,38 @@
+---
+title: xds
+description: 공통 디자인 토큰과 웹·데스크톱·모바일용 컴포넌트 라이브러리, 그리고 원하는 클라이언트만 골라 프로젝트를 구성해 주는 CLI를 포함한 크로스플랫폼 디자인 시스템 템플릿입니다.
+template: splash
+hero:
+  tagline: 하나의 디자인 토큰 세트로 웹, 데스크톱, 모바일에서 동일한 컴포넌트를 사용하고, CLI로 필요한 클라이언트만 골라 프로젝트를 생성하세요.
+  actions:
+    - text: 시작하기
+      link: /ko/getting-started/
+      icon: right-arrow
+    - text: 컴포넌트
+      link: /ko/components/button/
+      variant: minimal
+---
+
+import { Card, CardGrid } from "@astrojs/starlight/components";
+import Demo from "../../../components/Demo.astro";
+
+<Demo name="button" title="Button 예시" />
+
+<CardGrid>
+  <Card title="네 가지 클라이언트에서 동일한 컴포넌트" icon="laptop">
+    웹용 React, 데스크톱용 GPUI, 모바일용 React Native와 Compose Multiplatform을 지원합니다. 모든
+    클라이언트가 같은 이름과 동일한 variant·size·tone 구성을 갖춘 컴포넌트를 제공합니다.
+  </Card>
+  <Card title="명암비를 검증하는 토큰 빌드" icon="approve-check">
+    DTCG 형식의 토큰 파일을 CSS, Tailwind, TypeScript, Rust, Kotlin 코드로 변환합니다. 색상 조합의
+    명암비가 WCAG 기준에 미달하면 빌드가 실패합니다.
+  </Card>
+  <Card title="다섯 가지 기본 컬러 테마" icon="star">
+    `indigo`, `ocean`, `forest`, `sunset`, `plum` 테마를 제공합니다. 모든 테마는 동일한 명암비
+    기준을 유지하며, `xds`를 통해 터미널에서 바로 미리 볼 수 있습니다.
+  </Card>
+  <Card title="사용할 클라이언트만 선택해 구성" icon="rocket">
+    `xds create`는 선택한 클라이언트만 포함해 프로젝트 이름이 적용된 저장소를 생성합니다. 나중에
+    다른 클라이언트가 필요해지면 `xds add`로 추가할 수 있습니다.
+  </Card>
+</CardGrid>

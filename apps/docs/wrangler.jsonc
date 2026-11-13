@@ -1,0 +1,15 @@
+// The documentation site on Cloudflare Workers, as static assets: no Worker script runs, so
+// requests are not counted against the free plan's daily limit.
+{
+  "name": "xds-docs",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+  // To serve the site from a domain of your own, the domain has to be a zone in the same
+  // Cloudflare account. Then uncomment this, with your hostname, and deploy again:
+  //
+  // ,"routes": [{ "pattern": "xds.example.com", "custom_domain": true }]
+}

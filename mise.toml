@@ -44,6 +44,9 @@ mobile = "apps/mobile"
 # @if web-react
 web = "apps/web"
 # @endif
+# @if template
+docs = "apps/docs"
+# @endif
 
 # @endif
 [tools]
@@ -154,6 +157,11 @@ run = [
   "cargo test --package xds",
 ]
 
+[tasks."check:docs"]
+description = "Build the documentation site, which fails on a page whose source is missing"
+depends = ["install"]
+run = "pnpm --filter @acme/docs build"
+
 [tasks."build:cli"]
 description = "Build the xds binary the way a release does, into target/dist/xds"
 run = "cargo build --package xds --profile dist"
@@ -185,6 +193,9 @@ run = [
     # @endif
     # @if kotlin-compose
     "//kotlin:check",
+    # @endif
+    # @if template
+    "check:docs",
     # @endif
     "check:workflows",
   ] },

@@ -1,0 +1,10 @@
+/* The stylesheet of a demo frame: the design system's own, exactly as an app imports it. */
+@import "@acme/ui/styles.css";
+
+@source "../demos";
+
+body {
+  margin: 0;
+  padding: var(--acme-space-6);
+  background-color: var(--acme-color-background-base);
+}

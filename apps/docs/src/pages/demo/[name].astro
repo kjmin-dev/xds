@@ -1,0 +1,34 @@
+---
+// One live example in a page of its own. A component page embeds it in a frame, which keeps
+// the design system's stylesheet (Tailwind's reset included) away from the site's.
+import { DEMO_NAMES, Demo, type DemoName } from "../../demos/index.tsx";
+import "../../styles/demo.css";
+
+export function getStaticPaths() {
+  return DEMO_NAMES.map((name) => ({ params: { name } }));
+}
+
+const name = Astro.params.name as DemoName;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>{name}</title>
+    <script is:inline>
+      // The mode comes from the page that embeds the frame: in the address at first, then in
+      // a message whenever the reader switches it.
+      const apply = (theme) => {
+        if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+      };
+      apply(new URLSearchParams(location.search).get("theme"));
+      addEventListener("message", (event) => apply(event.data?.theme));
+    </script>
+  </head>
+  <body>
+    <Demo name={name} client:load />
+  </body>
+</html>

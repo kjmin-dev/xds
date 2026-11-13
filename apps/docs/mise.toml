@@ -1,0 +1,14 @@
+[tasks.dev]
+description = "Run the documentation site on http://localhost:4321"
+depends = ["//:install"]
+run = "pnpm run dev"
+
+[tasks.build]
+description = "Build the documentation site into dist/"
+depends = ["//:install"]
+run = "pnpm run build"
+
+[tasks.preview]
+description = "Serve the built documentation site"
+depends = ["build"]
+run = "pnpm exec astro preview"

@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "types": ["node"]
+  },
+  "include": ["scripts", "src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["src/pages", "src/content.config.ts"]
+}

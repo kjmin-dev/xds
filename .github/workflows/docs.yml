@@ -1,0 +1,46 @@
+name: Docs
+
+# Deploys the documentation site in apps/docs to Cloudflare Workers, as static assets.
+#
+# It does nothing until it is set up (see the "Hosting this site" page):
+#   - secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID
+#   - variable DOCS_DEPLOY=true to deploy on every push to main; without it, only a manual run
+#     deploys
+#   - variable DOCS_SITE with the site's public address, such as https://xds.example.com
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - apps/docs/**
+      - docs/**
+      - design/**
+      - packages/ui/**
+      - packages/tokens/**
+      - install.sh
+      - .github/workflows/docs.yml
+
+concurrency:
+  group: docs-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy
+    if: github.event_name == 'workflow_dispatch' || vars.DOCS_DEPLOY == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+      - run: mise run check:docs
+        env:
+          DOCS_SITE: ${{ vars.DOCS_SITE }}
+      - uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/docs
+          command: deploy

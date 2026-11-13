@@ -85,6 +85,7 @@ mise run check          # CI가 돌리는 것 전부
 | 토큰 파일 재생성 | `mise run tokens` |
 | 테마 목록 확인 및 적용 | `mise run theme`, `mise run theme ocean` |
 | 소스에서 CLI 실행 | `mise run xds -- list` |
+| 문서 사이트 실행 | `mise run //docs:dev` 실행 후 `http://localhost:4321` 접속 |
 | 전체 코드 포맷 | `mise run fmt` |
 
 GPUI 데스크톱 앱은 macOS에서 빌드됩니다. Compose 앱을 빌드하려면 Android는 Android SDK, iOS는 Xcode가 필요합니다. 자세한 내용은 [kotlin/README.md](kotlin/README.md)(영문)를 참고하세요. 모바일 앱에서는 홈 화면의 버튼을 눌러 디자인 프리뷰를 열 수 있습니다.
@@ -110,6 +111,7 @@ kotlin/                 Compose 컴포넌트와 앱 (별도의 Gradle 빌드)
 apps/web/               React 앱
 apps/desktop/           GPUI 앱
 apps/mobile/            Expo 앱
+apps/docs/              문서 사이트 (프로젝트에는 복사되지 않음)
 cli/                    xds 명령줄 도구
 npm/                    xds 바이너리를 배포하는 npm 패키지
 install.sh              설치 스크립트

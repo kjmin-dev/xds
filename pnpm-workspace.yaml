@@ -1,4 +1,7 @@
 packages:
+  # @if template
+  - apps/docs
+  # @endif
   # @if web-react
   - apps/web
   # @endif

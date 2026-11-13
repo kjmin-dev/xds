@@ -1,0 +1,49 @@
+---
+// Embeds a live example of a web component, in the mode the reader chose for the site.
+interface Props {
+  name: string;
+  title: string;
+}
+const { name, title } = Astro.props;
+---
+
+<demo-frame data-name={name}>
+  <iframe title={title} src={`/demo/${name}/`} loading="lazy"></iframe>
+</demo-frame>
+
+<style>
+  demo-frame {
+    display: block;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: var(--acme-radius-lg);
+    overflow: hidden;
+  }
+  iframe {
+    display: block;
+    width: 100%;
+    height: 8rem;
+    border: 0;
+  }
+</style>
+
+<script>
+  class DemoFrame extends HTMLElement {
+    connectedCallback() {
+      const frame = this.querySelector("iframe");
+      if (!frame) return;
+      const theme = () => document.documentElement.dataset.theme ?? "light";
+      frame.src = `/demo/${this.dataset.name}/?theme=${theme()}`;
+      // Starlight records the mode on the root element; pass each change on to the frame.
+      new MutationObserver(() => frame.contentWindow?.postMessage({ theme: theme() }, "*")).observe(
+        document.documentElement,
+        { attributes: true, attributeFilter: ["data-theme"] },
+      );
+      addEventListener("message", (event) => {
+        if (event.source === frame.contentWindow && typeof event.data?.height === "number") {
+          frame.style.height = `${event.data.height}px`;
+        }
+      });
+    }
+  }
+  customElements.define("demo-frame", DemoFrame);
+</script>

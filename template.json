@@ -3,6 +3,7 @@
   "defaultTheme": "indigo",
   "exclude": [
     "cli",
+    "apps/docs",
     "npm",
     "install.sh",
     "template.json",
@@ -13,6 +14,7 @@
     "docs/images",
     "docs/cli.md",
     ".github/workflows/release.yml",
+    ".github/workflows/docs.yml",
     "Cargo.lock",
     "pnpm-lock.yaml",
     "mise.lock"

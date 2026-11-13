@@ -49,12 +49,16 @@ export const COMPONENTS: Component[] = [
       "Label it with a verb.",
       "A button is a rounded rectangle for pointer input and a capsule for touch. Pressing it also scales it down slightly, so the feedback does not depend on color.",
       "A disabled button is recolored with its own tokens rather than faded. A loading button keeps its label and its colors, because the action was accepted.",
+      "`iconStart` and `iconEnd` draw an icon beside the label, in the label's color. A button with an icon and no label is a square: name it with `aria-label`.",
+      "Giving `selected` makes the button a toggle that reports its state to assistive technology. A selected `secondary` or `ghost` button is tinted and outlined and its `iconStart` is filled, so the state does not depend on color. `primary` and `danger` keep their look.",
     ],
     example: `import { Button } from "@acme/ui";
 
 <Button variant="primary" onPress={save}>Save</Button>
 <Button onPress={cancel}>Cancel</Button>
-<Button variant="primary" loading>Saving</Button>`,
+<Button variant="primary" loading>Saving</Button>
+<Button iconStart="heart" selected={liked} onPress={() => setLiked(!liked)}>Like</Button>
+<Button variant="ghost" iconStart="settings" aria-label="Settings" />`,
     exampleLanguage: "tsx",
     props: [
       {
@@ -67,12 +71,24 @@ export const COMPONENTS: Component[] = [
         type: '"sm" | "md" | "lg"',
         description: "Defaults to `md`. The heights depend on the input device.",
       },
+      {
+        name: "iconStart",
+        type: "IconName",
+        description: "An icon in front of the label. 16 pixels, or 20 in a `lg` button.",
+      },
+      { name: "iconEnd", type: "IconName", description: "An icon after the label." },
+      {
+        name: "selected",
+        type: "boolean",
+        description:
+          "Given at all, the button is a toggle and sets `aria-pressed`. `true` draws a `secondary` or `ghost` button selected.",
+      },
       { name: "disabled", type: "boolean", description: "" },
       {
         name: "loading",
         type: "boolean",
         description:
-          "Shows a spinner and ignores presses. The label stays, so the button keeps its width.",
+          "Shows a spinner and ignores presses. The label stays and the spinner stands where `iconStart` was, so the button keeps its width.",
       },
       {
         name: "fullWidth",
@@ -86,6 +102,11 @@ export const COMPONENTS: Component[] = [
         type: "string",
         description: "Names the button for assistive technology when it has no text.",
       },
+      {
+        name: "children",
+        type: "ReactNode",
+        description: "The label. Leave it out for a button that holds only an icon.",
+      },
     ],
     sources: everywhere("Button", GPUI_COMPONENTS),
     demo: true,
@@ -94,13 +115,16 @@ export const COMPONENTS: Component[] = [
   {
     slug: "text-field",
     name: "TextField",
-    summary: "A labelled single-line text field.",
+    summary: "A labelled text field, of one line or several.",
     guidance: [
       "Always give it a visible label. Placeholder text is not a substitute: it disappears as soon as the person types.",
       "An error replaces the description, turns the border red and makes it thicker.",
       "Clear `error` as soon as the person edits the value. An invalid field blocks its form from being submitted, so an error left in place would block the corrected value too.",
+      "`leading` and `trailing` put an icon, a unit or a small button inside the box. They take the placeholder's color unless they set their own, and the box keeps its height.",
+      "`multiline` makes a text area `rows` lines tall that scrolls beyond that. Slots line up with its first line.",
+      "`maxLength` stops the field at that many characters and counts them under its end edge, on the same line as the description or the error.",
     ],
-    example: `import { TextField } from "@acme/ui";
+    example: `import { Icon, TextField } from "@acme/ui";
 
 <TextField
   label="Email"
@@ -108,7 +132,14 @@ export const COMPONENTS: Component[] = [
   description="We send the sign-in code to this address."
   value={email}
   onChange={setEmail}
-/>`,
+/>
+<TextField
+  label="Search"
+  leading={<Icon name="search" size="sm" />}
+  value={query}
+  onChange={setQuery}
+/>
+<TextField label="Bio" multiline rows={3} maxLength={80} value={bio} onChange={setBio} />`,
     exampleLanguage: "tsx",
     props: [
       { name: "label", type: "string", description: "Required. Always visible." },
@@ -121,6 +152,27 @@ export const COMPONENTS: Component[] = [
       },
       { name: "error", type: "string", description: "What is wrong and how to fix it." },
       { name: "placeholder", type: "string", description: "" },
+      {
+        name: "leading",
+        type: "ReactNode",
+        description: "Inside the box, in front of the text: an icon or a unit.",
+      },
+      {
+        name: "trailing",
+        type: "ReactNode",
+        description: "Inside the box, after the text: an icon, a unit or a small button.",
+      },
+      { name: "multiline", type: "boolean", description: "A text area. `type` does not apply." },
+      {
+        name: "rows",
+        type: "number",
+        description: "The height of a text area in lines. Defaults to 3.",
+      },
+      {
+        name: "maxLength",
+        type: "number",
+        description: "The most characters the field takes. Shows a count such as `12/80`.",
+      },
       { name: "type", type: "HTMLInputTypeAttribute", description: "Defaults to `text`." },
       {
         name: "inputMode",
@@ -174,21 +226,60 @@ export const COMPONENTS: Component[] = [
     summary: "A short status or category.",
     guidance: [
       "The words carry the meaning and the color only reinforces it, so a badge still reads for someone who cannot tell the tones apart.",
-      '`dot` adds a small mark for live states such as "connected".',
+      '`dot` adds a small mark for live states such as "connected", and `icon` a drawing in front of the words.',
+      "`overlay` is for a badge that sits on a picture: translucent black with white text, the same in both color modes.",
+      "For a number of things waiting, use a CountBadge.",
     ],
     example: `import { Badge } from "@acme/ui";
 
-<Badge tone="success" dot>Connected</Badge>`,
+<Badge tone="success" dot>Connected</Badge>
+<Badge tone="warning" icon="clock">Pending</Badge>
+<Badge tone="overlay" icon="play">2:45</Badge>`,
     exampleLanguage: "tsx",
     props: [
       {
         name: "tone",
-        type: '"neutral" | "accent" | "success" | "warning" | "danger"',
+        type: '"neutral" | "accent" | "success" | "warning" | "danger" | "overlay"',
         description: "Defaults to `neutral`.",
       },
       { name: "dot", type: "boolean", description: "" },
+      {
+        name: "icon",
+        type: "IconName",
+        description: "Drawn 12 pixels wide before the label, after the dot when there is one.",
+      },
     ],
     sources: everywhere("Badge", GPUI_COMPONENTS),
+    demo: true,
+    preview: "Badges",
+  },
+  {
+    slug: "count-badge",
+    name: "CountBadge",
+    summary: "A count on an icon, an avatar or a button: unread messages, items in a cart.",
+    guidance: [
+      "Around a child it sits on the child's top end corner, overlapping it, and follows the layout direction. On its own it is laid out inline, as at the end of a list row.",
+      "A count of zero or less draws no badge. A count above `max` reads `99+`.",
+      'Say what is counted with `label`, such as "3 unread notifications". Without it assistive technology reads the number alone.',
+    ],
+    example: `import { CountBadge, Icon } from "@acme/ui";
+
+<CountBadge count={3} label="3 unread notifications">
+  <Icon name="bell" size="lg" />
+</CountBadge>
+<CountBadge count={120} />`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "count", type: "number", description: "Required. Zero or less draws no badge." },
+      { name: "max", type: "number", description: "The largest number shown. Defaults to 99." },
+      { name: "label", type: "string", description: "What a screen reader says." },
+      {
+        name: "children",
+        type: "ReactNode",
+        description: "What the count belongs to. The badge sits on its top end corner.",
+      },
+    ],
+    sources: everywhere("CountBadge", GPUI_COMPONENTS),
     demo: true,
     preview: "Badges",
   },
@@ -199,10 +290,17 @@ export const COMPONENTS: Component[] = [
     guidance: [
       "Each tone has its own mark shape, so the tone does not depend on color.",
       "`warning` and `danger` interrupt a screen reader. `info` and `success` wait their turn.",
+      "`action` adds one small secondary button under the message, for the thing the person can do about it.",
+      "`onDismiss` adds a close control at the top end. The banner does not hide itself: the handler decides what happens to it.",
     ],
     example: `import { Banner } from "@acme/ui";
 
-<Banner tone="danger" title="Could not save">
+<Banner
+  tone="danger"
+  title="Could not save"
+  action={{ label: "Try again", onPress: save }}
+  onDismiss={() => setShown(false)}
+>
   Check your connection and try again.
 </Banner>`,
     exampleLanguage: "tsx",
@@ -213,6 +311,17 @@ export const COMPONENTS: Component[] = [
         description: "Defaults to `info`.",
       },
       { name: "title", type: "string", description: "" },
+      {
+        name: "action",
+        type: "{ label: string; onPress: () => void }",
+        description: "A small secondary button under the message.",
+      },
+      { name: "onDismiss", type: "() => void", description: "Shows a close control." },
+      {
+        name: "dismissLabel",
+        type: "string",
+        description: "What a screen reader says for the close control. Defaults to `Dismiss`.",
+      },
     ],
     sources: everywhere("Banner", GPUI_COMPONENTS),
     demo: true,
@@ -225,18 +334,42 @@ export const COMPONENTS: Component[] = [
     guidance: [
       "A hairline border and a subtle shadow separate it from the page. In dark mode, where shadows barely show, the lighter fill does that.",
       "`flush` removes the padding, for a card that holds a list whose rows run edge to edge.",
+      "`media` puts a picture at the top, edge to edge and clipped to the card's top corners.",
+      "`onPress` makes the whole card one button, with a focus ring and its own hover and pressed fills. Put no other control inside it; it takes no `actions`.",
+      "`selected` replaces the hairline with a thicker accent outline without changing the card's size, so the state does not depend on color. Given at all on a pressable card, it also sets `aria-pressed`.",
     ],
     example: `import { Button, Card } from "@acme/ui";
 
 <Card title="Weekly report" actions={<Button size="sm">Edit</Button>}>
   …
-</Card>`,
+</Card>
+<Card
+  title="Yearly billing"
+  media={<img src={cover} alt="" />}
+  selected={plan === "yearly"}
+  onPress={() => setPlan("yearly")}
+/>`,
     exampleLanguage: "tsx",
     props: [
       { name: "title", type: "string", description: "Rendered as a heading." },
       { name: "description", type: "string", description: "" },
       { name: "actions", type: "ReactNode", description: "Shown across from the title." },
+      {
+        name: "media",
+        type: "ReactNode",
+        description: "At the top of the card, edge to edge above the padding.",
+      },
       { name: "flush", type: "boolean", description: "No padding and no gaps." },
+      {
+        name: "onPress",
+        type: "() => void",
+        description: "Makes the whole card one button. `actions` are not drawn then.",
+      },
+      {
+        name: "selected",
+        type: "boolean",
+        description: "Outlines the card as the current choice.",
+      },
       { name: "className", type: "string", description: "" },
     ],
     sources: everywhere("Card", GPUI_COMPONENTS),
@@ -281,8 +414,7 @@ export const COMPONENTS: Component[] = [
       { name: "size", type: '"sm" | "md" | "lg"', description: "Defaults to `md`." },
       { name: "label", type: "string", description: "What a screen reader says." },
     ],
-    // The desktop client uses GPUI Component's own spinner, inside a loading button.
-    sources: { web: web("Spinner"), reactNative: native("Spinner"), compose: compose("Spinner") },
+    sources: everywhere("Spinner", GPUI_CONTROLS),
     demo: true,
     preview: "Card",
   },
@@ -388,17 +520,69 @@ export const COMPONENTS: Component[] = [
   {
     slug: "avatar",
     name: "Avatar",
-    summary: "Stands for a person or a team by their initials.",
-    guidance: ["Assistive technology gets the full name. The small size has room for one letter."],
+    summary: "Stands for a person or a team by a picture, or by their initials when there is none.",
+    guidance: [
+      "Assistive technology gets the full name, with or without a picture. The small size has room for one letter.",
+      "The initials show while the picture loads, and stay if it fails.",
+      "For several people in the room of one, use an AvatarStack.",
+    ],
     example: `import { Avatar } from "@acme/ui";
 
-<Avatar name="Ada Lovelace" />`,
+<Avatar name="Ada Lovelace" />
+<Avatar name="Ada Lovelace" src={ada.pictureUrl} size="xl" />`,
     exampleLanguage: "tsx",
     props: [
       { name: "name", type: "string", description: "Required." },
-      { name: "size", type: '"sm" | "md" | "lg"', description: "Defaults to `md`." },
+      {
+        name: "src",
+        type: "string",
+        description: "The URL of a picture. It fills the circle, cropped to cover.",
+      },
+      {
+        name: "size",
+        type: '"sm" | "md" | "lg" | "xl"',
+        description: "Defaults to `md`. 24, 32, 40 and 56 pixels.",
+      },
     ],
     sources: everywhere("Avatar", GPUI_CONTROLS),
+    demo: true,
+    preview: "Card",
+  },
+  {
+    slug: "avatar-stack",
+    name: "AvatarStack",
+    summary: "Several people in the room of one: overlapping avatars, and a count of the rest.",
+    guidance: [
+      "Each avatar covers a quarter of the one before it, with a ring in the color of the surface between them, so put the stack on a surface.",
+      "When there are more people than `max`, a last circle counts those that did not fit.",
+      "Assistive technology gets one image named after everyone in it. Give a `label` when the list of names would be too long to listen to.",
+    ],
+    example: `import { AvatarStack } from "@acme/ui";
+
+<AvatarStack
+  people={[
+    { name: "Ada Lovelace", src: ada.pictureUrl },
+    { name: "Grace Hopper" },
+    { name: "Alan Turing" },
+  ]}
+  max={2}
+/>`,
+    exampleLanguage: "tsx",
+    props: [
+      {
+        name: "people",
+        type: "readonly { name: string; src?: string }[]",
+        description: "Required. In the order they are drawn.",
+      },
+      { name: "max", type: "number", description: "How many avatars to draw. Defaults to 4." },
+      { name: "size", type: '"sm" | "md" | "lg" | "xl"', description: "Defaults to `md`." },
+      {
+        name: "label",
+        type: "string",
+        description: "Replaces the list of names that a screen reader says.",
+      },
+    ],
+    sources: everywhere("AvatarStack", GPUI_CONTROLS),
     demo: true,
     preview: "Card",
   },
@@ -473,6 +657,8 @@ export const COMPONENTS: Component[] = [
     guidance: [
       "Separate rows with a Divider, inside a `flush` Card.",
       "`onPress` makes the whole row a button. Do not put another control in `trailing` then.",
+      "`selected` marks the row that is the current choice: tinted, with a heavier title, and reported with `aria-current`.",
+      "`compact` is a shorter row with smaller text, for dense lists such as a sidebar or a menu.",
     ],
     example: `import { Avatar, ListRow } from "@acme/ui";
 
@@ -482,7 +668,8 @@ export const COMPONENTS: Component[] = [
   leading={<Avatar name="Ada Lovelace" />}
   chevron
   onPress={open}
-/>`,
+/>
+<ListRow compact title="Inbox" selected onPress={openInbox} />`,
     exampleLanguage: "tsx",
     props: [
       { name: "title", type: "string", description: "Required." },
@@ -498,6 +685,8 @@ export const COMPONENTS: Component[] = [
         description: "At the far end: a value, a badge or a switch.",
       },
       { name: "chevron", type: "boolean", description: "For a row that leads somewhere else." },
+      { name: "selected", type: "boolean", description: "The row that is the current choice." },
+      { name: "compact", type: "boolean", description: "A shorter row with smaller text." },
       { name: "onPress", type: "() => void", description: "Makes the whole row a button." },
       { name: "disabled", type: "boolean", description: "" },
     ],

@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Avatars load their pictures from the network. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- No icon is set, so the launcher shows Android's default one until the app has its own. -->
     <application
         android:allowBackup="true"

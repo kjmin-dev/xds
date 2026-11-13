@@ -57,6 +57,13 @@
       },
       "$description": "The least height of a row in a list."
     },
+    "list-row-compact": {
+      "$value": {
+        "value": 44,
+        "unit": "px"
+      },
+      "$description": "A row of a menu or a sidebar, where many rows share little room."
+    },
     "bar": {
       "$value": {
         "value": 56,
@@ -125,6 +132,13 @@
           "value": 40,
           "unit": "px"
         }
+      },
+      "xl": {
+        "$value": {
+          "value": 56,
+          "unit": "px"
+        },
+        "$description": "A profile header."
       }
     },
     "badge": {
@@ -133,6 +147,13 @@
         "unit": "px"
       },
       "$description": "The height of a badge."
+    },
+    "count-badge": {
+      "$value": {
+        "value": 20,
+        "unit": "px"
+      },
+      "$description": "The height, and the least width, of a count badge."
     },
     "progress": {
       "$value": {

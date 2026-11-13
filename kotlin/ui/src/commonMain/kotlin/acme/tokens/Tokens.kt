@@ -55,6 +55,10 @@ interface Colors {
     val accentPressed: Color
     /** Tinted background for accent-colored text. */
     val accentSubtle: Color
+    /** The subtle accent fill under a pointer: a selected control that is hovered. */
+    val accentSubtleHover: Color
+    /** The subtle accent fill while pressed. Primary text reads on it; secondary text does not. */
+    val accentSubtlePressed: Color
     /** Fill of a neutral control, such as a secondary button. */
     val controlDefault: Color
     val controlHover: Color
@@ -94,6 +98,12 @@ interface Colors {
     val buttonDangerBackgroundHover: Color
     val buttonDangerBackgroundPressed: Color
     val buttonDangerText: Color
+    /** A button that stays pressed, such as a like or a filter that is on. The tinted fill and the accent outline mark it, so it takes the place of the secondary and ghost looks. */
+    val buttonSelectedBackground: Color
+    val buttonSelectedBackgroundHover: Color
+    val buttonSelectedBackgroundPressed: Color
+    val buttonSelectedBorder: Color
+    val buttonSelectedText: Color
     val buttonDisabledBackground: Color
     val buttonDisabledText: Color
     val fieldBackground: Color
@@ -113,6 +123,12 @@ interface Colors {
     val badgeWarningText: Color
     val badgeDangerBackground: Color
     val badgeDangerText: Color
+    /** A badge on a picture, such as a duration on a thumbnail. */
+    val badgeOverlayBackground: Color
+    val badgeOverlayText: Color
+    /** The count on an icon or an avatar: unread messages, items in a cart. */
+    val badgeCountBackground: Color
+    val badgeCountText: Color
     val bannerSuccessBackground: Color
     val bannerSuccessAccent: Color
     val bannerWarningBackground: Color
@@ -122,6 +138,12 @@ interface Colors {
     val bannerInfoBackground: Color
     val bannerInfoAccent: Color
     val bannerText: Color
+    /** A card that is pressable as a whole. At rest it has the surface background. */
+    val cardBackgroundHover: Color
+    /** Secondary text still has to read on it. */
+    val cardBackgroundPressed: Color
+    /** Drawn thick around a selected card, so the selection shows in the form and not in the color alone. */
+    val cardBorderSelected: Color
     /** Off. It holds 3:1 against the page, so the control is visible before it is on. */
     val switchTrack: Color
     val switchTrackOn: Color
@@ -142,12 +164,21 @@ interface Colors {
     val segmentedSelectedText: Color
     val avatarBackground: Color
     val avatarText: Color
+    /** The gap between the avatars of a stack. The color of the surface the stack sits on. */
+    val avatarRing: Color
+    /** The last place of a stack, which counts the avatars that did not fit. */
+    val avatarOverflowBackground: Color
+    val avatarOverflowText: Color
     val progressTrack: Color
     /** A mark on a neutral track, so it takes the accent text color, which holds 3:1 against the track in both modes. */
     val progressFill: Color
     val listRowBackgroundHover: Color
     /** Secondary text still has to read on it. */
     val listRowBackgroundPressed: Color
+    /** The row that is the current choice: the open page of a sidebar, the picked item of a menu. */
+    val listRowBackgroundSelected: Color
+    /** Also while pressed: secondary text does not read on the pressed step. */
+    val listRowBackgroundSelectedHover: Color
     /** The same as the page: the bar has no edge of its own. */
     val topBarBackground: Color
     val topBarText: Color
@@ -187,6 +218,8 @@ interface Colors {
         "accent-hover" to accentHover,
         "accent-pressed" to accentPressed,
         "accent-subtle" to accentSubtle,
+        "accent-subtle-hover" to accentSubtleHover,
+        "accent-subtle-pressed" to accentSubtlePressed,
         "control-default" to controlDefault,
         "control-hover" to controlHover,
         "control-pressed" to controlPressed,
@@ -219,6 +252,11 @@ interface Colors {
         "button-danger-background-hover" to buttonDangerBackgroundHover,
         "button-danger-background-pressed" to buttonDangerBackgroundPressed,
         "button-danger-text" to buttonDangerText,
+        "button-selected-background" to buttonSelectedBackground,
+        "button-selected-background-hover" to buttonSelectedBackgroundHover,
+        "button-selected-background-pressed" to buttonSelectedBackgroundPressed,
+        "button-selected-border" to buttonSelectedBorder,
+        "button-selected-text" to buttonSelectedText,
         "button-disabled-background" to buttonDisabledBackground,
         "button-disabled-text" to buttonDisabledText,
         "field-background" to fieldBackground,
@@ -237,6 +275,10 @@ interface Colors {
         "badge-warning-text" to badgeWarningText,
         "badge-danger-background" to badgeDangerBackground,
         "badge-danger-text" to badgeDangerText,
+        "badge-overlay-background" to badgeOverlayBackground,
+        "badge-overlay-text" to badgeOverlayText,
+        "badge-count-background" to badgeCountBackground,
+        "badge-count-text" to badgeCountText,
         "banner-success-background" to bannerSuccessBackground,
         "banner-success-accent" to bannerSuccessAccent,
         "banner-warning-background" to bannerWarningBackground,
@@ -246,6 +288,9 @@ interface Colors {
         "banner-info-background" to bannerInfoBackground,
         "banner-info-accent" to bannerInfoAccent,
         "banner-text" to bannerText,
+        "card-background-hover" to cardBackgroundHover,
+        "card-background-pressed" to cardBackgroundPressed,
+        "card-border-selected" to cardBorderSelected,
         "switch-track" to switchTrack,
         "switch-track-on" to switchTrackOn,
         "switch-thumb" to switchThumb,
@@ -263,10 +308,15 @@ interface Colors {
         "segmented-selected-text" to segmentedSelectedText,
         "avatar-background" to avatarBackground,
         "avatar-text" to avatarText,
+        "avatar-ring" to avatarRing,
+        "avatar-overflow-background" to avatarOverflowBackground,
+        "avatar-overflow-text" to avatarOverflowText,
         "progress-track" to progressTrack,
         "progress-fill" to progressFill,
         "list-row-background-hover" to listRowBackgroundHover,
         "list-row-background-pressed" to listRowBackgroundPressed,
+        "list-row-background-selected" to listRowBackgroundSelected,
+        "list-row-background-selected-hover" to listRowBackgroundSelectedHover,
         "top-bar-background" to topBarBackground,
         "top-bar-text" to topBarText,
         "top-bar-action" to topBarAction,
@@ -304,6 +354,8 @@ object LightColors : Colors {
     override val accentHover = Color(0xFF4338CA)
     override val accentPressed = Color(0xFF3730A3)
     override val accentSubtle = Color(0xFFEEF2FF)
+    override val accentSubtleHover = Color(0xFFE0E7FF)
+    override val accentSubtlePressed = Color(0xFFC7D2FE)
     override val controlDefault = Color(0xFFECECF0)
     override val controlHover = Color(0xFFE2E2E8)
     override val controlPressed = Color(0xFFC9C9D1)
@@ -336,6 +388,11 @@ object LightColors : Colors {
     override val buttonDangerBackgroundHover = Color(0xFFB42318)
     override val buttonDangerBackgroundPressed = Color(0xFF912018)
     override val buttonDangerText = Color(0xFFFFFFFF)
+    override val buttonSelectedBackground = Color(0xFFEEF2FF)
+    override val buttonSelectedBackgroundHover = Color(0xFFE0E7FF)
+    override val buttonSelectedBackgroundPressed = Color(0xFFC7D2FE)
+    override val buttonSelectedBorder = Color(0xFF4F46E5)
+    override val buttonSelectedText = Color(0xFF18181C)
     override val buttonDisabledBackground = Color(0xFFECECF0)
     override val buttonDisabledText = Color(0xFFA9A9B4)
     override val fieldBackground = Color(0xFFFFFFFF)
@@ -354,6 +411,10 @@ object LightColors : Colors {
     override val badgeWarningText = Color(0xFFB54708)
     override val badgeDangerBackground = Color(0xFFFEF3F2)
     override val badgeDangerText = Color(0xFFB42318)
+    override val badgeOverlayBackground = Color(0xB8000000)
+    override val badgeOverlayText = Color(0xFFFFFFFF)
+    override val badgeCountBackground = Color(0xFFD92D20)
+    override val badgeCountText = Color(0xFFFFFFFF)
     override val bannerSuccessBackground = Color(0xFFECFDF3)
     override val bannerSuccessAccent = Color(0xFF067647)
     override val bannerWarningBackground = Color(0xFFFFFAEB)
@@ -363,6 +424,9 @@ object LightColors : Colors {
     override val bannerInfoBackground = Color(0xFFEFF8FF)
     override val bannerInfoAccent = Color(0xFF175CD3)
     override val bannerText = Color(0xFF18181C)
+    override val cardBackgroundHover = Color(0xFFECECF0)
+    override val cardBackgroundPressed = Color(0xFFE2E2E8)
+    override val cardBorderSelected = Color(0xFF4F46E5)
     override val switchTrack = Color(0xFF84848F)
     override val switchTrackOn = Color(0xFF4F46E5)
     override val switchThumb = Color(0xFFFFFFFF)
@@ -380,10 +444,15 @@ object LightColors : Colors {
     override val segmentedSelectedText = Color(0xFF18181C)
     override val avatarBackground = Color(0xFFEEF2FF)
     override val avatarText = Color(0xFF4F46E5)
+    override val avatarRing = Color(0xFFFFFFFF)
+    override val avatarOverflowBackground = Color(0xFFECECF0)
+    override val avatarOverflowText = Color(0xFF5C5C66)
     override val progressTrack = Color(0xFFECECF0)
     override val progressFill = Color(0xFF4F46E5)
     override val listRowBackgroundHover = Color(0xFFECECF0)
     override val listRowBackgroundPressed = Color(0xFFE2E2E8)
+    override val listRowBackgroundSelected = Color(0xFFEEF2FF)
+    override val listRowBackgroundSelectedHover = Color(0xFFE0E7FF)
     override val topBarBackground = Color(0xFFF5F5F7)
     override val topBarText = Color(0xFF18181C)
     override val topBarAction = Color(0xFF4F46E5)
@@ -420,6 +489,8 @@ object DarkColors : Colors {
     override val accentHover = Color(0xFF4F46E5)
     override val accentPressed = Color(0xFF4338CA)
     override val accentSubtle = Color(0xFF1E1B4B)
+    override val accentSubtleHover = Color(0xFF312E81)
+    override val accentSubtlePressed = Color(0xFF3730A3)
     override val controlDefault = Color(0xFF2C2C33)
     override val controlHover = Color(0xFF44444C)
     override val controlPressed = Color(0xFF5C5C66)
@@ -452,6 +523,11 @@ object DarkColors : Colors {
     override val buttonDangerBackgroundHover = Color(0xFFB42318)
     override val buttonDangerBackgroundPressed = Color(0xFF912018)
     override val buttonDangerText = Color(0xFFFFFFFF)
+    override val buttonSelectedBackground = Color(0xFF1E1B4B)
+    override val buttonSelectedBackgroundHover = Color(0xFF312E81)
+    override val buttonSelectedBackgroundPressed = Color(0xFF3730A3)
+    override val buttonSelectedBorder = Color(0xFF5B5EF0)
+    override val buttonSelectedText = Color(0xFFF5F5F7)
     override val buttonDisabledBackground = Color(0xFF2C2C33)
     override val buttonDisabledText = Color(0xFF5C5C66)
     override val fieldBackground = Color(0xFF0E0E11)
@@ -470,6 +546,10 @@ object DarkColors : Colors {
     override val badgeWarningText = Color(0xFFFDB022)
     override val badgeDangerBackground = Color(0xFF55160C)
     override val badgeDangerText = Color(0xFFF97066)
+    override val badgeOverlayBackground = Color(0xB8000000)
+    override val badgeOverlayText = Color(0xFFFFFFFF)
+    override val badgeCountBackground = Color(0xFFD92D20)
+    override val badgeCountText = Color(0xFFFFFFFF)
     override val bannerSuccessBackground = Color(0xFF053321)
     override val bannerSuccessAccent = Color(0xFF47CD89)
     override val bannerWarningBackground = Color(0xFF4E1D09)
@@ -479,6 +559,9 @@ object DarkColors : Colors {
     override val bannerInfoBackground = Color(0xFF102A56)
     override val bannerInfoAccent = Color(0xFF53B1FD)
     override val bannerText = Color(0xFFF5F5F7)
+    override val cardBackgroundHover = Color(0xFF222228)
+    override val cardBackgroundPressed = Color(0xFF2C2C33)
+    override val cardBorderSelected = Color(0xFF5B5EF0)
     override val switchTrack = Color(0xFF84848F)
     override val switchTrackOn = Color(0xFF5B5EF0)
     override val switchThumb = Color(0xFFFFFFFF)
@@ -496,10 +579,15 @@ object DarkColors : Colors {
     override val segmentedSelectedText = Color(0xFFF5F5F7)
     override val avatarBackground = Color(0xFF1E1B4B)
     override val avatarText = Color(0xFFA5B4FC)
+    override val avatarRing = Color(0xFF18181C)
+    override val avatarOverflowBackground = Color(0xFF2C2C33)
+    override val avatarOverflowText = Color(0xFFA9A9B4)
     override val progressTrack = Color(0xFF2C2C33)
     override val progressFill = Color(0xFFA5B4FC)
     override val listRowBackgroundHover = Color(0xFF222228)
     override val listRowBackgroundPressed = Color(0xFF2C2C33)
+    override val listRowBackgroundSelected = Color(0xFF1E1B4B)
+    override val listRowBackgroundSelectedHover = Color(0xFF312E81)
     override val topBarBackground = Color(0xFF0E0E11)
     override val topBarText = Color(0xFFF5F5F7)
     override val topBarAction = Color(0xFFA5B4FC)
@@ -641,6 +729,8 @@ class Sizes(
     val checkbox: Dp,
     /** The least height of a row in a list. */
     val listRow: Dp,
+    /** A row of a menu or a sidebar, where many rows share little room. */
+    val listRowCompact: Dp,
     /** Top bars and tab bars. */
     val bar: Dp,
     /** Buttons are rounded rectangles where a pointer is used. */
@@ -657,8 +747,12 @@ class Sizes(
     val avatarSm: Dp,
     val avatarMd: Dp,
     val avatarLg: Dp,
+    /** A profile header. */
+    val avatarXl: Dp,
     /** The height of a badge. */
     val badge: Dp,
+    /** The height, and the least width, of a count badge. */
+    val countBadge: Dp,
     /** The thickness of a progress bar. */
     val progress: Dp,
     val spinnerSm: Dp,
@@ -675,6 +769,7 @@ val PointerSizes = Sizes(
     switchHeight = 20.dp,
     checkbox = 18.dp,
     listRow = 40.dp,
+    listRowCompact = 32.dp,
     bar = 48.dp,
     buttonRadius = 10.dp,
     iconXs = 12.dp,
@@ -685,7 +780,9 @@ val PointerSizes = Sizes(
     avatarSm = 24.dp,
     avatarMd = 32.dp,
     avatarLg = 40.dp,
+    avatarXl = 56.dp,
     badge = 24.dp,
+    countBadge = 18.dp,
     progress = 8.dp,
     spinnerSm = 16.dp,
     spinnerMd = 24.dp,
@@ -701,6 +798,7 @@ val TouchSizes = Sizes(
     switchHeight = 32.dp,
     checkbox = 24.dp,
     listRow = 56.dp,
+    listRowCompact = 44.dp,
     bar = 56.dp,
     buttonRadius = 9999.dp,
     iconXs = 12.dp,
@@ -711,7 +809,9 @@ val TouchSizes = Sizes(
     avatarSm = 24.dp,
     avatarMd = 32.dp,
     avatarLg = 40.dp,
+    avatarXl = 56.dp,
     badge = 24.dp,
+    countBadge = 20.dp,
     progress = 8.dp,
     spinnerSm = 16.dp,
     spinnerMd = 24.dp,

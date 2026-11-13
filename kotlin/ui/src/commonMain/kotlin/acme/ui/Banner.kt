@@ -1,5 +1,6 @@
 package acme.ui
 
+import acme.tokens.IconName
 import acme.tokens.Radius
 import acme.tokens.Space
 import acme.tokens.Typography
@@ -25,13 +26,24 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 
 enum class BannerTone { Info, Success, Warning, Danger }
+
+/** What a [Banner] offers to do about its message: the button's label and what it does. */
+class BannerAction(val label: String, val onClick: () -> Unit)
 
 /**
  * A message about the whole screen or a section of it. Problems (`Warning`, `Danger`) are
  * announced by the screen reader as soon as they appear.
+ *
+ * @param action Drawn as a button under the message.
+ * @param onDismiss Shows a close button and is called when it is pressed. The banner does not
+ *   hide itself: stop composing it.
+ * @param dismissLabel Names the close button for a screen reader.
  */
 @Composable
 fun Banner(
@@ -39,6 +51,9 @@ fun Banner(
     modifier: Modifier = Modifier,
     tone: BannerTone = BannerTone.Info,
     title: String? = null,
+    action: BannerAction? = null,
+    onDismiss: (() -> Unit)? = null,
+    dismissLabel: String = "Dismiss",
 ) {
     val colors = LocalColors.current
     val (background, accent) = when (tone) {
@@ -65,6 +80,38 @@ fun Banner(
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.s0_5)) {
             if (title != null) BasicText(title, style = Typography.label.resolved(colors.bannerText))
             BasicText(message, style = Typography.detail.resolved(colors.bannerText))
+            if (action != null) {
+                Button(
+                    label = action.label,
+                    onClick = action.onClick,
+                    // Set apart from the message, which the lines of text are not from each other.
+                    modifier = Modifier.padding(top = Space.s2),
+                    variant = ButtonVariant.Secondary,
+                    size = ControlSize.Sm,
+                )
+            }
+        }
+        if (onDismiss != null) {
+            val sizes = LocalSizes.current
+            // The control is as large as the minimum target, which on touch is more than the
+            // banner's padding leaves room for. So it reaches into the padding, at the top, the
+            // bottom and the end, until its cross is level with the mark at the start or it
+            // meets the banner's edge. A one-line banner then stays as low as it was.
+            val control = max(sizes.controlSm, sizes.targetMin)
+            val margin = (Space.s3 + sizes.iconMd / 2 - control / 2).coerceAtLeast(0.dp)
+            val reach = Space.s3 - margin
+            IconOnlyButton(
+                icon = IconName.X,
+                label = dismissLabel,
+                onClick = onDismiss,
+                modifier = Modifier.layout { measurable, constraints ->
+                    val button = measurable.measure(constraints)
+                    val by = reach.roundToPx()
+                    layout(button.width - by, (button.height - 2 * by).coerceAtLeast(0)) {
+                        button.placeRelative(0, -by)
+                    }
+                },
+            )
         }
     }
 }

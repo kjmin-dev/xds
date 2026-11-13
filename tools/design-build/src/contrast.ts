@@ -48,6 +48,9 @@ const PAIRS: Pair[] = [
   // Tertiary text is for the page and for surfaces on it, not for raised surfaces.
   ...on("text.tertiary", ["background.base", "background.surface"], TEXT),
   ...on("text.accent", ["accent.subtle"], TEXT),
+  ...on("text.primary", ["accent.subtle", "accent.subtle-hover", "accent.subtle-pressed"], TEXT),
+  // Secondary text reads on a selected surface at rest and under a pointer, not while pressed.
+  ...on("text.secondary", ["accent.subtle", "accent.subtle-hover"], TEXT),
   ...on("text.on-inverse", ["background.inverse"], TEXT),
   // The overlay sits on pictures, so it has to carry its text over the lightest and the darkest.
   {
@@ -78,6 +81,15 @@ const PAIRS: Pair[] = [
     [...SURFACES, "button.ghost.background-hover", "button.ghost.background-pressed"],
     TEXT,
   ),
+  ...on(
+    "button.selected.text",
+    ["background", "background-hover", "background-pressed"].map(
+      (state) => `button.selected.${state}`,
+    ),
+    TEXT,
+  ),
+  // The outline is what tells a selected button from a tinted one without relying on hue.
+  ...on("button.selected.border", ["button.selected.background", ...SURFACES], PART),
   ...on("field.text", ["field.background"], TEXT),
   ...on("field.placeholder", ["field.background"], TEXT),
   ...["border", "border-focus", "border-invalid"].flatMap((border) =>
@@ -86,6 +98,13 @@ const PAIRS: Pair[] = [
   ...["neutral", "accent", "success", "warning", "danger"].flatMap((tone) =>
     on(`badge.${tone}.text`, [`badge.${tone}.background`], TEXT),
   ),
+  {
+    foreground: "badge.overlay.text",
+    background: "badge.overlay.background",
+    minimum: TEXT,
+    over: [WHITE, BLACK],
+  },
+  ...on("badge.count.text", ["badge.count.background"], TEXT),
   ...STATUSES.flatMap((tone) => [
     ...on("banner.text", [`banner.${tone}.background`], TEXT),
     ...on(`banner.${tone}.accent`, [`banner.${tone}.background`], PART),
@@ -101,9 +120,28 @@ const PAIRS: Pair[] = [
   ...on("segmented.text", ["segmented.track"], TEXT),
   ...on("segmented.selected-text", ["segmented.selected-background"], TEXT),
   ...on("avatar.text", ["avatar.background"], TEXT),
+  ...on("avatar.overflow-text", ["avatar.overflow-background"], TEXT),
   ...on("progress.fill", ["progress.track"], PART),
   ...["text.primary", "text.secondary"].flatMap((text) =>
-    on(text, ["list-row.background-hover", "list-row.background-pressed"], TEXT),
+    on(
+      text,
+      [
+        "list-row.background-hover",
+        "list-row.background-pressed",
+        "list-row.background-selected",
+        "list-row.background-selected-hover",
+        "card.background-hover",
+        "card.background-pressed",
+      ],
+      TEXT,
+    ),
+  ),
+  ...on("card.border-selected", SURFACES, PART),
+  // A banner's dismiss control is a ghost button, and its action a secondary one, on the tint.
+  ...on(
+    "button.ghost.text",
+    STATUSES.map((tone) => `banner.${tone}.background`),
+    TEXT,
   ),
   ...on("top-bar.text", ["top-bar.background"], TEXT),
   ...on("top-bar.action", ["top-bar.background"], TEXT),

@@ -15,13 +15,28 @@ import androidx.compose.ui.ImageComposeScene
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.Density
+import coil3.ImageLoader
+import coil3.PlatformContext
+import coil3.SingletonImageLoader
+import coil3.annotation.DelicateCoilApi
 import java.io.File
+import kotlin.coroutines.EmptyCoroutineContext
 import org.jetbrains.skia.EncodedImageFormat
 
 // Two pixels per dp, like most phones and laptops, so the images are sharp when zoomed.
 private const val Scale = 2f
 
+// Replacing the image loader is "delicate" because it must happen before anything asks for one.
+// Nothing has here: it is the first thing the program does.
+@OptIn(DelicateCoilApi::class)
 fun main(args: Array<String>) {
+    // Coil loads a picture on other threads, and a frame drawn here does not wait for them.
+    // Without a context of its own every step runs where it is asked for, so the pictures the
+    // preview embeds are decoded by the time the frame that shows them is drawn.
+    SingletonImageLoader.setUnsafe(
+        ImageLoader.Builder(PlatformContext.INSTANCE).coroutineContext(EmptyCoroutineContext).build(),
+    )
+
     val directory = File(args.firstOrNull() ?: "build/preview").apply { mkdirs() }
     fun page(name: String, width: Int, mode: Mode, sizes: Sizes) {
         val file = File(directory, name)
@@ -33,6 +48,7 @@ fun main(args: Array<String>) {
     page("preview-touch-light.png", 390, Mode.Light, TouchSizes)
     page("preview-touch-dark.png", 390, Mode.Dark, TouchSizes)
     page("preview-pointer-light.png", 900, Mode.Light, PointerSizes)
+    page("preview-pointer-dark.png", 900, Mode.Dark, PointerSizes)
 
     // The sheet covers a window, so these are the size of a phone screen rather than of the page.
     for (mode in Mode.entries) {

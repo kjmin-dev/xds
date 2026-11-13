@@ -88,6 +88,14 @@
       "subtle": {
         "$value": "{palette.accent.950}",
         "$description": "Tinted background for accent-colored text."
+      },
+      "subtle-hover": {
+        "$value": "{palette.accent.900}",
+        "$description": "The subtle accent fill under a pointer: a selected control that is hovered."
+      },
+      "subtle-pressed": {
+        "$value": "{palette.accent.800}",
+        "$description": "The subtle accent fill while pressed. Primary text reads on it; secondary text does not."
       }
     },
     "control": {
@@ -226,6 +234,24 @@
           "$value": "{color.text.on-danger}"
         }
       },
+      "selected": {
+        "background": {
+          "$value": "{color.accent.subtle}",
+          "$description": "A button that stays pressed, such as a like or a filter that is on. The tinted fill and the accent outline mark it, so it takes the place of the secondary and ghost looks."
+        },
+        "background-hover": {
+          "$value": "{color.accent.subtle-hover}"
+        },
+        "background-pressed": {
+          "$value": "{color.accent.subtle-pressed}"
+        },
+        "border": {
+          "$value": "{color.accent.default}"
+        },
+        "text": {
+          "$value": "{color.text.primary}"
+        }
+      },
       "disabled": {
         "background": {
           "$value": "{color.background.disabled}"
@@ -296,6 +322,24 @@
         "text": {
           "$value": "{color.status.danger}"
         }
+      },
+      "overlay": {
+        "background": {
+          "$value": "{color.overlay.background}",
+          "$description": "A badge on a picture, such as a duration on a thumbnail."
+        },
+        "text": {
+          "$value": "{color.overlay.text}"
+        }
+      },
+      "count": {
+        "background": {
+          "$value": "{color.danger.default}",
+          "$description": "The count on an icon or an avatar: unread messages, items in a cart."
+        },
+        "text": {
+          "$value": "{color.text.on-danger}"
+        }
       }
     },
     "banner": {
@@ -333,6 +377,20 @@
       },
       "text": {
         "$value": "{color.text.primary}"
+      }
+    },
+    "card": {
+      "background-hover": {
+        "$value": "{color.background.raised}",
+        "$description": "A card that is pressable as a whole. At rest it has the surface background."
+      },
+      "background-pressed": {
+        "$value": "{color.control.default}",
+        "$description": "Secondary text still has to read on it."
+      },
+      "border-selected": {
+        "$value": "{color.accent.default}",
+        "$description": "Drawn thick around a selected card, so the selection shows in the form and not in the color alone."
       }
     },
     "switch": {
@@ -395,6 +453,17 @@
       },
       "text": {
         "$value": "{color.text.accent}"
+      },
+      "ring": {
+        "$value": "{color.background.surface}",
+        "$description": "The gap between the avatars of a stack. The color of the surface the stack sits on."
+      },
+      "overflow-background": {
+        "$value": "{color.control.default}",
+        "$description": "The last place of a stack, which counts the avatars that did not fit."
+      },
+      "overflow-text": {
+        "$value": "{color.text.secondary}"
       }
     },
     "progress": {
@@ -413,6 +482,14 @@
       "background-pressed": {
         "$value": "{color.control.default}",
         "$description": "Secondary text still has to read on it."
+      },
+      "background-selected": {
+        "$value": "{color.accent.subtle}",
+        "$description": "The row that is the current choice: the open page of a sidebar, the picked item of a menu."
+      },
+      "background-selected-hover": {
+        "$value": "{color.accent.subtle-hover}",
+        "$description": "Also while pressed: secondary text does not read on the pressed step."
       }
     },
     "top-bar": {

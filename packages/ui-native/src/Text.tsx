@@ -1,7 +1,7 @@
 import { typography } from "@acme/tokens";
-import type { ReactNode } from "react";
+import { type ReactNode, useContext } from "react";
 import { Text as NativeText, type StyleProp, type TextStyle } from "react-native";
-import { type Colors, useColors } from "./theme.ts";
+import { type Colors, ContentColor, useColors } from "./theme.ts";
 
 export type TextVariant =
   | "display"
@@ -55,6 +55,7 @@ function toneColor(colors: Colors, tone: TextTone): string | undefined {
 export type TextProps = {
   /** What the text is for. Sets size, weight, line height and tracking together. */
   variant?: TextVariant;
+  /** Defaults to `primary`, or to the color of the slot the text is in. */
   tone?: TextTone;
   /** Marks the text as a heading for screen readers. */
   heading?: boolean;
@@ -69,13 +70,15 @@ export type TextProps = {
  */
 export function Text({
   variant = "body",
-  tone = "primary",
+  tone,
   heading = false,
   numberOfLines,
   style,
   children,
 }: TextProps) {
-  const color = toneColor(useColors(), tone);
+  const colors = useColors();
+  const inherited = useContext(ContentColor);
+  const color = tone ? toneColor(colors, tone) : (inherited ?? colors.textPrimary);
   return (
     <NativeText
       {...(heading ? { accessibilityRole: "header" as const } : {})}

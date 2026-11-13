@@ -77,7 +77,7 @@ JSON 출력 형식과 종료 코드에 대한 자세한 내용은 [CLI 문서](d
 - `design/tokens`에는 DTCG 형식의 디자인 토큰이 들어 있습니다. 컬러 팔레트, 라이트·다크 모드 시맨틱 컬러, 컴포넌트 전용 컬러, 타이포그래피 역할, 여백, 모서리 반경, 모션, 그림자, 포인터 및 터치 입력 환경별 컨트롤 크기를 정의합니다.
 - `design/themes`에는 `indigo`(기본값), `ocean`, `forest`, `sunset`, `plum` 다섯 가지 컬러 테마가 있습니다. 각 테마는 강조색(accent) 단계와 무채색(neutral) 단계로 구성되며, 모든 테마가 전체 명암비 검사를 통과합니다.
 - `tools/design-build`는 토큰을 CSS 커스텀 프로퍼티, Tailwind 테마, TypeScript 상수, Rust 상수, Compose 값으로 컴파일합니다. 외부 의존성 없이 Node만으로 실행되며, 색상 조합의 명암비가 WCAG 기준에 미달하면 빌드가 실패합니다.
-- 모든 클라이언트는 동일한 이름과 옵션을 가진 컴포넌트를 구현합니다: Button, TextField, Text, Badge, Banner, Card, Divider, Spinner, Switch, Checkbox, SegmentedControl, Avatar, ProgressBar, ListRow, Icon. 터치 기반의 두 클라이언트에는 TopBar, TabBar, BottomSheet가 추가로 포함됩니다.
+- 모든 클라이언트는 동일한 이름과 옵션을 가진 컴포넌트를 구현합니다: Button, TextField, Text, Badge, CountBadge, Banner, Card, Divider, Spinner, Switch, Checkbox, SegmentedControl, Avatar, AvatarStack, ProgressBar, ListRow, Icon. 터치 기반의 두 클라이언트에는 TopBar, TabBar, BottomSheet가 추가로 포함됩니다.
 - 각 앱에는 모든 토큰과 컴포넌트를 한 화면에서 확인할 수 있는 디자인 프리뷰 화면이 포함되어 있습니다.
 
 시스템 구조의 설계 배경과 최신 오픈소스 디자인 시스템에서 참고한 관례는 [디자인 시스템 문서](docs/design-system.md)(영문)에서 설명합니다.

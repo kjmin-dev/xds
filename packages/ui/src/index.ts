@@ -5,12 +5,14 @@
 // crate and the Compose ones under kotlin/ui. All of them take the same variants, sizes and
 // tones, and draw them from the same design tokens.
 
-export { Avatar, type AvatarSize } from "./Avatar.tsx";
+export { Avatar, type AvatarProps, type AvatarSize } from "./Avatar.tsx";
+export { AvatarStack, type AvatarStackProps } from "./AvatarStack.tsx";
 export { Badge, type BadgeTone } from "./Badge.tsx";
-export { Banner, type BannerTone } from "./Banner.tsx";
+export { Banner, type BannerProps, type BannerTone } from "./Banner.tsx";
 export { Button, type ButtonProps, type ButtonVariant, type ControlSize } from "./Button.tsx";
-export { Card } from "./Card.tsx";
+export { Card, type CardProps } from "./Card.tsx";
 export { Checkbox, type CheckboxProps } from "./Checkbox.tsx";
+export { CountBadge, type CountBadgeProps } from "./CountBadge.tsx";
 export { Divider } from "./Divider.tsx";
 export { Icon, type IconName, type IconProps, type IconSize } from "./Icon.tsx";
 export { ListRow, type ListRowProps } from "./ListRow.tsx";

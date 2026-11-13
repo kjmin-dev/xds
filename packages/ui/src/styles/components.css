@@ -85,6 +85,43 @@
     box-shadow: var(--acme-shadow-subtle);
   }
 
+  /* HeroUI pulls an icon outward with a negative margin and sizes it itself. Ours come with a
+     size from the tokens and sit a full gap away from the label. */
+  .button svg:not([data-slot="spinner"] svg, [data-slot="link-icon"] svg) {
+    margin: 0;
+  }
+
+  /* A button that holds only an icon is as wide as it is tall, which `min-width` already
+     ensures once the padding is gone. A small one is shorter than a finger needs, so its
+     height has the same floor as its width. */
+  .button.button--icon-only {
+    width: auto;
+    padding-inline: 0;
+  }
+
+  .button.button--icon-only.button--sm {
+    height: max(var(--acme-size-control-sm), var(--acme-size-target-min));
+  }
+
+  /* A ghost toggle has its outline before it is selected, transparent, so that selecting it
+     does not change its width. */
+  .button--ghost[aria-pressed] {
+    border: var(--acme-border-width-thin) solid transparent;
+  }
+
+  /* A toggle that is on. The outline, not only the tint, says so; primary and danger buttons
+     keep their look and only report the state. */
+  .button--secondary[aria-pressed="true"],
+  .button--ghost[aria-pressed="true"] {
+    --button-bg: var(--acme-color-button-selected-background);
+    --button-bg-hover: var(--acme-color-button-selected-background-hover);
+    --button-bg-pressed: var(--acme-color-button-selected-background-pressed);
+    --button-fg: var(--acme-color-button-selected-text);
+    border-color: var(--acme-color-button-selected-border);
+    /* Held down, so nothing lifts it off the page. */
+    box-shadow: none;
+  }
+
   /* A disabled button is recolored, not faded: fading a colored fill leaves a pale version of
      the same color that still looks pressable. */
   .button:disabled:not([data-pending="true"]),
@@ -104,6 +141,7 @@
   .button--ghost:disabled:not([data-pending="true"]),
   .button--ghost[aria-disabled="true"]:not([data-pending="true"]) {
     --button-bg: transparent;
+    border-color: transparent;
   }
 
   /* While pending the label stays, so the button keeps its width, and so do the colors: the
@@ -126,10 +164,92 @@
   }
 
   .input[data-invalid="true"],
-  .input[aria-invalid="true"] {
+  .input[aria-invalid="true"],
+  .textarea[data-invalid="true"],
+  .textarea[aria-invalid="true"],
+  .input-group[data-invalid="true"] {
     border-color: var(--acme-color-field-border-invalid);
     /* Thicker as well as red, so the state does not depend on telling colors apart. */
     box-shadow: inset 0 0 0 var(--acme-border-width-thin) var(--acme-color-field-border-invalid);
+  }
+
+  .textfield {
+    /* What a line of text has above and below it inside the box of a one-line field. A text
+       area uses it too, so its first line sits where a one-line field has its text and one
+       row is exactly as tall as a one-line field. */
+    --textfield-inset-block: calc(
+      (
+        var(--acme-size-control-md) -
+        var(--acme-typography-body-size) *
+        var(--acme-typography-body-line-height)
+      ) /
+      2 -
+      var(--acme-border-width-thin)
+    );
+  }
+
+  .textarea,
+  .input-group__input[data-slot="input-group-textarea"] {
+    min-height: 0;
+    padding-block: var(--textfield-inset-block);
+    /* `rows` is the height. Longer text scrolls; a handle would let the layout be dragged apart. */
+    resize: none;
+  }
+
+  .textarea {
+    padding-inline: var(--acme-space-3);
+    border-radius: var(--acme-radius-md);
+    font-size: var(--acme-typography-body-size);
+    line-height: var(--acme-typography-body-line-height);
+  }
+
+  /* A field with something inside its box beside the text. The group draws the box that the
+     input draws otherwise, at the same size. */
+  .input-group {
+    align-items: stretch;
+    min-height: var(--acme-size-control-md);
+    border-radius: var(--acme-radius-md);
+  }
+
+  .input-group__input {
+    min-width: 0;
+    padding-inline: var(--acme-space-3);
+    padding-block: 0;
+    font-size: var(--acme-typography-body-size);
+    line-height: var(--acme-typography-body-line-height);
+  }
+
+  /* A slot is a full inset away from the edge of the box and a smaller one from the text. */
+  .input-group:has([data-slot="input-group-prefix"]) .input-group__input {
+    padding-inline-start: var(--acme-space-2);
+  }
+
+  .input-group:has([data-slot="input-group-suffix"]) .input-group__input {
+    padding-inline-end: var(--acme-space-2);
+  }
+
+  .input-group .input-group__prefix {
+    padding-inline: var(--acme-space-3) 0;
+  }
+
+  .input-group .input-group__suffix {
+    padding-inline: 0 var(--acme-space-3);
+  }
+
+  /* As tall as the inside of a one-line field and at the top of the box, which centers a slot
+     in a one-line field and lines it up with the first line of a text area. HeroUI separates
+     a slot from the text with a line; here it belongs to the same box. The second pair of
+     selectors outweighs HeroUI's own rule for a slot beside a text area. */
+  .input-group .input-group__prefix,
+  .input-group .input-group__suffix,
+  .input-group:has([data-slot="input-group-textarea"]) .input-group__prefix,
+  .input-group:has([data-slot="input-group-textarea"]) .input-group__suffix {
+    align-self: flex-start;
+    align-items: center;
+    height: calc(var(--acme-size-control-md) - 2 * var(--acme-border-width-thin));
+    padding-block: 0;
+    border: 0;
+    color: var(--acme-color-field-placeholder);
   }
 
   .label {

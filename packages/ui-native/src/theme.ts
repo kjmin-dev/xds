@@ -1,4 +1,5 @@
 import { colors, size } from "@acme/tokens";
+import { createContext } from "react";
 import { useColorScheme } from "react-native";
 
 /** The color tokens for the system's color scheme. */
@@ -7,6 +8,12 @@ export function useColors() {
 }
 
 export type Colors = ReturnType<typeof useColors>;
+
+/**
+ * The color that icons and text take when they are given none. React Native hands no color down
+ * from a view to what is inside it, so a container that tints its content says so here.
+ */
+export const ContentColor = createContext<string | undefined>(undefined);
 
 /** Phones and tablets are used with fingers, so they take the touch sizes. */
 export const control = size.touch;

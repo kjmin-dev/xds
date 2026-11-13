@@ -2,22 +2,24 @@
 
 ## Setup
 
-Install [mise](https://mise.jdx.dev), then pull the toolchain and run the checks:
+Install [mise](https://mise.jdx.dev) to set up the toolchain and run the test suite:
 
 ```sh
 mise install
 mise run check
 ```
 
-`mise run check` runs the same suite as CI, so make sure it passes locally before opening a pull request.
+`mise run check` runs the same checks as CI, so make sure it passes locally before opening a pull request. The GPUI desktop checks require macOS, and the Kotlin checks download Gradle and the required Android SDK components on their first run.
 
-## Rules for a change
+## Guidelines for changes
 
-- When you edit tokens, run `mise run tokens` and commit the generated files alongside your changes. CI will fail if the generated output is out of date.
-- Keep the component set in sync across platforms. If you add a component, variant, or tone, add it under the same name to every platform's library and to each design preview.
-- Put component colors in tokens rather than hardcoding them. Each component reads its colors from its own group in `color.light.json` and `color.dark.json`, and every foreground/background pairing it renders needs an entry in `tools/design-build/src/contrast.ts`.
-- Check the design preview by hand. Because there is no automated screenshot comparison, open the preview in both light and dark mode on every platform you touched.
+- After editing tokens, run `mise run tokens` and commit the generated files along with your changes. CI fails if the generated output is out of date.
+- Keep the component set in sync across all clients. If you add a component, variant, or tone, add it under the same name to all four libraries (`packages/ui`, `packages/ui-native`, `crates/acme-ui`, and `kotlin/ui`) as well as each client's design preview. TopBar, TabBar, and BottomSheet are only implemented on the two touch clients.
+- Define component colors as tokens rather than hardcoding values. Each component reads its colors from a dedicated group in `color.light.json` and `color.dark.json`, and every foreground/background pairing it renders must be registered in `tools/design-build/src/contrast.ts`.
+- Do not edit theme color values by hand. `design/themes/indigo.json` is the reference theme, and the other themes are generated from it by `tools/design-build/src/make-theme.ts`. The script preserves the relative luminance of each step so that all contrast ratios hold. To add a new theme, run that script with a target hue; the test suite checks every file in `design/themes` against all contrast pairings.
+- Mark files and code blocks that apply only to specific clients. `template.json` maps paths to clients, and shared files wrap client-specific lines in `@if <targets>` and `@endif` comments. `xds create` relies on both mechanisms (see [docs/cli.md](docs/cli.md) for details), and `cargo test --package xds` scaffolds a project for each client to verify that no unexpected files or markers remain.
+- Check the design preview manually. Because there is no automated screenshot comparison, open the preview in both light and dark modes on every client you touch. For Compose, `mise run //kotlin:render` renders preview images to `kotlin/build/preview`.
 
 ## Style
 
-Run `mise run fmt` to format the codebase. Keep code comments focused on why something is done a certain way, not what the code is doing.
+Run `mise run fmt` to format the codebase. Keep code comments focused on why something is done a certain way rather than restating what the code does.

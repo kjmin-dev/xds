@@ -1,0 +1,9 @@
+{
+  "outputs": {
+    "css": "packages/tokens/src/generated/theme.css",
+    "tailwind": "packages/tokens/src/generated/tailwind.css",
+    "typescript": "packages/tokens/src/generated/tokens.ts",
+    "rust": "crates/acme-tokens/src/generated.rs",
+    "kotlin": "kotlin/ui/src/commonMain/kotlin/acme/tokens/Tokens.kt"
+  }
+}

@@ -79,6 +79,30 @@ const PAIRS: Pair[] = [
     ...on("banner.text", [`banner.${tone}.background`], TEXT),
     ...on(`banner.${tone}.accent`, [`banner.${tone}.background`], PART),
   ]),
+
+  // A switch and a checkbox have to be visible when off, and their state has to be readable.
+  ...on("switch.track", SURFACES, PART),
+  ...on("switch.track-on", SURFACES, PART),
+  ...on("switch.thumb", ["switch.track", "switch.track-on"], PART),
+  ...on("checkbox.border", SURFACES, PART),
+  ...on("checkbox.background-checked", SURFACES, PART),
+  ...on("checkbox.mark", ["checkbox.background-checked"], PART),
+  ...on("segmented.text", ["segmented.track"], TEXT),
+  ...on("segmented.selected-text", ["segmented.selected-background"], TEXT),
+  ...on("segmented.selected-border", ["segmented.track", "segmented.selected-background"], PART),
+  ...on("avatar.text", ["avatar.background"], TEXT),
+  ...on("progress.fill", ["progress.track"], PART),
+  ...["text.primary", "text.secondary"].flatMap((text) =>
+    on(text, ["list-row.background-hover", "list-row.background-pressed"], TEXT),
+  ),
+  ...on("top-bar.text", ["top-bar.background"], TEXT),
+  ...on("top-bar.action", ["top-bar.background"], TEXT),
+  ...on("top-bar.action", ["top-bar.action-background"], PART),
+  ...on("tab-bar.text-selected", ["tab-bar.selected-background"], TEXT),
+  ...on("tab-bar.text", ["tab-bar.background"], TEXT),
+  ...on("tab-bar.text-selected", ["tab-bar.background"], TEXT),
+  ...on("sheet.handle", ["sheet.background"], PART),
+  ...["text.primary", "text.secondary"].flatMap((text) => on(text, ["sheet.background"], TEXT)),
 ];
 
 function composite(top: Rgba, bottom: Rgba): Rgba {

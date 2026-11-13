@@ -1,0 +1,273 @@
+{
+  "$description": "A burnt orange accent on warm stone neutrals.",
+  "palette": {
+    "accent": {
+      "50": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.9961,
+            0.9373,
+            0.9176
+          ],
+          "hex": "#feefea"
+        }
+      },
+      "100": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.9882,
+            0.8863,
+            0.8471
+          ],
+          "hex": "#fce2d8"
+        }
+      },
+      "200": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.9725,
+            0.7882,
+            0.7176
+          ],
+          "hex": "#f8c9b7"
+        }
+      },
+      "300": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.9451,
+            0.651,
+            0.5333
+          ],
+          "hex": "#f1a688"
+        }
+      },
+      "400": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.898,
+            0.4627,
+            0.2863
+          ],
+          "hex": "#e57649"
+        }
+      },
+      "500": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.7608,
+            0.2941,
+            0.0471
+          ],
+          "hex": "#c24b0c"
+        }
+      },
+      "600": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.6588,
+            0.2431,
+            0.0078
+          ],
+          "hex": "#a83e02"
+        }
+      },
+      "700": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.5647,
+            0.2,
+            0
+          ],
+          "hex": "#903300"
+        }
+      },
+      "800": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.4667,
+            0.1647,
+            0.0118
+          ],
+          "hex": "#772a03"
+        }
+      },
+      "900": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.4039,
+            0.1412,
+            0.0118
+          ],
+          "hex": "#672403"
+        }
+      },
+      "950": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.2549,
+            0.0706,
+            0
+          ],
+          "hex": "#411200"
+        }
+      }
+    },
+    "neutral": {
+      "0": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            1,
+            1
+          ],
+          "hex": "#ffffff"
+        }
+      },
+      "50": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.9686,
+            0.9608,
+            0.9569
+          ],
+          "hex": "#f7f5f4"
+        }
+      },
+      "100": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.9373,
+            0.9255,
+            0.9137
+          ],
+          "hex": "#efece9"
+        }
+      },
+      "200": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.9059,
+            0.8863,
+            0.8706
+          ],
+          "hex": "#e7e2de"
+        }
+      },
+      "300": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.8118,
+            0.7882,
+            0.7686
+          ],
+          "hex": "#cfc9c4"
+        }
+      },
+      "400": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.6941,
+            0.6588,
+            0.6353
+          ],
+          "hex": "#b1a8a2"
+        }
+      },
+      "500": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.549,
+            0.5137,
+            0.4902
+          ],
+          "hex": "#8c837d"
+        }
+      },
+      "600": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.3882,
+            0.3569,
+            0.3333
+          ],
+          "hex": "#635b55"
+        }
+      },
+      "700": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.2902,
+            0.2667,
+            0.2471
+          ],
+          "hex": "#4a443f"
+        }
+      },
+      "800": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.1922,
+            0.1725,
+            0.1529
+          ],
+          "hex": "#312c27"
+        }
+      },
+      "850": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.149,
+            0.1333,
+            0.1176
+          ],
+          "hex": "#26221e"
+        }
+      },
+      "900": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.1059,
+            0.0941,
+            0.0824
+          ],
+          "hex": "#1b1815"
+        }
+      },
+      "950": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0627,
+            0.0549,
+            0.0471
+          ],
+          "hex": "#100e0c"
+        }
+      }
+    }
+  }
+}

@@ -1,13 +1,15 @@
 import assert from "node:assert/strict";
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { checkContrast, contrastRatio } from "./contrast.ts";
-import { emitCss, emitRust, emitTailwind, emitTypeScript } from "./emit.ts";
+import { emitCss, emitKotlin, emitRust, emitTailwind, emitTypeScript } from "./emit.ts";
 import { loadModel, type Model, TokenError } from "./model.ts";
+import { listThemes } from "./themes.ts";
 
-const tokensDir = join(import.meta.dirname, "../../../design/tokens");
+const root = join(import.meta.dirname, "../../..");
+const tokensDir = join(root, "design/tokens");
 
 const srgb = (components: number[], extra: object = {}) => ({
   $type: "color",
@@ -42,6 +44,50 @@ test("the committed tokens load and pass every contrast check", async () => {
   assert.deepEqual(checkContrast(model), []);
 });
 
+test("every theme passes every contrast check", async () => {
+  const themes = await listThemes(root);
+  assert.ok(themes.length > 1);
+  for (const theme of themes) {
+    const model = await loadModel(tokensDir, join(root, "design/themes", `${theme.name}.json`));
+    assert.deepEqual(checkContrast(model), [], theme.name);
+  }
+});
+
+test("the committed palette is one of the themes", async () => {
+  const palette = JSON.parse(await readFile(join(tokensDir, "palette.json"), "utf8")).palette;
+  const values = (ramp: Record<string, { $value?: { hex: string } }>) =>
+    Object.values(ramp).flatMap((token) => (token.$value ? [token.$value.hex] : []));
+  const themes = await listThemes(root);
+  assert.ok(
+    themes.some(
+      (theme) =>
+        JSON.stringify(values(theme.palette.accent as never)) ===
+          JSON.stringify(values(palette.accent)) &&
+        JSON.stringify(values(theme.palette.neutral as never)) ===
+          JSON.stringify(values(palette.neutral)),
+    ),
+  );
+});
+
+test("an alias to a token that does not exist is rejected", async () => {
+  const base = { color: { text: { $type: "color", $value: "{palette.ink.900}" } } };
+  await assert.rejects(
+    loadWith(base),
+    /color\.text: refers to \{palette\.ink\.900\}, which does not exist/,
+  );
+});
+
+test("an alias that leads back to itself is rejected", async () => {
+  const base = {
+    color: {
+      $type: "color",
+      a: { $value: "{color.b}" },
+      b: { $value: "{color.a}" },
+    },
+  };
+  await assert.rejects(loadWith(base), /refers to itself/);
+});
+
 test("a low-contrast pairing is reported with its mode", async () => {
   const model = await loadModel(tokensDir);
   const colors = model.colors.map((token) =>
@@ -52,7 +98,10 @@ test("a low-contrast pairing is reported with its mode", async () => {
   const failures = checkContrast({ ...model, colors });
   // Every pairing that draws secondary text fails, and only in the mode that was changed.
   assert.ok(failures.length > 0 && failures.every((failure) => failure.includes("(light)")));
-  assert.match(failures[0] ?? "", /^text\.secondary on background\.base \(light\): 1\.14:1/);
+  assert.match(
+    failures[0] ?? "",
+    /^text\.secondary on background\.base \(light\): 1\.\d\d:1, needs 4\.5:1$/,
+  );
 });
 
 test("contrast ratio matches the WCAG reference values", () => {
@@ -246,6 +295,23 @@ test("TypeScript uses camelCase keys and plain numbers", () => {
   // React Native wants the line height in pixels: 15 * 1.5, rounded.
   assert.match(source, /"body": \{\n {4}"fontSize": 15,\n {4}"lineHeight": 23,/);
   assert.match(source, /export const size = \{\n {2}"pointer": \{\n {4}"controlMd": 36/);
+});
+
+test("Kotlin gets Compose types, one object per group", () => {
+  const source = emitKotlin(sample, "acme.tokens");
+  assert.match(source, /^\/\/ Generated.*\n\npackage acme\.tokens\n/);
+  assert.match(source, /\/\*\* Text on accent\. \*\/\n {4}val textOnAccent: Color/);
+  assert.match(
+    source,
+    /object DarkColors : Colors \{\n {4}override val textOnAccent = Color\(0x80101014\)/,
+  );
+  assert.match(source, /"text-on-accent" to textOnAccent,/);
+  assert.match(source, /object Radius \{\n {4}val md: Dp = 10\.dp/);
+  // Type sizes are sp, so they follow the system text size.
+  assert.match(source, /val sizeMd: TextUnit = 16\.sp/);
+  assert.match(source, /val durationFast: Int = 120/);
+  assert.match(source, /val body: TextStyle = TextStyle\(fontSize = 15\.sp, lineHeight = 23\.sp, /);
+  assert.match(source, /val TouchSizes = Sizes\(\n {4}controlMd = 48\.dp,/);
 });
 
 test("Rust gets one struct field per color and typed constants", () => {

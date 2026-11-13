@@ -72,6 +72,13 @@
       "$description": "Buttons are capsules where fingers are used, as on iOS and Android."
     },
     "icon": {
+      "xs": {
+        "$value": {
+          "value": 12,
+          "unit": "px"
+        },
+        "$description": "Icons inside a badge."
+      },
       "sm": {
         "$value": {
           "value": 16,
@@ -91,6 +98,13 @@
           "unit": "px"
         },
         "$description": "Icons that stand alone: tab bars, top bars."
+      },
+      "xl": {
+        "$value": {
+          "value": 32,
+          "unit": "px"
+        },
+        "$description": "Icons that illustrate rather than label: empty states."
       }
     },
     "avatar": {

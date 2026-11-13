@@ -5,6 +5,7 @@
   --color-acme-background-base: var(--acme-color-background-base);
   --color-acme-background-surface: var(--acme-color-background-surface);
   --color-acme-background-raised: var(--acme-color-background-raised);
+  --color-acme-background-inverse: var(--acme-color-background-inverse);
   --color-acme-background-disabled: var(--acme-color-background-disabled);
   --color-acme-text-primary: var(--acme-color-text-primary);
   --color-acme-text-secondary: var(--acme-color-text-secondary);
@@ -13,6 +14,7 @@
   --color-acme-text-accent: var(--acme-color-text-accent);
   --color-acme-text-on-accent: var(--acme-color-text-on-accent);
   --color-acme-text-on-danger: var(--acme-color-text-on-danger);
+  --color-acme-text-on-inverse: var(--acme-color-text-on-inverse);
   --color-acme-border-default: var(--acme-color-border-default);
   --color-acme-border-control: var(--acme-color-border-control);
   --color-acme-border-strong: var(--acme-color-border-strong);
@@ -35,6 +37,8 @@
   --color-acme-status-warning-subtle: var(--acme-color-status-warning-subtle);
   --color-acme-status-info: var(--acme-color-status-info);
   --color-acme-status-info-subtle: var(--acme-color-status-info-subtle);
+  --color-acme-overlay-background: var(--acme-color-overlay-background);
+  --color-acme-overlay-text: var(--acme-color-overlay-text);
   --color-acme-button-primary-background: var(--acme-color-button-primary-background);
   --color-acme-button-primary-background-hover: var(--acme-color-button-primary-background-hover);
   --color-acme-button-primary-background-pressed: var(--acme-color-button-primary-background-pressed);
@@ -179,9 +183,11 @@
   --spacing-acme-list-row: var(--acme-size-list-row);
   --spacing-acme-bar: var(--acme-size-bar);
   --spacing-acme-button-radius: var(--acme-size-button-radius);
+  --spacing-acme-icon-xs: var(--acme-size-icon-xs);
   --spacing-acme-icon-sm: var(--acme-size-icon-sm);
   --spacing-acme-icon-md: var(--acme-size-icon-md);
   --spacing-acme-icon-lg: var(--acme-size-icon-lg);
+  --spacing-acme-icon-xl: var(--acme-size-icon-xl);
   --spacing-acme-avatar-sm: var(--acme-size-avatar-sm);
   --spacing-acme-avatar-md: var(--acme-size-avatar-md);
   --spacing-acme-avatar-lg: var(--acme-size-avatar-lg);

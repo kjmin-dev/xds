@@ -10,6 +10,7 @@ import {
   Card,
   Checkbox,
   Divider,
+  Icon,
   ListRow,
   ProgressBar,
   SegmentedControl,
@@ -263,6 +264,35 @@ function ListRowDemo() {
   );
 }
 
+function IconDemo() {
+  return (
+    <div className="flex flex-col gap-4 text-acme-text-primary">
+      <Row>
+        <Icon name="house" label="Home" />
+        <Icon name="search" label="Search" />
+        <Icon name="bell" label="Notifications" />
+        <Icon name="settings" label="Settings" />
+        <Icon name="share-2" label="Share" />
+        <Icon name="download" label="Download" />
+        <Icon name="ellipsis-vertical" label="More" />
+      </Row>
+      <div className="flex items-end gap-3">
+        {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
+          <Icon key={size} name="house" size={size} label={`Home, ${size}`} />
+        ))}
+      </div>
+      <Row>
+        {(["heart", "star", "bookmark", "thumbs-up", "bell"] as const).map((name) => (
+          <span key={name} className="flex items-center gap-1">
+            <Icon name={name} />
+            <Icon name={name} filled label={`${name}, filled`} />
+          </span>
+        ))}
+      </Row>
+    </div>
+  );
+}
+
 const DEMOS = {
   button: ButtonDemo,
   "text-field": TextFieldDemo,
@@ -277,6 +307,7 @@ const DEMOS = {
   "segmented-control": SegmentedControlDemo,
   avatar: AvatarDemo,
   "progress-bar": ProgressBarDemo,
+  icon: IconDemo,
   "list-row": ListRowDemo,
 } as const;
 

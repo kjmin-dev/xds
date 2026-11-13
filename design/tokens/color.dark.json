@@ -14,6 +14,10 @@
         "$value": "{palette.neutral.850}",
         "$description": "Surfaces that float above the page: menus, dialogs. Lighter than the page in dark mode, where shadows barely show."
       },
+      "inverse": {
+        "$value": "{palette.neutral.50}",
+        "$description": "A surface that stands against the page instead of sitting on it: toasts, tooltips. Dark where the page is light, and light where it is dark."
+      },
       "disabled": {
         "$value": "{palette.neutral.800}",
         "$description": "Fill of a disabled control."
@@ -46,6 +50,10 @@
       "on-danger": {
         "$value": "{palette.neutral.0}",
         "$description": "Text on a danger-colored surface."
+      },
+      "on-inverse": {
+        "$value": "{palette.neutral.900}",
+        "$description": "Text on an inverse surface."
       }
     },
     "border": {
@@ -131,6 +139,33 @@
       },
       "info-subtle": {
         "$value": "{palette.blue.950}"
+      }
+    },
+    "overlay": {
+      "background": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0,
+            0,
+            0
+          ],
+          "alpha": 0.72,
+          "hex": "#000000"
+        },
+        "$description": "Behind text that is drawn over a picture, such as a badge on an image. Dark enough to carry white text whatever the picture shows, so it is the same in both modes."
+      },
+      "text": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            1,
+            1
+          ],
+          "hex": "#ffffff"
+        },
+        "$description": "Text and icons on the overlay background."
       }
     },
     "button": {

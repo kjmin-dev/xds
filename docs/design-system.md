@@ -82,13 +82,14 @@ Semantic color groups:
 
 | Group | Tokens | Use |
 | --- | --- | --- |
-| background | base, surface, raised, disabled | Page backgrounds, cards, floating surfaces, disabled controls |
-| text | primary, secondary, tertiary, disabled, accent, on-accent, on-danger | Text colors (`on-*` is used for text drawn on a colored fill). `tertiary` is used for placeholders, timestamps, and marks such as chevrons; it maintains 4.5:1 contrast on the page and on surfaces, and is not used on raised surfaces |
+| background | base, surface, raised, inverse, disabled | Page backgrounds, cards, floating surfaces, disabled controls. `inverse` is a surface that stands against the page instead of sitting on it, such as a toast or a tooltip: dark in light mode and light in dark mode |
+| text | primary, secondary, tertiary, disabled, accent, on-accent, on-danger, on-inverse | Text colors (`on-*` is used for text drawn on a colored fill). `tertiary` is used for placeholders, timestamps, and marks such as chevrons; it maintains 4.5:1 contrast on the page and on surfaces, and is not used on raised surfaces |
 | border | default, control, strong, focus | Decorative dividers; outlines on controls already identified by a label; control boundaries that require 3:1 contrast; focus rings |
 | accent | default, hover, pressed, subtle | Primary view actions and selected states |
 | control | default, hover, pressed | Neutral control fills |
 | danger | default, hover, pressed | Destructive action fills |
 | status | danger, success, warning, info, plus a subtle variant of each | Status text and its matching tinted background |
+| overlay | background, text | Text drawn over a picture, such as a badge on an image. The background is translucent black in both modes, and the build checks its text over both a white and a black picture |
 
 Interactive state colors (hover and pressed) are defined as explicit solid values rather than alpha overlays. GPUI and React Native cannot blend colors at runtime, and explicit values allow the build script to check contrast statically.
 
@@ -156,7 +157,7 @@ On the web, the Tailwind configuration generates utility classes for typographic
 | `size.list-row` | 40 | 56 |
 | `size.bar` | 48 | 56 |
 | `size.button-radius` | 10 | capsule |
-| `size.icon.sm`, `md`, `lg` | 16, 20, 24 | 16, 20, 24 |
+| `size.icon.xs`, `sm`, `md`, `lg`, `xl` | 12, 16, 20, 24, 32 | 12, 16, 20, 24, 32 |
 | `size.avatar.sm`, `md`, `lg` | 24, 32, 40 | 24, 32, 40 |
 | `size.spinner.sm`, `md`, `lg` | 16, 24, 32 | 16, 24, 32 |
 | `size.badge` | 24 | 24 |
@@ -168,7 +169,20 @@ Even when a control is visually smaller than `target-min`, its hit area expands 
 
 ### Icons
 
-`design/icons` holds one SVG file per icon, drawn on a 24 by 24 grid with a 2px stroke and no fill. The 26 icons included with the template come from [Lucide](https://lucide.dev) (under the ISC license in `design/icons/LICENSE`). To add an icon, place its SVG file in that directory and run `mise run tokens`.
+`design/icons` holds one SVG file per icon, drawn on a 24 by 24 grid with a 2px stroke and no fill. The 130 icons included with the template come from [Lucide](https://lucide.dev) (under the ISC license in `design/icons/LICENSE`). To add an icon, place its SVG file in that directory and run `mise run tokens`.
+
+| Group | Icons |
+| --- | --- |
+| Navigation | `house`, `menu`, `search`, `compass`, `history`, `layout-grid`, `list`, the arrows and chevrons, `chevrons-up-down`, `chevron-first`, `chevron-last`, `ellipsis`, `ellipsis-vertical`, `external-link`, `log-out` |
+| Actions | `plus`, `minus`, `x`, `check`, `pencil`, `trash`, `copy`, `share-2`, `download`, `upload`, `cloud-upload`, `link`, `list-filter`, `sliders-horizontal`, `arrow-up-down`, `rotate-cw`, `undo-2`, `pin`, `flag`, `ban`, `grip-vertical`, `circle-plus`, `circle-minus`, `circle-x` |
+| Feedback | `thumbs-up`, `thumbs-down`, `heart`, `star`, `bookmark`, `message-square`, `smile`, `bell`, `bell-ring`, `bell-off` |
+| Status | `info`, `circle-alert`, `triangle-alert`, `circle-check`, `circle-help`, `check-check`, `square-check`, `lock`, `shield`, `eye`, `eye-off`, `clock`, `timer`, `sparkles`, `lightbulb`, `trending-up` |
+| People | `user`, `users`, `circle-user`, `user-plus`, `user-check`, `user-x` |
+| Objects | `settings`, `image`, `camera`, `mic`, `mail`, `globe`, `map-pin`, `file-text`, `keyboard`, `smartphone`, `laptop`, `tv`, `qr-code`, `bug`, `megaphone`, `palette`, `chart-column`, `sun-moon` |
+| Commerce | `shopping-cart`, `shopping-bag`, `credit-card`, `tag` |
+| Media | `play`, `pause`, `square`, `skip-back`, `skip-forward`, `rotate-ccw`, `repeat`, `repeat-1`, `shuffle`, `volume-1`, `volume-2`, `volume-x`, `captions`, `maximize`, `picture-in-picture-2`, `cast`, `list-video`, `list-plus`, `list-x`, `video`, `clapperboard`, `radio`, `podcast`, `music`, `scissors`, `gamepad-2`, `trophy`, `newspaper`, `graduation-cap`, `shirt` |
+
+An icon can be drawn `filled`: the same shapes with a fill under the stroke. It marks a selected state by form, so the state does not depend on color alone: a heart that was pressed, a bookmark that is saved. Use it only for icons made of closed shapes, such as `heart`, `star`, `bookmark`, `thumbs-up`, and `bell`; an open shape such as `check` closes up into something else.
 
 The generator converts each shape to path data and writes it into the generated platform files, so no platform parses SVG at runtime and no icon font or asset bundle is needed:
 
@@ -176,7 +190,7 @@ The generator converts each shape to path data and writes it into the generated 
 | --- | --- |
 | TypeScript | `icons`, a map from icon name to path data, and the `IconName` type. The web and React Native `Icon` components render these paths; React Native uses `react-native-svg` |
 | Kotlin | The `IconName` enum, where each entry carries its path data. The Compose `Icon` component strokes the paths on a canvas |
-| Rust | The `Icon` enum with `name()` and `svg()` methods. The `icon` function passes the SVG document to GPUI |
+| Rust | The `Icon` enum with `name()`, `svg()`, and `filled_svg()` methods. The `icon` and `icon_filled` functions pass the SVG document to GPUI |
 
 The build rejects any file that is not on the 24 by 24 grid, does not use a kebab-case name, or contains a shape that cannot be converted to a path.
 
@@ -221,7 +235,7 @@ Every platform exposes the same component names, variants, sizes, and tones.
 | SegmentedControl | options, value, full width | The active segment is raised: a hairline border, a faint shadow, and a darker label set it apart from the track |
 | Avatar | name. size: sm, md, lg | Displays initials visually while exposing the full name to assistive technologies |
 | ProgressBar | value from 0 to 1, label | Used for operations with known progress; use a Spinner for indeterminate work |
-| Icon | name, size: sm, md, lg, label | Inherits the surrounding text color. Treated as decorative unless given a label. Arrows and chevrons can mirror in right-to-left layouts |
+| Icon | name, size: xs, sm, md, lg, xl. filled, label | Inherits the surrounding text color. Treated as decorative unless given a label. `filled` marks a selected state on an icon made of closed shapes. Arrows and chevrons can mirror in right-to-left layouts |
 | ListRow | title, description, leading, trailing, chevron, disabled | Interactive when given an action. Separate adjacent rows with a Divider |
 
 Three additional navigation components exist only on the touch-oriented platforms (React Native and Compose):

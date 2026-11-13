@@ -72,6 +72,13 @@
       "$description": "Buttons are rounded rectangles where a pointer is used."
     },
     "icon": {
+      "xs": {
+        "$value": {
+          "value": 12,
+          "unit": "px"
+        },
+        "$description": "Icons inside a badge."
+      },
       "sm": {
         "$value": {
           "value": 16,
@@ -91,6 +98,13 @@
           "unit": "px"
         },
         "$description": "Icons that stand alone: tab bars, top bars."
+      },
+      "xl": {
+        "$value": {
+          "value": 32,
+          "unit": "px"
+        },
+        "$description": "Icons that illustrate rather than label: empty states."
       }
     },
     "avatar": {

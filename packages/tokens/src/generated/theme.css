@@ -7,6 +7,7 @@
   --acme-color-background-base: light-dark(#f5f5f7, #0e0e11);
   --acme-color-background-surface: light-dark(#ffffff, #18181c);
   --acme-color-background-raised: light-dark(#ffffff, #222228);
+  --acme-color-background-inverse: light-dark(#18181c, #f5f5f7);
   --acme-color-background-disabled: light-dark(#ececf0, #2c2c33);
   --acme-color-text-primary: light-dark(#18181c, #f5f5f7);
   --acme-color-text-secondary: light-dark(#5c5c66, #a9a9b4);
@@ -15,6 +16,7 @@
   --acme-color-text-accent: light-dark(#4f46e5, #a5b4fc);
   --acme-color-text-on-accent: #ffffff;
   --acme-color-text-on-danger: #ffffff;
+  --acme-color-text-on-inverse: light-dark(#f5f5f7, #18181c);
   --acme-color-border-default: light-dark(#e2e2e8, #2c2c33);
   --acme-color-border-control: light-dark(#c9c9d1, #44444c);
   --acme-color-border-strong: #84848f;
@@ -37,6 +39,8 @@
   --acme-color-status-warning-subtle: light-dark(#fffaeb, #4e1d09);
   --acme-color-status-info: light-dark(#175cd3, #53b1fd);
   --acme-color-status-info-subtle: light-dark(#eff8ff, #102a56);
+  --acme-color-overlay-background: rgb(0 0 0 / 0.72);
+  --acme-color-overlay-text: #ffffff;
   --acme-color-button-primary-background: light-dark(#4f46e5, #5b5ef0);
   --acme-color-button-primary-background-hover: light-dark(#4338ca, #4f46e5);
   --acme-color-button-primary-background-pressed: light-dark(#3730a3, #4338ca);
@@ -206,9 +210,11 @@
   --acme-size-list-row: 40px;
   --acme-size-bar: 48px;
   --acme-size-button-radius: 10px;
+  --acme-size-icon-xs: 12px;
   --acme-size-icon-sm: 16px;
   --acme-size-icon-md: 20px;
   --acme-size-icon-lg: 24px;
+  --acme-size-icon-xl: 32px;
   --acme-size-avatar-sm: 24px;
   --acme-size-avatar-md: 32px;
   --acme-size-avatar-lg: 40px;
@@ -233,9 +239,11 @@
     --acme-size-list-row: 56px;
     --acme-size-bar: 56px;
     --acme-size-button-radius: 9999px;
+    --acme-size-icon-xs: 12px;
     --acme-size-icon-sm: 16px;
     --acme-size-icon-md: 20px;
     --acme-size-icon-lg: 24px;
+    --acme-size-icon-xl: 32px;
     --acme-size-avatar-sm: 24px;
     --acme-size-avatar-md: 32px;
     --acme-size-avatar-lg: 40px;

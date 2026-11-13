@@ -482,10 +482,10 @@ function rustConst(token: ValueToken): string {
  * Plain constants with no UI-framework types, so the crate stays dependency-free. The module is
  * declared with `#[rustfmt::skip]`, so the layout here does not have to match rustfmt's.
  */
-function iconSvg(icon: Icon): string {
+function iconSvg(icon: Icon, fill: "none" | "currentColor"): string {
   const paths = icon.paths.map((path) => `<path d="${path}"/>`).join("");
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${ICON_GRID} ${ICON_GRID}" fill="none" ` +
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${ICON_GRID} ${ICON_GRID}" fill="${fill}" ` +
     `stroke="currentColor" stroke-width="${ICON_STROKE}" stroke-linecap="round" ` +
     `stroke-linejoin="round">${paths}</svg>`
   );
@@ -579,7 +579,17 @@ export function emitRust(model: Model): string {
       "    pub const fn svg(self) -> &'static str {",
       "        match self {",
       ...model.icons.map(
-        (icon) => `            Icon::${pascal(icon.name)} => r#"${iconSvg(icon)}"#,`,
+        (icon) => `            Icon::${pascal(icon.name)} => r#"${iconSvg(icon, "none")}"#,`,
+      ),
+      "        }",
+      "    }",
+      "",
+      "    /// The same drawing with its shapes filled, for a selected state.",
+      "    pub const fn filled_svg(self) -> &'static str {",
+      "        match self {",
+      ...model.icons.map(
+        (icon) =>
+          `            Icon::${pascal(icon.name)} => r#"${iconSvg(icon, "currentColor")}"#,`,
       ),
       "        }",
       "    }",

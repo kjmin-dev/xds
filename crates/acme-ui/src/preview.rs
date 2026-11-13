@@ -14,7 +14,7 @@ use gpui_kit::{
 use crate::{
     Avatar, AvatarSize, Badge, BadgeTone, Banner, BannerTone, ButtonVariant, ControlSize, IconSize,
     ListRow, ProgressBar, SegmentedControl, TextField, TypographyExt, button, card, checkbox,
-    color, divider, icon, mode, palette, set_mode, switch, text,
+    color, divider, icon, icon_filled, mode, palette, set_mode, switch, text,
 };
 
 /// Component colors are shown by the components that use them, not as swatches.
@@ -329,13 +329,53 @@ impl Render for DesignPreview {
                     ),
             )
             .child(
-                section("Icons").child(
-                    div()
-                        .flex()
-                        .flex_wrap()
-                        .gap(px(tokens::SPACE_4))
-                        .children(tokens::Icon::ALL.map(|name| icon(name, IconSize::Md))),
-                ),
+                section("Icons")
+                    .child(
+                        div()
+                            .flex()
+                            .flex_wrap()
+                            .gap(px(tokens::SPACE_4))
+                            .children(tokens::Icon::ALL.map(|name| icon(name, IconSize::Md))),
+                    )
+                    .child(
+                        labelled("sizes", secondary).child(
+                            div().flex().items_end().gap(px(tokens::SPACE_3)).children(
+                                [
+                                    IconSize::Xs,
+                                    IconSize::Sm,
+                                    IconSize::Md,
+                                    IconSize::Lg,
+                                    IconSize::Xl,
+                                ]
+                                .map(|size| icon(tokens::Icon::House, size)),
+                            ),
+                        ),
+                    )
+                    .child(
+                        labelled("filled", secondary).child(
+                            // Icons made of closed shapes, which is what the filled drawing is for.
+                            div()
+                                .flex()
+                                .items_center()
+                                .gap(px(tokens::SPACE_3))
+                                .children(
+                                    [
+                                        tokens::Icon::Heart,
+                                        tokens::Icon::Star,
+                                        tokens::Icon::Bookmark,
+                                        tokens::Icon::ThumbsUp,
+                                        tokens::Icon::Bell,
+                                    ]
+                                    .map(|name| {
+                                        div()
+                                            .flex()
+                                            .gap(px(tokens::SPACE_1))
+                                            .child(icon(name, IconSize::Md))
+                                            .child(icon_filled(name, IconSize::Md))
+                                    }),
+                                ),
+                        ),
+                    ),
             )
             .child(section("Buttons").children(buttons))
             .child(

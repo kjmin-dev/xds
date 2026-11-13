@@ -17,6 +17,7 @@ import {
   Divider,
   Icon,
   type IconName,
+  type IconSize,
   ListRow,
   ProgressBar,
   SegmentedControl,
@@ -53,6 +54,9 @@ const SIZES: ControlSize[] = ["sm", "md", "lg"];
 const BADGE_TONES: BadgeTone[] = ["neutral", "accent", "success", "warning", "danger"];
 const BANNER_TONES: BannerTone[] = ["info", "success", "warning", "danger"];
 const TEXT_VARIANTS = Object.keys(typography) as (keyof typeof typography)[];
+const ICON_SIZES: IconSize[] = ["xs", "sm", "md", "lg", "xl"];
+/** Icons made of closed shapes, which is what `filled` is for. */
+const FILLABLE_ICONS: IconName[] = ["heart", "star", "bookmark", "thumbs-up", "bell"];
 
 const SECTIONS = [
   "Colors",
@@ -227,6 +231,23 @@ export function DesignPreview() {
             </span>
           ))}
         </div>
+        <Row label="Sizes">
+          <span className="flex items-end gap-3 text-acme-text-primary">
+            {ICON_SIZES.map((iconSize) => (
+              <Icon key={iconSize} name="house" size={iconSize} label={`house, ${iconSize}`} />
+            ))}
+          </span>
+        </Row>
+        <Row label="Filled">
+          <span className="flex items-center gap-3 text-acme-text-primary">
+            {FILLABLE_ICONS.map((name) => (
+              <span key={name} className="flex items-center gap-1">
+                <Icon name={name} />
+                <Icon name={name} filled label={`${name}, filled`} />
+              </span>
+            ))}
+          </span>
+        </Row>
       </Section>
 
       <Section title="Buttons">

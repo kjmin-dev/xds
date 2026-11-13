@@ -150,7 +150,16 @@ function show(value: Value): string {
   }
 }
 
-const SEMANTIC = ["background", "text", "border", "accent", "control", "danger", "status"];
+const SEMANTIC = [
+  "background",
+  "text",
+  "border",
+  "accent",
+  "control",
+  "danger",
+  "status",
+  "overlay",
+];
 const title = (name: string) => name.charAt(0).toUpperCase() + name.slice(1).replaceAll("-", " ");
 
 async function tokens() {

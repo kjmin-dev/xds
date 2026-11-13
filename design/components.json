@@ -514,6 +514,49 @@
       }
     },
     {
+      "name": "Icon",
+      "purpose": "A drawing from design/icons, in the color of the text around it. `filled` marks a selected state on an icon made of closed shapes.",
+      "options": {
+        "size": [
+          "xs",
+          "sm",
+          "md",
+          "lg",
+          "xl"
+        ],
+        "fields": [
+          "name",
+          "label"
+        ],
+        "flags": [
+          "filled"
+        ]
+      },
+      "states": [],
+      "accessibility": "Decoration unless it has a label, which names it for assistive technology. An arrow or a chevron can mirror in a right-to-left layout.",
+      "tokens": [
+        "size.icon"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Icon.tsx",
+          "symbol": "Icon"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/controls.rs",
+          "symbol": "icon"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Icon.tsx",
+          "symbol": "Icon"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Icon.kt",
+          "symbol": "Icon"
+        }
+      }
+    },
+    {
       "name": "ListRow",
       "purpose": "One line of a list or a settings screen.",
       "options": {

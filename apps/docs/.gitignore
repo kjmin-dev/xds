@@ -1,0 +1,11 @@
+# Astro
+.astro/
+dist/
+.wrangler/
+
+# Written by scripts/generate.ts from docs/*.md, design/tokens and design/themes.
+src/content/docs/cli/
+src/content/docs/design-system/
+src/content/docs/tokens/
+src/content/docs/components/
+public/install.sh

@@ -85,6 +85,7 @@ mise run check          # everything CI runs
 | Regenerate token files | `mise run tokens` |
 | List or apply a theme | `mise run theme`, `mise run theme ocean` |
 | Run the CLI from source | `mise run xds -- list` |
+| Run the documentation site | `mise run //docs:dev`, then open `http://localhost:4321` |
 | Format the codebase | `mise run fmt` |
 
 The GPUI desktop app requires macOS. Building the Compose app requires the Android SDK for Android and Xcode for iOS; see [kotlin/README.md](kotlin/README.md) for details. In the mobile apps, use the button on the home screen to open the design preview.
@@ -110,6 +111,7 @@ kotlin/                 Compose components and apps (a Gradle build of its own)
 apps/web/               React app
 apps/desktop/           GPUI app
 apps/mobile/            Expo app
+apps/docs/              the documentation site (not copied into projects)
 cli/                    the xds command-line tool
 npm/                    npm packages that deliver the xds binary
 install.sh              the installer script

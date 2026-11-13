@@ -1,0 +1,100 @@
+/*
+ * The site wears the design system: Starlight's colors, type and corners are set from the
+ * generated token variables, so a change of theme in design/tokens restyles the docs too.
+ * The token file follows `data-theme` on the root element, which is what Starlight sets.
+ */
+@import "@acme/tokens/theme.css";
+
+/* Starlight sets its greys again for the light theme, so both selectors are needed. */
+:root,
+:root[data-theme="light"],
+::backdrop {
+  --sl-font: var(--acme-font-family-sans);
+  --sl-color-accent-low: var(--acme-color-accent-subtle);
+  --sl-color-accent: var(--acme-color-accent-default);
+  --sl-color-accent-high: var(--acme-color-text-accent);
+  --sl-color-white: var(--acme-color-text-primary);
+  --sl-color-gray-1: var(--acme-color-text-primary);
+  --sl-color-gray-2: var(--acme-color-text-secondary);
+  --sl-color-gray-3: var(--acme-color-text-secondary);
+  --sl-color-gray-4: var(--acme-color-border-strong);
+  --sl-color-gray-5: var(--acme-color-border-control);
+  --sl-color-gray-6: var(--acme-color-background-surface);
+  --sl-color-gray-7: var(--acme-color-control-default);
+  --sl-color-black: var(--acme-color-background-base);
+  --sl-color-bg-nav: var(--acme-color-background-base);
+  --sl-color-bg-sidebar: var(--acme-color-background-base);
+  --sl-color-hairline: var(--acme-color-border-default);
+  --sl-color-hairline-light: var(--acme-color-border-default);
+  --sl-color-hairline-shade: var(--acme-color-border-default);
+  --sl-color-text-accent: var(--acme-color-text-accent);
+  --sl-color-text-invert: var(--acme-color-text-on-accent);
+}
+
+.card,
+.sl-link-card {
+  border-radius: var(--acme-radius-lg);
+}
+
+.sl-link-button {
+  border-radius: var(--acme-radius-full);
+}
+
+.sl-markdown-content code:not(pre code) {
+  border-radius: var(--acme-radius-sm);
+}
+
+/* A color sample in a token table, kept on one line with its value. */
+.sl-markdown-content td:has(.swatch) {
+  white-space: nowrap;
+}
+
+.swatch {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-inline-end: 0.5rem;
+  vertical-align: -0.3rem;
+  border: 1px solid var(--acme-color-border-default);
+  border-radius: var(--acme-radius-sm);
+}
+
+.ramp {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--acme-color-border-default);
+  border-radius: var(--acme-radius-md);
+}
+.ramp > span {
+  flex: 1;
+  height: 2.5rem;
+}
+
+.theme-sample {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--acme-color-border-default);
+  border-radius: var(--acme-radius-lg);
+}
+.theme-sample > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 1rem;
+}
+.theme-sample span.button {
+  align-self: flex-start;
+  padding: 0.35rem 0.9rem;
+  border-radius: var(--acme-radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.sl-link-button.primary {
+  background-color: var(--acme-color-button-primary-background);
+  border-color: var(--acme-color-button-primary-background);
+  color: var(--acme-color-button-primary-text);
+}

@@ -53,6 +53,7 @@ const MARKER_FILES: &[&str] = &[
     ".gitattributes",
     ".github/workflows/ci.yml",
     "README.md",
+    "AGENTS.md",
 ];
 
 type Tree = BTreeMap<String, Vec<u8>>;
@@ -455,6 +456,21 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
             );
         }
         assert!(readme.starts_with("# Orbit\n"), "{selected:?}");
+
+        // So does the guide for coding agents, and it points at paths that exist.
+        let agents = read("AGENTS.md");
+        for (path, expected) in [
+            ("`packages/ui`", has(WEB)),
+            ("`crates/orbit-ui`", has(DESKTOP)),
+            ("`packages/ui-native`", has(MOBILE)),
+            ("`kotlin/ui`", has(KOTLIN)),
+            ("`packages/tokens`", js),
+            ("mise run fmt", js || has(DESKTOP)),
+        ] {
+            assert_eq!(agents.contains(path), expected, "{selected:?}: {path}");
+        }
+        assert!(agents.starts_with("# Working in Orbit\n"), "{selected:?}");
+        assert_eq!(read("CLAUDE.md"), "@AGENTS.md\n", "{selected:?}");
 
         // The component contract names the selected clients only, and files of this project.
         let components: Value = serde_json::from_str(&read(COMPONENTS_PATH)).expect("valid JSON");

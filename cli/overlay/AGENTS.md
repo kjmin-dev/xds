@@ -4,54 +4,54 @@
 <!-- @endif -->
 # Working in Acme
 
-Acme is built on a design system: one set of design tokens, and a component library for each client that draws from them.
+Acme is built around a shared design system: a single set of design tokens and a component library for each client that consumes them.
 
 ## Where things are
 
-| Path | What it holds |
+| Path | Contents |
 | --- | --- |
-| `design/tokens` | The design tokens, in DTCG format. The source of truth |
-| `design/themes` | Color themes: an accent ramp and a neutral ramp each |
-| `design/components.json` | The component contract: variants, sizes, tones, and the source file on each client |
-| `tools/design-build` | Compiles tokens into platform files and checks contrast |
+| `design/tokens` | Design tokens in DTCG format (the single source of truth) |
+| `design/themes` | Color themes, each defining an accent ramp and a neutral ramp |
+| `design/components.json` | Component contract: variants, sizes, tones, and the source file for each client |
+| `tools/design-build` | Token compiler and WCAG contrast checker |
 <!-- @if web-react mobile-react-native -->
-| `packages/tokens` | Generated CSS and TypeScript. Do not edit |
+| `packages/tokens` | Generated CSS and TypeScript token files. Do not edit |
 <!-- @endif -->
 <!-- @if web-react -->
-| `packages/ui`, `apps/web` | Web components (React, Tailwind, HeroUI) and the web app |
+| `packages/ui`, `apps/web` | Web component library (React, Tailwind, HeroUI) and the web app |
 <!-- @endif -->
 <!-- @if mobile-react-native -->
-| `packages/ui-native`, `apps/mobile` | React Native components and the Expo app |
+| `packages/ui-native`, `apps/mobile` | React Native component library and the Expo app |
 <!-- @endif -->
 <!-- @if desktop-gpui -->
-| `crates/acme-tokens` | Generated Rust. Do not edit |
-| `crates/acme-ui`, `apps/desktop` | GPUI components and the desktop app |
+| `crates/acme-tokens` | Generated Rust token crate. Do not edit |
+| `crates/acme-ui`, `apps/desktop` | GPUI component library and the desktop app |
 <!-- @endif -->
 <!-- @if kotlin-compose -->
-| `kotlin/ui`, `kotlin/shared` | Compose components (with the generated `acme.tokens`) and the app's screens |
+| `kotlin/ui`, `kotlin/shared` | Compose component library (including generated `acme.tokens`) and shared app screens |
 <!-- @endif -->
 
 ## Rules
 
-- Build screens from the design system's components. Apps import the component library, never the UI library underneath it.
-- Tokens are the source. To change a color, a size, or a text style, edit `design/tokens`, run `mise run tokens`, and commit the token files together with the generated files. Never edit a generated file.
-- Do not write a hex color in a screen or a component. Use a semantic color (`text.secondary`, `border.default`, `status.danger`); a color that only one component needs goes in that component's group in both `color.light.json` and `color.dark.json`.
-- Every foreground and background drawn together needs an entry in `tools/design-build/src/contrast.ts`. `mise run tokens` fails when a pairing falls below its ratio, and says which one.
-- Text takes a type role (`body`, `label`, `heading`), not a raw font size.
+- Build app screens from the design system's components. Application code must import the project's component library, never the UI library underneath it.
+- Design tokens are the source of truth. To change a color, size, or text style, edit the files in `design/tokens`, run `mise run tokens`, and commit both the token sources and the generated files. Never edit a generated file directly.
+- Do not hardcode hex colors in screens or components. Use semantic color tokens (`text.secondary`, `border.default`, `status.danger`); colors needed by a single component belong in that component's group in both `color.light.json` and `color.dark.json`.
+- Every foreground and background color pair rendered together must have an entry in `tools/design-build/src/contrast.ts`. `mise run tokens` fails and reports the offending pair if any combination falls below its required contrast ratio.
+- Always use a typographic role (`body`, `label`, `heading`) for text rather than a raw font size.
 <!-- @if web-react -->
-- On the web, use the `acme` Tailwind utilities (`text-acme-text-secondary`, `bg-acme-background-surface`, `text-acme-body`), not Tailwind's default palette.
+- On the web, use the generated `acme` Tailwind utility classes (`text-acme-text-secondary`, `bg-acme-background-surface`, `text-acme-body`) instead of Tailwind's default palette.
 <!-- @endif -->
-- When a component gains a variant, a size, or a tone, add it under the same name on every client this project has, in each design preview, and in `design/components.json`.
-- Switch the color theme with `mise run theme <name>`. Do not edit the accent and neutral ramps in `design/tokens/palette.json` by hand.
+- When adding a variant, size, or tone to a component, implement it under the same name across every client in this project, add it to each client's design preview, and record it in `design/components.json`.
+- Switch color themes with `mise run theme <name>`. Do not edit the accent or neutral color ramps in `design/tokens/palette.json` by hand.
 
 ## Commands
 
 | Task | Command |
 | --- | --- |
-| Everything CI runs | `mise run check` |
+| Run all CI checks | `mise run check` |
 | Regenerate token files | `mise run tokens` |
 <!-- @if web-react desktop-gpui mobile-react-native -->
-| Format | `mise run fmt` |
+| Format code | `mise run fmt` |
 <!-- @endif -->
 <!-- @if web-react -->
 | Start the web app | `mise run //web:dev` |
@@ -65,25 +65,25 @@ Acme is built on a design system: one set of design tokens, and a component libr
 <!-- @if kotlin-compose -->
 | Start the Compose desktop app | `mise run //kotlin:desktop` |
 <!-- @endif -->
-| List every task | `mise tasks --all` |
+| List all available tasks | `mise tasks --all` |
 
-If `xds` is installed, `xds tokens`, `xds components`, `xds contrast <foreground> <background>`, and `xds doctor` answer questions about this project's design system; add `--json` for structured output. `xds add <target>` adds another client.
+If `xds` is installed, use `xds tokens`, `xds components`, `xds contrast <foreground> <background>`, and `xds doctor` to query the design system; pass `--json` for structured output. Run `xds add <target>` to add another client stack to this project.
 
 ## Checking a UI change
 
-Look at the design preview in light and dark.
+Inspect the design preview in both light and dark modes after making visual changes.
 
-| Client | How to open it |
+| Client | How to open the preview |
 | --- | --- |
 <!-- @if web-react -->
-| Web | `http://localhost:5173/design#buttons` while the web app runs. Each section has an anchor; `?theme=light` or `?theme=dark` pins the mode |
+| Web | Open `http://localhost:5173/design#buttons` while the web dev server is running. Each section has an anchor, and `?theme=light` or `?theme=dark` pins the color mode |
 <!-- @endif -->
 <!-- @if desktop-gpui -->
-| Desktop | `mise run //desktop:design`. Add `--light` or `--dark`, and `--scroll <pixels>` to start further down |
+| Desktop | Run `mise run //desktop:design`. Pass `--light` or `--dark` to pin the mode, and `--scroll <pixels>` to open at a vertical offset |
 <!-- @endif -->
 <!-- @if mobile-react-native -->
-| Mobile | The button on the home screen. The design screen takes `?from=<section number>` and `?sheet=1` |
+| Mobile | Tap the preview button on the home screen, or navigate to the design route with `?from=<section number>` and `?sheet=1` |
 <!-- @endif -->
 <!-- @if kotlin-compose -->
-| Compose | `mise run //kotlin:render` writes PNG files to `kotlin/build/preview`; `mise run //kotlin:design` opens it in a window |
+| Compose | Run `mise run //kotlin:render` to render PNG screenshots into `kotlin/build/preview`, or `mise run //kotlin:design` to open the interactive preview window |
 <!-- @endif -->

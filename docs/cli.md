@@ -199,7 +199,7 @@ When run in a terminal without a theme name, it opens the same interactive selec
 
 ### `xds tokens [query]`
 
-Lists the design tokens with the value each one has: per color mode for colors, per input device for sizes.
+Lists the design tokens and their resolved values: per color mode for colors, and per input device for sizes.
 
 ```sh
 xds tokens                      # every token
@@ -211,13 +211,13 @@ xds tokens --tier semantic      # palette, semantic, component, or base
 color.button.primary.background  light #4f46e5 (color.accent.default)   dark #5b5ef0 (color.accent.default)
 ```
 
-Aliases are followed to the final value, and the token a value points at is shown in parentheses. With `--json`, each token has `path`, `type`, `tier`, `description`, `values`, and `aliases`.
+Aliases are resolved to their final values, with the referenced token shown in parentheses. With `--json`, each token entry includes `path`, `type`, `tier`, `description`, `values`, and `aliases`.
 
-Run in a project or in a checkout of this repository, `tokens` reads the files in `design/tokens` there. Anywhere else it reads the template inside the binary, and `--project <dir>` names a project explicitly. The same holds for `components` and `contrast`; the `source` field of the JSON result says `project` or `template`.
+When run inside a project or a checkout of this repository, `tokens` reads the local files in `design/tokens`. Elsewhere, it reads the template embedded in the binary, or you can pass `--project <dir>` to point to a project directory explicitly. `components` and `contrast` work the same way; in JSON output, the `source` field indicates `project` or `template`.
 
 ### `xds components [name]`
 
-Lists the components and the clients that have each, or describes one.
+Lists all components and the clients that implement them, or shows the details of a single component.
 
 ```sh
 xds components                              # all of them
@@ -226,11 +226,11 @@ xds components Button --client web-react    # one client only
 xds components Button --code                # with the source code
 ```
 
-The answers come from `design/components.json`, the component contract: what each component is for, the options it takes, its states, its accessibility notes, and the file and symbol that implement it on each client. A project made by `xds create` gets the contract with only its own clients.
+This information comes from `design/components.json`, the component contract, which records each component's purpose, options, states, accessibility notes, and the source file and symbol that implement it on each client. In a project created with `xds create`, the contract is filtered down to that project's clients.
 
 ### `xds contrast <foreground> <background>`
 
-Measures the WCAG 2 contrast ratio between two colors. Each side is a hex color or a color token; `color.` may be left out.
+Computes the WCAG 2 contrast ratio between two colors. Each argument can be a hex color or a color token path (the leading `color.` prefix is optional).
 
 ```sh
 xds contrast text.secondary background.surface
@@ -242,32 +242,32 @@ color.text.secondary on color.background.surface
   light #5c5c66  #ffffff  6.60:1   text 4.5 pass   large text and UI 3 pass   AAA text 7 fail
 ```
 
-A token is measured in light and in dark. With `--min <ratio>`, the command exits with 1 when any ratio is below it. A translucent token is refused: composite it over what is behind it and pass the hex.
+Color tokens are evaluated in both light and dark modes. With `--min <ratio>`, the command exits with code 1 if either mode falls below the threshold. Translucent tokens are rejected; composite the color over its background first and pass the resulting hex value.
 
 ### `xds doctor`
 
-Checks a project and reports each check as `ok`, `warning`, `failed`, or `skipped`:
+Runs a set of health checks on a project and reports each one as `ok`, `warning`, `failed`, or `skipped`:
 
-| Check | What it looks at |
+| Check | What it verifies |
 | --- | --- |
-| `record` | `.xds.json` is readable and names targets that exist |
-| `tokens` | The token files load and every alias resolves |
-| `theme` | The palette holds one of the themes in `design/themes`, and it is the one the record names |
-| `components` | Every source file in `design/components.json` exists |
-| `node` | A Node that can run the token generator is on `PATH` |
-| `generated` | The generated token files match the tokens |
+| `record` | `.xds.json` is valid and references known targets |
+| `tokens` | All token files parse cleanly and every alias resolves |
+| `theme` | The palette matches one of the themes in `design/themes`, and it matches the theme named in the project record |
+| `components` | Every component source file listed in `design/components.json` exists on disk |
+| `node` | A Node version capable of running the token generator is available on `PATH` |
+| `generated` | The generated platform token files are up to date with the token sources |
 
-It exits with 1 when a check failed. Warnings do not change the exit code.
+The command exits with code 1 if any check fails. Warnings do not affect the exit code.
 
 ### `xds mcp`
 
-Starts a [Model Context Protocol](https://modelcontextprotocol.io) server on stdin and stdout. See [For scripts and agents](#for-scripts-and-agents).
+Starts a [Model Context Protocol](https://modelcontextprotocol.io) server communicating over stdin and stdout. See [For scripts and agents](#for-scripts-and-agents).
 
 ## For scripts and agents
 
 ### JSON output
 
-Every command takes `--json`. The result is then one JSON document on stdout, with no other text, and nothing is ever asked: `create` behaves as it does without a terminal.
+Every command accepts `--json`. When passed, the command writes a single JSON document to stdout with no other output and never prompts interactively (`create` behaves the same as when stdout is not a terminal).
 
 ```sh
 xds list --json
@@ -275,36 +275,36 @@ xds create my-app --name orbit --targets web-react --dry-run --json
 xds tokens color.text --json
 ```
 
-An error is one JSON document on stderr:
+Errors are written to stderr as a single JSON document:
 
 ```json
 { "error": { "kind": "error", "message": "There is no theme \"nope\". Themes: forest, indigo, ocean, plum, sunset" } }
 ```
 
-`kind` is `error`, `usage` for wrong arguments, or `cancelled`. A check that did not pass (`doctor`, `contrast --min`) is a result, not an error: it is printed on stdout and has `"ok": false`.
+`kind` is `error`, `usage` (for invalid arguments), or `cancelled`. A failing check (`doctor` or `contrast --min`) is treated as a normal result rather than an error: it is written to stdout with `"ok": false`.
 
 ### Exit codes
 
 | Code | Meaning |
 | --- | --- |
-| 0 | The command did what it was asked |
+| 0 | The command succeeded |
 | 1 | The command failed, or a check did not pass |
-| 2 | The arguments were wrong |
-| 130 | A prompt was cancelled with Esc or Ctrl-C |
+| 2 | Invalid command-line arguments |
+| 130 | An interactive prompt was cancelled with Esc or Ctrl-C |
 
 ### AGENTS.md
 
-This repository has an `AGENTS.md` with the rules of the design system for coding agents, and a `CLAUDE.md` that imports it. `xds create` writes both into a new project, where `AGENTS.md` names only the clients that project has.
+This repository includes an `AGENTS.md` file that documents the design system rules for coding agents, along with a `CLAUDE.md` file that imports it. `xds create` writes both files into each generated project, tailoring `AGENTS.md` to list only the clients included in that project.
 
 ### Agent skill
 
-`skills/xds` is a skill in the [Agent Skills](https://agentskills.io) format. It tells an agent when to use the commands above, and has a reference for each task: scaffolding and themes, tokens, components, and looking at a UI change.
+`skills/xds` provides a skill in the [Agent Skills](https://agentskills.io) format. It shows coding agents how to use the CLI commands above and includes task-specific guides for scaffolding and themes, tokens, components, and verifying UI changes.
 
 ```sh
 npx skills add kjmin-dev/xds
 ```
 
-In Claude Code, the repository is also a plugin marketplace:
+In Claude Code, this repository can also be added directly as a plugin marketplace:
 
 ```text
 /plugin install xds --marketplace kjmin-dev/xds
@@ -312,7 +312,7 @@ In Claude Code, the repository is also a plugin marketplace:
 
 ### MCP server
 
-`xds mcp` serves the commands as tools, for an agent that cannot run a shell. It speaks MCP over stdio and is built on `rmcp`, the official Rust SDK.
+`xds mcp` exposes the CLI commands as MCP tools for agents that cannot run shell commands directly. It communicates over stdio and is built on `rmcp`, the official Rust SDK.
 
 ```sh
 claude mcp add xds -- xds mcp
@@ -322,19 +322,19 @@ claude mcp add xds -- xds mcp
 { "mcpServers": { "xds": { "command": "xds", "args": ["mcp"] } } }
 ```
 
-| Tool | Does |
+| Tool | Description |
 | --- | --- |
-| `list` | Lists the targets and the themes |
-| `tokens` | Lists tokens, filtered by `query` and `tier` |
-| `components` | Lists the components |
-| `component` | Describes one component, with its source when `code` is true |
-| `contrast` | Measures two colors or color tokens |
-| `doctor` | Checks a project |
-| `create`, `add`, `theme` | Scaffold a project, add targets, apply a theme |
+| `list` | Lists the available targets and themes |
+| `tokens` | Lists design tokens, optionally filtered by `query` and `tier` |
+| `components` | Lists all components |
+| `component` | Returns the details for a single component, including source code when `code` is true |
+| `contrast` | Computes the contrast ratio between two colors or color tokens |
+| `doctor` | Runs project health checks |
+| `create`, `add`, `theme` | Scaffolds a project, adds targets, or applies a theme |
 
-Each tool returns what the command prints with `--json`. `create`, `add`, and `theme` are dry runs unless the call passes `"write": true`. The read tools take a `project` directory; without one they read the server's working directory, or the template when that is not a project.
+Each tool returns the same JSON payload as the corresponding CLI command with `--json`. `create`, `add`, and `theme` run in dry-run mode unless `"write": true` is passed. The read-only tools accept an optional `project` directory; when omitted, they inspect the server's working directory, or fall back to the embedded template if the working directory is not a project.
 
-An agent that can run commands does not need the server: the commands with `--json` give the same answers.
+Agents with shell access do not need the MCP server; running the CLI commands with `--json` produces identical output.
 
 ## Targets
 

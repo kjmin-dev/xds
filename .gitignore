@@ -5,14 +5,18 @@
 .idea/
 .vscode/
 
+# @if desktop-gpui
 # Rust
 target/
 
+# @endif
+# @if web-react mobile-react-native
 # Node
 node_modules/
 dist/
 *.tsbuildinfo
 
+# @endif
 # mise
 mise.local.toml
 mise.*.local.toml

@@ -1,6 +1,10 @@
 packages:
+  # @if web-react
   - apps/web
+  # @endif
+  # @if mobile-react-native
   - apps/mobile
+  # @endif
   - packages/*
   - tools/*
 

@@ -12,11 +12,23 @@ concurrency:
 permissions:
   contents: read
 
+# @if desktop-gpui
 env:
   CARGO_TERM_COLOR: always
 
+# @endif
 # Every job runs the same mise tasks a developer runs locally: `mise run check` is all of them.
 jobs:
+  generated:
+    name: Generated code and workflows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+      - run: mise run check:generated
+      - run: mise run check:workflows
+
+  # @if web-react mobile-react-native
   js:
     name: TypeScript
     runs-on: ubuntu-latest
@@ -24,8 +36,9 @@ jobs:
       - uses: actions/checkout@v7
       - uses: jdx/mise-action@v5
       - run: mise run check:js
-      - run: mise run check:workflows
 
+  # @endif
+  # @if desktop-gpui
   rust:
     name: Rust
     runs-on: ubuntu-latest
@@ -34,7 +47,6 @@ jobs:
       - uses: jdx/mise-action@v5
       - uses: Swatinem/rust-cache@v2
       - run: mise run check:rust
-      - run: mise run check:generated
 
   desktop:
     name: Desktop (macOS)
@@ -44,3 +56,31 @@ jobs:
       - uses: jdx/mise-action@v5
       - uses: Swatinem/rust-cache@v2
       - run: mise run check:desktop
+
+  # @endif
+  # @if kotlin-compose
+  kotlin:
+    name: Kotlin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+      - run: mise run //kotlin:check
+
+  # @endif
+  # @if template
+  # The Rust job tests xds on Linux. It ships for macOS and Windows as well, where paths and the
+  # terminal differ.
+  cli:
+    name: CLI (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+      - uses: Swatinem/rust-cache@v2
+      - run: mise run check:cli
+  # @endif

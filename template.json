@@ -1,0 +1,114 @@
+{
+  "placeholder": { "name": "acme", "title": "Acme" },
+  "defaultTheme": "indigo",
+  "exclude": [
+    "cli",
+    "npm",
+    "install.sh",
+    "template.json",
+    "README.md",
+    "README.ko.md",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "docs/images",
+    "docs/cli.md",
+    ".github/workflows/release.yml",
+    "Cargo.lock",
+    "pnpm-lock.yaml",
+    "mise.lock"
+  ],
+  "common": [
+    "design",
+    "tools/design-build",
+    ".editorconfig",
+    ".gitignore",
+    ".gitattributes",
+    "mise.toml",
+    ".github/workflows/ci.yml",
+    "docs/design-system.md"
+  ],
+  "shared": {
+    "js-workspace": {
+      "paths": ["package.json", "pnpm-workspace.yaml", "biome.json", "tsconfig.base.json"]
+    },
+    "js-tokens": {
+      "paths": ["packages/tokens"]
+    },
+    "rust-workspace": {
+      "paths": ["Cargo.toml"]
+    }
+  },
+  "targets": [
+    {
+      "id": "web-react",
+      "title": "Web",
+      "stack": "React 19, Vite, Tailwind v4, HeroUI v3",
+      "platforms": ["Web"],
+      "paths": ["apps/web", "packages/ui"],
+      "requires": ["js-workspace", "js-tokens"],
+      "outputs": ["css", "tailwind", "typescript"],
+      "format": "mise run fmt",
+      "run": [
+        {
+          "command": "mise run //web:dev",
+          "description": "Start the web app on http://localhost:5173"
+        }
+      ]
+    },
+    {
+      "id": "desktop-gpui",
+      "title": "Desktop",
+      "stack": "Rust, GPUI, GPUI Component",
+      "platforms": ["macOS"],
+      "paths": ["apps/desktop", "crates/acme-ui", "crates/acme-tokens"],
+      "requires": ["rust-workspace"],
+      "outputs": ["rust"],
+      "format": "mise run fmt",
+      "run": [
+        {
+          "command": "mise run //desktop:dev",
+          "description": "Start the desktop app"
+        }
+      ]
+    },
+    {
+      "id": "mobile-react-native",
+      "title": "Mobile",
+      "stack": "React Native, Expo",
+      "platforms": ["iOS", "Android"],
+      "paths": ["apps/mobile", "packages/ui-native"],
+      "requires": ["js-workspace", "js-tokens"],
+      "outputs": ["typescript"],
+      "format": "mise run fmt",
+      "run": [
+        {
+          "command": "mise run //mobile:ios",
+          "description": "Start the mobile app in the iOS simulator"
+        },
+        {
+          "command": "mise run //mobile:android",
+          "description": "Start the mobile app in the Android emulator"
+        }
+      ]
+    },
+    {
+      "id": "kotlin-compose",
+      "title": "Kotlin",
+      "stack": "Kotlin, Compose Multiplatform",
+      "platforms": ["Android", "iOS", "Desktop"],
+      "paths": ["kotlin"],
+      "requires": [],
+      "outputs": ["kotlin"],
+      "run": [
+        {
+          "command": "mise run //kotlin:desktop",
+          "description": "Start the Compose desktop app"
+        },
+        {
+          "command": "mise run //kotlin:android",
+          "description": "Run the Compose app on Android"
+        }
+      ]
+    }
+  ]
+}

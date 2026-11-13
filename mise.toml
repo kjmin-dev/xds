@@ -4,31 +4,63 @@
 #   mise run check       run everything CI runs
 #   mise tasks --all     list every task, including each app's
 #
+# @if web-react desktop-gpui mobile-react-native
 # Each app under apps/ has its own mise.toml. Its tasks are addressed by path
-# (`mise run //apps/web:dev`) or by alias (`mise run //web:dev`).
+# (`mise run //apps/<app>:dev`) or by the alias below (`mise run //<app>:dev`).
+# @endif
+# @if kotlin-compose
+# The Kotlin build under kotlin/ has its own mise.toml: `mise run //kotlin:desktop`.
+# @endif
+# @if template
+#
+# The lines between an `@if <targets>` comment and its `@endif` belong to those client stacks:
+# `xds create` keeps them in a project only when one of the stacks is selected, and never
+# copies the comments themselves. `@if template` marks what only this repository needs.
+# See docs/cli.md.
+# @endif
 
 min_version = "2026.10.0"
 monorepo_root = true
 
 [monorepo]
-config_roots = ["apps/*"]
+config_roots = [
+  # @if web-react desktop-gpui mobile-react-native
+  "apps/*",
+  # @endif
+  # @if kotlin-compose
+  "kotlin",
+  # @endif
+]
 lockfile = true
 
+# @if web-react desktop-gpui mobile-react-native
 [monorepo.path_aliases]
+# @if desktop-gpui
 desktop = "apps/desktop"
+# @endif
+# @if mobile-react-native
 mobile = "apps/mobile"
+# @endif
+# @if web-react
 web = "apps/web"
+# @endif
 
+# @endif
 [tools]
+# The token generator runs on Node alone, so every project needs it.
 node = "26.13.1"
+# @if web-react mobile-react-native
 pnpm = "12.19.0"
+# @endif
+# @if desktop-gpui
 rust = { version = "1.99.1", components = "rustfmt,clippy" }
+# @endif
+# @if kotlin-compose
+java = "temurin-17"
+# @endif
 actionlint = "1.7.12"
 
-[vars]
-# Everything a generator writes. `check:generated` fails if any of it is out of date.
-generated = "crates/acme-tokens/src/generated.rs packages/tokens/src/generated"
-
+# @if web-react mobile-react-native
 # ---------------------------------------------------------------- setup
 
 [tasks.install]
@@ -44,46 +76,59 @@ sources = [
 ]
 outputs = { auto = true }
 
+# @endif
 # ---------------------------------------------------------------- generated code
 #
-# The generator is quick and always runs: skipping it when its inputs look unchanged would let
-# `check:generated` pass on a fresh checkout without regenerating anything.
+# The generator has no dependencies: it needs Node and nothing installed, so these tasks work
+# the same in a project without a JavaScript workspace.
 
 [tasks.tokens]
 description = "Generate the platform token files from design/tokens"
-depends = ["install"]
-run = "pnpm --filter @acme/design-build build"
+run = "node tools/design-build/src/build.ts"
 
 [tasks."check:generated"]
 description = "Fail if committed generated code is out of date"
-depends = ["tokens"]
-# Compares the regenerated files with the index, and catches new files that were never added.
-run = '''
-stale="$(git diff --name-only -- {{vars.generated}}; git ls-files --others --exclude-standard -- {{vars.generated}})"
-if [ -n "$stale" ]; then
-  echo "$stale"
-  echo "Generated code is out of date. Run 'mise run tokens' and commit the result." >&2
-  exit 1
-fi
-'''
+run = "node tools/design-build/src/build.ts --check"
+
+[tasks.theme]
+description = "List the color themes, or apply one and regenerate: mise run theme ocean"
+run = "node tools/design-build/src/theme.ts"
 
 # ---------------------------------------------------------------- checks
 
+# @if web-react desktop-gpui mobile-react-native
 [tasks.fmt]
 description = "Format everything"
+# @if web-react mobile-react-native
 depends = ["install"]
-run = ["cargo fmt --all", "pnpm exec biome check --write"]
+# @endif
+run = [
+  # @if desktop-gpui
+  "cargo fmt --all",
+  # @endif
+  # @if web-react mobile-react-native
+  "pnpm exec biome check --write",
+  # @endif
+]
 
+# @endif
+# @if web-react mobile-react-native
 [tasks."check:js"]
-description = "Lint, type-check, test, and build the TypeScript workspace"
+description = "Lint, type-check, and test the TypeScript workspace"
 depends = ["install"]
 run = [
   "pnpm exec biome ci",
   "pnpm --recursive --if-present run typecheck",
   "pnpm --recursive --if-present run test",
+  # @if web-react
+  # A production build of the web app catches what the type checker cannot: unresolved
+  # imports, and CSS that Tailwind rejects.
   "pnpm --filter @acme/web build",
+  # @endif
 ]
 
+# @endif
+# @if desktop-gpui
 [tasks."check:rust"]
 description = "Format-check the Rust workspace, then lint and test the crates that build on any OS"
 run = [
@@ -100,14 +145,47 @@ run = [
   "cargo build --package acme-desktop",
 ]
 
+# @endif
+# @if template
+[tasks."check:cli"]
+description = "Lint and test the xds CLI on its own (check:rust covers it too; CI runs this on macOS and Windows)"
+run = [
+  "cargo clippy --package xds --all-targets -- --deny warnings",
+  "cargo test --package xds",
+]
+
+[tasks."build:cli"]
+description = "Build the xds binary the way a release does, into target/dist/xds"
+run = "cargo build --package xds --profile dist"
+
+[tasks.xds]
+description = "Run the xds CLI from source: mise run xds -- list"
+run = "cargo run --quiet --package xds --"
+
+# @endif
 [tasks."check:workflows"]
 description = "Lint the GitHub Actions workflows"
-run = "actionlint"
+# The files are named because actionlint otherwise looks for them through git, and fails in a
+# directory that is not a repository yet.
+run = "actionlint .github/workflows/*.yml"
 
 [tasks.check]
 description = "Run everything CI runs"
-# Regenerate first: the generator rewrites files that the other checks read.
+# The generated files first: when they are stale, the failures of the other checks only
+# repeat that in less obvious ways.
 run = [
   { task = "check:generated" },
-  { tasks = ["check:js", "check:rust", "check:desktop", "check:workflows"] },
+  { tasks = [
+    # @if web-react mobile-react-native
+    "check:js",
+    # @endif
+    # @if desktop-gpui
+    "check:rust",
+    "check:desktop",
+    # @endif
+    # @if kotlin-compose
+    "//kotlin:check",
+    # @endif
+    "check:workflows",
+  ] },
 ]

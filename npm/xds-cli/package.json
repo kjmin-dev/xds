@@ -1,0 +1,37 @@
+{
+  "name": "xds-cli",
+  "version": "0.0.0",
+  "description": "Scaffolds a project from the cross-platform design system template: pick the client stacks, a name and a color theme.",
+  "keywords": [
+    "design-system",
+    "design-tokens",
+    "scaffold",
+    "template",
+    "cli"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/kjmin-dev/xds/blob/main/docs/cli.md",
+  "bugs": "https://github.com/kjmin-dev/xds/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kjmin-dev/xds.git",
+    "directory": "npm/xds-cli"
+  },
+  "type": "module",
+  "bin": {
+    "xds": "bin/xds.js"
+  },
+  "files": [
+    "bin"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "optionalDependencies": {
+    "xds-cli-darwin-arm64": "0.0.0",
+    "xds-cli-darwin-x64": "0.0.0",
+    "xds-cli-linux-arm64": "0.0.0",
+    "xds-cli-linux-x64": "0.0.0",
+    "xds-cli-win32-x64": "0.0.0"
+  }
+}

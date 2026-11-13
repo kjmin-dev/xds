@@ -10,6 +10,7 @@ export const colors = {
     "backgroundDisabled": "#ececf0",
     "textPrimary": "#18181c",
     "textSecondary": "#5c5c66",
+    "textTertiary": "#6e6e79",
     "textDisabled": "#a9a9b4",
     "textAccent": "#4f46e5",
     "textOnAccent": "#ffffff",
@@ -59,7 +60,7 @@ export const colors = {
     "fieldBorderFocus": "#4f46e5",
     "fieldBorderInvalid": "#b42318",
     "fieldText": "#18181c",
-    "fieldPlaceholder": "#5c5c66",
+    "fieldPlaceholder": "#6e6e79",
     "badgeNeutralBackground": "#ececf0",
     "badgeNeutralText": "#5c5c66",
     "badgeAccentBackground": "#eef2ff",
@@ -92,7 +93,7 @@ export const colors = {
     "segmentedTrack": "#ececf0",
     "segmentedText": "#5c5c66",
     "segmentedSelectedBackground": "#ffffff",
-    "segmentedSelectedBorder": "#84848f",
+    "segmentedSelectedBorder": "#c9c9d1",
     "segmentedSelectedText": "#18181c",
     "avatarBackground": "#eef2ff",
     "avatarText": "#4f46e5",
@@ -120,6 +121,7 @@ export const colors = {
     "backgroundDisabled": "#2c2c33",
     "textPrimary": "#f5f5f7",
     "textSecondary": "#a9a9b4",
+    "textTertiary": "#84848f",
     "textDisabled": "#5c5c66",
     "textAccent": "#a5b4fc",
     "textOnAccent": "#ffffff",
@@ -169,7 +171,7 @@ export const colors = {
     "fieldBorderFocus": "#818cf8",
     "fieldBorderInvalid": "#f97066",
     "fieldText": "#f5f5f7",
-    "fieldPlaceholder": "#a9a9b4",
+    "fieldPlaceholder": "#84848f",
     "badgeNeutralBackground": "#2c2c33",
     "badgeNeutralText": "#a9a9b4",
     "badgeAccentBackground": "#1e1b4b",
@@ -202,7 +204,7 @@ export const colors = {
     "segmentedTrack": "#2c2c33",
     "segmentedText": "#a9a9b4",
     "segmentedSelectedBackground": "#222228",
-    "segmentedSelectedBorder": "#84848f",
+    "segmentedSelectedBorder": "#44444c",
     "segmentedSelectedText": "#f5f5f7",
     "avatarBackground": "#1e1b4b",
     "avatarText": "#a5b4fc",
@@ -229,9 +231,15 @@ export const space = {
   "2": 8,
   "3": 12,
   "4": 16,
+  "5": 20,
   "6": 24,
   "8": 32,
-  "12": 48
+  "10": 40,
+  "12": 48,
+  "16": 64,
+  "0_5": 2,
+  "1_5": 6,
+  "2_5": 10
 } as const;
 
 export const radius = {
@@ -257,10 +265,17 @@ export const focus = {
 export const font = {
   "family": {
     "sans": [
+      "Pretendard Variable",
       "Pretendard",
-      "Apple SD Gothic Neo",
-      "Malgun Gothic",
+      "-apple-system",
+      "BlinkMacSystemFont",
       "system-ui",
+      "Roboto",
+      "Helvetica Neue",
+      "Segoe UI",
+      "Apple SD Gothic Neo",
+      "Noto Sans KR",
+      "Malgun Gothic",
       "sans-serif"
     ]
   },
@@ -274,6 +289,7 @@ export const font = {
   },
   "weight": {
     "regular": 400,
+    "medium": 500,
     "semibold": 600,
     "bold": 700
   },
@@ -318,7 +334,7 @@ export const typography = {
   "label": {
     "fontSize": 14,
     "lineHeight": 20,
-    "fontWeight": 600,
+    "fontWeight": 500,
     "letterSpacing": 0
   },
   "detail": {
@@ -330,7 +346,7 @@ export const typography = {
   "footnote": {
     "fontSize": 12,
     "lineHeight": 17,
-    "fontWeight": 600,
+    "fontWeight": 500,
     "letterSpacing": 0
   }
 } as const;
@@ -361,7 +377,17 @@ export const motion = {
       1
     ]
   },
-  "pressScale": 0.97
+  "pressScale": 0.97,
+  "spring": {
+    "default": {
+      "stiffness": 700,
+      "damping": 0.9
+    },
+    "fast": {
+      "stiffness": 1400,
+      "damping": 0.9
+    }
+  }
 } as const;
 
 export const shadow = {
@@ -400,7 +426,18 @@ export const size = {
     "checkbox": 18,
     "listRow": 40,
     "bar": 48,
-    "buttonRadius": 10
+    "buttonRadius": 10,
+    "iconSm": 16,
+    "iconMd": 20,
+    "iconLg": 24,
+    "avatarSm": 24,
+    "avatarMd": 32,
+    "avatarLg": 40,
+    "badge": 24,
+    "progress": 8,
+    "spinnerSm": 16,
+    "spinnerMd": 24,
+    "spinnerLg": 32
   },
   "touch": {
     "controlSm": 40,
@@ -412,6 +449,17 @@ export const size = {
     "checkbox": 24,
     "listRow": 56,
     "bar": 56,
-    "buttonRadius": 9999
+    "buttonRadius": 9999,
+    "iconSm": 16,
+    "iconMd": 20,
+    "iconLg": 24,
+    "avatarSm": 24,
+    "avatarMd": 32,
+    "avatarLg": 40,
+    "badge": 24,
+    "progress": 8,
+    "spinnerSm": 16,
+    "spinnerMd": 24,
+    "spinnerLg": 32
   }
 } as const;

@@ -20,6 +20,8 @@ pub struct Colors {
     pub text_primary: Color,
     /// Supporting text. Still readable: 4.5:1 on every background.
     pub text_secondary: Color,
+    /// Placeholders, timestamps and marks such as chevrons. 4.5:1 on the page and on a surface; not for raised surfaces.
+    pub text_tertiary: Color,
     /// Text of a disabled control. Exempt from contrast rules, and meant to look unavailable.
     pub text_disabled: Color,
     /// Links and accent-colored text on a neutral background.
@@ -84,7 +86,7 @@ pub struct Colors {
     pub field_border_focus: Color,
     pub field_border_invalid: Color,
     pub field_text: Color,
-    /// Placeholder text is text: it meets 4.5:1 like any other.
+    /// Placeholder text is text, so it meets 4.5:1, but it is lighter than a value so the two are not confused.
     pub field_placeholder: Color,
     pub badge_neutral_background: Color,
     pub badge_neutral_text: Color,
@@ -120,7 +122,7 @@ pub struct Colors {
     pub segmented_track: Color,
     pub segmented_text: Color,
     pub segmented_selected_background: Color,
-    /// The selected segment is outlined: its fill alone is too close to the track to tell which one is chosen.
+    /// A hairline around the selected segment. Together with a faint shadow and the darker label it sets the segment apart from the track.
     pub segmented_selected_border: Color,
     pub segmented_selected_text: Color,
     pub avatar_background: Color,
@@ -149,7 +151,7 @@ pub struct Colors {
 
 impl Colors {
     /// Every color with its token name, in token order. For screens that list the colors.
-    pub const fn entries(&self) -> [(&'static str, Color); 108] {
+    pub const fn entries(&self) -> [(&'static str, Color); 109] {
         [
             ("scrim", self.scrim),
             ("background-base", self.background_base),
@@ -158,6 +160,7 @@ impl Colors {
             ("background-disabled", self.background_disabled),
             ("text-primary", self.text_primary),
             ("text-secondary", self.text_secondary),
+            ("text-tertiary", self.text_tertiary),
             ("text-disabled", self.text_disabled),
             ("text-accent", self.text_accent),
             ("text-on-accent", self.text_on_accent),
@@ -271,6 +274,7 @@ pub const LIGHT: Colors = Colors {
     background_disabled: Color::rgba(236, 236, 240, 1.0),
     text_primary: Color::rgba(24, 24, 28, 1.0),
     text_secondary: Color::rgba(92, 92, 102, 1.0),
+    text_tertiary: Color::rgba(110, 110, 121, 1.0),
     text_disabled: Color::rgba(169, 169, 180, 1.0),
     text_accent: Color::rgba(79, 70, 229, 1.0),
     text_on_accent: Color::rgba(255, 255, 255, 1.0),
@@ -320,7 +324,7 @@ pub const LIGHT: Colors = Colors {
     field_border_focus: Color::rgba(79, 70, 229, 1.0),
     field_border_invalid: Color::rgba(180, 35, 24, 1.0),
     field_text: Color::rgba(24, 24, 28, 1.0),
-    field_placeholder: Color::rgba(92, 92, 102, 1.0),
+    field_placeholder: Color::rgba(110, 110, 121, 1.0),
     badge_neutral_background: Color::rgba(236, 236, 240, 1.0),
     badge_neutral_text: Color::rgba(92, 92, 102, 1.0),
     badge_accent_background: Color::rgba(238, 242, 255, 1.0),
@@ -353,7 +357,7 @@ pub const LIGHT: Colors = Colors {
     segmented_track: Color::rgba(236, 236, 240, 1.0),
     segmented_text: Color::rgba(92, 92, 102, 1.0),
     segmented_selected_background: Color::rgba(255, 255, 255, 1.0),
-    segmented_selected_border: Color::rgba(132, 132, 143, 1.0),
+    segmented_selected_border: Color::rgba(201, 201, 209, 1.0),
     segmented_selected_text: Color::rgba(24, 24, 28, 1.0),
     avatar_background: Color::rgba(238, 242, 255, 1.0),
     avatar_text: Color::rgba(79, 70, 229, 1.0),
@@ -382,6 +386,7 @@ pub const DARK: Colors = Colors {
     background_disabled: Color::rgba(44, 44, 51, 1.0),
     text_primary: Color::rgba(245, 245, 247, 1.0),
     text_secondary: Color::rgba(169, 169, 180, 1.0),
+    text_tertiary: Color::rgba(132, 132, 143, 1.0),
     text_disabled: Color::rgba(92, 92, 102, 1.0),
     text_accent: Color::rgba(165, 180, 252, 1.0),
     text_on_accent: Color::rgba(255, 255, 255, 1.0),
@@ -431,7 +436,7 @@ pub const DARK: Colors = Colors {
     field_border_focus: Color::rgba(129, 140, 248, 1.0),
     field_border_invalid: Color::rgba(249, 112, 102, 1.0),
     field_text: Color::rgba(245, 245, 247, 1.0),
-    field_placeholder: Color::rgba(169, 169, 180, 1.0),
+    field_placeholder: Color::rgba(132, 132, 143, 1.0),
     badge_neutral_background: Color::rgba(44, 44, 51, 1.0),
     badge_neutral_text: Color::rgba(169, 169, 180, 1.0),
     badge_accent_background: Color::rgba(30, 27, 75, 1.0),
@@ -464,7 +469,7 @@ pub const DARK: Colors = Colors {
     segmented_track: Color::rgba(44, 44, 51, 1.0),
     segmented_text: Color::rgba(169, 169, 180, 1.0),
     segmented_selected_background: Color::rgba(34, 34, 40, 1.0),
-    segmented_selected_border: Color::rgba(132, 132, 143, 1.0),
+    segmented_selected_border: Color::rgba(68, 68, 76, 1.0),
     segmented_selected_text: Color::rgba(245, 245, 247, 1.0),
     avatar_background: Color::rgba(30, 27, 75, 1.0),
     avatar_text: Color::rgba(165, 180, 252, 1.0),
@@ -489,9 +494,15 @@ pub const SPACE_1: f32 = 4.0;
 pub const SPACE_2: f32 = 8.0;
 pub const SPACE_3: f32 = 12.0;
 pub const SPACE_4: f32 = 16.0;
+pub const SPACE_5: f32 = 20.0;
 pub const SPACE_6: f32 = 24.0;
 pub const SPACE_8: f32 = 32.0;
+pub const SPACE_10: f32 = 40.0;
 pub const SPACE_12: f32 = 48.0;
+pub const SPACE_16: f32 = 64.0;
+pub const SPACE_0_5: f32 = 2.0;
+pub const SPACE_1_5: f32 = 6.0;
+pub const SPACE_2_5: f32 = 10.0;
 
 /// Small parts inside a control: badges, checkboxes.
 pub const RADIUS_SM: f32 = 6.0;
@@ -513,8 +524,8 @@ pub const FOCUS_WIDTH: f32 = 2.0;
 /// Gap between a control and its focus ring, so the ring reads against the control's own fill.
 pub const FOCUS_OFFSET: f32 = 2.0;
 
-/// Pretendard covers Hangul, Latin and Kana with matching metrics. The rest are the system fonts it falls back to.
-pub const FONT_FAMILY_SANS: &[&str] = &["Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "system-ui", "sans-serif"];
+/// Pretendard covers Hangul, Latin and Kana with matching metrics. Where it is not loaded, Latin text falls to the system's own font and Hangul to the system's Korean font, in that order.
+pub const FONT_FAMILY_SANS: &[&str] = &["Pretendard Variable", "Pretendard", "-apple-system", "BlinkMacSystemFont", "system-ui", "Roboto", "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "sans-serif"];
 
 /// The smallest size Hangul stays legible at.
 pub const FONT_SIZE_XS: f32 = 12.0;
@@ -526,6 +537,8 @@ pub const FONT_SIZE_XL: f32 = 22.0;
 pub const FONT_SIZE_2XL: f32 = 28.0;
 
 pub const FONT_WEIGHT_REGULAR: f32 = 400.0;
+/// Labels on controls: heavier than body text without shouting.
+pub const FONT_WEIGHT_MEDIUM: f32 = 500.0;
 pub const FONT_WEIGHT_SEMIBOLD: f32 = 600.0;
 pub const FONT_WEIGHT_BOLD: f32 = 700.0;
 
@@ -547,11 +560,11 @@ pub const TYPOGRAPHY_BODY: Typography = Typography { size: 16.0, weight: 400.0, 
 /// Emphasis inside running text.
 pub const TYPOGRAPHY_BODY_STRONG: Typography = Typography { size: 16.0, weight: 600.0, line_height: 1.5, letter_spacing: 0.0 };
 /// Button labels and field labels.
-pub const TYPOGRAPHY_LABEL: Typography = Typography { size: 14.0, weight: 600.0, line_height: 1.4, letter_spacing: 0.0 };
+pub const TYPOGRAPHY_LABEL: Typography = Typography { size: 14.0, weight: 500.0, line_height: 1.4, letter_spacing: 0.0 };
 /// Descriptions, hints and secondary lines.
 pub const TYPOGRAPHY_DETAIL: Typography = Typography { size: 14.0, weight: 400.0, line_height: 1.5, letter_spacing: 0.0 };
 /// Badges and timestamps.
-pub const TYPOGRAPHY_FOOTNOTE: Typography = Typography { size: 12.0, weight: 600.0, line_height: 1.4, letter_spacing: 0.0 };
+pub const TYPOGRAPHY_FOOTNOTE: Typography = Typography { size: 12.0, weight: 500.0, line_height: 1.4, letter_spacing: 0.0 };
 
 /// Feedback to a press or hover: must feel instant.
 pub const MOTION_DURATION_FAST: Duration = Duration::from_millis(120);
@@ -569,6 +582,12 @@ pub const MOTION_EASING_EXIT: CubicBezier = [0.3, 0.0, 1.0, 1.0];
 
 /// How far a button shrinks while it is pressed. Feedback that does not depend on color.
 pub const MOTION_PRESS_SCALE: f32 = 0.97;
+
+pub const MOTION_SPRING_DEFAULT_STIFFNESS: f32 = 700.0;
+pub const MOTION_SPRING_DEFAULT_DAMPING: f32 = 0.9;
+
+pub const MOTION_SPRING_FAST_STIFFNESS: f32 = 1400.0;
+pub const MOTION_SPRING_FAST_DAMPING: f32 = 0.9;
 
 /// Cards and outlined controls: just enough to lift them off the page. Drawn together with a hairline border.
 pub const SHADOW_SUBTLE: Shadow = Shadow { color: Color::rgba(0, 0, 0, 0.06), offset_x: 0.0, offset_y: 1.0, blur: 2.0, spread: 0.0 };
@@ -595,6 +614,21 @@ pub struct Sizes {
     pub bar: f32,
     /// Buttons are rounded rectangles where a pointer is used.
     pub button_radius: f32,
+    pub icon_sm: f32,
+    /// Icons beside text.
+    pub icon_md: f32,
+    /// Icons that stand alone: tab bars, top bars.
+    pub icon_lg: f32,
+    pub avatar_sm: f32,
+    pub avatar_md: f32,
+    pub avatar_lg: f32,
+    /// The height of a badge.
+    pub badge: f32,
+    /// The thickness of a progress bar.
+    pub progress: f32,
+    pub spinner_sm: f32,
+    pub spinner_md: f32,
+    pub spinner_lg: f32,
 }
 
 pub const POINTER: Sizes = Sizes {
@@ -608,6 +642,17 @@ pub const POINTER: Sizes = Sizes {
     list_row: 40.0,
     bar: 48.0,
     button_radius: 10.0,
+    icon_sm: 16.0,
+    icon_md: 20.0,
+    icon_lg: 24.0,
+    avatar_sm: 24.0,
+    avatar_md: 32.0,
+    avatar_lg: 40.0,
+    badge: 24.0,
+    progress: 8.0,
+    spinner_sm: 16.0,
+    spinner_md: 24.0,
+    spinner_lg: 32.0,
 };
 
 pub const TOUCH: Sizes = Sizes {
@@ -621,4 +666,15 @@ pub const TOUCH: Sizes = Sizes {
     list_row: 56.0,
     bar: 56.0,
     button_radius: 9999.0,
+    icon_sm: 16.0,
+    icon_md: 20.0,
+    icon_lg: 24.0,
+    avatar_sm: 24.0,
+    avatar_md: 32.0,
+    avatar_lg: 40.0,
+    badge: 24.0,
+    progress: 8.0,
+    spinner_sm: 16.0,
+    spinner_md: 24.0,
+    spinner_lg: 32.0,
 };

@@ -44,6 +44,8 @@ const PAIRS: Pair[] = [
     STATES.map((state) => `control.${state}`),
     TEXT,
   ),
+  // Tertiary text is for the page and for surfaces on it, not for raised surfaces.
+  ...on("text.tertiary", ["background.base", "background.surface"], TEXT),
   ...on("text.accent", ["accent.subtle"], TEXT),
   ...STATUSES.flatMap((status) =>
     on(`status.${status}`, [...SURFACES, `status.${status}-subtle`], TEXT),
@@ -89,7 +91,6 @@ const PAIRS: Pair[] = [
   ...on("checkbox.mark", ["checkbox.background-checked"], PART),
   ...on("segmented.text", ["segmented.track"], TEXT),
   ...on("segmented.selected-text", ["segmented.selected-background"], TEXT),
-  ...on("segmented.selected-border", ["segmented.track", "segmented.selected-background"], PART),
   ...on("avatar.text", ["avatar.background"], TEXT),
   ...on("progress.fill", ["progress.track"], PART),
   ...["text.primary", "text.secondary"].flatMap((text) =>

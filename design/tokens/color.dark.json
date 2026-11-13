@@ -27,6 +27,10 @@
         "$value": "{palette.neutral.400}",
         "$description": "Supporting text. Still readable: 4.5:1 on every background."
       },
+      "tertiary": {
+        "$value": "{palette.neutral.500}",
+        "$description": "Placeholders, timestamps and marks such as chevrons. 4.5:1 on the page and on a surface; not for raised surfaces."
+      },
       "disabled": {
         "$value": "{palette.neutral.600}",
         "$description": "Text of a disabled control. Exempt from contrast rules, and meant to look unavailable."
@@ -213,8 +217,8 @@
         "$value": "{color.text.primary}"
       },
       "placeholder": {
-        "$value": "{color.text.secondary}",
-        "$description": "Placeholder text is text: it meets 4.5:1 like any other."
+        "$value": "{color.text.tertiary}",
+        "$description": "Placeholder text is text, so it meets 4.5:1, but it is lighter than a value so the two are not confused."
       }
     },
     "badge": {
@@ -343,8 +347,8 @@
         "$value": "{color.background.raised}"
       },
       "selected-border": {
-        "$value": "{color.border.strong}",
-        "$description": "The selected segment is outlined: its fill alone is too close to the track to tell which one is chosen."
+        "$value": "{color.border.control}",
+        "$description": "A hairline around the selected segment. Together with a faint shadow and the darker label it sets the segment apart from the track."
       },
       "selected-text": {
         "$value": "{color.text.primary}"

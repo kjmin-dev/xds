@@ -24,7 +24,10 @@ function kebab(path: string[]): string {
 }
 
 function camel(text: string): string {
-  return text.replace(/-([a-z0-9])/g, (_, letter: string) => letter.toUpperCase());
+  // A half step such as `0-5` keeps its separator, as `0_5`: without one it would read as 05.
+  return text
+    .replace(/(\d)-(\d)/g, "$1_$2")
+    .replace(/-([a-z0-9])/g, (_, letter: string) => letter.toUpperCase());
 }
 
 // ---------------------------------------------------------------- CSS

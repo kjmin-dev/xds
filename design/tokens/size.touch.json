@@ -70,6 +70,82 @@
         "unit": "px"
       },
       "$description": "Buttons are capsules where fingers are used, as on iOS and Android."
+    },
+    "icon": {
+      "sm": {
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        }
+      },
+      "md": {
+        "$value": {
+          "value": 20,
+          "unit": "px"
+        },
+        "$description": "Icons beside text."
+      },
+      "lg": {
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        },
+        "$description": "Icons that stand alone: tab bars, top bars."
+      }
+    },
+    "avatar": {
+      "sm": {
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        }
+      },
+      "md": {
+        "$value": {
+          "value": 32,
+          "unit": "px"
+        }
+      },
+      "lg": {
+        "$value": {
+          "value": 40,
+          "unit": "px"
+        }
+      }
+    },
+    "badge": {
+      "$value": {
+        "value": 24,
+        "unit": "px"
+      },
+      "$description": "The height of a badge."
+    },
+    "progress": {
+      "$value": {
+        "value": 8,
+        "unit": "px"
+      },
+      "$description": "The thickness of a progress bar."
+    },
+    "spinner": {
+      "sm": {
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        }
+      },
+      "md": {
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        }
+      },
+      "lg": {
+        "$value": {
+          "value": 32,
+          "unit": "px"
+        }
+      }
     }
   }
 }

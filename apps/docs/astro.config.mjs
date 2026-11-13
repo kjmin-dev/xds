@@ -3,10 +3,12 @@ import starlight from "@astrojs/starlight";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
 import starlightLlmsTxt from "starlight-llms-txt";
+import { previewLink } from "./scripts/preview.ts";
 
 // The public address of the site. `llms.txt`, the sitemap and canonical links are built from it,
 // so a deployment sets DOCS_SITE. Without it the links point at the local preview server.
 const site = process.env.DOCS_SITE || "http://localhost:4321";
+const preview = previewLink();
 
 export default defineConfig({
   site,
@@ -24,6 +26,7 @@ export default defineConfig({
       social: [{ icon: "github", label: "GitHub", href: "https://github.com/kjmin-dev/xds" }],
       editLink: { baseUrl: "https://github.com/kjmin-dev/xds/edit/main/apps/docs/" },
       customCss: ["./src/styles/site.css"],
+      routeMiddleware: "./src/route-data.ts",
       plugins: [
         starlightLlmsTxt({
           projectName: "xds",
@@ -56,7 +59,13 @@ export default defineConfig({
         {
           label: "Components",
           translations: { ko: "컴포넌트" },
-          items: [{ autogenerate: { directory: "components" } }],
+          items: [
+            // Every component on one page, as the web app shows it.
+            ...(preview
+              ? [{ label: "Design preview", translations: { ko: "디자인 프리뷰" }, link: preview }]
+              : []),
+            { autogenerate: { directory: "components" } },
+          ],
         },
         {
           label: "Hosting this site",

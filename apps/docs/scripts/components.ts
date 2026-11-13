@@ -1,6 +1,7 @@
 // What the component pages say. The prop tables describe the web components in packages/ui;
 // the other platforms take the same options under their own naming. `generate.ts` checks that
-// every source file named here exists, so a renamed or removed component fails the build.
+// every source file and design preview section named here exists, so a renamed or removed
+// component fails the build.
 
 export type Prop = { name: string; type: string; description: string };
 
@@ -18,6 +19,11 @@ export type Component = {
   sources: { web?: string; gpui?: string; reactNative: string; compose: string };
   /** The live example at /demo/<slug>/. Touch-only components have none. */
   demo: boolean;
+  /**
+   * The section of the web design preview (apps/web/src/DesignPreview.tsx) that shows it, by
+   * title. Every component with a web version names one; touch-only components have none.
+   */
+  preview?: string;
 };
 
 const web = (file: string) => `packages/ui/src/${file}.tsx`;
@@ -83,6 +89,7 @@ export const COMPONENTS: Component[] = [
     ],
     sources: everywhere("Button", GPUI_COMPONENTS),
     demo: true,
+    preview: "Buttons",
   },
   {
     slug: "text-field",
@@ -128,6 +135,7 @@ export const COMPONENTS: Component[] = [
     ],
     sources: everywhere("TextField", GPUI_COMPONENTS),
     demo: true,
+    preview: "Text fields",
   },
   {
     slug: "text",
@@ -158,6 +166,7 @@ export const COMPONENTS: Component[] = [
     ],
     sources: everywhere("Text", GPUI_COMPONENTS),
     demo: true,
+    preview: "Typography",
   },
   {
     slug: "badge",
@@ -181,6 +190,7 @@ export const COMPONENTS: Component[] = [
     ],
     sources: everywhere("Badge", GPUI_COMPONENTS),
     demo: true,
+    preview: "Badges",
   },
   {
     slug: "banner",
@@ -206,6 +216,7 @@ export const COMPONENTS: Component[] = [
     ],
     sources: everywhere("Banner", GPUI_COMPONENTS),
     demo: true,
+    preview: "Banners",
   },
   {
     slug: "card",
@@ -230,6 +241,7 @@ export const COMPONENTS: Component[] = [
     ],
     sources: everywhere("Card", GPUI_COMPONENTS),
     demo: true,
+    preview: "Card",
   },
   {
     slug: "divider",
@@ -250,6 +262,7 @@ export const COMPONENTS: Component[] = [
       compose: compose("Card"),
     },
     demo: true,
+    preview: "List",
   },
   {
     slug: "spinner",
@@ -271,6 +284,7 @@ export const COMPONENTS: Component[] = [
     // The desktop client uses GPUI Component's own spinner, inside a loading button.
     sources: { web: web("Spinner"), reactNative: native("Spinner"), compose: compose("Spinner") },
     demo: true,
+    preview: "Card",
   },
   {
     slug: "switch",
@@ -301,6 +315,7 @@ export const COMPONENTS: Component[] = [
     ],
     sources: everywhere("Switch", GPUI_CONTROLS),
     demo: true,
+    preview: "Selection",
   },
   {
     slug: "checkbox",
@@ -329,6 +344,7 @@ export const COMPONENTS: Component[] = [
     ],
     sources: everywhere("Checkbox", GPUI_CONTROLS),
     demo: true,
+    preview: "Selection",
   },
   {
     slug: "segmented-control",
@@ -367,6 +383,7 @@ export const COMPONENTS: Component[] = [
     ],
     sources: everywhere("SegmentedControl", GPUI_CONTROLS),
     demo: true,
+    preview: "Selection",
   },
   {
     slug: "avatar",
@@ -383,6 +400,7 @@ export const COMPONENTS: Component[] = [
     ],
     sources: everywhere("Avatar", GPUI_CONTROLS),
     demo: true,
+    preview: "Card",
   },
   {
     slug: "progress-bar",
@@ -403,6 +421,7 @@ export const COMPONENTS: Component[] = [
     ],
     sources: everywhere("ProgressBar", GPUI_CONTROLS),
     demo: true,
+    preview: "Card",
   },
   {
     slug: "list-row",
@@ -441,6 +460,7 @@ export const COMPONENTS: Component[] = [
     ],
     sources: everywhere("ListRow", GPUI_CONTROLS),
     demo: true,
+    preview: "List",
   },
   {
     slug: "top-bar",

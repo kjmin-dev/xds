@@ -1,0 +1,650 @@
+{
+  "$description": "The component contract: what each component is for, the options it takes, and where it is implemented on each client. Keep it in step with the components.",
+  "components": [
+    {
+      "name": "Button",
+      "purpose": "An action. Use `primary` once per view, `secondary` for other actions, `ghost` for actions that stay out of the way, and `danger` for ones that destroy.",
+      "options": {
+        "variant": [
+          "primary",
+          "secondary",
+          "ghost",
+          "danger"
+        ],
+        "size": [
+          "sm",
+          "md",
+          "lg"
+        ],
+        "flags": [
+          "disabled",
+          "loading",
+          "fullWidth"
+        ]
+      },
+      "states": [
+        "hover",
+        "pressed",
+        "focus",
+        "disabled",
+        "loading"
+      ],
+      "accessibility": "The label is the accessible name. A loading button keeps its label and ignores presses.",
+      "tokens": [
+        "color.button",
+        "size.control",
+        "size.button-radius",
+        "motion.press-scale"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Button.tsx",
+          "symbol": "Button"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/components.rs",
+          "symbol": "button"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Button.tsx",
+          "symbol": "Button"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Button.kt",
+          "symbol": "Button"
+        }
+      }
+    },
+    {
+      "name": "TextField",
+      "purpose": "A labelled single-line text field with an optional description and error message.",
+      "options": {
+        "fields": [
+          "label",
+          "description",
+          "error",
+          "placeholder"
+        ],
+        "flags": [
+          "disabled"
+        ]
+      },
+      "states": [
+        "focus",
+        "disabled",
+        "invalid"
+      ],
+      "accessibility": "The label is always visible and tied to the input. An error replaces the description and is announced; clear it when the value changes.",
+      "tokens": [
+        "color.field",
+        "size.control"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/TextField.tsx",
+          "symbol": "TextField"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/components.rs",
+          "symbol": "TextField"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/TextField.tsx",
+          "symbol": "TextField"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/TextField.kt",
+          "symbol": "TextField"
+        }
+      }
+    },
+    {
+      "name": "Text",
+      "purpose": "Text in one of the type roles.",
+      "options": {
+        "variant": [
+          "display",
+          "title",
+          "heading",
+          "body",
+          "body-strong",
+          "label",
+          "detail",
+          "footnote"
+        ],
+        "tone": [
+          "primary",
+          "secondary",
+          "accent",
+          "danger",
+          "success",
+          "warning",
+          "inherit"
+        ]
+      },
+      "states": [],
+      "accessibility": "Pick the element or heading flag for the document outline, and the variant for the look.",
+      "tokens": [
+        "typography",
+        "color.text",
+        "color.status"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Text.tsx",
+          "symbol": "Text"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/components.rs",
+          "symbol": "text"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Text.tsx",
+          "symbol": "Text"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Text.kt",
+          "symbol": "Text"
+        }
+      }
+    },
+    {
+      "name": "Badge",
+      "purpose": "A short status or category. The words carry the meaning; the color reinforces it.",
+      "options": {
+        "tone": [
+          "neutral",
+          "accent",
+          "success",
+          "warning",
+          "danger"
+        ],
+        "flags": [
+          "dot"
+        ]
+      },
+      "states": [],
+      "accessibility": "Never relies on color alone: it always has a text label.",
+      "tokens": [
+        "color.badge"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Badge.tsx",
+          "symbol": "Badge"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/components.rs",
+          "symbol": "Badge"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Badge.tsx",
+          "symbol": "Badge"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Badge.kt",
+          "symbol": "Badge"
+        }
+      }
+    },
+    {
+      "name": "Banner",
+      "purpose": "A message about the whole view or a section of it.",
+      "options": {
+        "tone": [
+          "info",
+          "success",
+          "warning",
+          "danger"
+        ],
+        "fields": [
+          "title"
+        ]
+      },
+      "states": [],
+      "accessibility": "Each tone has its own mark. `warning` and `danger` interrupt a screen reader; `info` and `success` wait their turn.",
+      "tokens": [
+        "color.banner"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Banner.tsx",
+          "symbol": "Banner"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/components.rs",
+          "symbol": "Banner"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Banner.tsx",
+          "symbol": "Banner"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Banner.kt",
+          "symbol": "Banner"
+        }
+      }
+    },
+    {
+      "name": "Card",
+      "purpose": "A surface that groups related content, with an optional title, description and actions.",
+      "options": {
+        "fields": [
+          "title",
+          "description",
+          "actions"
+        ],
+        "flags": [
+          "flush"
+        ]
+      },
+      "states": [],
+      "accessibility": "The title renders as a heading.",
+      "tokens": [
+        "color.background.surface",
+        "color.border.default",
+        "shadow.subtle",
+        "radius.lg"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Card.tsx",
+          "symbol": "Card"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/components.rs",
+          "symbol": "card"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Card.tsx",
+          "symbol": "Card"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Card.kt",
+          "symbol": "Card"
+        }
+      }
+    },
+    {
+      "name": "Divider",
+      "purpose": "A hairline between rows or sections.",
+      "options": {},
+      "states": [],
+      "accessibility": "Decorative.",
+      "tokens": [
+        "color.border.default"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Divider.tsx",
+          "symbol": "Divider"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/components.rs",
+          "symbol": "divider"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Card.tsx",
+          "symbol": "Divider"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Card.kt",
+          "symbol": "Divider"
+        }
+      }
+    },
+    {
+      "name": "Spinner",
+      "purpose": "Says that something is in progress and how long is unknown.",
+      "options": {
+        "size": [
+          "sm",
+          "md",
+          "lg"
+        ],
+        "fields": [
+          "label"
+        ]
+      },
+      "states": [],
+      "accessibility": "Announced only when it has a label. With reduced motion on the web it pulses instead of spinning.",
+      "tokens": [],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Spinner.tsx",
+          "symbol": "Spinner"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Spinner.tsx",
+          "symbol": "Spinner"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Spinner.kt",
+          "symbol": "Spinner"
+        }
+      }
+    },
+    {
+      "name": "Switch",
+      "purpose": "Turns a setting on or off, taking effect at once.",
+      "options": {
+        "fields": [
+          "label"
+        ],
+        "flags": [
+          "checked",
+          "disabled"
+        ]
+      },
+      "states": [
+        "focus",
+        "disabled"
+      ],
+      "accessibility": "Has the switch role. Without a visible label it needs an accessible label.",
+      "tokens": [
+        "color.switch",
+        "size.switch"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Switch.tsx",
+          "symbol": "Switch"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/controls.rs",
+          "symbol": "switch"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Switch.tsx",
+          "symbol": "Switch"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Switch.kt",
+          "symbol": "Switch"
+        }
+      }
+    },
+    {
+      "name": "Checkbox",
+      "purpose": "A choice that is applied later, with the form it belongs to.",
+      "options": {
+        "fields": [
+          "label"
+        ],
+        "flags": [
+          "checked",
+          "disabled"
+        ]
+      },
+      "states": [
+        "focus",
+        "disabled"
+      ],
+      "accessibility": "Without a visible label it needs an accessible label.",
+      "tokens": [
+        "color.checkbox",
+        "size.checkbox"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Checkbox.tsx",
+          "symbol": "Checkbox"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/controls.rs",
+          "symbol": "checkbox"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Checkbox.tsx",
+          "symbol": "Checkbox"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Checkbox.kt",
+          "symbol": "Checkbox"
+        }
+      }
+    },
+    {
+      "name": "SegmentedControl",
+      "purpose": "A choice between a few views or modes, all visible at once.",
+      "options": {
+        "fields": [
+          "options",
+          "value"
+        ],
+        "flags": [
+          "fullWidth"
+        ]
+      },
+      "states": [
+        "focus"
+      ],
+      "accessibility": "A radio group: it needs a label that says what is being chosen. The selected segment is outlined as well as filled.",
+      "tokens": [
+        "color.segmented",
+        "size.control"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/SegmentedControl.tsx",
+          "symbol": "SegmentedControl"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/controls.rs",
+          "symbol": "SegmentedControl"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/SegmentedControl.tsx",
+          "symbol": "SegmentedControl"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/SegmentedControl.kt",
+          "symbol": "SegmentedControl"
+        }
+      }
+    },
+    {
+      "name": "Avatar",
+      "purpose": "Stands for a person or a team by their initials.",
+      "options": {
+        "size": [
+          "sm",
+          "md",
+          "lg"
+        ],
+        "fields": [
+          "name"
+        ]
+      },
+      "states": [],
+      "accessibility": "Assistive technology gets the full name.",
+      "tokens": [
+        "color.avatar"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Avatar.tsx",
+          "symbol": "Avatar"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/controls.rs",
+          "symbol": "Avatar"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Avatar.tsx",
+          "symbol": "Avatar"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Avatar.kt",
+          "symbol": "Avatar"
+        }
+      }
+    },
+    {
+      "name": "ProgressBar",
+      "purpose": "How far along something is, from 0 to 1.",
+      "options": {
+        "fields": [
+          "value",
+          "label"
+        ]
+      },
+      "states": [],
+      "accessibility": "The label says what is progressing; it is read with the percentage.",
+      "tokens": [
+        "color.progress"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/ProgressBar.tsx",
+          "symbol": "ProgressBar"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/controls.rs",
+          "symbol": "ProgressBar"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/ProgressBar.tsx",
+          "symbol": "ProgressBar"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/ProgressBar.kt",
+          "symbol": "ProgressBar"
+        }
+      }
+    },
+    {
+      "name": "ListRow",
+      "purpose": "One line of a list or a settings screen.",
+      "options": {
+        "fields": [
+          "title",
+          "description",
+          "leading",
+          "trailing"
+        ],
+        "flags": [
+          "chevron",
+          "disabled"
+        ]
+      },
+      "states": [
+        "hover",
+        "pressed",
+        "focus",
+        "disabled"
+      ],
+      "accessibility": "With an action the whole row is a button, so do not put another control in `trailing`.",
+      "tokens": [
+        "color.list-row",
+        "size.list-row"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/ListRow.tsx",
+          "symbol": "ListRow"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/controls.rs",
+          "symbol": "ListRow"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/ListRow.tsx",
+          "symbol": "ListRow"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/ListRow.kt",
+          "symbol": "ListRow"
+        }
+      }
+    },
+    {
+      "name": "TopBar",
+      "purpose": "The bar at the top of a screen: a title, a back action and a trailing action.",
+      "options": {
+        "fields": [
+          "title",
+          "back",
+          "trailing"
+        ]
+      },
+      "states": [
+        "pressed"
+      ],
+      "accessibility": "The title is a heading. The back button has a press area as large as the smallest touch target.",
+      "tokens": [
+        "color.top-bar",
+        "size.bar"
+      ],
+      "clients": {
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/TopBar.tsx",
+          "symbol": "TopBar"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/TopBar.kt",
+          "symbol": "TopBar"
+        }
+      }
+    },
+    {
+      "name": "TabBar",
+      "purpose": "Switches between the three to five top-level places of an app.",
+      "options": {
+        "fields": [
+          "items",
+          "value"
+        ]
+      },
+      "states": [
+        "pressed"
+      ],
+      "accessibility": "A tab list. The selected tab sits in a pill, so the selection does not depend on color.",
+      "tokens": [
+        "color.tab-bar",
+        "size.bar"
+      ],
+      "clients": {
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/TabBar.tsx",
+          "symbol": "TabBar"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/TabBar.kt",
+          "symbol": "TabBar"
+        }
+      }
+    },
+    {
+      "name": "BottomSheet",
+      "purpose": "A panel that slides up over the screen for a short task or a set of choices.",
+      "options": {
+        "fields": [
+          "title",
+          "content"
+        ],
+        "flags": [
+          "open"
+        ]
+      },
+      "states": [],
+      "accessibility": "Modal. Closes on a tap outside, a drag down, or the back button.",
+      "tokens": [
+        "color.sheet",
+        "color.scrim",
+        "radius.xl",
+        "shadow.overlay"
+      ],
+      "clients": {
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/BottomSheet.tsx",
+          "symbol": "BottomSheet"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/BottomSheet.kt",
+          "symbol": "BottomSheet"
+        }
+      }
+    }
+  ]
+}

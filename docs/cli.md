@@ -174,6 +174,8 @@ Run
 
 Because the template embeds generated token files for the default theme, `add` runs the token generator after writing the new files so that the newly added stack matches the project's current tokens and theme. If Node is not available, it notes this, and `mise run tokens` can be used to regenerate them later.
 
+`--dry-run` reports the same comparison and writes nothing.
+
 If a project was created with an older version of `xds`, shared files may differ from what the current version writes even without local edits. In that case, `add` flags those files for manual merge and notes which version originally created the project.
 
 ### `xds themes [name]`
@@ -191,7 +193,148 @@ Applied the sunset theme and regenerated the token files.
 
 When run in a terminal without a theme name, it opens the same interactive selector and live preview used by `create`, preselecting the project's active theme.
 
+`--dry-run` says whether the theme would change anything and writes nothing.
+
 `theme` loads theme definitions and token files from the project directory rather than the embedded binary assets. Any custom themes added to `design/themes` appear in the selector, and the preview reflects any local edits to the project's semantic color tokens. The command works in any directory containing `design/tokens/palette.json` and `design/themes`, including a checkout of this template repository.
+
+### `xds tokens [query]`
+
+Lists the design tokens and their resolved values: per color mode for colors, and per input device for sizes.
+
+```sh
+xds tokens                      # every token
+xds tokens button.primary       # tokens whose path contains this
+xds tokens --tier semantic      # palette, semantic, component, or base
+```
+
+```text
+color.button.primary.background  light #4f46e5 (color.accent.default)   dark #5b5ef0 (color.accent.default)
+```
+
+Aliases are resolved to their final values, with the referenced token shown in parentheses. With `--json`, each token entry includes `path`, `type`, `tier`, `description`, `values`, and `aliases`.
+
+When run inside a project or a checkout of this repository, `tokens` reads the local files in `design/tokens`. Elsewhere, it reads the template embedded in the binary, or you can pass `--project <dir>` to point to a project directory explicitly. `components` and `contrast` work the same way; in JSON output, the `source` field indicates `project` or `template`.
+
+### `xds components [name]`
+
+Lists all components and the clients that implement them, or shows the details of a single component.
+
+```sh
+xds components                              # all of them
+xds components Button                       # options, states, tokens, and the source file per client
+xds components Button --client web-react    # one client only
+xds components Button --code                # with the source code
+```
+
+This information comes from `design/components.json`, the component contract, which records each component's purpose, options, states, accessibility notes, and the source file and symbol that implement it on each client. In a project created with `xds create`, the contract is filtered down to that project's clients.
+
+### `xds contrast <foreground> <background>`
+
+Computes the WCAG 2 contrast ratio between two colors. Each argument can be a hex color or a color token path (the leading `color.` prefix is optional).
+
+```sh
+xds contrast text.secondary background.surface
+xds contrast '#84848f' '#ffffff' --min 4.5
+```
+
+```text
+color.text.secondary on color.background.surface
+  light #5c5c66  #ffffff  6.60:1   text 4.5 pass   large text and UI 3 pass   AAA text 7 fail
+```
+
+Color tokens are evaluated in both light and dark modes. With `--min <ratio>`, the command exits with code 1 if either mode falls below the threshold. Translucent tokens are rejected; composite the color over its background first and pass the resulting hex value.
+
+### `xds doctor`
+
+Runs a set of health checks on a project and reports each one as `ok`, `warning`, `failed`, or `skipped`:
+
+| Check | What it verifies |
+| --- | --- |
+| `record` | `.xds.json` is valid and references known targets |
+| `tokens` | All token files parse cleanly and every alias resolves |
+| `theme` | The palette matches one of the themes in `design/themes`, and it matches the theme named in the project record |
+| `components` | Every component source file listed in `design/components.json` exists on disk |
+| `node` | A Node version capable of running the token generator is available on `PATH` |
+| `generated` | The generated platform token files are up to date with the token sources |
+
+The command exits with code 1 if any check fails. Warnings do not affect the exit code.
+
+### `xds mcp`
+
+Starts a [Model Context Protocol](https://modelcontextprotocol.io) server communicating over stdin and stdout. See [For scripts and agents](#for-scripts-and-agents).
+
+## For scripts and agents
+
+### JSON output
+
+Every command accepts `--json`. When passed, the command writes a single JSON document to stdout with no other output and never prompts interactively (`create` behaves the same as when stdout is not a terminal).
+
+```sh
+xds list --json
+xds create my-app --name orbit --targets web-react --dry-run --json
+xds tokens color.text --json
+```
+
+Errors are written to stderr as a single JSON document:
+
+```json
+{ "error": { "kind": "error", "message": "There is no theme \"nope\". Themes: forest, indigo, ocean, plum, sunset" } }
+```
+
+`kind` is `error`, `usage` (for invalid arguments), or `cancelled`. A failing check (`doctor` or `contrast --min`) is treated as a normal result rather than an error: it is written to stdout with `"ok": false`.
+
+### Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| 0 | The command succeeded |
+| 1 | The command failed, or a check did not pass |
+| 2 | Invalid command-line arguments |
+| 130 | An interactive prompt was cancelled with Esc or Ctrl-C |
+
+### AGENTS.md
+
+This repository includes an `AGENTS.md` file that documents the design system rules for coding agents, along with a `CLAUDE.md` file that imports it. `xds create` writes both files into each generated project, tailoring `AGENTS.md` to list only the clients included in that project.
+
+### Agent skill
+
+`skills/xds` provides a skill in the [Agent Skills](https://agentskills.io) format. It shows coding agents how to use the CLI commands above and includes task-specific guides for scaffolding and themes, tokens, components, and verifying UI changes.
+
+```sh
+npx skills add kjmin-dev/xds
+```
+
+In Claude Code, this repository can also be added directly as a plugin marketplace:
+
+```text
+/plugin install xds --marketplace kjmin-dev/xds
+```
+
+### MCP server
+
+`xds mcp` exposes the CLI commands as MCP tools for agents that cannot run shell commands directly. It communicates over stdio and is built on `rmcp`, the official Rust SDK.
+
+```sh
+claude mcp add xds -- xds mcp
+```
+
+```json
+{ "mcpServers": { "xds": { "command": "xds", "args": ["mcp"] } } }
+```
+
+| Tool | Description |
+| --- | --- |
+| `list` | Lists the available targets and themes |
+| `tokens` | Lists design tokens, optionally filtered by `query` and `tier` |
+| `components` | Lists all components |
+| `component` | Returns the details for a single component, including source code when `code` is true |
+| `contrast` | Computes the contrast ratio between two colors or color tokens |
+| `doctor` | Runs project health checks |
+| `create`, `add`, `theme` | Scaffolds a project, adds targets, or applies a theme |
+
+Each tool returns the same JSON payload as the corresponding CLI command with `--json`. `create`, `add`, and `theme` run in dry-run mode unless `"write": true` is passed. The read-only tools accept an optional `project` directory; when omitted, they inspect the server's working directory, or fall back to the embedded template if the working directory is not a project.
+
+Agents with shell access do not need the MCP server; running the CLI commands with `--json` produces identical output.
 
 ## Targets
 
@@ -260,7 +403,9 @@ rust = { version = "1.99.1", components = "rustfmt,clippy" }
 
 Within this repository, marker lines act as ordinary comments so every block remains active.
 
-Files under `cli/overlay` are written over the generated project root with the same conditional block filtering and placeholder renaming. That is where the generated project's `README.md` comes from.
+Files under `cli/overlay` are written over the generated project root with the same conditional block filtering and placeholder renaming. That is where the generated project's `README.md`, `AGENTS.md`, and `CLAUDE.md` come from.
+
+`design/components.json` is cut down like `design/build.json`: a project gets the components its clients have, each with the source files of those clients only.
 
 Binary files (detected by a NUL byte within the first 8 KB) are copied verbatim.
 
@@ -270,7 +415,8 @@ Binary files (detected by a NUL byte within the first 8 KB) are copied verbatim.
 2. If the stack consumes a new format of generated token file, add an emitter to `tools/design-build` and an entry to `design/build.json`.
 3. Add a target entry to `template.json`: its `paths`, the `shared` groups it `requires`, the `outputs` it reads, and its `run` commands. Include a `format` command if the stack has a formatter enforced by `mise run check`.
 4. Wrap any stack-specific additions to the shared root files (`mise.toml`, `.github/workflows/ci.yml`, `.gitignore`, `.gitattributes`, `Cargo.toml`, `pnpm-workspace.yaml`, `cli/overlay/README.md`) in `@if <id>` blocks.
-5. Run `cargo test -p xds`. The tests fail if any repository file belongs to no target, shared group, `common`, or `exclude`; if any conditional marker is unbalanced or references an unknown target; or if `mise.toml` or `Cargo.toml` is not valid TOML for any combination of targets. Add the new target's expectations to `shared_files_are_valid_for_every_combination_of_targets` in `cli/src/tests.rs`.
+5. List the stack's components in `design/components.json`, with the source file and the symbol of each.
+6. Run `cargo test -p xds`. The tests fail if any repository file belongs to no target, shared group, `common`, or `exclude`; if any conditional marker is unbalanced or references an unknown target; or if `mise.toml` or `Cargo.toml` is not valid TOML for any combination of targets. Add the new target's expectations to `shared_files_are_valid_for_every_combination_of_targets` in `cli/src/tests.rs`.
 
 No Rust code changes are needed when adding a stack that follows this structure.
 

@@ -53,6 +53,25 @@ curl -fsSL https://raw.githubusercontent.com/kjmin-dev/xds/main/install.sh | sh
 
 전체 명령어와 선택한 클라이언트만 추출하는 방식, 새로운 클라이언트 스택을 추가하는 방법은 [CLI 문서](docs/cli.md)(영문)를 참고하세요.
 
+## 코딩 에이전트와 함께 쓰기
+
+`xds`는 터미널에서 직접 작업할 때나 코딩 에이전트를 사용할 때 디자인 시스템의 구성을 조회하는 명령어도 제공합니다.
+
+```sh
+xds tokens button.primary                         # 라이트·다크 모드의 토큰 값
+xds components Button                             # 옵션, 상태, 클라이언트별 소스 파일
+xds contrast text.secondary background.surface    # 두 모드의 WCAG 명암비
+xds doctor                                        # 프로젝트 상태가 일관적인지 확인
+```
+
+모든 명령어는 구조화된 출력을 위한 `--json` 플래그를 지원합니다. 또한 코딩 에이전트와 연동할 수 있는 세 가지 방법을 제공합니다.
+
+- `AGENTS.md`에는 디자인 시스템의 규칙과 관례가 정리되어 있습니다. `xds create`로 새 프로젝트를 생성하면 선택한 클라이언트에 맞는 내용만 담긴 `AGENTS.md`가 함께 생성됩니다.
+- `skills/xds`는 [Agent Skill](https://agentskills.io)입니다. `npx skills add kjmin-dev/xds`로 설치하거나, Claude Code에서는 `/plugin install xds --marketplace kjmin-dev/xds`로 설치할 수 있습니다.
+- `xds mcp`는 동일한 명령어를 MCP 도구로 노출하는 stdio 기반 Model Context Protocol 서버입니다. `claude mcp add xds -- xds mcp`로 등록해 사용합니다.
+
+JSON 출력 형식과 종료 코드에 대한 자세한 내용은 [CLI 문서](docs/cli.md#for-scripts-and-agents)(영문)를 참고하세요.
+
 ## 주요 구성
 
 - `design/tokens`에는 DTCG 형식의 디자인 토큰이 들어 있습니다. 컬러 팔레트, 라이트·다크 모드 시맨틱 컬러, 컴포넌트 전용 컬러, 타이포그래피 역할, 여백, 모서리 반경, 모션, 그림자, 포인터 및 터치 입력 환경별 컨트롤 크기를 정의합니다.

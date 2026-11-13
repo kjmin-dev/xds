@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
 use crate::error::{Context, Error, Result};
+use crate::inspect::COMPONENTS_PATH;
 use crate::json;
 use crate::manifest::{Manifest, TEMPLATE_ONLY, Target, is_under};
 use crate::markers;
@@ -112,6 +113,9 @@ pub fn render(
             file.contents =
                 filter_build_config(&file.contents, |kind| kinds.contains(kind))?.into_bytes();
         }
+        if path == COMPONENTS_PATH {
+            file.contents = filter_components(&file.contents, is_selected)?.into_bytes();
+        }
         files.insert(path, file);
     }
     // Laid over the project root last, so an overlay file wins over a template file.
@@ -120,6 +124,28 @@ pub fn render(
         files.insert(path, file);
     }
     Ok(files)
+}
+
+/// The component contract with only the selected clients, and without the components that
+/// none of them has. Written the way the rest of `design/` is.
+fn filter_components(contents: &[u8], is_selected: impl Fn(&str) -> bool) -> Result<String> {
+    let mut document: Value = serde_json::from_slice(contents).context(COMPONENTS_PATH)?;
+    let Some(Value::Array(components)) = document.get_mut("components") else {
+        return Err(Error::Message(format!(
+            "{COMPONENTS_PATH} has no list of components"
+        )));
+    };
+    for component in components.iter_mut() {
+        if let Some(Value::Object(clients)) = component.get_mut("clients") {
+            clients.retain(|id, _| is_selected(id));
+        }
+    }
+    components.retain(|component| {
+        component["clients"]
+            .as_object()
+            .is_some_and(|clients| !clients.is_empty())
+    });
+    Ok(json::stringify(&document))
 }
 
 /// The contents as text, unless the file is binary and has to be copied untouched.

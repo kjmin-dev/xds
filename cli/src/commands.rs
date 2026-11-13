@@ -4,12 +4,16 @@ use std::fs;
 use std::io::{IsTerminal, stdout};
 use std::path::{Path, PathBuf};
 
+use serde_json::{Value, json};
+
 use crate::error::{Context, Error, Result};
 use crate::manifest::{Manifest, Target, manifest};
+use crate::output::Out;
 use crate::preview::{Layout, Preview};
 use crate::prompt::{self, Choice};
 use crate::rename::{self, Names};
 use crate::render::{self, BUILD_CONFIG, RECORD, Record};
+use crate::say;
 use crate::style::Style;
 use crate::template::{File, template};
 use crate::theme::{self, PALETTE_PATH, Regenerated, Source, Theme};
@@ -53,6 +57,9 @@ pub struct AddArgs {
     /// The project to add them to [default: the current directory]
     #[arg(long, value_name = "DIR")]
     pub project: Option<PathBuf>,
+    /// Print what would change and write nothing
+    #[arg(long)]
+    pub dry_run: bool,
 }
 
 #[derive(Debug, Default, clap::Args)]
@@ -62,6 +69,9 @@ pub struct ThemeArgs {
     /// The project to change [default: the current directory]
     #[arg(long, value_name = "DIR")]
     pub project: Option<PathBuf>,
+    /// Say whether the theme would change anything and write nothing
+    #[arg(long)]
+    pub dry_run: bool,
 }
 
 fn find_theme<'a>(themes: &'a [Theme], name: &str) -> Result<&'a Theme> {
@@ -79,11 +89,12 @@ fn find_theme<'a>(themes: &'a [Theme], name: &str) -> Result<&'a Theme> {
 
 // ---------------------------------------------------------------- list, themes
 
-pub fn list(style: Style) -> Result<()> {
+pub fn list(out: Out) -> Result<Value> {
+    let style = out.style;
     let manifest = manifest();
     let source = Source::Embedded(template());
 
-    println!("{}", style.bold("Targets"));
+    say!(out, "{}", style.bold("Targets"));
     let rows: Vec<(&str, String, &str)> = manifest
         .targets
         .iter()
@@ -92,14 +103,15 @@ pub fn list(style: Style) -> Result<()> {
     let id_width = rows.iter().map(|row| row.0.len()).max().unwrap_or(0);
     let platform_width = rows.iter().map(|row| row.1.len()).max().unwrap_or(0);
     for (id, platforms, stack) in rows {
-        println!(
+        say!(
+            out,
             "  {}  {platforms:<platform_width$}  {}",
             style.cyan(&format!("{id:<id_width$}")),
             style.dim(stack)
         );
     }
 
-    println!("\n{}", style.bold("Themes"));
+    say!(out, "\n{}", style.bold("Themes"));
     let themes = source.themes()?;
     let name_width = themes
         .iter()
@@ -119,16 +131,57 @@ pub fn list(style: Style) -> Result<()> {
         } else {
             ""
         };
-        println!(
+        say!(
+            out,
             "  {swatch}{gap}{}  {}{default}",
             style.cyan(&format!("{:<name_width$}", theme.name)),
             style.dim(&theme.description)
         );
     }
-    Ok(())
+    Ok(json!({
+        "targets": manifest.targets.iter().map(target_json).collect::<Vec<_>>(),
+        "themes": themes
+            .iter()
+            .map(|theme| theme_json(theme, &manifest.default_theme))
+            .collect::<Vec<_>>(),
+    }))
 }
 
-pub fn themes(name: Option<&str>, style: Style) -> Result<()> {
+fn target_json(target: &Target) -> Value {
+    json!({
+        "id": target.id,
+        "title": target.title,
+        "stack": target.stack,
+        "platforms": target.platforms,
+        "paths": target.paths,
+        "run": target
+            .run
+            .iter()
+            .map(|run| json!({ "command": run.command, "description": run.description }))
+            .collect::<Vec<_>>(),
+    })
+}
+
+fn theme_json(theme: &Theme, default: &str) -> Value {
+    let ramp = |name: &str| -> Value {
+        theme
+            .steps(name)
+            .into_iter()
+            .map(|(step, color)| (step.to_string(), Value::String(color.hex())))
+            .collect::<serde_json::Map<_, _>>()
+            .into()
+    };
+    json!({
+        "name": theme.name,
+        "description": theme.description,
+        "default": theme.name == default,
+        "accent": ramp("accent"),
+        "neutral": ramp("neutral"),
+    })
+}
+
+pub fn themes(name: Option<&str>, out: Out) -> Result<Value> {
+    let style = out.style;
     let source = Source::Embedded(template());
     let all = source.themes()?;
     let shown: Vec<&Theme> = match name {
@@ -142,23 +195,33 @@ pub fn themes(name: Option<&str>, style: Style) -> Result<()> {
         80
     };
     let layout = Layout::fit(columns, None).unwrap_or(Layout::Compact);
+    let result = json!({
+        "themes": shown
+            .iter()
+            .map(|theme| theme_json(theme, &manifest().default_theme))
+            .collect::<Vec<_>>(),
+    });
+    if out.json {
+        return Ok(result);
+    }
     for theme in shown {
         let default = if theme.name == manifest().default_theme {
             " (default)"
         } else {
             ""
         };
-        println!(
+        say!(
+            out,
             "{}{default}  {}",
             style.bold(&theme.name),
             style.dim(&theme.description)
         );
         for line in Preview::new(&source, theme)?.lines(layout, style) {
-            println!("{line}");
+            say!(out, "{line}");
         }
-        println!();
+        say!(out);
     }
-    Ok(())
+    Ok(result)
 }
 
 /// The interactive theme list. The preview below it is redrawn for the theme under the cursor.
@@ -197,7 +260,8 @@ fn pick_theme<'a>(
 
 // ---------------------------------------------------------------- create
 
-pub fn create(args: &CreateArgs, style: Style) -> Result<()> {
+pub fn create(args: &CreateArgs, out: Out) -> Result<Value> {
+    let style = out.style;
     let manifest = manifest();
     let template = template();
     let source = Source::Embedded(template);
@@ -223,7 +287,8 @@ pub fn create(args: &CreateArgs, style: Style) -> Result<()> {
         .map(|name| find_theme(&themes, name))
         .transpose()?;
 
-    let interactive = !args.yes && prompt::is_interactive();
+    // A program reading JSON cannot answer a question either.
+    let interactive = !args.yes && !out.json && prompt::is_interactive();
     if !interactive && !args.yes {
         let missing: Vec<&str> = [
             ("--name", args.name.is_none()),
@@ -306,43 +371,71 @@ pub fn create(args: &CreateArgs, style: Style) -> Result<()> {
     );
 
     let ids: Vec<&str> = targets.iter().map(|target| target.id.as_str()).collect();
+    let result = |regenerated: &str| {
+        json!({
+            "dryRun": args.dry_run,
+            "directory": directory.display().to_string(),
+            "name": names.name,
+            "title": names.title,
+            "targets": ids,
+            "theme": theme.name,
+            "files": files.keys().collect::<Vec<_>>(),
+            "tokens": regenerated,
+            "nextSteps": next_steps(&targets),
+        })
+    };
     let details = |verb: &str| {
-        println!(
+        say!(
+            out,
             "{verb} {} in {}",
             style.bold(&names.title),
             directory.display()
         );
-        println!("  name     {}", names.name);
-        println!("  targets  {}", ids.join(", "));
-        println!("  theme    {}", theme.name);
-        println!("  files    {}", files.len());
+        say!(out, "  name     {}", names.name);
+        say!(out, "  targets  {}", ids.join(", "));
+        say!(out, "  theme    {}", theme.name);
+        say!(out, "  files    {}", files.len());
     };
 
     if args.dry_run {
         details("Would create");
-        println!();
+        say!(out);
         for path in files.keys() {
-            println!("  {path}");
+            say!(out, "  {path}");
         }
         if themed {
-            println!(
+            say!(
+                out,
                 "\nThe generated token files would then be rewritten for the {} theme.",
                 theme.name
             );
         }
-        println!("\n{}", style.dim("Dry run: nothing was written."));
-        return Ok(());
+        say!(out, "\n{}", style.dim("Dry run: nothing was written."));
+        return Ok(result(if themed {
+            "would-regenerate"
+        } else {
+            "current"
+        }));
     }
 
     render::write(directory, &files)?;
     details("Created");
+    let mut tokens = "current";
     if themed {
-        println!();
+        say!(out);
         match theme::regenerate(directory) {
             Regenerated::Done => {
-                println!("Regenerated the token files for the {} theme.", theme.name);
+                tokens = "regenerated";
+                say!(
+                    out,
+                    "Regenerated the token files for the {} theme.",
+                    theme.name
+                );
             }
-            Regenerated::Skipped(reason) => print_stale(style, &theme.name, &reason),
+            Regenerated::Skipped(reason) => {
+                tokens = "stale";
+                print_stale(out, &theme.name, &reason);
+            }
             Regenerated::Failed(output) => {
                 return Err(Error::Message(format!(
                     "The project was written, but the generator refused the {} theme, so the \
@@ -352,8 +445,8 @@ pub fn create(args: &CreateArgs, style: Style) -> Result<()> {
             }
         }
     }
-    print_next_steps(style, Some(directory), &targets);
-    Ok(())
+    print_next_steps(out, Some(directory), &targets);
+    Ok(result(tokens))
 }
 
 fn select_targets<'a>(manifest: &'a Manifest, ids: &[String]) -> Result<Vec<&'a Target>> {
@@ -385,22 +478,40 @@ fn check_destination(directory: &Path, force: bool) -> Result<()> {
     Ok(())
 }
 
-fn print_stale(style: Style, theme: &str, reason: &str) {
-    println!(
+fn print_stale(out: Out, theme: &str, reason: &str) {
+    let style = out.style;
+    say!(
+        out,
         "{} The palette holds the {theme} theme, but the generated token files are stale: {reason}.",
         style.yellow("warning:")
     );
-    println!("         Run `mise run tokens` in the project to regenerate them.");
+    say!(
+        out,
+        "         Run `mise run tokens` in the project to regenerate them."
+    );
 }
 
-fn print_next_steps(style: Style, directory: Option<&Path>, targets: &[&Target]) {
-    println!("\n{}", style.bold("Next steps"));
+/// The commands to run in a new project, in order.
+fn next_steps(targets: &[&Target]) -> Vec<String> {
+    let mut steps = vec!["mise trust".to_owned(), "mise install".to_owned()];
+    for formatter in targets.iter().filter_map(|target| target.format.as_deref()) {
+        if !steps.iter().any(|step| step == formatter) {
+            steps.push(formatter.to_owned());
+        }
+    }
+    steps.push("mise run check".to_owned());
+    steps
+}
+
+fn print_next_steps(out: Out, directory: Option<&Path>, targets: &[&Target]) {
+    let style = out.style;
+    say!(out, "\n{}", style.bold("Next steps"));
     if let Some(directory) = directory.filter(|directory| *directory != Path::new(".")) {
-        println!("  cd {}", directory.display());
+        say!(out, "  cd {}", directory.display());
     }
     // mise does not read a new mise.toml until it is trusted.
-    println!("  mise trust");
-    println!("  mise install");
+    say!(out, "  mise trust");
+    say!(out, "  mise install");
     // The template is formatted for its placeholder name. Another name makes some lines too
     // long and moves some imports, which the formatters in `check` would report.
     let mut formatters: Vec<&str> = Vec::new();
@@ -410,25 +521,27 @@ fn print_next_steps(style: Style, directory: Option<&Path>, targets: &[&Target])
         }
     }
     for formatter in formatters {
-        println!(
+        say!(
+            out,
             "  {formatter}  {}",
             style.dim("once: the new name changes line lengths and import order")
         );
     }
-    println!("  mise run check");
+    say!(out, "  mise run check");
 
     let commands: Vec<_> = targets.iter().flat_map(|target| &target.run).collect();
     if commands.is_empty() {
         return;
     }
-    println!("\n{}", style.bold("Run"));
+    say!(out, "\n{}", style.bold("Run"));
     let width = commands
         .iter()
         .map(|run| run.command.len())
         .max()
         .unwrap_or(0);
     for run in commands {
-        println!(
+        say!(
+            out,
             "  {}  {}",
             style.cyan(&format!("{:<width$}", run.command)),
             style.dim(&run.description)
@@ -438,7 +551,8 @@ fn print_next_steps(style: Style, directory: Option<&Path>, targets: &[&Target])
 
 // ---------------------------------------------------------------- add
 
-pub fn add(args: &AddArgs, style: Style) -> Result<()> {
+pub fn add(args: &AddArgs, out: Out) -> Result<Value> {
+    let style = out.style;
     let manifest = manifest();
     let project = args.project.clone().unwrap_or_else(|| PathBuf::from("."));
     let record = Record::read(&project)?;
@@ -453,8 +567,21 @@ pub fn add(args: &AddArgs, style: Style) -> Result<()> {
         .filter(|target| !record.targets.contains(&target.id))
         .collect();
     if added.is_empty() {
-        println!("{} already has {}.", names.title, args.targets.join(", "));
-        return Ok(());
+        say!(
+            out,
+            "{} already has {}.",
+            names.title,
+            args.targets.join(", ")
+        );
+        return Ok(json!({
+            "dryRun": args.dry_run,
+            "added": [],
+            "targets": record.targets,
+            "newFiles": 0,
+            "updated": [],
+            "conflicts": [],
+            "tokens": "current",
+        }));
     }
     let mut ids = record.targets.clone();
     ids.extend(added.iter().map(|target| target.id.clone()));
@@ -465,6 +592,13 @@ pub fn add(args: &AddArgs, style: Style) -> Result<()> {
     let before = render::render(template(), manifest, &current, &names)?;
     let after = render::render(template(), manifest, &wanted, &names)?;
 
+    // A dry run goes through the same comparison and leaves the writing out.
+    let write = |path: &str, file: &File| -> Result<()> {
+        if args.dry_run {
+            return Ok(());
+        }
+        render::write_file(&project, path, file)
+    };
     let mut new_files = 0;
     let mut updated = Vec::new();
     let mut conflicts = Vec::new();
@@ -476,12 +610,12 @@ pub fn add(args: &AddArgs, style: Style) -> Result<()> {
             // The new targets do not touch this file, so whatever the project did to it stays.
             (Some(old), _) if old == file => {}
             (_, None) => {
-                render::write_file(&project, path, file)?;
+                write(path, file)?;
                 new_files += 1;
             }
             // Untouched since `create`: safe to replace.
             (Some(old), Some(existing)) if existing == old.contents => {
-                render::write_file(&project, path, file)?;
+                write(path, file)?;
                 updated.push(path.as_str());
             }
             // The list of outputs can be merged without guessing.
@@ -491,42 +625,45 @@ pub fn add(args: &AddArgs, style: Style) -> Result<()> {
                         contents: merged.into_bytes(),
                         executable: false,
                     };
-                    render::write_file(&project, path, &merged)?;
+                    write(path, &merged)?;
                     updated.push(path.as_str());
                 }
             }
             // Changed in the project. Put the new version next to it for a merge by hand.
             (_, Some(_)) => {
-                render::write_file(&project, &format!("{path}{MERGE_SUFFIX}"), file)?;
+                write(&format!("{path}{MERGE_SUFFIX}"), file)?;
                 conflicts.push(path.as_str());
             }
         }
     }
 
     let new_record = Record::new(&names, &wanted, &record.theme);
-    render::write_file(&project, RECORD, &new_record.to_file())?;
+    write(RECORD, &new_record.to_file())?;
 
     let added_ids: Vec<&str> = added.iter().map(|target| target.id.as_str()).collect();
-    println!(
-        "Added {} to {}",
+    say!(
+        out,
+        "{} {} to {}",
+        if args.dry_run { "Would add" } else { "Added" },
         style.bold(&added_ids.join(", ")),
         names.title
     );
-    println!("  {new_files} new files");
+    say!(out, "  {new_files} new files");
     if !updated.is_empty() {
-        println!("  updated: {}", updated.join(", "));
+        say!(out, "  updated: {}", updated.join(", "));
     }
     if !conflicts.is_empty() {
-        println!(
+        say!(
+            out,
             "\n{} These files were changed since the project was created, so they were left alone.",
             style.yellow("Needs a manual merge.")
         );
-        println!("The version with the new targets is next to each one:");
+        say!(out, "The version with the new targets is next to each one:");
         for path in &conflicts {
-            println!("  {path}  ->  {path}{MERGE_SUFFIX}");
+            say!(out, "  {path}  ->  {path}{MERGE_SUFFIX}");
         }
         if record.xds != env!("CARGO_PKG_VERSION") {
-            println!(
+            say!(out,
                 "{}",
                 style.dim(&format!(
                     "(The project was created with xds {}, and this is {}: files may differ for that reason alone.)",
@@ -541,30 +678,55 @@ pub fn add(args: &AddArgs, style: Style) -> Result<()> {
     // template's tokens. The project's tokens may differ, so they are generated again.
     let kinds_before = render::output_kinds(&before[BUILD_CONFIG].contents)?;
     let kinds_after = render::output_kinds(&after[BUILD_CONFIG].contents)?;
-    if kinds_after.iter().any(|kind| !kinds_before.contains(kind)) {
+    let mut tokens = "current";
+    if args.dry_run {
+        say!(out, "\n{}", style.dim("Dry run: nothing was written."));
+    } else if kinds_after.iter().any(|kind| !kinds_before.contains(kind)) {
         match theme::regenerate(&project) {
             Regenerated::Done => {
-                println!("\nRegenerated the token files from the project's tokens.")
+                tokens = "regenerated";
+                say!(
+                    out,
+                    "\nRegenerated the token files from the project's tokens."
+                )
             }
             Regenerated::Skipped(reason) | Regenerated::Failed(reason) => {
-                println!(
+                tokens = "from-template";
+                say!(
+                    out,
                     "\n{} The new generated token files come from the template: {reason}.",
                     style.yellow("warning:")
                 );
-                println!(
+                say!(
+                    out,
                     "         If the project's tokens or theme were changed, run `mise run tokens` to bring them in line."
                 );
             }
         }
     }
 
-    print_next_steps(style, None, &added);
-    Ok(())
+    if !args.dry_run {
+        print_next_steps(out, None, &added);
+    }
+    Ok(json!({
+        "dryRun": args.dry_run,
+        "added": added_ids,
+        "targets": ids,
+        "newFiles": new_files,
+        "updated": updated,
+        "conflicts": conflicts
+            .iter()
+            .map(|path| json!({ "path": path, "new": format!("{path}{MERGE_SUFFIX}") }))
+            .collect::<Vec<_>>(),
+        "tokens": tokens,
+        "nextSteps": next_steps(&added),
+    }))
 }
 
 // ---------------------------------------------------------------- theme
 
-pub fn theme(args: &ThemeArgs, style: Style) -> Result<()> {
+pub fn theme(args: &ThemeArgs, out: Out) -> Result<Value> {
+    let style = out.style;
     let project = args.project.clone().unwrap_or_else(|| PathBuf::from("."));
     let palette_file = theme::palette_file(&project);
     if !palette_file.is_file() {
@@ -583,7 +745,7 @@ pub fn theme(args: &ThemeArgs, style: Style) -> Result<()> {
 
     let chosen = match &args.name {
         Some(name) => find_theme(&themes, name)?,
-        None if prompt::is_interactive() => {
+        None if !out.json && prompt::is_interactive() => {
             let applied = themes
                 .iter()
                 .find(|theme| theme::is_applied(&palette, theme));
@@ -616,20 +778,51 @@ pub fn theme(args: &ThemeArgs, style: Style) -> Result<()> {
     };
 
     if theme::is_applied(&palette, chosen) {
-        update_record()?;
-        println!("{PALETTE_PATH} already holds the {} theme.", chosen.name);
-        return Ok(());
+        if !args.dry_run {
+            update_record()?;
+        }
+        say!(
+            out,
+            "{PALETTE_PATH} already holds the {} theme.",
+            chosen.name
+        );
+        return Ok(json!({
+            "dryRun": args.dry_run,
+            "theme": chosen.name,
+            "changed": false,
+            "tokens": "current",
+        }));
     }
 
-    fs::write(&palette_file, theme::apply(&palette, chosen)?).context(palette_file.display())?;
-    match theme::regenerate(&project) {
+    let themed = theme::apply(&palette, chosen)?;
+    if args.dry_run {
+        say!(
+            out,
+            "Would apply the {} theme: {PALETTE_PATH} and the generated token files would change.",
+            style.bold(&chosen.name)
+        );
+        say!(out, "{}", style.dim("Dry run: nothing was written."));
+        return Ok(json!({
+            "dryRun": true,
+            "theme": chosen.name,
+            "changed": true,
+            "tokens": "would-regenerate",
+        }));
+    }
+    fs::write(&palette_file, themed).context(palette_file.display())?;
+    let tokens = match theme::regenerate(&project) {
         Regenerated::Done => {
-            println!(
+            say!(
+                out,
                 "Applied the {} theme and regenerated the token files.",
                 style.bold(&chosen.name)
             );
+            "regenerated"
         }
-        Regenerated::Skipped(reason) => print_stale(style, &chosen.name, &reason),
+        Regenerated::Skipped(reason) => {
+            print_stale(out, &chosen.name, &reason);
+            "stale"
+        }
         Regenerated::Failed(output) => {
             // The generator checks contrast before it writes, so the generated files are still
             // the old ones. Put the palette back to match them.
@@ -639,6 +832,12 @@ pub fn theme(args: &ThemeArgs, style: Style) -> Result<()> {
                 chosen.name
             )));
         }
-    }
-    update_record()
+    };
+    update_record()?;
+    Ok(json!({
+        "dryRun": false,
+        "theme": chosen.name,
+        "changed": true,
+        "tokens": tokens,
+    }))
 }

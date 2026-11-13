@@ -40,7 +40,6 @@ impl Style {
         }
     }
 
-    #[cfg(test)]
     pub fn plain() -> Self {
         Self {
             color: false,

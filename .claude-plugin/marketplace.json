@@ -1,0 +1,11 @@
+{
+  "name": "xds",
+  "owner": { "name": "kjmin-dev" },
+  "plugins": [
+    {
+      "name": "xds",
+      "source": "./",
+      "description": "A skill for working with a design system made from the xds template."
+    }
+  ]
+}

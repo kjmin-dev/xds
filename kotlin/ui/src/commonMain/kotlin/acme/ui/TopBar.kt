@@ -1,5 +1,6 @@
 package acme.ui
 
+import acme.tokens.IconName
 import acme.tokens.Space
 import acme.tokens.Typography
 import androidx.compose.foundation.background
@@ -68,7 +69,7 @@ fun TopBar(
                     .semantics { contentDescription = "Back" },
                 contentAlignment = Alignment.Center,
             ) {
-                Chevron(colors.topBarAction, pointsForward = false, modifier = Modifier.size(8.dp, 14.dp))
+                Icon(IconName.ChevronLeft, color = colors.topBarAction, directional = true)
             }
         }
         BasicText(

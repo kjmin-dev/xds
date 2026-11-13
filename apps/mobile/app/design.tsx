@@ -5,7 +5,7 @@
 // `/design?from=3` starts at the third section and `/design?sheet=1` opens the bottom sheet,
 // for taking screenshots from a script, which can neither scroll nor tap.
 
-import { radius, size, space, colors as tokenColors, typography } from "@acme/tokens";
+import { icons, radius, size, space, colors as tokenColors, typography } from "@acme/tokens";
 import {
   Avatar,
   Badge,
@@ -19,6 +19,8 @@ import {
   Checkbox,
   type ControlSize,
   Divider,
+  Icon,
+  type IconName,
   ListRow,
   ProgressBar,
   SegmentedControl,
@@ -74,30 +76,21 @@ const VIEWS = [
   { value: "month", label: "Month" },
 ] as const;
 
-/** Tab icons are plain shapes here. An app brings its own icon set. */
 const TABS = [
   {
     key: "home",
     label: "Home",
-    icon: (color: string) => (
-      <View style={{ width: 18, height: 18, borderRadius: 4, backgroundColor: color }} />
-    ),
+    icon: (color: string) => <Icon name="house" size="lg" color={color} />,
   },
   {
     key: "search",
     label: "Search",
-    icon: (color: string) => (
-      <View
-        style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2.5, borderColor: color }}
-      />
-    ),
+    icon: (color: string) => <Icon name="search" size="lg" color={color} />,
   },
   {
     key: "profile",
     label: "Profile",
-    icon: (color: string) => (
-      <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: color }} />
-    ),
+    icon: (color: string) => <Icon name="user" size="lg" color={color} />,
   },
 ] as const;
 const COLOR_NAMES = (Object.keys(tokenColors.light) as (keyof typeof tokenColors.light)[]).filter(
@@ -175,6 +168,14 @@ export default function Design() {
         {size.pointer.controlSm}/{size.pointer.controlMd}/{size.pointer.controlLg}. The mobile app
         uses the touch sizes.
       </Text>
+    </Section>,
+
+    <Section key="icons" title="Icons">
+      <View style={styles.row}>
+        {(Object.keys(icons) as IconName[]).map((name) => (
+          <Icon key={name} name={name} label={name} />
+        ))}
+      </View>
     </Section>,
 
     <Section key="buttons" title="Buttons">

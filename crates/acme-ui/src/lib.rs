@@ -15,7 +15,8 @@ pub use components::{
     divider, text,
 };
 pub use controls::{
-    Avatar, AvatarSize, ListRow, ProgressBar, SegmentedControl, checkbox, initials, switch,
+    Avatar, AvatarSize, IconSize, ListRow, ProgressBar, SegmentedControl, checkbox, icon, initials,
+    switch,
 };
 pub use preview::DesignPreview;
 pub use theme::{TypographyExt, color, font, init, mode, palette, set_mode};

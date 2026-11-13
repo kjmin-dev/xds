@@ -12,6 +12,7 @@ export { Button, type ButtonProps, type ButtonVariant, type ControlSize } from "
 export { Card } from "./Card.tsx";
 export { Checkbox, type CheckboxProps } from "./Checkbox.tsx";
 export { Divider } from "./Divider.tsx";
+export { Icon, type IconName, type IconProps, type IconSize } from "./Icon.tsx";
 export { ListRow, type ListRowProps } from "./ListRow.tsx";
 export { ProgressBar } from "./ProgressBar.tsx";
 export { SegmentedControl, type SegmentedControlProps } from "./SegmentedControl.tsx";

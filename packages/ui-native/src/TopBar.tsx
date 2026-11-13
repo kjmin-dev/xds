@@ -1,6 +1,7 @@
 import { radius, space } from "@acme/tokens";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import { Icon } from "./Icon.tsx";
 import { Text } from "./Text.tsx";
 import { CONTROL_HEIGHT, control, useColors } from "./theme.ts";
 
@@ -32,7 +33,7 @@ export function TopBar({ title, onBack, backLabel = "Back", trailing }: TopBarPr
           hitSlop={(control.targetMin - CONTROL_HEIGHT.sm) / 2}
           style={[styles.back, { backgroundColor: colors.topBarActionBackground }]}
         >
-          <View style={[styles.chevron, { borderColor: colors.topBarAction }]} />
+          <Icon name="chevron-left" color={colors.topBarAction} directional />
         </Pressable>
       )}
       <Text
@@ -64,15 +65,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: radius.full,
-  },
-  // Two sides of a square, turned to point left.
-  chevron: {
-    width: 10,
-    height: 10,
-    marginStart: space[1],
-    borderLeftWidth: 2,
-    borderBottomWidth: 2,
-    transform: [{ rotate: "45deg" }],
   },
   title: { flex: 1 },
 });

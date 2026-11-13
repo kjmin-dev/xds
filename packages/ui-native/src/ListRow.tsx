@@ -1,6 +1,7 @@
 import { space } from "@acme/tokens";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import { Icon } from "./Icon.tsx";
 import { Text } from "./Text.tsx";
 import { control, useColors } from "./theme.ts";
 
@@ -41,7 +42,7 @@ export function ListRow({
         )}
       </View>
       {trailing}
-      {chevron && <View style={[styles.chevron, { borderColor: colors.textTertiary }]} />}
+      {chevron && <Icon name="chevron-right" size="sm" color={colors.textTertiary} directional />}
     </>
   );
   if (!onPress) return <View style={styles.row}>{content}</View>;
@@ -74,14 +75,5 @@ const styles = StyleSheet.create({
   text: {
     flex: 1,
     gap: space["0_5"],
-  },
-  // Two sides of a square, turned to point right.
-  chevron: {
-    width: 8,
-    height: 8,
-    marginEnd: space["0_5"],
-    borderTopWidth: 2,
-    borderRightWidth: 2,
-    transform: [{ rotate: "45deg" }],
   },
 });

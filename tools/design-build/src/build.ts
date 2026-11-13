@@ -7,6 +7,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import { checkContrast } from "./contrast.ts";
 import { emitCss, emitKotlin, emitRust, emitTailwind, emitTypeScript } from "./emit.ts";
+import { loadIcons } from "./icons.ts";
 import { loadModel, type Model, TokenError } from "./model.ts";
 
 const root = join(import.meta.dirname, "../../..");
@@ -25,6 +26,7 @@ const EMITTERS: Record<string, (model: Model, path: string) => string> = {
 
 async function main(): Promise<number> {
   const model = await loadModel(join(root, "design/tokens"));
+  model.icons = await loadIcons(join(root, "design/icons"));
 
   const failures = checkContrast(model);
   if (failures.length > 0) {
@@ -59,7 +61,7 @@ async function main(): Promise<number> {
     }
   }
 
-  const summary = `${model.colors.length} colors, ${model.sizes.length} sizes, ${model.values.length} other tokens`;
+  const summary = `${model.colors.length} colors, ${model.sizes.length} sizes, ${model.values.length} other tokens, ${model.icons.length} icons`;
   if (check && stale.length > 0) {
     console.error(`Generated token files are out of date (${summary}):`);
     for (const path of stale) console.error(`  ${path}`);

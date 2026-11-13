@@ -6,7 +6,7 @@
 use std::rc::Rc;
 
 use acme_tokens as tokens;
-use gpui_kit::component::{checkbox::Checkbox, switch::Switch};
+use gpui_kit::component::{Icon, checkbox::Checkbox, switch::Switch};
 use gpui_kit::prelude::FluentBuilder;
 use gpui_kit::{
     AnyElement, App, ClickEvent, ElementId, InteractiveElement, IntoElement, ParentElement,
@@ -321,11 +321,8 @@ impl RenderOnce for ListRow {
             .children(self.trailing)
             .when(self.chevron, |row| {
                 row.child(
-                    div()
-                        .flex_none()
-                        .typography(tokens::TYPOGRAPHY_BODY)
-                        .text_color(color(c.text_tertiary))
-                        .child("›"),
+                    icon(tokens::Icon::ChevronRight, IconSize::Sm)
+                        .text_color(color(c.text_tertiary)),
                 )
             })
             .when_some(on_click, |row, on_click| {
@@ -334,6 +331,33 @@ impl RenderOnce for ListRow {
                     .on_click(move |event, window, cx| on_click(event, window, cx))
             })
     }
+}
+
+// ---------------------------------------------------------------- icon
+
+/// `Sm` and `Md` sit beside text; `Lg` stands alone.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum IconSize {
+    Sm,
+    #[default]
+    Md,
+    Lg,
+}
+
+/// An icon of the design system. It takes the color of the text around it; set another with
+/// `.text_color`.
+///
+pub fn icon(icon: tokens::Icon, size: IconSize) -> Icon {
+    let side = match size {
+        IconSize::Sm => tokens::POINTER.icon_sm,
+        IconSize::Md => tokens::POINTER.icon_md,
+        IconSize::Lg => tokens::POINTER.icon_lg,
+    };
+    // The drawing is generated from design/icons, so no asset has to be registered for it.
+    Icon::default()
+        .data(icon.svg().as_bytes())
+        .size(px(side))
+        .flex_none()
 }
 
 #[cfg(test)]

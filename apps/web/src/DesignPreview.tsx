@@ -2,7 +2,7 @@
 // `/design`. The mobile app has the same screen at `/design`, and the desktop app opens it with
 // `acme --design`.
 
-import { colors, radius, size, space, typography } from "@acme/tokens";
+import { colors, icons, radius, size, space, typography } from "@acme/tokens";
 import {
   Avatar,
   Badge,
@@ -15,6 +15,8 @@ import {
   Checkbox,
   type ControlSize,
   Divider,
+  Icon,
+  type IconName,
   ListRow,
   ProgressBar,
   SegmentedControl,
@@ -56,6 +58,7 @@ const SECTIONS = [
   "Colors",
   "Typography",
   "Space, radius, size",
+  "Icons",
   "Buttons",
   "Text fields",
   "Selection",
@@ -200,6 +203,19 @@ export function DesignPreview() {
             uses the sizes of the input device it is viewed with.
           </Text>
         </Row>
+      </Section>
+
+      <Section title="Icons">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-3">
+          {(Object.keys(icons) as IconName[]).map((name) => (
+            <span key={name} className="flex items-center gap-2 text-acme-text-primary">
+              <Icon name={name} />
+              <Text variant="detail" tone="secondary" as="span">
+                {name}
+              </Text>
+            </span>
+          ))}
+        </div>
       </Section>
 
       <Section title="Buttons">

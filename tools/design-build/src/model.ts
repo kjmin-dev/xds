@@ -7,6 +7,7 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import type { Icon } from "./icons.ts";
 
 export type Mode = "light" | "dark";
 export const MODES: readonly Mode[] = ["light", "dark"];
@@ -56,6 +57,8 @@ export type Model = {
   values: ValueToken[];
   /** Paths are relative to the top-level `size` group. */
   sizes: SizeToken[];
+  /** From design/icons. Set by the build; a model loaded from tokens alone has none. */
+  icons?: Icon[];
 };
 
 type RawToken = { path: string[]; $type?: string; $value: unknown; $description?: string };

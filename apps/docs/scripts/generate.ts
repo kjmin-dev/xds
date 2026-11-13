@@ -378,7 +378,8 @@ await guide(
     {
       path: "commands",
       title: "Commands",
-      description: "xds list, create, add, themes and theme.",
+      description:
+        "xds list, create, add, themes and theme, and the read commands tokens, components, contrast and doctor.",
       take: ["Commands"],
     },
     {
@@ -386,6 +387,12 @@ await guide(
       title: "Targets and themes",
       description: "The client stacks xds can scaffold and how color themes are applied.",
       take: ["Targets", "Themes"],
+    },
+    {
+      path: "agents",
+      title: "For scripts and agents",
+      description: "JSON output, exit codes, AGENTS.md, the agent skill, and the xds mcp server.",
+      take: ["For scripts and agents"],
     },
     {
       path: "template",

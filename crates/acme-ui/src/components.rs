@@ -80,15 +80,17 @@ pub fn button(
 ) -> Button {
     let button = Button::new(id).label(label);
     let button = match variant {
-        ButtonVariant::Primary => button.primary(),
-        // Outlined, with a trace of shadow, so it sits quietly beside a primary button.
+        // Filled buttons carry the same trace of shadow, so none looks flatter than the
+        // outlined one.
+        ButtonVariant::Primary => button.primary().shadow(shadow(tokens::SHADOW_SUBTLE)),
+        // Outlined, so it sits quietly beside a primary button.
         ButtonVariant::Secondary => button
             .secondary()
             .border_1()
             .border_color(color(palette(cx).button_secondary_border))
             .shadow(shadow(tokens::SHADOW_SUBTLE)),
         ButtonVariant::Ghost => button.ghost(),
-        ButtonVariant::Danger => button.danger(),
+        ButtonVariant::Danger => button.danger().shadow(shadow(tokens::SHADOW_SUBTLE)),
     };
     let label = match size {
         ControlSize::Lg => tokens::TYPOGRAPHY_BODY_STRONG,
@@ -247,9 +249,9 @@ impl RenderOnce for Badge {
             .flex()
             .flex_none()
             .items_center()
-            .gap(px(6.0))
-            .h(px(24.0))
-            .px(px(10.0))
+            .gap(px(tokens::SPACE_1_5))
+            .h(px(tokens::POINTER.badge))
+            .px(px(tokens::SPACE_2_5))
             .rounded_full()
             .bg(color(background))
             .text_color(color(text))
@@ -258,7 +260,7 @@ impl RenderOnce for Badge {
                 badge.child(
                     div()
                         .flex_none()
-                        .size(px(6.0))
+                        .size(px(tokens::SPACE_1_5))
                         .rounded_full()
                         .bg(color(text)),
                 )
@@ -325,7 +327,7 @@ impl RenderOnce for Banner {
                     .flex_none()
                     .items_center()
                     .justify_center()
-                    .size(px(20.0))
+                    .size(px(tokens::POINTER.icon_md))
                     .rounded_full()
                     .bg(color(accent))
                     .text_color(color(background))
@@ -337,7 +339,7 @@ impl RenderOnce for Banner {
                     .flex_1()
                     .flex()
                     .flex_col()
-                    .gap(px(2.0))
+                    .gap(px(tokens::SPACE_0_5))
                     .children(
                         self.title
                             .map(|title| div().typography(tokens::TYPOGRAPHY_LABEL).child(title)),

@@ -32,7 +32,7 @@ fun ProgressBar(
     Box(
         modifier
             .fillMaxWidth()
-            .height(8.dp)
+            .height(LocalSizes.current.progress)
             .clip(CircleShape)
             .background(colors.progressTrack)
             .clearAndSetSemantics {

@@ -1,7 +1,7 @@
-import { radius } from "@acme/tokens";
+import { radius, space } from "@acme/tokens";
 import { StyleSheet, View } from "react-native";
 import { Text } from "./Text.tsx";
-import { type Colors, useColors } from "./theme.ts";
+import { type Colors, control, useColors } from "./theme.ts";
 
 export type BadgeTone = "neutral" | "accent" | "success" | "warning" | "danger";
 
@@ -49,14 +49,14 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    minHeight: 24,
-    paddingHorizontal: 10,
+    gap: space["1_5"],
+    minHeight: control.badge,
+    paddingHorizontal: space["2_5"],
     borderRadius: radius.full,
   },
   dot: {
-    width: 6,
-    height: 6,
+    width: space["1_5"],
+    height: space["1_5"],
     borderRadius: radius.full,
   },
 });

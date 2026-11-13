@@ -56,6 +56,8 @@
     --button-bg-hover: var(--acme-color-button-primary-background-hover);
     --button-bg-pressed: var(--acme-color-button-primary-background-pressed);
     --button-fg: var(--acme-color-button-primary-text);
+    /* The same trace of shadow as a secondary button, so the primary one never looks flatter. */
+    box-shadow: var(--acme-shadow-subtle);
   }
 
   .button--secondary {
@@ -80,6 +82,7 @@
     --button-bg-hover: var(--acme-color-button-danger-background-hover);
     --button-bg-pressed: var(--acme-color-button-danger-background-pressed);
     --button-fg: var(--acme-color-button-danger-text);
+    box-shadow: var(--acme-shadow-subtle);
   }
 
   /* A disabled button is recolored, not faded: fading a colored fill leaves a pale version of
@@ -87,6 +90,7 @@
   .button:disabled:not([data-pending="true"]),
   .button[aria-disabled="true"]:not([data-pending="true"]) {
     opacity: 1;
+    box-shadow: none;
     --button-bg: var(--acme-color-button-disabled-background);
     --button-fg: var(--acme-color-button-disabled-text);
   }

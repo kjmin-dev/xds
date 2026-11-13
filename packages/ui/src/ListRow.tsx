@@ -14,7 +14,7 @@ export type ListRowProps = {
   disabled?: boolean;
 };
 
-const ROW = "flex min-h-acme-list-row w-full items-center gap-3 px-4 py-2 text-left";
+const ROW = "flex min-h-acme-list-row w-full items-center gap-3 px-4 py-2 text-start";
 
 /** One line of a list or a settings screen. Separate rows with a Divider. */
 export function ListRow({
@@ -45,7 +45,7 @@ export function ListRow({
           viewBox="0 0 16 16"
           fill="none"
           aria-hidden="true"
-          className="size-4 shrink-0 text-acme-text-secondary"
+          className="size-acme-icon-sm shrink-0 text-acme-text-tertiary rtl:-scale-x-100"
         >
           <path
             d="m6 3.5 4.5 4.5L6 12.5"

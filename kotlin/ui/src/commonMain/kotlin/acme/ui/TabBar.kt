@@ -1,5 +1,7 @@
 package acme.ui
 
+import acme.tokens.Border
+import acme.tokens.Space
 import acme.tokens.Shadow
 import acme.tokens.Typography
 import androidx.compose.foundation.background
@@ -25,7 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 // The gap between the capsule's edge and the items.
-private val Inset = 4.dp
+private val Inset = Space.s1
 
 /**
  * One destination in a [TabBar].
@@ -60,7 +62,7 @@ fun <T> TabBar(
             .height(sizes.bar + Inset * 2)
             .shadow(Shadow.raised, CircleShape)
             .background(colors.tabBarBackground, CircleShape)
-            .border(1.dp, colors.tabBarBorder, CircleShape)
+            .border(Border.widthThin, colors.tabBarBorder, CircleShape)
             .padding(Inset)
             .selectableGroup(),
     ) {
@@ -84,7 +86,7 @@ fun <T> TabBar(
                 contentAlignment = Alignment.Center,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+                    Box(Modifier.size(sizes.iconLg), contentAlignment = Alignment.Center) {
                         CompositionLocalProvider(LocalContentColor provides color) { item.icon(isSelected) }
                     }
                     BasicText(

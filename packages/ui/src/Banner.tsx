@@ -50,7 +50,11 @@ export function Banner({
       role={urgent ? "alert" : "status"}
       className={`flex items-start gap-3 rounded-acme-md p-3 text-acme-banner-text ${surface}`}
     >
-      <svg viewBox="0 0 24 24" aria-hidden="true" className={`mt-0.5 size-5 shrink-0 ${accent}`}>
+      <svg
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        className={`mt-0.5 size-acme-icon-md shrink-0 ${accent}`}
+      >
         <path fill="currentColor" d={icon} />
       </svg>
       <div className="flex min-w-0 flex-col gap-0.5 text-acme-detail">

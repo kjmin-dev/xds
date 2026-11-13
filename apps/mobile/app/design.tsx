@@ -144,16 +144,18 @@ export default function Design() {
 
     <Section key="sizes" title="Space, radius, size">
       <View style={styles.row}>
-        {Object.entries(space).map(([name, points]) => (
-          <View key={name} style={styles.sample}>
-            <View
-              style={{ width: points, height: points, backgroundColor: colors.accentDefault }}
-            />
-            <Text variant="footnote" tone="secondary">
-              {name}
-            </Text>
-          </View>
-        ))}
+        {Object.entries(space)
+          .sort(([, a], [, b]) => a - b)
+          .map(([name, points]) => (
+            <View key={name} style={styles.sample}>
+              <View
+                style={{ width: points, height: points, backgroundColor: colors.accentDefault }}
+              />
+              <Text variant="footnote" tone="secondary">
+                {name.replace("_", ".")}
+              </Text>
+            </View>
+          ))}
       </View>
       <View style={styles.row}>
         {Object.entries(radius).map(([name, points]) => (

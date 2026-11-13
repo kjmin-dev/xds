@@ -13,7 +13,7 @@ use gpui_kit::{
     RenderOnce, SharedString, StatefulInteractiveElement, Styled, Window, div, px, relative,
 };
 
-use crate::components::ControlSize;
+use crate::components::{ControlSize, shadow};
 use crate::theme::{TypographyExt, color, palette};
 
 /// Turns a setting on or off, and takes effect at once. The result is a GPUI Component switch:
@@ -94,6 +94,8 @@ impl RenderOnce for SegmentedControl {
                     segment
                         .bg(color(c.segmented_selected_background))
                         .border_color(color(c.segmented_selected_border))
+                        // Raised: a faint shadow under the hairline sets it apart from the track.
+                        .shadow(shadow(tokens::SHADOW_SUBTLE))
                         .text_color(color(c.segmented_selected_text))
                 })
                 .when_some(on_change, |segment, on_change| {
@@ -157,9 +159,9 @@ impl RenderOnce for Avatar {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
         let c = palette(cx);
         let (diameter, style, letters) = match self.size {
-            AvatarSize::Sm => (24.0, tokens::TYPOGRAPHY_FOOTNOTE, 1),
-            AvatarSize::Md => (32.0, tokens::TYPOGRAPHY_LABEL, 2),
-            AvatarSize::Lg => (40.0, tokens::TYPOGRAPHY_BODY_STRONG, 2),
+            AvatarSize::Sm => (tokens::POINTER.avatar_sm, tokens::TYPOGRAPHY_FOOTNOTE, 1),
+            AvatarSize::Md => (tokens::POINTER.avatar_md, tokens::TYPOGRAPHY_LABEL, 2),
+            AvatarSize::Lg => (tokens::POINTER.avatar_lg, tokens::TYPOGRAPHY_BODY_STRONG, 2),
         };
         div()
             .flex()
@@ -195,7 +197,7 @@ impl RenderOnce for ProgressBar {
         div()
             .flex_none()
             .w_full()
-            .h(px(8.0))
+            .h(px(tokens::POINTER.progress))
             .rounded_full()
             .overflow_hidden()
             .bg(color(c.progress_track))
@@ -302,7 +304,7 @@ impl RenderOnce for ListRow {
                     .flex_1()
                     .flex()
                     .flex_col()
-                    .gap(px(2.0))
+                    .gap(px(tokens::SPACE_0_5))
                     .child(
                         div()
                             .typography(tokens::TYPOGRAPHY_BODY)
@@ -322,7 +324,7 @@ impl RenderOnce for ListRow {
                     div()
                         .flex_none()
                         .typography(tokens::TYPOGRAPHY_BODY)
-                        .text_color(color(c.text_secondary))
+                        .text_color(color(c.text_tertiary))
                         .child("›"),
                 )
             })

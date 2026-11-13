@@ -11,7 +11,7 @@ export function ProgressBar({ value, label }: { value: number; label: string }) 
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={percent}
-      className="h-2 w-full overflow-hidden rounded-full bg-acme-progress-track"
+      className="h-acme-progress w-full overflow-hidden rounded-full bg-acme-progress-track"
     >
       <div
         className="h-full rounded-full bg-acme-progress-fill transition-[width] duration-(--acme-motion-duration-normal) motion-reduce:transition-none"

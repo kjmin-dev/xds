@@ -1,12 +1,15 @@
 import { border, motion, shadow, space, typography } from "@acme/tokens";
+import { useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Pressable,
   type StyleProp,
   StyleSheet,
   Text,
   type ViewStyle,
 } from "react-native";
+import { useSpring } from "./motion.ts";
 import { CONTROL_HEIGHT, type Colors, type ControlSize, control, useColors } from "./theme.ts";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
@@ -78,6 +81,9 @@ export function Button({
 }: ButtonProps) {
   const colors = useColors();
   const { background, pressed, text } = look(colors, variant);
+  // A press shrinks the button a little, on a spring: feedback that does not depend on color.
+  const [held, setHeld] = useState(false);
+  const scale = useSpring(held ? motion.pressScale : 1, motion.spring.fast);
   const height = CONTROL_HEIGHT[size];
   // A small button still reacts to a press anywhere in the minimum target around it.
   const slop = Math.max(0, (control.targetMin - height) / 2);
@@ -88,40 +94,47 @@ export function Button({
       : colors.buttonDisabledBackground
     : background;
 
+  // Filled buttons carry the same trace of shadow as the outlined one, so none looks flatter.
+  const raised = variant !== "ghost" && !disabled;
+
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled: disabled || loading, busy: loading }}
-      disabled={disabled || loading}
-      hitSlop={slop}
-      {...(onPress ? { onPress } : {})}
-      style={(state) => [
-        styles.button,
-        {
-          height,
-          minWidth: Math.max(height, control.targetMin),
-          paddingHorizontal: PADDING[size],
-          // A capsule where fingers are used. React Native wants half the height, not "full".
-          borderRadius: Math.min(control.buttonRadius, height / 2),
-          backgroundColor: state.pressed ? pressed : fill,
-          // A press shrinks the button a little: feedback that does not depend on color.
-          transform: [{ scale: state.pressed ? motion.pressScale : 1 }],
-        },
-        // Outlined, with a trace of shadow, so it sits quietly beside a primary button.
-        variant === "secondary" &&
-          !disabled && [styles.outlined, { borderColor: colors.buttonSecondaryBorder }],
-        fullWidth && styles.fullWidth,
-        style,
-      ]}
-    >
-      {loading && <ActivityIndicator size="small" color={labelColor} />}
-      <Text
-        numberOfLines={1}
-        style={[size === "lg" ? typography.bodyStrong : typography.label, { color: labelColor }]}
+    <Animated.View style={[fullWidth && styles.fullWidth, style, { transform: [{ scale }] }]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ disabled: disabled || loading, busy: loading }}
+        disabled={disabled || loading}
+        hitSlop={slop}
+        onPressIn={() => setHeld(true)}
+        onPressOut={() => setHeld(false)}
+        {...(onPress ? { onPress } : {})}
+        style={(state) => [
+          styles.button,
+          {
+            height,
+            minWidth: Math.max(height, control.targetMin),
+            paddingHorizontal: PADDING[size],
+            // A capsule where fingers are used. React Native wants half the height, not "full".
+            borderRadius: Math.min(control.buttonRadius, height / 2),
+            backgroundColor: state.pressed ? pressed : fill,
+          },
+          raised && styles.raised,
+          // Outlined, so it sits quietly beside a primary button.
+          variant === "secondary" &&
+            !disabled && {
+              borderWidth: border.width.thin,
+              borderColor: colors.buttonSecondaryBorder,
+            },
+        ]}
       >
-        {label}
-      </Text>
-    </Pressable>
+        {loading && <ActivityIndicator size="small" color={labelColor} />}
+        <Text
+          numberOfLines={1}
+          style={[size === "lg" ? typography.bodyStrong : typography.label, { color: labelColor }]}
+        >
+          {label}
+        </Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -132,8 +145,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: space[2],
   },
-  outlined: {
-    borderWidth: border.width.thin,
+  raised: {
     // The token color carries the alpha.
     shadowColor: shadow.subtle.color,
     shadowOffset: { width: shadow.subtle.offsetX, height: shadow.subtle.offsetY },

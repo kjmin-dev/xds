@@ -52,7 +52,7 @@ fun Card(
     ) {
         if (title != null || actions != null) {
             Row(horizontalArrangement = Arrangement.spacedBy(Space.s3)) {
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.s0_5)) {
                     if (title != null) Text(title, style = Typography.heading, heading = true)
                     if (description != null) Text(description, style = Typography.detail, tone = TextTone.Secondary)
                 }

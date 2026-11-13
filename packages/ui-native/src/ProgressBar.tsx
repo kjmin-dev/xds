@@ -1,6 +1,6 @@
 import { radius } from "@acme/tokens";
 import { StyleSheet, View } from "react-native";
-import { useColors } from "./theme.ts";
+import { control, useColors } from "./theme.ts";
 
 /**
  * How far along something is, from 0 to 1. For work of unknown length use a Spinner.
@@ -27,7 +27,7 @@ export function ProgressBar({ value, label }: { value: number; label: string }) 
 const styles = StyleSheet.create({
   track: {
     alignSelf: "stretch",
-    height: 8,
+    height: control.progress,
     borderRadius: radius.full,
     overflow: "hidden",
   },

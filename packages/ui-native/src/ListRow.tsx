@@ -41,7 +41,7 @@ export function ListRow({
         )}
       </View>
       {trailing}
-      {chevron && <View style={[styles.chevron, { borderColor: colors.textSecondary }]} />}
+      {chevron && <View style={[styles.chevron, { borderColor: colors.textTertiary }]} />}
     </>
   );
   if (!onPress) return <View style={styles.row}>{content}</View>;
@@ -73,13 +73,13 @@ const styles = StyleSheet.create({
   },
   text: {
     flex: 1,
-    gap: 2,
+    gap: space["0_5"],
   },
   // Two sides of a square, turned to point right.
   chevron: {
     width: 8,
     height: 8,
-    marginRight: 2,
+    marginEnd: space["0_5"],
     borderTopWidth: 2,
     borderRightWidth: 2,
     transform: [{ rotate: "45deg" }],

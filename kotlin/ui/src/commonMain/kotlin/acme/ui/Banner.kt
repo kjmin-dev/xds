@@ -58,11 +58,11 @@ fun Banner(
             .padding(Space.s3),
         horizontalArrangement = Arrangement.spacedBy(Space.s3),
     ) {
-        Canvas(Modifier.size(20.dp)) {
+        Canvas(Modifier.size(LocalSizes.current.iconMd)) {
             drawCircle(accent)
             mark(tone, background)
         }
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.s0_5)) {
             if (title != null) BasicText(title, style = Typography.label.resolved(colors.bannerText))
             BasicText(message, style = Typography.detail.resolved(colors.bannerText))
         }

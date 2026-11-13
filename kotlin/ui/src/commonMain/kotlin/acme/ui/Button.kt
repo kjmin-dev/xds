@@ -128,10 +128,12 @@ fun Button(
     // A secondary button is the color of the surface it sits on, so an outline and a faint
     // shadow set it apart. Disabled, it has its own fill and neither.
     val outlined = variant == ButtonVariant.Secondary && enabled
+    // Filled buttons carry the same trace of shadow, so none looks flatter than the outlined one.
+    val raised = variant != ButtonVariant.Ghost && enabled
     // Shrinks a little while pressed: feedback that does not depend on color.
     val scale by animateFloatAsState(
         targetValue = if (pressed && enabled) Motion.pressScale else 1f,
-        animationSpec = tween(Motion.durationFast, easing = Motion.easingStandard),
+        animationSpec = motionSpec(Motion.springFastDamping, Motion.springFastStiffness),
     )
 
     Row(
@@ -146,7 +148,7 @@ fun Button(
                 scaleY = scale
             }
             .focusRing(shape)
-            .then(if (outlined) Modifier.shadow(Shadow.subtle, shape) else Modifier)
+            .then(if (raised) Modifier.shadow(Shadow.subtle, shape) else Modifier)
             .background(fill, shape)
             .then(if (outlined) Modifier.border(Border.widthThin, colors.buttonSecondaryBorder, shape) else Modifier)
             // No ripple or overlay: the pressed and hover colors are tokens.
@@ -162,7 +164,7 @@ fun Button(
         horizontalArrangement = Arrangement.spacedBy(Space.s2, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (loading) SpinnerArc(color = text, diameter = 16.dp)
+        if (loading) SpinnerArc(color = text, diameter = sizes.spinnerSm)
         BasicText(
             text = label,
             style = (if (size == ControlSize.Lg) Typography.bodyStrong else Typography.label).resolved(text),

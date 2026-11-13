@@ -4,6 +4,9 @@
 
 package acme.ui
 
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.FiniteAnimationSpec
 import acme.tokens.Colors
 import acme.tokens.Focus
 import acme.tokens.LightColors
@@ -57,6 +60,17 @@ val LocalSizes = staticCompositionLocalOf { platformSizes }
  */
 val LocalContentColor = compositionLocalOf { Color.Unspecified }
 
+/** Whether the person asked the system for less motion. Animations check it and jump instead. */
+val LocalReducedMotion = staticCompositionLocalOf { false }
+
+/**
+ * A spring from the motion tokens, or no animation at all when less motion was asked for.
+ * `damping` is a ratio, where 1 does not overshoot.
+ */
+@Composable
+internal fun <T> motionSpec(damping: Float, stiffness: Float): FiniteAnimationSpec<T> =
+    if (LocalReducedMotion.current) snap() else spring(dampingRatio = damping, stiffness = stiffness)
+
 /** The mode the system is in. */
 @Composable
 fun systemMode(): Mode = if (isSystemInDarkTheme()) Mode.Dark else Mode.Light
@@ -83,6 +97,7 @@ fun AcmeTheme(
     CompositionLocalProvider(
         LocalColors provides colors,
         LocalSizes provides sizes,
+        LocalReducedMotion provides systemReducedMotion(),
         LocalViewConfiguration provides viewConfiguration,
         // An opaque highlight: the token set has no translucent colors to layer over text.
         LocalTextSelectionColors provides TextSelectionColors(

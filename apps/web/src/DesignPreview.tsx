@@ -169,14 +169,16 @@ export function DesignPreview() {
 
       <Section title="Space, radius, size">
         <Row label="space">
-          {Object.entries(space).map(([name, px]) => (
-            <span key={name} className="flex flex-col items-center gap-1">
-              <span className="bg-acme-accent-default" style={{ width: px, height: px }} />
-              <Text variant="footnote" tone="secondary" as="span">
-                {name}
-              </Text>
-            </span>
-          ))}
+          {Object.entries(space)
+            .sort(([, a], [, b]) => a - b)
+            .map(([name, px]) => (
+              <span key={name} className="flex flex-col items-center gap-1">
+                <span className="bg-acme-accent-default" style={{ width: px, height: px }} />
+                <Text variant="footnote" tone="secondary" as="span">
+                  {name.replace("_", ".")}
+                </Text>
+              </span>
+            ))}
         </Row>
         <Row label="radius">
           {Object.entries(radius).map(([name, px]) => (

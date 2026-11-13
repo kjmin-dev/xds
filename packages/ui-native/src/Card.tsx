@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   },
   titles: {
     flex: 1,
-    gap: 2,
+    gap: space["0_5"],
   },
   divider: {
     alignSelf: "stretch",

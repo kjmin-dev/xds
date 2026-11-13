@@ -7,6 +7,7 @@ mod inspect;
 mod json;
 mod manifest;
 mod markers;
+mod mcp;
 mod output;
 mod preview;
 mod prompt;
@@ -71,6 +72,8 @@ enum Command {
     Contrast(ContrastArgs),
     /// Check a project: its record, its tokens, and whether the generated files are current
     Doctor(DoctorArgs),
+    /// Serve the commands to an agent as a Model Context Protocol server on stdin and stdout
+    Mcp,
 }
 
 fn main() -> ExitCode {
@@ -112,6 +115,16 @@ fn main() -> ExitCode {
         Command::Components(args) => inspect::components(args, out),
         Command::Contrast(args) => inspect::contrast(args, out),
         Command::Doctor(args) => inspect::doctor(args, out),
+        // The protocol owns stdout until the client hangs up; there is no result to print.
+        Command::Mcp => {
+            return match mcp::serve() {
+                Ok(_) => ExitCode::from(exit::OK),
+                Err(error) => {
+                    eprintln!("{} {error}", style.red("error:"));
+                    ExitCode::from(exit::FAILURE)
+                }
+            };
+        }
     };
     match result {
         Ok(value) => {

@@ -57,6 +57,9 @@ pub struct AddArgs {
     /// The project to add them to [default: the current directory]
     #[arg(long, value_name = "DIR")]
     pub project: Option<PathBuf>,
+    /// Print what would change and write nothing
+    #[arg(long)]
+    pub dry_run: bool,
 }
 
 #[derive(Debug, Default, clap::Args)]
@@ -66,6 +69,9 @@ pub struct ThemeArgs {
     /// The project to change [default: the current directory]
     #[arg(long, value_name = "DIR")]
     pub project: Option<PathBuf>,
+    /// Say whether the theme would change anything and write nothing
+    #[arg(long)]
+    pub dry_run: bool,
 }
 
 fn find_theme<'a>(themes: &'a [Theme], name: &str) -> Result<&'a Theme> {
@@ -568,6 +574,7 @@ pub fn add(args: &AddArgs, out: Out) -> Result<Value> {
             args.targets.join(", ")
         );
         return Ok(json!({
+            "dryRun": args.dry_run,
             "added": [],
             "targets": record.targets,
             "newFiles": 0,
@@ -585,6 +592,13 @@ pub fn add(args: &AddArgs, out: Out) -> Result<Value> {
     let before = render::render(template(), manifest, &current, &names)?;
     let after = render::render(template(), manifest, &wanted, &names)?;
 
+    // A dry run goes through the same comparison and leaves the writing out.
+    let write = |path: &str, file: &File| -> Result<()> {
+        if args.dry_run {
+            return Ok(());
+        }
+        render::write_file(&project, path, file)
+    };
     let mut new_files = 0;
     let mut updated = Vec::new();
     let mut conflicts = Vec::new();
@@ -596,12 +610,12 @@ pub fn add(args: &AddArgs, out: Out) -> Result<Value> {
             // The new targets do not touch this file, so whatever the project did to it stays.
             (Some(old), _) if old == file => {}
             (_, None) => {
-                render::write_file(&project, path, file)?;
+                write(path, file)?;
                 new_files += 1;
             }
             // Untouched since `create`: safe to replace.
             (Some(old), Some(existing)) if existing == old.contents => {
-                render::write_file(&project, path, file)?;
+                write(path, file)?;
                 updated.push(path.as_str());
             }
             // The list of outputs can be merged without guessing.
@@ -611,25 +625,26 @@ pub fn add(args: &AddArgs, out: Out) -> Result<Value> {
                         contents: merged.into_bytes(),
                         executable: false,
                     };
-                    render::write_file(&project, path, &merged)?;
+                    write(path, &merged)?;
                     updated.push(path.as_str());
                 }
             }
             // Changed in the project. Put the new version next to it for a merge by hand.
             (_, Some(_)) => {
-                render::write_file(&project, &format!("{path}{MERGE_SUFFIX}"), file)?;
+                write(&format!("{path}{MERGE_SUFFIX}"), file)?;
                 conflicts.push(path.as_str());
             }
         }
     }
 
     let new_record = Record::new(&names, &wanted, &record.theme);
-    render::write_file(&project, RECORD, &new_record.to_file())?;
+    write(RECORD, &new_record.to_file())?;
 
     let added_ids: Vec<&str> = added.iter().map(|target| target.id.as_str()).collect();
     say!(
         out,
-        "Added {} to {}",
+        "{} {} to {}",
+        if args.dry_run { "Would add" } else { "Added" },
         style.bold(&added_ids.join(", ")),
         names.title
     );
@@ -664,7 +679,9 @@ pub fn add(args: &AddArgs, out: Out) -> Result<Value> {
     let kinds_before = render::output_kinds(&before[BUILD_CONFIG].contents)?;
     let kinds_after = render::output_kinds(&after[BUILD_CONFIG].contents)?;
     let mut tokens = "current";
-    if kinds_after.iter().any(|kind| !kinds_before.contains(kind)) {
+    if args.dry_run {
+        say!(out, "\n{}", style.dim("Dry run: nothing was written."));
+    } else if kinds_after.iter().any(|kind| !kinds_before.contains(kind)) {
         match theme::regenerate(&project) {
             Regenerated::Done => {
                 tokens = "regenerated";
@@ -688,8 +705,11 @@ pub fn add(args: &AddArgs, out: Out) -> Result<Value> {
         }
     }
 
-    print_next_steps(out, None, &added);
+    if !args.dry_run {
+        print_next_steps(out, None, &added);
+    }
     Ok(json!({
+        "dryRun": args.dry_run,
         "added": added_ids,
         "targets": ids,
         "newFiles": new_files,
@@ -758,16 +778,38 @@ pub fn theme(args: &ThemeArgs, out: Out) -> Result<Value> {
     };
 
     if theme::is_applied(&palette, chosen) {
-        update_record()?;
+        if !args.dry_run {
+            update_record()?;
+        }
         say!(
             out,
             "{PALETTE_PATH} already holds the {} theme.",
             chosen.name
         );
-        return Ok(json!({ "theme": chosen.name, "changed": false, "tokens": "current" }));
+        return Ok(json!({
+            "dryRun": args.dry_run,
+            "theme": chosen.name,
+            "changed": false,
+            "tokens": "current",
+        }));
     }
 
-    fs::write(&palette_file, theme::apply(&palette, chosen)?).context(palette_file.display())?;
+    let themed = theme::apply(&palette, chosen)?;
+    if args.dry_run {
+        say!(
+            out,
+            "Would apply the {} theme: {PALETTE_PATH} and the generated token files would change.",
+            style.bold(&chosen.name)
+        );
+        say!(out, "{}", style.dim("Dry run: nothing was written."));
+        return Ok(json!({
+            "dryRun": true,
+            "theme": chosen.name,
+            "changed": true,
+            "tokens": "would-regenerate",
+        }));
+    }
+    fs::write(&palette_file, themed).context(palette_file.display())?;
     let tokens = match theme::regenerate(&project) {
         Regenerated::Done => {
             say!(
@@ -792,5 +834,10 @@ pub fn theme(args: &ThemeArgs, out: Out) -> Result<Value> {
         }
     };
     update_record()?;
-    Ok(json!({ "theme": chosen.name, "changed": true, "tokens": tokens }))
+    Ok(json!({
+        "dryRun": false,
+        "theme": chosen.name,
+        "changed": true,
+        "tokens": tokens,
+    }))
 }

@@ -787,6 +787,7 @@ fn add(directory: &Path, targets: &[&str]) {
     let args = AddArgs {
         targets: targets.iter().map(|target| (*target).to_owned()).collect(),
         project: Some(directory.to_path_buf()),
+        dry_run: false,
     };
     commands::add(&args, Out::plain()).expect("add succeeds");
 }
@@ -917,6 +918,7 @@ fn add_needs_a_project_and_a_known_target() {
     let args = AddArgs {
         targets: vec![WEB.to_owned()],
         project: Some(temp.path().to_path_buf()),
+        dry_run: false,
     };
     let error = commands::add(&args, Out::plain()).expect_err("not a project");
     assert!(error.to_string().contains(RECORD), "{error}");
@@ -925,6 +927,7 @@ fn add_needs_a_project_and_a_known_target() {
     let args = AddArgs {
         targets: vec!["web-vue".to_owned()],
         project: Some(directory),
+        dry_run: false,
     };
     assert!(commands::add(&args, Out::plain()).is_err());
 }
@@ -985,6 +988,7 @@ fn the_theme_command_switches_a_project_and_back() {
         let args = ThemeArgs {
             name: Some(name.to_owned()),
             project: Some(directory.clone()),
+            dry_run: false,
         };
         commands::theme(&args, Out::plain())
     };
@@ -1027,6 +1031,7 @@ fn the_theme_command_finds_a_theme_the_project_added() {
     let args = ThemeArgs {
         name: Some("lagoon".to_owned()),
         project: Some(directory.clone()),
+        dry_run: false,
     };
     commands::theme(&args, Out::plain()).expect("applies");
     let tree = read_tree(&directory);
@@ -1044,6 +1049,7 @@ fn the_theme_command_needs_a_palette() {
     let args = ThemeArgs {
         name: Some("ocean".to_owned()),
         project: Some(temp.path().to_path_buf()),
+        dry_run: false,
     };
     let error = commands::theme(&args, Out::plain()).expect_err("not a project");
     assert!(error.to_string().contains(PALETTE_PATH), "{error}");
@@ -1075,6 +1081,7 @@ fn applying_a_theme_matches_the_typescript_tool() {
         let args = ThemeArgs {
             name: Some(name.to_owned()),
             project: Some(with_xds.clone()),
+            dry_run: false,
         };
         commands::theme(&args, Out::plain()).expect("applies");
 

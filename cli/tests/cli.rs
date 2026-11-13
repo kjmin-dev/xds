@@ -46,6 +46,7 @@ fn every_command_has_help() {
         vec!["components", "--help"],
         vec!["contrast", "--help"],
         vec!["doctor", "--help"],
+        vec!["mcp", "--help"],
     ] {
         let (output, stdout, _) = run(xds().args(&arguments));
         assert!(output.status.success(), "{arguments:?}");
@@ -437,4 +438,168 @@ fn json_errors_go_to_stderr_with_the_documented_exit_codes() {
     let result = parse(&stdout);
     assert_eq!(result["results"][0]["mode"], "light");
     assert_eq!(result["results"][1]["mode"], "dark");
+}
+
+/// Talks to `xds mcp` the way a client does: one JSON-RPC message per line on stdin, and the
+/// answers read back from stdout.
+#[test]
+fn mcp_serves_the_tools_over_stdio() {
+    use std::io::{BufRead, BufReader, Write};
+
+    let temp = TempDir::new().expect("a temporary directory");
+    let mut child = xds()
+        .arg("mcp")
+        .current_dir(temp.path())
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .expect("xds mcp starts");
+    let mut stdin = child.stdin.take().expect("stdin");
+    let mut stdout = BufReader::new(child.stdout.take().expect("stdout"));
+    let mut send = |message: serde_json::Value| {
+        writeln!(stdin, "{message}").expect("xds mcp reads");
+        stdin.flush().expect("flushes");
+    };
+    let mut answer = |id: u64| -> serde_json::Value {
+        loop {
+            let mut line = String::new();
+            assert!(
+                stdout.read_line(&mut line).expect("a line") > 0,
+                "xds mcp hung up"
+            );
+            let message = parse(&line);
+            if message["id"] == id {
+                return message;
+            }
+        }
+    };
+    let call = |id: u64, name: &str, arguments: serde_json::Value| {
+        serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": id,
+            "method": "tools/call",
+            "params": { "name": name, "arguments": arguments },
+        })
+    };
+    // The text of a tool result, parsed: every tool answers with the command's JSON.
+    let result = |message: &serde_json::Value| -> serde_json::Value {
+        assert_eq!(message["result"]["isError"], false, "{message}");
+        parse(
+            message["result"]["content"][0]["text"]
+                .as_str()
+                .expect("text"),
+        )
+    };
+
+    send(serde_json::json!({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": "2025-11-25",
+            "capabilities": {},
+            "clientInfo": { "name": "test", "version": "0" },
+        },
+    }));
+    let hello = answer(1);
+    assert_eq!(hello["result"]["serverInfo"]["name"], "xds", "{hello}");
+    send(serde_json::json!({ "jsonrpc": "2.0", "method": "notifications/initialized" }));
+
+    send(serde_json::json!({ "jsonrpc": "2.0", "id": 2, "method": "tools/list" }));
+    let listed = answer(2);
+    let mut names: Vec<&str> = listed["result"]["tools"]
+        .as_array()
+        .expect("tools")
+        .iter()
+        .filter_map(|tool| tool["name"].as_str())
+        .collect();
+    names.sort_unstable();
+    assert_eq!(
+        names,
+        [
+            "add",
+            "component",
+            "components",
+            "contrast",
+            "create",
+            "doctor",
+            "list",
+            "theme",
+            "tokens"
+        ]
+    );
+
+    send(call(
+        3,
+        "tokens",
+        serde_json::json!({ "query": "button.primary.text" }),
+    ));
+    let tokens = result(&answer(3));
+    assert_eq!(tokens["source"], "template");
+    assert_eq!(tokens["tokens"][0]["values"]["light"], "#ffffff");
+
+    send(call(
+        4,
+        "component",
+        serde_json::json!({ "name": "Switch", "client": "web-react", "code": true }),
+    ));
+    let component = result(&answer(4));
+    assert!(
+        component["component"]["clients"]["web-react"]["code"]
+            .as_str()
+            .expect("code")
+            .contains("role=\"switch\"")
+    );
+
+    // A tool that writes does nothing until it is told to.
+    let directory = temp.path().join("project");
+    let arguments = |write: bool| {
+        serde_json::json!({
+            "directory": directory,
+            "name": "orbit",
+            "targets": ["kotlin-compose"],
+            "write": write,
+        })
+    };
+    send(call(5, "create", arguments(false)));
+    assert_eq!(result(&answer(5))["dryRun"], true);
+    assert!(is_empty(&directory));
+    send(call(6, "create", arguments(true)));
+    assert_eq!(result(&answer(6))["dryRun"], false);
+    assert!(directory.join(".xds.json").is_file());
+
+    send(call(
+        7,
+        "theme",
+        serde_json::json!({ "name": "ocean", "project": directory }),
+    ));
+    let themed = result(&answer(7));
+    assert_eq!(themed["dryRun"], true);
+    assert_eq!(themed["changed"], true);
+    send(call(
+        8,
+        "add",
+        serde_json::json!({ "targets": ["web-react"], "project": directory }),
+    ));
+    let added = result(&answer(8));
+    assert_eq!(added["dryRun"], true);
+    assert!(!directory.join("apps/web").exists());
+    let record = std::fs::read_to_string(directory.join(".xds.json")).expect("a record");
+    assert!(
+        record.contains("\"indigo\"") && !record.contains("web-react"),
+        "{record}"
+    );
+
+    // A mistake comes back as a tool error, not as a dead server.
+    send(call(
+        9,
+        "theme",
+        serde_json::json!({ "name": "nope", "project": directory }),
+    ));
+    let failed = answer(9);
+    assert_eq!(failed["result"]["isError"], true, "{failed}");
+
+    drop(stdin);
+    assert!(child.wait().expect("xds mcp exits").success());
 }

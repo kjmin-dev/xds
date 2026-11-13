@@ -162,6 +162,19 @@ description = "Build the documentation site, which fails on a page whose source 
 depends = ["install"]
 run = "pnpm --filter @acme/docs build"
 
+# The deploy tasks upload a dist directory that is already built, and deliberately depend on
+# nothing: the workflows build in one job and deploy in another, so that the job holding the
+# Cloudflare token runs Wrangler from the lockfile and no other code. Locally, build first, and
+# Wrangler uses your `wrangler login`.
+
+[tasks."deploy:docs"]
+description = "Deploy apps/docs/dist to Cloudflare Workers; build it first with mise run check:docs"
+run = "pnpm --filter @acme/deploy exec wrangler deploy --cwd ../../apps/docs"
+
+[tasks."deploy:preview"]
+description = "Deploy apps/web/dist to Cloudflare Workers; build it first with mise run //web:build"
+run = "pnpm --filter @acme/deploy exec wrangler deploy --cwd ../../apps/web"
+
 [tasks."build:cli"]
 description = "Build the xds binary the way a release does, into target/dist/xds"
 run = "cargo build --package xds --profile dist"

@@ -1,0 +1,89 @@
+name: Preview
+
+# Deploys the web app in apps/web to Cloudflare Workers, as static assets, for its design preview
+# at /design: the documentation site links each component page to its section there.
+#
+# It does nothing until it is set up (see the "Hosting this site" page):
+#   - environment "cloudflare" with the secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID,
+#     limited to the main branch; the Docs workflow uses the same one
+#   - variable PREVIEW_DEPLOY=true to deploy on every push to main; without it, only a manual run
+#     deploys
+#
+# The documentation links to the preview once the variable PREVIEW_SITE holds its address, and the
+# preview links back to the documentation at the address in DOCS_SITE.
+#
+# The jobs are split, and the actions pinned, for the reasons given in docs.yml.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - apps/web/**
+      - packages/ui/**
+      - packages/tokens/**
+      - design/**
+      - .github/workflows/preview.yml
+
+concurrency:
+  group: preview-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    if: github.event_name == 'workflow_dispatch' || vars.PREVIEW_DEPLOY == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
+      - run: mise run //web:build
+        env:
+          VITE_DOCS_SITE: ${{ vars.DOCS_SITE }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: preview-site
+          path: apps/web/dist
+          if-no-files-found: error
+          retention-days: 1
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    # The secrets are the environment's, not the repository's: only a run on main gets them.
+    environment: cloudflare
+    env:
+      # Only Node and pnpm are installed here. Without this, `mise exec` and `mise run` would
+      # first install every other tool in mise.toml.
+      MISE_AUTO_INSTALL: "false"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
+        with:
+          install_args: node pnpm
+          # A cache is written by whichever job saved it first, and the build job runs code
+          # this job must not trust. The two tools download in seconds.
+          cache: false
+      - name: Install Wrangler from the lockfile
+        run: mise exec -- pnpm install --frozen-lockfile --ignore-scripts --filter @acme/deploy
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: preview-site
+          path: apps/web/dist
+      - name: Deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::The cloudflare environment needs the secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID. See the Hosting this site page."
+            exit 1
+          fi
+          mise run deploy:preview

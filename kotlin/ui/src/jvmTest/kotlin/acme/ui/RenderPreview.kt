@@ -1,0 +1,76 @@
+// Draws the design preview off screen and writes it as PNG files: `./gradlew :ui:renderPreview`.
+// It lives with the tests because it is a way of checking the components, not part of them.
+
+package acme.ui
+
+import acme.tokens.Mode
+import acme.tokens.PointerSizes
+import acme.tokens.Sizes
+import acme.tokens.TouchSizes
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ImageComposeScene
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.Density
+import java.io.File
+import org.jetbrains.skia.EncodedImageFormat
+
+// Two pixels per dp, like most phones and laptops, so the images are sharp when zoomed.
+private const val Scale = 2f
+
+fun main(args: Array<String>) {
+    val directory = File(args.firstOrNull() ?: "build/preview").apply { mkdirs() }
+    fun page(name: String, width: Int, mode: Mode, sizes: Sizes) {
+        val file = File(directory, name)
+        draw(file, width, height = null) {
+            AcmeTheme(mode, sizes) { DesignPreviewScreen(onBack = {}, scrolls = false, sheetOpen = false) }
+        }
+        println(file)
+    }
+    page("preview-touch-light.png", 390, Mode.Light, TouchSizes)
+    page("preview-touch-dark.png", 390, Mode.Dark, TouchSizes)
+    page("preview-pointer-light.png", 900, Mode.Light, PointerSizes)
+
+    // The sheet covers a window, so these are the size of a phone screen rather than of the page.
+    for (mode in Mode.entries) {
+        val file = File(directory, "sheet-touch-${mode.name.lowercase()}.png")
+        draw(file, width = 390, height = 844) {
+            AcmeTheme(mode, TouchSizes) { DesignPreviewScreen(onBack = {}, scrolls = true, sheetOpen = true) }
+        }
+        println(file)
+    }
+}
+
+/** Draws [content] at [width] dp. Without a [height] the image is as tall as the content. */
+private fun draw(file: File, width: Int, height: Int?, content: @Composable () -> Unit) {
+    val pixels = (width * Scale).toInt()
+    val tall = height?.let { (it * Scale).toInt() } ?: measureHeight(pixels, content)
+    val scene = ImageComposeScene(pixels, tall, Density(Scale), content = content)
+    try {
+        // Half a second of frames, so what animates on appearing has settled: the sheet slides in.
+        var image = scene.render()
+        for (frame in 1..30) image = scene.render(nanoTime = frame * 16_000_000L)
+        file.writeBytes(image.encodeToData(EncodedImageFormat.PNG)!!.bytes)
+    } finally {
+        scene.close()
+    }
+}
+
+/** The height in pixels that [content] takes when nothing limits it. */
+private fun measureHeight(pixels: Int, content: @Composable () -> Unit): Int {
+    var measured = 0
+    val scene = ImageComposeScene(pixels, 1, Density(Scale)) {
+        Box(Modifier.wrapContentHeight(Alignment.Top, unbounded = true).onSizeChanged { measured = it.height }) {
+            content()
+        }
+    }
+    try {
+        scene.render()
+    } finally {
+        scene.close()
+    }
+    return measured
+}

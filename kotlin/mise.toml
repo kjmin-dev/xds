@@ -1,0 +1,27 @@
+# Tasks for the Kotlin Multiplatform client. Each one runs the Gradle wrapper in this directory,
+# which needs a JDK (17 or later) and, for Android, the Android SDK at $ANDROID_HOME.
+
+[tasks.desktop]
+description = "Run the desktop app (add --args=\"--light\" or --args=\"--dark\")"
+run = "./gradlew :desktopApp:run"
+
+[tasks.design]
+description = "Open the design preview in the desktop app: every token and Compose component"
+run = './gradlew :desktopApp:run --args="--design"'
+
+[tasks.android]
+description = "Install the Android app on a connected device or a running emulator"
+run = "./gradlew :androidApp:installDebug"
+
+[tasks.render]
+description = "Draw the design preview to PNG files in build/preview, without starting an app"
+run = "./gradlew :ui:renderPreview"
+
+[tasks.check]
+description = "Test the components, compile the desktop app and build the Android app (any OS)"
+run = "./gradlew :ui:jvmTest :ui:testAndroidHostTest :desktopApp:compileKotlin :androidApp:assembleDebug"
+
+[tasks."check:ios"]
+description = "Build the iOS app for the simulator (macOS with Xcode)"
+# Xcode builds the Shared framework itself, by calling the Gradle wrapper from a build phase.
+run = "xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug -sdk iphonesimulator -arch arm64 -derivedDataPath build/ios CODE_SIGNING_ALLOWED=NO build"

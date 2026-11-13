@@ -1,0 +1,18 @@
+# Gradle and Kotlin
+.gradle/
+.kotlin/
+build/
+local.properties
+*.iml
+
+# Android
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Xcode
+xcuserdata/
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/

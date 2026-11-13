@@ -2,24 +2,33 @@
 // screen links here; the web app has the same page at `/design`, and the desktop app opens it
 // with `acme --design`.
 //
-// `/design?from=3` starts at the third section, for taking screenshots from a script, which
-// cannot scroll.
+// `/design?from=3` starts at the third section and `/design?sheet=1` opens the bottom sheet,
+// for taking screenshots from a script, which can neither scroll nor tap.
 
 import { radius, size, space, colors as tokenColors, typography } from "@acme/tokens";
 import {
+  Avatar,
   Badge,
   type BadgeTone,
   Banner,
   type BannerTone,
+  BottomSheet,
   Button,
   type ButtonVariant,
   Card,
+  Checkbox,
   type ControlSize,
   Divider,
+  ListRow,
+  ProgressBar,
+  SegmentedControl,
   Spinner,
+  Switch,
+  TabBar,
   Text,
   TextField,
   type TextVariant,
+  TopBar,
   useColors,
 } from "@acme/ui-native";
 import { Stack, useLocalSearchParams } from "expo-router";
@@ -56,7 +65,41 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 const kebab = (name: string) => name.replace(/[A-Z0-9]+/g, (match) => `-${match.toLowerCase()}`);
 
 /** Semantic colors by group. Component colors are shown by the components that use them. */
-const COMPONENT_COLORS = /^(button|field|badge|banner)/;
+const COMPONENT_COLORS =
+  /^(button|field|badge|banner|switch|checkbox|segmented|avatar|progress|listRow|topBar|tabBar|sheet)/;
+
+const VIEWS = [
+  { value: "day", label: "Day" },
+  { value: "week", label: "Week" },
+  { value: "month", label: "Month" },
+] as const;
+
+/** Tab icons are plain shapes here. An app brings its own icon set. */
+const TABS = [
+  {
+    key: "home",
+    label: "Home",
+    icon: (color: string) => (
+      <View style={{ width: 18, height: 18, borderRadius: 4, backgroundColor: color }} />
+    ),
+  },
+  {
+    key: "search",
+    label: "Search",
+    icon: (color: string) => (
+      <View
+        style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2.5, borderColor: color }}
+      />
+    ),
+  },
+  {
+    key: "profile",
+    label: "Profile",
+    icon: (color: string) => (
+      <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: color }} />
+    ),
+  },
+] as const;
 const COLOR_NAMES = (Object.keys(tokenColors.light) as (keyof typeof tokenColors.light)[]).filter(
   (name) => !COMPONENT_COLORS.test(name),
 );
@@ -64,7 +107,13 @@ const COLOR_NAMES = (Object.keys(tokenColors.light) as (keyof typeof tokenColors
 export default function Design() {
   const colors = useColors();
   const [value, setValue] = useState("");
-  const from = Number(useLocalSearchParams<{ from?: string }>().from ?? 1);
+  const [notifications, setNotifications] = useState(true);
+  const [agreed, setAgreed] = useState(true);
+  const [view, setView] = useState<(typeof VIEWS)[number]["value"]>("week");
+  const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("home");
+  const params = useLocalSearchParams<{ from?: string; sheet?: string }>();
+  const from = Number(params.from ?? 1);
+  const [sheet, setSheet] = useState(params.sheet === "1");
 
   const sections = [
     <Section key="colors" title="Colors">
@@ -156,6 +205,32 @@ export default function Design() {
       <TextField label="Organization" value="Acme Inc." onChange={() => {}} disabled />
     </Section>,
 
+    <Section key="selection" title="Selection">
+      <View style={styles.row}>
+        <Switch checked={notifications} onChange={setNotifications} label="Notifications" />
+        <Switch checked={false} onChange={() => {}} label="Off" />
+        <Switch checked onChange={() => {}} label="Locked" disabled />
+      </View>
+      <View style={styles.row}>
+        <Checkbox checked={agreed} onChange={setAgreed} label="Remember me" />
+        <Checkbox checked={false} onChange={() => {}} label="Unchecked" />
+        <Checkbox checked onChange={() => {}} label="Locked" disabled />
+      </View>
+      <SegmentedControl
+        options={VIEWS}
+        value={view}
+        onChange={setView}
+        accessibilityLabel="Calendar view"
+      />
+      <SegmentedControl
+        options={VIEWS}
+        value={view}
+        onChange={setView}
+        accessibilityLabel="Calendar view"
+        fullWidth
+      />
+    </Section>,
+
     <Section key="badges" title="Badges">
       <View style={styles.row}>
         {BADGE_TONES.map((tone) => (
@@ -188,8 +263,66 @@ export default function Design() {
         <View style={styles.row}>
           <Spinner size="sm" />
           <Spinner label="Loading" />
+          <Avatar name="Ada Lovelace" size="sm" />
+          <Avatar name="Ada Lovelace" />
+          <Avatar name="Grace Hopper" size="lg" />
         </View>
+        <ProgressBar value={0.6} label="Upload" />
       </Card>
+    </Section>,
+
+    <Section key="list" title="List">
+      <Card flush>
+        <ListRow
+          leading={<Avatar name="Ada Lovelace" />}
+          title="Ada Lovelace"
+          description="ada@example.com"
+          trailing={<Badge tone="accent" label="Owner" />}
+        />
+        <Divider />
+        <ListRow
+          title="Notifications"
+          description="Mentions and replies"
+          trailing={
+            <Switch
+              checked={notifications}
+              onChange={setNotifications}
+              accessibilityLabel="Notifications"
+            />
+          }
+        />
+        <Divider />
+        <ListRow
+          title="Language"
+          trailing={<Text tone="secondary">English</Text>}
+          chevron
+          onPress={() => {}}
+        />
+        <Divider />
+        <ListRow
+          title="Storage"
+          description="Unavailable offline"
+          chevron
+          onPress={() => {}}
+          disabled
+        />
+      </Card>
+    </Section>,
+
+    <Section key="navigation" title="Navigation">
+      <View style={[styles.frame, { borderColor: colors.borderDefault }]}>
+        <TopBar
+          title="Settings"
+          onBack={() => {}}
+          trailing={<Button variant="ghost" size="sm" label="Edit" />}
+        />
+        <View style={styles.frameBody}>
+          <Button label="Open a bottom sheet" onPress={() => setSheet(true)} />
+        </View>
+        <View style={styles.frameBar}>
+          <TabBar items={TABS} value={tab} onChange={setTab} />
+        </View>
+      </View>
     </Section>,
   ];
 
@@ -210,6 +343,11 @@ export default function Design() {
         }}
       />
       <ScrollView contentContainerStyle={styles.page}>{sections.slice(from - 1)}</ScrollView>
+      <BottomSheet open={sheet} onClose={() => setSheet(false)} title="Share report">
+        <Text tone="secondary">A sheet holds a short task and leaves the screen behind it.</Text>
+        <Button variant="primary" label="Copy link" fullWidth onPress={() => setSheet(false)} />
+        <Button label="Cancel" fullWidth onPress={() => setSheet(false)} />
+      </BottomSheet>
     </SafeAreaView>
   );
 }
@@ -251,6 +389,21 @@ const styles = StyleSheet.create({
   sample: {
     alignItems: "center",
     gap: space[1],
+  },
+  // A small stand-in for a screen, to show the bars where they belong.
+  frame: {
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    overflow: "hidden",
+  },
+  // The tab bar floats: it keeps a margin from the edges of the screen.
+  frameBar: {
+    paddingHorizontal: space[4],
+    paddingBottom: space[4],
+  },
+  frameBody: {
+    alignItems: "center",
+    padding: space[6],
   },
   radius: {
     width: 48,

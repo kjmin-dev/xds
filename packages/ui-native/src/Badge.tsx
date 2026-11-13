@@ -1,4 +1,4 @@
-import { radius, space } from "@acme/tokens";
+import { radius } from "@acme/tokens";
 import { StyleSheet, View } from "react-native";
 import { Text } from "./Text.tsx";
 import { type Colors, useColors } from "./theme.ts";
@@ -51,8 +51,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
     minHeight: 24,
-    paddingHorizontal: space[2],
-    borderRadius: radius.sm,
+    paddingHorizontal: 10,
+    borderRadius: radius.full,
   },
   dot: {
     width: 6,

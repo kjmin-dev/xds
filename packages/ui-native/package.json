@@ -6,19 +6,22 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"src/**/*.test.ts\""
   },
   "dependencies": {
     "@acme/tokens": "workspace:*"
   },
   "peerDependencies": {
     "react": "catalog:",
-    "react-native": "0.88.1"
+    "react-native": "0.88.1",
+    "react-native-safe-area-context": "~5.11.1"
   },
   "devDependencies": {
     "@types/react": "catalog:",
     "react": "catalog:",
     "react-native": "0.88.1",
+    "react-native-safe-area-context": "~5.11.1",
     "typescript": "catalog:"
   }
 }

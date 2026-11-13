@@ -1,0 +1,91 @@
+import { border, radius, space, typography } from "@acme/tokens";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { CONTROL_HEIGHT, useColors } from "./theme.ts";
+
+const INSET = 2;
+
+export type SegmentedControlProps<Value extends string> = {
+  options: readonly { value: Value; label: string }[];
+  value: Value;
+  onChange: (value: Value) => void;
+  /** Says what is being chosen, for a screen reader. */
+  accessibilityLabel: string;
+  /** Stretches to the width of its container. */
+  fullWidth?: boolean;
+};
+
+/**
+ * A choice between a few views or modes, all visible at once. The selected segment is outlined
+ * as well as filled, so the choice does not depend on telling two greys apart.
+ */
+export function SegmentedControl<Value extends string>({
+  options,
+  value,
+  onChange,
+  accessibilityLabel,
+  fullWidth = false,
+}: SegmentedControlProps<Value>) {
+  const colors = useColors();
+  return (
+    <View
+      accessibilityRole="tablist"
+      accessibilityLabel={accessibilityLabel}
+      style={[
+        styles.track,
+        { backgroundColor: colors.segmentedTrack },
+        fullWidth ? styles.fullWidth : styles.hug,
+      ]}
+    >
+      {options.map((option) => {
+        const selected = option.value === value;
+        return (
+          <Pressable
+            key={option.value}
+            accessibilityRole="tab"
+            accessibilityState={{ selected }}
+            onPress={() => onChange(option.value)}
+            style={[
+              styles.segment,
+              fullWidth && styles.grow,
+              selected && {
+                backgroundColor: colors.segmentedSelectedBackground,
+                borderColor: colors.segmentedSelectedBorder,
+              },
+            ]}
+          >
+            <Text
+              numberOfLines={1}
+              style={[
+                typography.label,
+                { color: selected ? colors.segmentedSelectedText : colors.segmentedText },
+              ]}
+            >
+              {option.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  track: {
+    flexDirection: "row",
+    height: CONTROL_HEIGHT.md,
+    padding: INSET,
+    borderRadius: radius.md,
+  },
+  hug: { alignSelf: "flex-start" },
+  fullWidth: { alignSelf: "stretch" },
+  segment: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: space[4],
+    // Present on every segment, and transparent until selected, so selecting does not move text.
+    borderWidth: border.width.thin,
+    borderColor: "transparent",
+    borderRadius: radius.md - INSET,
+  },
+  grow: { flex: 1 },
+});

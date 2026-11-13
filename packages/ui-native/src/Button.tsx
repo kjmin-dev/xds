@@ -1,4 +1,4 @@
-import { radius, space, typography } from "@acme/tokens";
+import { border, motion, shadow, space, typography } from "@acme/tokens";
 import {
   ActivityIndicator,
   Pressable,
@@ -101,8 +101,15 @@ export function Button({
           height,
           minWidth: Math.max(height, control.targetMin),
           paddingHorizontal: PADDING[size],
+          // A capsule where fingers are used. React Native wants half the height, not "full".
+          borderRadius: Math.min(control.buttonRadius, height / 2),
           backgroundColor: state.pressed ? pressed : fill,
+          // A press shrinks the button a little: feedback that does not depend on color.
+          transform: [{ scale: state.pressed ? motion.pressScale : 1 }],
         },
+        // Outlined, with a trace of shadow, so it sits quietly beside a primary button.
+        variant === "secondary" &&
+          !disabled && [styles.outlined, { borderColor: colors.buttonSecondaryBorder }],
         fullWidth && styles.fullWidth,
         style,
       ]}
@@ -124,7 +131,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: space[2],
-    borderRadius: radius.md,
+  },
+  outlined: {
+    borderWidth: border.width.thin,
+    // The token color carries the alpha.
+    shadowColor: shadow.subtle.color,
+    shadowOffset: { width: shadow.subtle.offsetX, height: shadow.subtle.offsetY },
+    shadowRadius: shadow.subtle.blur,
+    shadowOpacity: 1,
   },
   fullWidth: { alignSelf: "stretch" },
 });

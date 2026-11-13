@@ -12,8 +12,8 @@ use gpui_kit::component::{
 };
 use gpui_kit::prelude::FluentBuilder;
 use gpui_kit::{
-    App, Div, ElementId, Entity, IntoElement, ParentElement, Pixels, RenderOnce, SharedString,
-    Styled, Window, div, px,
+    App, BoxShadow, Div, ElementId, Entity, IntoElement, ParentElement, Pixels, RenderOnce,
+    SharedString, Styled, Window, div, point, px,
 };
 
 use crate::theme::{TypographyExt, color, palette};
@@ -58,6 +58,17 @@ impl ControlSize {
     }
 }
 
+/// Converts a token shadow into GPUI's.
+pub(crate) fn shadow(shadow: tokens::Shadow) -> Vec<BoxShadow> {
+    vec![BoxShadow {
+        color: color(shadow.color),
+        offset: point(px(shadow.offset_x), px(shadow.offset_y)),
+        blur_radius: px(shadow.blur),
+        spread_radius: px(shadow.spread),
+        inset: false,
+    }]
+}
+
 /// A GPUI Component button in one of Acme's variants and sizes. The result is a normal
 /// `Button`: add `.on_click`, `.disabled` or `.loading` to it.
 pub fn button(
@@ -65,11 +76,17 @@ pub fn button(
     label: impl Into<SharedString>,
     variant: ButtonVariant,
     size: ControlSize,
+    cx: &App,
 ) -> Button {
     let button = Button::new(id).label(label);
     let button = match variant {
         ButtonVariant::Primary => button.primary(),
-        ButtonVariant::Secondary => button.secondary(),
+        // Outlined, with a trace of shadow, so it sits quietly beside a primary button.
+        ButtonVariant::Secondary => button
+            .secondary()
+            .border_1()
+            .border_color(color(palette(cx).button_secondary_border))
+            .shadow(shadow(tokens::SHADOW_SUBTLE)),
         ButtonVariant::Ghost => button.ghost(),
         ButtonVariant::Danger => button.danger(),
     };
@@ -81,6 +98,7 @@ pub fn button(
         .h(size.height())
         .min_w(size.height())
         .px(size.padding())
+        .rounded(px(tokens::POINTER.button_radius))
         .typography(label)
 }
 
@@ -231,8 +249,8 @@ impl RenderOnce for Badge {
             .items_center()
             .gap(px(6.0))
             .h(px(24.0))
-            .px(px(tokens::SPACE_2))
-            .rounded(px(tokens::RADIUS_SM))
+            .px(px(10.0))
+            .rounded_full()
             .bg(color(background))
             .text_color(color(text))
             .typography(tokens::TYPOGRAPHY_FOOTNOTE)
@@ -335,8 +353,10 @@ impl RenderOnce for Banner {
 
 // ---------------------------------------------------------------- surfaces and text
 
-/// A surface that groups related content. The outline, not a shadow, sets it apart: shadows
-/// barely show in dark mode. Add the content as children.
+/// A surface that groups related content. A hairline outline and a trace of shadow lift it off
+/// the page; in dark mode, where shadows barely show, the lighter fill does that. Add the
+/// content as children. For a card that holds a list, take the padding and the gap off and
+/// clip it: `card(cx).p(px(0.0)).gap(px(0.0)).overflow_hidden()`.
 pub fn card(cx: &App) -> Div {
     let c = palette(cx);
     div()
@@ -348,6 +368,7 @@ pub fn card(cx: &App) -> Div {
         .border(px(tokens::BORDER_WIDTH_THIN))
         .border_color(color(c.border_default))
         .bg(color(c.background_surface))
+        .shadow(shadow(tokens::SHADOW_SUBTLE))
 }
 
 /// A line between groups of content.

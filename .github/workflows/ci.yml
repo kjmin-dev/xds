@@ -71,6 +71,14 @@ jobs:
   # @if template
   # The Rust job tests xds on Linux. It ships for macOS and Windows as well, where paths and the
   # terminal differ.
+  docs:
+    name: Documentation site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+      - run: mise run check:docs
+
   cli:
     name: CLI (${{ matrix.os }})
     runs-on: ${{ matrix.os }}

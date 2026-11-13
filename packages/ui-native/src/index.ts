@@ -9,6 +9,7 @@ export { BottomSheet, type BottomSheetProps } from "./BottomSheet.tsx";
 export { Button, type ButtonProps, type ButtonVariant } from "./Button.tsx";
 export { Card, Divider } from "./Card.tsx";
 export { Checkbox, type CheckboxProps } from "./Checkbox.tsx";
+export { Icon, type IconName, type IconProps, type IconSize } from "./Icon.tsx";
 export { ListRow, type ListRowProps } from "./ListRow.tsx";
 export { ProgressBar } from "./ProgressBar.tsx";
 export { SegmentedControl, type SegmentedControlProps } from "./SegmentedControl.tsx";

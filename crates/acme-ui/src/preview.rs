@@ -12,9 +12,9 @@ use gpui_kit::{
 };
 
 use crate::{
-    Avatar, AvatarSize, Badge, BadgeTone, Banner, BannerTone, ButtonVariant, ControlSize, ListRow,
-    ProgressBar, SegmentedControl, TextField, TypographyExt, button, card, checkbox, color,
-    divider, mode, palette, set_mode, switch, text,
+    Avatar, AvatarSize, Badge, BadgeTone, Banner, BannerTone, ButtonVariant, ControlSize, IconSize,
+    ListRow, ProgressBar, SegmentedControl, TextField, TypographyExt, button, card, checkbox,
+    color, divider, icon, mode, palette, set_mode, switch, text,
 };
 
 /// Component colors are shown by the components that use them, not as swatches.
@@ -327,6 +327,15 @@ impl Render for DesignPreview {
                         labelled("control", secondary)
                             .child(text(sizes, tokens::TYPOGRAPHY_DETAIL)),
                     ),
+            )
+            .child(
+                section("Icons").child(
+                    div()
+                        .flex()
+                        .flex_wrap()
+                        .gap(px(tokens::SPACE_4))
+                        .children(tokens::Icon::ALL.map(|name| icon(name, IconSize::Md))),
+                ),
             )
             .child(section("Buttons").children(buttons))
             .child(

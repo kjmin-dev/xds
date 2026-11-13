@@ -1,5 +1,6 @@
 // Turns the token model into one file per platform. Emitters are pure: model in, text out.
 
+import { ICON_GRID, ICON_STROKE, type Icon } from "./icons.ts";
 import {
   type ColorToken,
   INPUT_MODES,
@@ -268,6 +269,16 @@ export function emitTypeScript(model: Model): string {
       `export const size = ${JSON.stringify(sizes, null, 2)} as const;`,
     );
   }
+  if (model.icons?.length) {
+    const icons = Object.fromEntries(model.icons.map((icon) => [icon.name, icon.paths]));
+    lines.push(
+      "",
+      `/** Icons as SVG path data on a ${ICON_GRID} by ${ICON_GRID} grid, stroked ${ICON_STROKE} wide with round caps and joins. */`,
+      `export const icons = ${JSON.stringify(icons, null, 2)} as const;`,
+      "",
+      "export type IconName = keyof typeof icons;",
+    );
+  }
   lines.push("");
   return lines.join("\n");
 }
@@ -410,6 +421,18 @@ export function emitKotlin(model: Model, packageName: string): string {
       lines.push(")");
     }
   }
+  if (model.icons?.length) {
+    lines.push(
+      "",
+      `/** Icons as SVG path data on a ${ICON_GRID} by ${ICON_GRID} grid, stroked ${ICON_STROKE} wide with round caps and joins. */`,
+      "enum class IconName(val paths: List<String>) {",
+    );
+    for (const icon of model.icons) {
+      const paths = icon.paths.map((path) => JSON.stringify(path)).join(", ");
+      lines.push(`    ${pascal(icon.name)}(listOf(${paths})),`);
+    }
+    lines.push("}");
+  }
   lines.push("");
   return lines.join("\n");
 }
@@ -459,6 +482,15 @@ function rustConst(token: ValueToken): string {
  * Plain constants with no UI-framework types, so the crate stays dependency-free. The module is
  * declared with `#[rustfmt::skip]`, so the layout here does not have to match rustfmt's.
  */
+function iconSvg(icon: Icon): string {
+  const paths = icon.paths.map((path) => `<path d="${path}"/>`).join("");
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${ICON_GRID} ${ICON_GRID}" fill="none" ` +
+    `stroke="currentColor" stroke-width="${ICON_STROKE}" stroke-linecap="round" ` +
+    `stroke-linejoin="round">${paths}</svg>`
+  );
+}
+
 export function emitRust(model: Model): string {
   const field = (token: { path: string[] }) => token.path.join("_").replaceAll("-", "_");
   const lines = [
@@ -522,6 +554,37 @@ export function emitRust(model: Model): string {
       }
       lines.push("};");
     }
+  }
+  if (model.icons?.length) {
+    lines.push(
+      "",
+      "/// The icons of the design system. `name` is the icon's file name in design/icons.",
+      "#[derive(Clone, Copy, Debug, PartialEq, Eq)]",
+      "pub enum Icon {",
+      ...model.icons.map((icon) => `    ${pascal(icon.name)},`),
+      "}",
+      "",
+      "impl Icon {",
+      `    pub const ALL: [Icon; ${model.icons.length}] = [`,
+      ...model.icons.map((icon) => `        Icon::${pascal(icon.name)},`),
+      "    ];",
+      "",
+      "    pub const fn name(self) -> &'static str {",
+      "        match self {",
+      ...model.icons.map((icon) => `            Icon::${pascal(icon.name)} => "${icon.name}",`),
+      "        }",
+      "    }",
+      "",
+      "    /// The icon as an SVG document, stroked in `currentColor`.",
+      "    pub const fn svg(self) -> &'static str {",
+      "        match self {",
+      ...model.icons.map(
+        (icon) => `            Icon::${pascal(icon.name)} => r#"${iconSvg(icon)}"#,`,
+      ),
+      "        }",
+      "    }",
+      "}",
+    );
   }
   lines.push("");
   return lines.join("\n");

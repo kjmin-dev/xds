@@ -166,6 +166,20 @@ On the web, `@media (pointer: coarse)` switches between the pointer and touch sc
 
 Even when a control is visually smaller than `target-min`, its hit area expands to meet the minimum target size. On mobile, a small button renders at 40px tall while accepting touches across a 48px height.
 
+### Icons
+
+`design/icons` holds one SVG file per icon, drawn on a 24 by 24 grid with a 2px stroke and no fill. The 26 icons included with the template come from [Lucide](https://lucide.dev) (under the ISC license in `design/icons/LICENSE`). To add an icon, place its SVG file in that directory and run `mise run tokens`.
+
+The generator converts each shape to path data and writes it into the generated platform files, so no platform parses SVG at runtime and no icon font or asset bundle is needed:
+
+| Output | Contents |
+| --- | --- |
+| TypeScript | `icons`, a map from icon name to path data, and the `IconName` type. The web and React Native `Icon` components render these paths; React Native uses `react-native-svg` |
+| Kotlin | The `IconName` enum, where each entry carries its path data. The Compose `Icon` component strokes the paths on a canvas |
+| Rust | The `Icon` enum with `name()` and `svg()` methods. The `icon` function passes the SVG document to GPUI |
+
+The build rejects any file that is not on the 24 by 24 grid, does not use a kebab-case name, or contains a shape that cannot be converted to a path.
+
 ### Other tokens
 
 | Group | Values | Rule |
@@ -207,6 +221,7 @@ Every platform exposes the same component names, variants, sizes, and tones.
 | SegmentedControl | options, value, full width | The active segment is raised: a hairline border, a faint shadow, and a darker label set it apart from the track |
 | Avatar | name. size: sm, md, lg | Displays initials visually while exposing the full name to assistive technologies |
 | ProgressBar | value from 0 to 1, label | Used for operations with known progress; use a Spinner for indeterminate work |
+| Icon | name, size: sm, md, lg, label | Inherits the surrounding text color. Treated as decorative unless given a label. Arrows and chevrons can mirror in right-to-left layouts |
 | ListRow | title, description, leading, trailing, chevron, disabled | Interactive when given an action. Separate adjacent rows with a Divider |
 
 Three additional navigation components exist only on the touch-oriented platforms (React Native and Compose):
@@ -217,7 +232,7 @@ Three additional navigation components exist only on the touch-oriented platform
 | TabBar | items (label and icon), value | Holds three to five top-level destinations. Floats above the bottom edge as a capsule, with the active tab enclosed in its own pill so selection does not depend on color |
 | BottomSheet | open, title, content | Floats inset from the screen edges. Closes when tapping the scrim, dragging down, or pressing the back button |
 
-Icons are passed as slots. Because the template does not include an icon set, the design previews render simple geometric shapes where an app would pass icons.
+Icons are passed as slots: a TabBar item or a ListRow accepts any element, and `Icon` is the component the design system provides.
 
 Interactive states:
 
@@ -310,4 +325,4 @@ Two intentional departures from those systems:
 | Mobile | The design preview has been checked on the iOS simulator in both light and dark modes, but Android and physical devices have not been checked | |
 | Desktop accessibility | Has not been tested with a screen reader | |
 | Korean line breaking on Android | React Native does not expose a word-boundary line-break option on Android | |
-| Icons and localization | Neither an icon set nor a localization framework is included | |
+| Localization | No localization framework is included | |

@@ -4,6 +4,7 @@
 
 package acme.ui
 
+import acme.tokens.IconName
 import acme.tokens.Border
 import acme.tokens.Colors
 import acme.tokens.DarkColors
@@ -140,6 +141,7 @@ internal fun DesignPreviewScreen(onBack: () -> Unit, scrolls: Boolean, sheetOpen
                 ColorsSection(colors)
                 TypographySection()
                 SizesSection(colors)
+                IconsSection()
                 ButtonsSection()
                 TextFieldsSection()
                 SelectionSection()
@@ -256,6 +258,15 @@ private fun SizesSection(colors: Colors) {
 
 private fun heights(sizes: Sizes): String =
     listOf(sizes.controlSm, sizes.controlMd, sizes.controlLg).joinToString("/") { it.value.toInt().toString() }
+
+@Composable
+private fun IconsSection() {
+    Section("Icons") {
+        Samples(gap = Space.s4) {
+            for (name in IconName.entries) Icon(name, label = name.name)
+        }
+    }
+}
 
 @Composable
 private fun ButtonsSection() {
@@ -422,9 +433,9 @@ private fun NavigationSection(colors: Colors, sheetOpen: Boolean) {
         Box(framed) {
             TabBar(
                 items = listOf(
-                    TabItem("home", "Home") { selected -> TabIcon(selected, DrawScope::home) },
-                    TabItem("search", "Search") { selected -> TabIcon(selected, DrawScope::search) },
-                    TabItem("profile", "Profile") { selected -> TabIcon(selected, DrawScope::person) },
+                    TabItem("home", "Home") { Icon(IconName.House, size = IconSize.Lg) },
+                    TabItem("search", "Search") { Icon(IconName.Search, size = IconSize.Lg) },
+                    TabItem("profile", "Profile") { Icon(IconName.User, size = IconSize.Lg) },
                 ),
                 selected = tab,
                 onSelect = { tab = it },
@@ -444,56 +455,3 @@ private fun NavigationSection(colors: Colors, sheetOpen: Boolean) {
     }
 }
 
-/**
- * A sample tab icon: a simple shape in the tab's color, filled when its tab is selected. An app
- * brings its own icons; the design system includes none.
- */
-@Composable
-private fun TabIcon(selected: Boolean, shape: DrawScope.(Color, DrawStyle) -> Unit) {
-    val color = LocalContentColor.current
-    Canvas(Modifier.size(24.dp)) {
-        shape(color, if (selected) Fill else Stroke(2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
-    }
-}
-
-// The shapes are on a 24-unit grid, like the square they are drawn in.
-
-private fun DrawScope.home(color: Color, style: DrawStyle) {
-    val unit = size.minDimension / 24f
-    val house = Path().apply {
-        moveTo(4f * unit, 11f * unit)
-        lineTo(12f * unit, 4f * unit)
-        lineTo(20f * unit, 11f * unit)
-        lineTo(20f * unit, 20f * unit)
-        lineTo(4f * unit, 20f * unit)
-        close()
-    }
-    drawPath(house, color, style = style)
-}
-
-private fun DrawScope.search(color: Color, style: DrawStyle) {
-    val unit = size.minDimension / 24f
-    drawCircle(color, radius = 6f * unit, center = Offset(10.5f * unit, 10.5f * unit), style = style)
-    drawLine(
-        color,
-        Offset(15.5f * unit, 15.5f * unit),
-        Offset(20f * unit, 20f * unit),
-        strokeWidth = 2.dp.toPx(),
-        cap = StrokeCap.Round,
-    )
-}
-
-private fun DrawScope.person(color: Color, style: DrawStyle) {
-    val unit = size.minDimension / 24f
-    drawCircle(color, radius = 4f * unit, center = Offset(12f * unit, 8f * unit), style = style)
-    // The shoulders: the top half of an oval that runs off the bottom of the icon.
-    drawArc(
-        color,
-        startAngle = 180f,
-        sweepAngle = 180f,
-        useCenter = false,
-        topLeft = Offset(4.5f * unit, 14.5f * unit),
-        size = Size(15f * unit, 11f * unit),
-        style = style,
-    )
-}

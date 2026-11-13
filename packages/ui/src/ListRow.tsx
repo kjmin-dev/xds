@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Icon } from "./Icon.tsx";
 
 export type ListRowProps = {
   title: string;
@@ -41,20 +42,7 @@ export function ListRow({
       </span>
       {trailing}
       {chevron && (
-        <svg
-          viewBox="0 0 16 16"
-          fill="none"
-          aria-hidden="true"
-          className="size-acme-icon-sm shrink-0 text-acme-text-tertiary rtl:-scale-x-100"
-        >
-          <path
-            d="m6 3.5 4.5 4.5L6 12.5"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <Icon name="chevron-right" size="sm" className="text-acme-text-tertiary rtl:-scale-x-100" />
       )}
     </>
   );

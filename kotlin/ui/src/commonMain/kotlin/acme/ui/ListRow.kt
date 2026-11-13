@@ -1,5 +1,6 @@
 package acme.ui
 
+import acme.tokens.IconName
 import acme.tokens.Space
 import acme.tokens.Typography
 import androidx.compose.foundation.background
@@ -87,6 +88,6 @@ fun ListRow(
             if (description != null) Text(description, style = Typography.detail, tone = TextTone.Secondary)
         }
         trailing?.invoke()
-        if (chevron) Chevron(colors.textTertiary, pointsForward = true, modifier = Modifier.size(8.dp, 14.dp))
+        if (chevron) Icon(IconName.ChevronRight, size = IconSize.Sm, color = colors.textTertiary, directional = true)
     }
 }

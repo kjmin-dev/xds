@@ -3,8 +3,9 @@
 
 export const colors = {
   "light": {
-    "backgroundBase": "#ffffff",
-    "backgroundSurface": "#f5f5f7",
+    "scrim": "rgba(0, 0, 0, 0.5)",
+    "backgroundBase": "#f5f5f7",
+    "backgroundSurface": "#ffffff",
     "backgroundRaised": "#ffffff",
     "backgroundDisabled": "#ececf0",
     "textPrimary": "#18181c",
@@ -14,6 +15,7 @@ export const colors = {
     "textOnAccent": "#ffffff",
     "textOnDanger": "#ffffff",
     "borderDefault": "#e2e2e8",
+    "borderControl": "#c9c9d1",
     "borderStrong": "#84848f",
     "borderFocus": "#4f46e5",
     "accentDefault": "#4f46e5",
@@ -38,9 +40,10 @@ export const colors = {
     "buttonPrimaryBackgroundHover": "#4338ca",
     "buttonPrimaryBackgroundPressed": "#3730a3",
     "buttonPrimaryText": "#ffffff",
-    "buttonSecondaryBackground": "#ececf0",
-    "buttonSecondaryBackgroundHover": "#e2e2e8",
-    "buttonSecondaryBackgroundPressed": "#c9c9d1",
+    "buttonSecondaryBackground": "#ffffff",
+    "buttonSecondaryBackgroundHover": "#ececf0",
+    "buttonSecondaryBackgroundPressed": "#e2e2e8",
+    "buttonSecondaryBorder": "#c9c9d1",
     "buttonSecondaryText": "#18181c",
     "buttonGhostBackgroundHover": "#ececf0",
     "buttonGhostBackgroundPressed": "#e2e2e8",
@@ -75,9 +78,42 @@ export const colors = {
     "bannerDangerAccent": "#b42318",
     "bannerInfoBackground": "#eff8ff",
     "bannerInfoAccent": "#175cd3",
-    "bannerText": "#18181c"
+    "bannerText": "#18181c",
+    "switchTrack": "#84848f",
+    "switchTrackOn": "#4f46e5",
+    "switchThumb": "#ffffff",
+    "switchDisabledTrack": "#ececf0",
+    "switchDisabledThumb": "#a9a9b4",
+    "checkboxBorder": "#84848f",
+    "checkboxBackgroundChecked": "#4f46e5",
+    "checkboxMark": "#ffffff",
+    "checkboxDisabledBackground": "#ececf0",
+    "checkboxDisabledMark": "#a9a9b4",
+    "segmentedTrack": "#ececf0",
+    "segmentedText": "#5c5c66",
+    "segmentedSelectedBackground": "#ffffff",
+    "segmentedSelectedBorder": "#84848f",
+    "segmentedSelectedText": "#18181c",
+    "avatarBackground": "#eef2ff",
+    "avatarText": "#4f46e5",
+    "progressTrack": "#ececf0",
+    "progressFill": "#4f46e5",
+    "listRowBackgroundHover": "#ececf0",
+    "listRowBackgroundPressed": "#e2e2e8",
+    "topBarBackground": "#f5f5f7",
+    "topBarText": "#18181c",
+    "topBarAction": "#4f46e5",
+    "topBarActionBackground": "#ececf0",
+    "tabBarBackground": "#ffffff",
+    "tabBarBorder": "#e2e2e8",
+    "tabBarText": "#5c5c66",
+    "tabBarTextSelected": "#4f46e5",
+    "tabBarSelectedBackground": "#eef2ff",
+    "sheetBackground": "#ffffff",
+    "sheetHandle": "#84848f"
   },
   "dark": {
+    "scrim": "rgba(0, 0, 0, 0.5)",
     "backgroundBase": "#0e0e11",
     "backgroundSurface": "#18181c",
     "backgroundRaised": "#222228",
@@ -89,6 +125,7 @@ export const colors = {
     "textOnAccent": "#ffffff",
     "textOnDanger": "#ffffff",
     "borderDefault": "#2c2c33",
+    "borderControl": "#44444c",
     "borderStrong": "#84848f",
     "borderFocus": "#818cf8",
     "accentDefault": "#5b5ef0",
@@ -116,6 +153,7 @@ export const colors = {
     "buttonSecondaryBackground": "#2c2c33",
     "buttonSecondaryBackgroundHover": "#44444c",
     "buttonSecondaryBackgroundPressed": "#5c5c66",
+    "buttonSecondaryBorder": "#44444c",
     "buttonSecondaryText": "#f5f5f7",
     "buttonGhostBackgroundHover": "#2c2c33",
     "buttonGhostBackgroundPressed": "#44444c",
@@ -150,7 +188,39 @@ export const colors = {
     "bannerDangerAccent": "#f97066",
     "bannerInfoBackground": "#102a56",
     "bannerInfoAccent": "#53b1fd",
-    "bannerText": "#f5f5f7"
+    "bannerText": "#f5f5f7",
+    "switchTrack": "#84848f",
+    "switchTrackOn": "#5b5ef0",
+    "switchThumb": "#ffffff",
+    "switchDisabledTrack": "#2c2c33",
+    "switchDisabledThumb": "#5c5c66",
+    "checkboxBorder": "#84848f",
+    "checkboxBackgroundChecked": "#5b5ef0",
+    "checkboxMark": "#ffffff",
+    "checkboxDisabledBackground": "#2c2c33",
+    "checkboxDisabledMark": "#5c5c66",
+    "segmentedTrack": "#2c2c33",
+    "segmentedText": "#a9a9b4",
+    "segmentedSelectedBackground": "#222228",
+    "segmentedSelectedBorder": "#84848f",
+    "segmentedSelectedText": "#f5f5f7",
+    "avatarBackground": "#1e1b4b",
+    "avatarText": "#a5b4fc",
+    "progressTrack": "#2c2c33",
+    "progressFill": "#a5b4fc",
+    "listRowBackgroundHover": "#222228",
+    "listRowBackgroundPressed": "#2c2c33",
+    "topBarBackground": "#0e0e11",
+    "topBarText": "#f5f5f7",
+    "topBarAction": "#a5b4fc",
+    "topBarActionBackground": "#2c2c33",
+    "tabBarBackground": "#222228",
+    "tabBarBorder": "#2c2c33",
+    "tabBarText": "#a9a9b4",
+    "tabBarTextSelected": "#a5b4fc",
+    "tabBarSelectedBackground": "#1e1b4b",
+    "sheetBackground": "#222228",
+    "sheetHandle": "#84848f"
   }
 } as const;
 
@@ -168,6 +238,7 @@ export const radius = {
   "sm": 6,
   "md": 10,
   "lg": 16,
+  "xl": 24,
   "full": 9999
 } as const;
 
@@ -289,10 +360,18 @@ export const motion = {
       1,
       1
     ]
-  }
+  },
+  "pressScale": 0.97
 } as const;
 
 export const shadow = {
+  "subtle": {
+    "color": "rgba(0, 0, 0, 0.06)",
+    "offsetX": 0,
+    "offsetY": 1,
+    "blur": 2,
+    "spread": 0
+  },
   "raised": {
     "color": "rgba(0, 0, 0, 0.12)",
     "offsetX": 0,
@@ -315,12 +394,24 @@ export const size = {
     "controlSm": 28,
     "controlMd": 36,
     "controlLg": 44,
-    "targetMin": 24
+    "targetMin": 24,
+    "switchWidth": 36,
+    "switchHeight": 20,
+    "checkbox": 18,
+    "listRow": 40,
+    "bar": 48,
+    "buttonRadius": 10
   },
   "touch": {
     "controlSm": 40,
     "controlMd": 48,
     "controlLg": 56,
-    "targetMin": 48
+    "targetMin": 48,
+    "switchWidth": 52,
+    "switchHeight": 32,
+    "checkbox": 24,
+    "listRow": 56,
+    "bar": 56,
+    "buttonRadius": 9999
   }
 } as const;

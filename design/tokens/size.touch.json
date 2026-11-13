@@ -28,6 +28,48 @@
         "unit": "px"
       },
       "$description": "The smallest area that reacts to a press, whatever the control looks like."
+    },
+    "switch": {
+      "width": {
+        "$value": {
+          "value": 52,
+          "unit": "px"
+        }
+      },
+      "height": {
+        "$value": {
+          "value": 32,
+          "unit": "px"
+        }
+      }
+    },
+    "checkbox": {
+      "$value": {
+        "value": 24,
+        "unit": "px"
+      },
+      "$description": "The box, not the pressable area."
+    },
+    "list-row": {
+      "$value": {
+        "value": 56,
+        "unit": "px"
+      },
+      "$description": "The least height of a row in a list."
+    },
+    "bar": {
+      "$value": {
+        "value": 56,
+        "unit": "px"
+      },
+      "$description": "Top bars and tab bars."
+    },
+    "button-radius": {
+      "$value": {
+        "value": 9999,
+        "unit": "px"
+      },
+      "$description": "Buttons are capsules where fingers are used, as on iOS and Android."
     }
   }
 }

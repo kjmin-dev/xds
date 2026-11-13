@@ -7,7 +7,9 @@ use crate::{Color, CubicBezier, Shadow, Typography};
 /// Every color token, for one mode.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Colors {
-    /// Page background.
+    /// Dims the screen behind a sheet. The same in both modes.
+    pub scrim: Color,
+    /// Page background. Slightly off white, so a white surface on it reads as raised.
     pub background_base: Color,
     /// Cards and panels on top of the page.
     pub background_surface: Color,
@@ -28,6 +30,8 @@ pub struct Colors {
     pub text_on_danger: Color,
     /// Dividers and card outlines. Decorative, so low contrast is fine.
     pub border_default: Color,
+    /// Outline of a control that its label already identifies, such as a secondary button. Decorative, so it does not have to hold 3:1.
+    pub border_control: Color,
     /// Outline of a control that would be invisible without it, such as a text field: 3:1 against the background.
     pub border_strong: Color,
     /// Focus ring: 3:1 against the background.
@@ -59,9 +63,11 @@ pub struct Colors {
     pub button_primary_background_hover: Color,
     pub button_primary_background_pressed: Color,
     pub button_primary_text: Color,
+    /// A secondary button is outlined: a white fill with a border, so it sits quietly next to a primary one.
     pub button_secondary_background: Color,
     pub button_secondary_background_hover: Color,
     pub button_secondary_background_pressed: Color,
+    pub button_secondary_border: Color,
     pub button_secondary_text: Color,
     /// A ghost button has no fill until it is hovered.
     pub button_ghost_background_hover: Color,
@@ -99,12 +105,53 @@ pub struct Colors {
     pub banner_info_background: Color,
     pub banner_info_accent: Color,
     pub banner_text: Color,
+    /// Off. It holds 3:1 against the page, so the control is visible before it is on.
+    pub switch_track: Color,
+    pub switch_track_on: Color,
+    /// White in both modes: it sits on the accent fill when on.
+    pub switch_thumb: Color,
+    pub switch_disabled_track: Color,
+    pub switch_disabled_thumb: Color,
+    pub checkbox_border: Color,
+    pub checkbox_background_checked: Color,
+    pub checkbox_mark: Color,
+    pub checkbox_disabled_background: Color,
+    pub checkbox_disabled_mark: Color,
+    pub segmented_track: Color,
+    pub segmented_text: Color,
+    pub segmented_selected_background: Color,
+    /// The selected segment is outlined: its fill alone is too close to the track to tell which one is chosen.
+    pub segmented_selected_border: Color,
+    pub segmented_selected_text: Color,
+    pub avatar_background: Color,
+    pub avatar_text: Color,
+    pub progress_track: Color,
+    /// A mark on a neutral track, so it takes the accent text color, which holds 3:1 against the track in both modes.
+    pub progress_fill: Color,
+    pub list_row_background_hover: Color,
+    /// Secondary text still has to read on it.
+    pub list_row_background_pressed: Color,
+    /// The same as the page: the bar has no edge of its own.
+    pub top_bar_background: Color,
+    pub top_bar_text: Color,
+    pub top_bar_action: Color,
+    /// The round fill behind the back button.
+    pub top_bar_action_background: Color,
+    pub tab_bar_background: Color,
+    pub tab_bar_border: Color,
+    pub tab_bar_text: Color,
+    pub tab_bar_text_selected: Color,
+    /// The pill behind the selected tab. Its shape marks the selection, so color is not the only signal.
+    pub tab_bar_selected_background: Color,
+    pub sheet_background: Color,
+    pub sheet_handle: Color,
 }
 
 impl Colors {
     /// Every color with its token name, in token order. For screens that list the colors.
-    pub const fn entries(&self) -> [(&'static str, Color); 73] {
+    pub const fn entries(&self) -> [(&'static str, Color); 108] {
         [
+            ("scrim", self.scrim),
             ("background-base", self.background_base),
             ("background-surface", self.background_surface),
             ("background-raised", self.background_raised),
@@ -116,6 +163,7 @@ impl Colors {
             ("text-on-accent", self.text_on_accent),
             ("text-on-danger", self.text_on_danger),
             ("border-default", self.border_default),
+            ("border-control", self.border_control),
             ("border-strong", self.border_strong),
             ("border-focus", self.border_focus),
             ("accent-default", self.accent_default),
@@ -143,6 +191,7 @@ impl Colors {
             ("button-secondary-background", self.button_secondary_background),
             ("button-secondary-background-hover", self.button_secondary_background_hover),
             ("button-secondary-background-pressed", self.button_secondary_background_pressed),
+            ("button-secondary-border", self.button_secondary_border),
             ("button-secondary-text", self.button_secondary_text),
             ("button-ghost-background-hover", self.button_ghost_background_hover),
             ("button-ghost-background-pressed", self.button_ghost_background_pressed),
@@ -178,13 +227,46 @@ impl Colors {
             ("banner-info-background", self.banner_info_background),
             ("banner-info-accent", self.banner_info_accent),
             ("banner-text", self.banner_text),
+            ("switch-track", self.switch_track),
+            ("switch-track-on", self.switch_track_on),
+            ("switch-thumb", self.switch_thumb),
+            ("switch-disabled-track", self.switch_disabled_track),
+            ("switch-disabled-thumb", self.switch_disabled_thumb),
+            ("checkbox-border", self.checkbox_border),
+            ("checkbox-background-checked", self.checkbox_background_checked),
+            ("checkbox-mark", self.checkbox_mark),
+            ("checkbox-disabled-background", self.checkbox_disabled_background),
+            ("checkbox-disabled-mark", self.checkbox_disabled_mark),
+            ("segmented-track", self.segmented_track),
+            ("segmented-text", self.segmented_text),
+            ("segmented-selected-background", self.segmented_selected_background),
+            ("segmented-selected-border", self.segmented_selected_border),
+            ("segmented-selected-text", self.segmented_selected_text),
+            ("avatar-background", self.avatar_background),
+            ("avatar-text", self.avatar_text),
+            ("progress-track", self.progress_track),
+            ("progress-fill", self.progress_fill),
+            ("list-row-background-hover", self.list_row_background_hover),
+            ("list-row-background-pressed", self.list_row_background_pressed),
+            ("top-bar-background", self.top_bar_background),
+            ("top-bar-text", self.top_bar_text),
+            ("top-bar-action", self.top_bar_action),
+            ("top-bar-action-background", self.top_bar_action_background),
+            ("tab-bar-background", self.tab_bar_background),
+            ("tab-bar-border", self.tab_bar_border),
+            ("tab-bar-text", self.tab_bar_text),
+            ("tab-bar-text-selected", self.tab_bar_text_selected),
+            ("tab-bar-selected-background", self.tab_bar_selected_background),
+            ("sheet-background", self.sheet_background),
+            ("sheet-handle", self.sheet_handle),
         ]
     }
 }
 
 pub const LIGHT: Colors = Colors {
-    background_base: Color::rgba(255, 255, 255, 1.0),
-    background_surface: Color::rgba(245, 245, 247, 1.0),
+    scrim: Color::rgba(0, 0, 0, 0.5),
+    background_base: Color::rgba(245, 245, 247, 1.0),
+    background_surface: Color::rgba(255, 255, 255, 1.0),
     background_raised: Color::rgba(255, 255, 255, 1.0),
     background_disabled: Color::rgba(236, 236, 240, 1.0),
     text_primary: Color::rgba(24, 24, 28, 1.0),
@@ -194,6 +276,7 @@ pub const LIGHT: Colors = Colors {
     text_on_accent: Color::rgba(255, 255, 255, 1.0),
     text_on_danger: Color::rgba(255, 255, 255, 1.0),
     border_default: Color::rgba(226, 226, 232, 1.0),
+    border_control: Color::rgba(201, 201, 209, 1.0),
     border_strong: Color::rgba(132, 132, 143, 1.0),
     border_focus: Color::rgba(79, 70, 229, 1.0),
     accent_default: Color::rgba(79, 70, 229, 1.0),
@@ -218,9 +301,10 @@ pub const LIGHT: Colors = Colors {
     button_primary_background_hover: Color::rgba(67, 56, 202, 1.0),
     button_primary_background_pressed: Color::rgba(55, 48, 163, 1.0),
     button_primary_text: Color::rgba(255, 255, 255, 1.0),
-    button_secondary_background: Color::rgba(236, 236, 240, 1.0),
-    button_secondary_background_hover: Color::rgba(226, 226, 232, 1.0),
-    button_secondary_background_pressed: Color::rgba(201, 201, 209, 1.0),
+    button_secondary_background: Color::rgba(255, 255, 255, 1.0),
+    button_secondary_background_hover: Color::rgba(236, 236, 240, 1.0),
+    button_secondary_background_pressed: Color::rgba(226, 226, 232, 1.0),
+    button_secondary_border: Color::rgba(201, 201, 209, 1.0),
     button_secondary_text: Color::rgba(24, 24, 28, 1.0),
     button_ghost_background_hover: Color::rgba(236, 236, 240, 1.0),
     button_ghost_background_pressed: Color::rgba(226, 226, 232, 1.0),
@@ -256,9 +340,42 @@ pub const LIGHT: Colors = Colors {
     banner_info_background: Color::rgba(239, 248, 255, 1.0),
     banner_info_accent: Color::rgba(23, 92, 211, 1.0),
     banner_text: Color::rgba(24, 24, 28, 1.0),
+    switch_track: Color::rgba(132, 132, 143, 1.0),
+    switch_track_on: Color::rgba(79, 70, 229, 1.0),
+    switch_thumb: Color::rgba(255, 255, 255, 1.0),
+    switch_disabled_track: Color::rgba(236, 236, 240, 1.0),
+    switch_disabled_thumb: Color::rgba(169, 169, 180, 1.0),
+    checkbox_border: Color::rgba(132, 132, 143, 1.0),
+    checkbox_background_checked: Color::rgba(79, 70, 229, 1.0),
+    checkbox_mark: Color::rgba(255, 255, 255, 1.0),
+    checkbox_disabled_background: Color::rgba(236, 236, 240, 1.0),
+    checkbox_disabled_mark: Color::rgba(169, 169, 180, 1.0),
+    segmented_track: Color::rgba(236, 236, 240, 1.0),
+    segmented_text: Color::rgba(92, 92, 102, 1.0),
+    segmented_selected_background: Color::rgba(255, 255, 255, 1.0),
+    segmented_selected_border: Color::rgba(132, 132, 143, 1.0),
+    segmented_selected_text: Color::rgba(24, 24, 28, 1.0),
+    avatar_background: Color::rgba(238, 242, 255, 1.0),
+    avatar_text: Color::rgba(79, 70, 229, 1.0),
+    progress_track: Color::rgba(236, 236, 240, 1.0),
+    progress_fill: Color::rgba(79, 70, 229, 1.0),
+    list_row_background_hover: Color::rgba(236, 236, 240, 1.0),
+    list_row_background_pressed: Color::rgba(226, 226, 232, 1.0),
+    top_bar_background: Color::rgba(245, 245, 247, 1.0),
+    top_bar_text: Color::rgba(24, 24, 28, 1.0),
+    top_bar_action: Color::rgba(79, 70, 229, 1.0),
+    top_bar_action_background: Color::rgba(236, 236, 240, 1.0),
+    tab_bar_background: Color::rgba(255, 255, 255, 1.0),
+    tab_bar_border: Color::rgba(226, 226, 232, 1.0),
+    tab_bar_text: Color::rgba(92, 92, 102, 1.0),
+    tab_bar_text_selected: Color::rgba(79, 70, 229, 1.0),
+    tab_bar_selected_background: Color::rgba(238, 242, 255, 1.0),
+    sheet_background: Color::rgba(255, 255, 255, 1.0),
+    sheet_handle: Color::rgba(132, 132, 143, 1.0),
 };
 
 pub const DARK: Colors = Colors {
+    scrim: Color::rgba(0, 0, 0, 0.5),
     background_base: Color::rgba(14, 14, 17, 1.0),
     background_surface: Color::rgba(24, 24, 28, 1.0),
     background_raised: Color::rgba(34, 34, 40, 1.0),
@@ -270,6 +387,7 @@ pub const DARK: Colors = Colors {
     text_on_accent: Color::rgba(255, 255, 255, 1.0),
     text_on_danger: Color::rgba(255, 255, 255, 1.0),
     border_default: Color::rgba(44, 44, 51, 1.0),
+    border_control: Color::rgba(68, 68, 76, 1.0),
     border_strong: Color::rgba(132, 132, 143, 1.0),
     border_focus: Color::rgba(129, 140, 248, 1.0),
     accent_default: Color::rgba(91, 94, 240, 1.0),
@@ -297,6 +415,7 @@ pub const DARK: Colors = Colors {
     button_secondary_background: Color::rgba(44, 44, 51, 1.0),
     button_secondary_background_hover: Color::rgba(68, 68, 76, 1.0),
     button_secondary_background_pressed: Color::rgba(92, 92, 102, 1.0),
+    button_secondary_border: Color::rgba(68, 68, 76, 1.0),
     button_secondary_text: Color::rgba(245, 245, 247, 1.0),
     button_ghost_background_hover: Color::rgba(44, 44, 51, 1.0),
     button_ghost_background_pressed: Color::rgba(68, 68, 76, 1.0),
@@ -332,6 +451,38 @@ pub const DARK: Colors = Colors {
     banner_info_background: Color::rgba(16, 42, 86, 1.0),
     banner_info_accent: Color::rgba(83, 177, 253, 1.0),
     banner_text: Color::rgba(245, 245, 247, 1.0),
+    switch_track: Color::rgba(132, 132, 143, 1.0),
+    switch_track_on: Color::rgba(91, 94, 240, 1.0),
+    switch_thumb: Color::rgba(255, 255, 255, 1.0),
+    switch_disabled_track: Color::rgba(44, 44, 51, 1.0),
+    switch_disabled_thumb: Color::rgba(92, 92, 102, 1.0),
+    checkbox_border: Color::rgba(132, 132, 143, 1.0),
+    checkbox_background_checked: Color::rgba(91, 94, 240, 1.0),
+    checkbox_mark: Color::rgba(255, 255, 255, 1.0),
+    checkbox_disabled_background: Color::rgba(44, 44, 51, 1.0),
+    checkbox_disabled_mark: Color::rgba(92, 92, 102, 1.0),
+    segmented_track: Color::rgba(44, 44, 51, 1.0),
+    segmented_text: Color::rgba(169, 169, 180, 1.0),
+    segmented_selected_background: Color::rgba(34, 34, 40, 1.0),
+    segmented_selected_border: Color::rgba(132, 132, 143, 1.0),
+    segmented_selected_text: Color::rgba(245, 245, 247, 1.0),
+    avatar_background: Color::rgba(30, 27, 75, 1.0),
+    avatar_text: Color::rgba(165, 180, 252, 1.0),
+    progress_track: Color::rgba(44, 44, 51, 1.0),
+    progress_fill: Color::rgba(165, 180, 252, 1.0),
+    list_row_background_hover: Color::rgba(34, 34, 40, 1.0),
+    list_row_background_pressed: Color::rgba(44, 44, 51, 1.0),
+    top_bar_background: Color::rgba(14, 14, 17, 1.0),
+    top_bar_text: Color::rgba(245, 245, 247, 1.0),
+    top_bar_action: Color::rgba(165, 180, 252, 1.0),
+    top_bar_action_background: Color::rgba(44, 44, 51, 1.0),
+    tab_bar_background: Color::rgba(34, 34, 40, 1.0),
+    tab_bar_border: Color::rgba(44, 44, 51, 1.0),
+    tab_bar_text: Color::rgba(169, 169, 180, 1.0),
+    tab_bar_text_selected: Color::rgba(165, 180, 252, 1.0),
+    tab_bar_selected_background: Color::rgba(30, 27, 75, 1.0),
+    sheet_background: Color::rgba(34, 34, 40, 1.0),
+    sheet_handle: Color::rgba(132, 132, 143, 1.0),
 };
 
 pub const SPACE_1: f32 = 4.0;
@@ -348,6 +499,8 @@ pub const RADIUS_SM: f32 = 6.0;
 pub const RADIUS_MD: f32 = 10.0;
 /// Containers: cards, dialogs.
 pub const RADIUS_LG: f32 = 16.0;
+/// Surfaces that float free of the screen edges: sheets, floating bars.
+pub const RADIUS_XL: f32 = 24.0;
 /// Pills and circles.
 pub const RADIUS_FULL: f32 = 9999.0;
 
@@ -414,6 +567,11 @@ pub const MOTION_EASING_ENTER: CubicBezier = [0.0, 0.0, 0.0, 1.0];
 /// Leaving: starts slow, gets out of the way.
 pub const MOTION_EASING_EXIT: CubicBezier = [0.3, 0.0, 1.0, 1.0];
 
+/// How far a button shrinks while it is pressed. Feedback that does not depend on color.
+pub const MOTION_PRESS_SCALE: f32 = 0.97;
+
+/// Cards and outlined controls: just enough to lift them off the page. Drawn together with a hairline border.
+pub const SHADOW_SUBTLE: Shadow = Shadow { color: Color::rgba(0, 0, 0, 0.06), offset_x: 0.0, offset_y: 1.0, blur: 2.0, spread: 0.0 };
 /// Menus and dialogs. Paired with background.raised, which carries the elevation in dark mode.
 pub const SHADOW_RAISED: Shadow = Shadow { color: Color::rgba(0, 0, 0, 0.12), offset_x: 0.0, offset_y: 4.0, blur: 16.0, spread: 0.0 };
 /// Dialogs and sheets, which sit above everything else on the screen.
@@ -427,6 +585,16 @@ pub struct Sizes {
     pub control_lg: f32,
     /// The smallest area that reacts to a press, whatever the control looks like.
     pub target_min: f32,
+    pub switch_width: f32,
+    pub switch_height: f32,
+    /// The box, not the pressable area.
+    pub checkbox: f32,
+    /// The least height of a row in a list.
+    pub list_row: f32,
+    /// Top bars and tab bars.
+    pub bar: f32,
+    /// Buttons are rounded rectangles where a pointer is used.
+    pub button_radius: f32,
 }
 
 pub const POINTER: Sizes = Sizes {
@@ -434,6 +602,12 @@ pub const POINTER: Sizes = Sizes {
     control_md: 36.0,
     control_lg: 44.0,
     target_min: 24.0,
+    switch_width: 36.0,
+    switch_height: 20.0,
+    checkbox: 18.0,
+    list_row: 40.0,
+    bar: 48.0,
+    button_radius: 10.0,
 };
 
 pub const TOUCH: Sizes = Sizes {
@@ -441,4 +615,10 @@ pub const TOUCH: Sizes = Sizes {
     control_md: 48.0,
     control_lg: 56.0,
     target_min: 48.0,
+    switch_width: 52.0,
+    switch_height: 32.0,
+    checkbox: 24.0,
+    list_row: 56.0,
+    bar: 56.0,
+    button_radius: 9999.0,
 };

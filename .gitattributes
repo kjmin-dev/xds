@@ -1,6 +1,20 @@
+# One line ending on every platform, whatever git is set to there. The token generator writes
+# LF, so a checkout with CRLF would make every generated file look out of date.
+*                                         text=auto eol=lf
+# @if kotlin-compose
+*.bat                                     text eol=crlf
+# @endif
+
 # Generated files: collapsed in pull request diffs and left out of language statistics.
-Cargo.lock                                linguist-generated
 mise.lock                                 linguist-generated
-pnpm-lock.yaml                            linguist-generated
+# @if desktop-gpui
+Cargo.lock                                linguist-generated
 crates/acme-tokens/src/generated.rs       linguist-generated
+# @endif
+# @if web-react mobile-react-native
+pnpm-lock.yaml                            linguist-generated
 packages/tokens/src/generated/**          linguist-generated
+# @endif
+# @if kotlin-compose
+kotlin/ui/src/commonMain/kotlin/acme/tokens/Tokens.kt linguist-generated
+# @endif

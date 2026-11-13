@@ -135,6 +135,10 @@ pub fn set_mode(mode: tokens::Mode, cx: &mut App) {
         accent = c.button_ghost_background_hover;
         accent_foreground = c.button_ghost_text;
 
+        // The switch and the checkbox. A checked checkbox takes `primary`, set above.
+        switch = c.switch_track;
+        switch_thumb = c.switch_thumb;
+
         success = c.status_success;
         success_foreground = c.background_base;
         warning = c.status_warning;

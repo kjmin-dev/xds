@@ -1,0 +1,33 @@
+{
+  "name": "create-xds",
+  "version": "0.0.0",
+  "description": "npm create xds@latest my-app: scaffolds a project from the cross-platform design system template.",
+  "keywords": [
+    "design-system",
+    "design-tokens",
+    "scaffold",
+    "template",
+    "create"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/kjmin-dev/xds/blob/main/docs/cli.md",
+  "bugs": "https://github.com/kjmin-dev/xds/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kjmin-dev/xds.git",
+    "directory": "npm/create-xds"
+  },
+  "type": "module",
+  "bin": {
+    "create-xds": "bin/create-xds.js"
+  },
+  "files": [
+    "bin"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "xds-cli": "0.0.0"
+  }
+}

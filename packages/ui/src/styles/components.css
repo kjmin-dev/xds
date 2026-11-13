@@ -15,12 +15,27 @@
     min-width: max(var(--acme-size-control-md), var(--acme-size-target-min));
     padding-inline: var(--acme-space-4);
     gap: var(--acme-space-2);
-    border-radius: var(--acme-radius-md);
+    /* A rounded rectangle for a pointer, a capsule for fingers. */
+    border-radius: var(--acme-size-button-radius);
     font-size: var(--acme-typography-label-size);
     font-weight: var(--acme-typography-label-weight);
     line-height: var(--acme-typography-label-line-height);
+    transition-property: background-color, border-color, color, transform;
     transition-duration: var(--acme-motion-duration-fast);
     transition-timing-function: var(--acme-motion-easing-standard);
+  }
+
+  /* A press shrinks the button a little: feedback that does not depend on color. */
+  .button:active:not(:disabled),
+  .button[data-pressed="true"] {
+    transform: scale(var(--acme-motion-press-scale));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .button:active:not(:disabled),
+    .button[data-pressed="true"] {
+      transform: none;
+    }
   }
 
   .button--sm {
@@ -48,6 +63,9 @@
     --button-bg-hover: var(--acme-color-button-secondary-background-hover);
     --button-bg-pressed: var(--acme-color-button-secondary-background-pressed);
     --button-fg: var(--acme-color-button-secondary-text);
+    /* Outlined, with a trace of shadow, so it sits quietly beside a primary button. */
+    border: var(--acme-border-width-thin) solid var(--acme-color-button-secondary-border);
+    box-shadow: var(--acme-shadow-subtle);
   }
 
   .button--ghost {
@@ -71,6 +89,12 @@
     opacity: 1;
     --button-bg: var(--acme-color-button-disabled-background);
     --button-fg: var(--acme-color-button-disabled-text);
+  }
+
+  .button--secondary:disabled:not([data-pending="true"]),
+  .button--secondary[aria-disabled="true"]:not([data-pending="true"]) {
+    border-color: transparent;
+    box-shadow: none;
   }
 
   .button--ghost:disabled:not([data-pending="true"]),

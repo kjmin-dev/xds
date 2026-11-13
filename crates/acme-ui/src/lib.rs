@@ -6,12 +6,16 @@
 #![forbid(unsafe_code)]
 
 mod components;
+mod controls;
 mod preview;
 mod theme;
 
 pub use components::{
     Badge, BadgeTone, Banner, BannerTone, ButtonVariant, ControlSize, TextField, button, card,
     divider, text,
+};
+pub use controls::{
+    Avatar, AvatarSize, ListRow, ProgressBar, SegmentedControl, checkbox, initials, switch,
 };
 pub use preview::DesignPreview;
 pub use theme::{TypographyExt, color, font, init, mode, palette, set_mode};

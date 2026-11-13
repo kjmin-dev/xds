@@ -49,6 +49,10 @@
         "$value": "{palette.neutral.800}",
         "$description": "Dividers and card outlines. Decorative, so low contrast is fine."
       },
+      "control": {
+        "$value": "{palette.neutral.700}",
+        "$description": "Outline of a control that its label already identifies, such as a secondary button. Decorative, so it does not have to hold 3:1."
+      },
       "strong": {
         "$value": "{palette.neutral.500}",
         "$description": "Outline of a control that would be invisible without it, such as a text field: 3:1 against the background."
@@ -149,6 +153,9 @@
         },
         "background-pressed": {
           "$value": "{color.control.pressed}"
+        },
+        "border": {
+          "$value": "{color.border.control}"
         },
         "text": {
           "$value": "{color.text.primary}"
@@ -287,6 +294,128 @@
       },
       "text": {
         "$value": "{color.text.primary}"
+      }
+    },
+    "switch": {
+      "track": {
+        "$value": "{color.border.strong}",
+        "$description": "Off. It holds 3:1 against the page, so the control is visible before it is on."
+      },
+      "track-on": {
+        "$value": "{color.accent.default}"
+      },
+      "thumb": {
+        "$value": "{color.text.on-accent}",
+        "$description": "White in both modes: it sits on the accent fill when on."
+      },
+      "disabled-track": {
+        "$value": "{color.background.disabled}"
+      },
+      "disabled-thumb": {
+        "$value": "{color.text.disabled}"
+      }
+    },
+    "checkbox": {
+      "border": {
+        "$value": "{color.border.strong}"
+      },
+      "background-checked": {
+        "$value": "{color.accent.default}"
+      },
+      "mark": {
+        "$value": "{color.text.on-accent}"
+      },
+      "disabled-background": {
+        "$value": "{color.background.disabled}"
+      },
+      "disabled-mark": {
+        "$value": "{color.text.disabled}"
+      }
+    },
+    "segmented": {
+      "track": {
+        "$value": "{color.control.default}"
+      },
+      "text": {
+        "$value": "{color.text.secondary}"
+      },
+      "selected-background": {
+        "$value": "{color.background.raised}"
+      },
+      "selected-border": {
+        "$value": "{color.border.strong}",
+        "$description": "The selected segment is outlined: its fill alone is too close to the track to tell which one is chosen."
+      },
+      "selected-text": {
+        "$value": "{color.text.primary}"
+      }
+    },
+    "avatar": {
+      "background": {
+        "$value": "{color.accent.subtle}"
+      },
+      "text": {
+        "$value": "{color.text.accent}"
+      }
+    },
+    "progress": {
+      "track": {
+        "$value": "{color.control.default}"
+      },
+      "fill": {
+        "$value": "{color.text.accent}",
+        "$description": "A mark on a neutral track, so it takes the accent text color, which holds 3:1 against the track in both modes."
+      }
+    },
+    "list-row": {
+      "background-hover": {
+        "$value": "{color.background.raised}"
+      },
+      "background-pressed": {
+        "$value": "{color.control.default}",
+        "$description": "Secondary text still has to read on it."
+      }
+    },
+    "top-bar": {
+      "background": {
+        "$value": "{color.background.base}",
+        "$description": "The same as the page: the bar has no edge of its own."
+      },
+      "text": {
+        "$value": "{color.text.primary}"
+      },
+      "action": {
+        "$value": "{color.text.accent}"
+      },
+      "action-background": {
+        "$value": "{color.control.default}",
+        "$description": "The round fill behind the back button."
+      }
+    },
+    "tab-bar": {
+      "background": {
+        "$value": "{color.background.raised}"
+      },
+      "border": {
+        "$value": "{color.border.default}"
+      },
+      "text": {
+        "$value": "{color.text.secondary}"
+      },
+      "text-selected": {
+        "$value": "{color.text.accent}"
+      },
+      "selected-background": {
+        "$value": "{color.accent.subtle}",
+        "$description": "The pill behind the selected tab. Its shape marks the selection, so color is not the only signal."
+      }
+    },
+    "sheet": {
+      "background": {
+        "$value": "{color.background.raised}"
+      },
+      "handle": {
+        "$value": "{color.border.strong}"
       }
     }
   }

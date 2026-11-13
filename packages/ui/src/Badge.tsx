@@ -26,7 +26,7 @@ export function Badge({
 }) {
   return (
     <span
-      className={`inline-flex h-6 w-fit shrink-0 items-center gap-1.5 whitespace-nowrap rounded-acme-sm px-2 text-acme-footnote ${TONE[tone]}`}
+      className={`inline-flex h-6 w-fit shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 text-acme-footnote ${TONE[tone]}`}
     >
       {dot && <span aria-hidden className="size-1.5 rounded-full bg-current" />}
       {children}

@@ -8,16 +8,33 @@ use gpui_kit::component::{Disableable, input::InputState};
 use gpui_kit::{
     App, AppContext, Bounds, Context, Div, Entity, InteractiveElement, IntoElement, ParentElement,
     Render, ScrollHandle, SharedString, StatefulInteractiveElement, Styled, Window, WindowBounds,
-    WindowOptions, div, px, size,
+    WindowOptions, div, point, px, size,
 };
 
 use crate::{
-    Badge, BadgeTone, Banner, BannerTone, ButtonVariant, ControlSize, TextField, TypographyExt,
-    button, card, color, divider, mode, palette, set_mode, text,
+    Avatar, AvatarSize, Badge, BadgeTone, Banner, BannerTone, ButtonVariant, ControlSize, ListRow,
+    ProgressBar, SegmentedControl, TextField, TypographyExt, button, card, checkbox, color,
+    divider, mode, palette, set_mode, switch, text,
 };
 
 /// Component colors are shown by the components that use them, not as swatches.
-const COMPONENT_COLORS: [&str; 4] = ["button-", "field-", "badge-", "banner-"];
+const COMPONENT_COLORS: [&str; 13] = [
+    "button-",
+    "field-",
+    "badge-",
+    "banner-",
+    "switch-",
+    "checkbox-",
+    "segmented-",
+    "avatar-",
+    "progress-",
+    "list-row-",
+    "top-bar-",
+    "tab-bar-",
+    "sheet-",
+];
+
+const VIEWS: [&str; 3] = ["Day", "Week", "Month"];
 
 const VARIANTS: [(&str, ButtonVariant); 4] = [
     ("primary", ButtonVariant::Primary),
@@ -47,10 +64,11 @@ const SPACES: [(&str, f32); 7] = [
     ("12", tokens::SPACE_12),
 ];
 
-const RADII: [(&str, f32); 4] = [
+const RADII: [(&str, f32); 5] = [
     ("sm", tokens::RADIUS_SM),
     ("md", tokens::RADIUS_MD),
     ("lg", tokens::RADIUS_LG),
+    ("xl", tokens::RADIUS_XL),
     ("full", tokens::RADIUS_FULL),
 ];
 
@@ -58,6 +76,11 @@ pub struct DesignPreview {
     email: Entity<InputState>,
     code: Entity<InputState>,
     organization: Entity<InputState>,
+    notifications: bool,
+    remember: bool,
+    view: usize,
+    /// Where to scroll to once the page has been laid out. See `open_scrolled`.
+    start_at: Option<f32>,
     /// Held here because the position GPUI keeps for an untracked scroll area jumped when
     /// something in the page was clicked.
     scroll: ScrollHandle,
@@ -72,12 +95,22 @@ impl DesignPreview {
             email: field("name@example.com"),
             code: field("000000"),
             organization: field("Acme Inc."),
+            notifications: true,
+            remember: true,
+            view: 1,
+            start_at: None,
             scroll: ScrollHandle::new(),
         }
     }
 
     /// Opens the preview in a window of its own.
     pub fn open(cx: &mut App) {
+        Self::open_scrolled(0.0, cx);
+    }
+
+    /// Opens the preview already scrolled `offset` pixels down. A script that takes
+    /// screenshots cannot scroll, so it asks for the part it wants.
+    pub fn open_scrolled(offset: f32, cx: &mut App) {
         let options = WindowOptions {
             window_bounds: Some(WindowBounds::Windowed(Bounds::centered(
                 None,
@@ -86,8 +119,14 @@ impl DesignPreview {
             ))),
             ..Default::default()
         };
-        gpui_kit::open_window(options, cx, |window, cx| cx.new(|cx| Self::new(window, cx)))
-            .expect("the design preview window could not open");
+        gpui_kit::open_window(options, cx, |window, cx| {
+            cx.new(|cx| {
+                let mut preview = Self::new(window, cx);
+                preview.start_at = (offset > 0.0).then_some(offset);
+                preview
+            })
+        })
+        .expect("the design preview window could not open");
         cx.activate(true);
     }
 }
@@ -121,7 +160,17 @@ fn labelled(label: impl Into<SharedString>, secondary: tokens::Color) -> Div {
 }
 
 impl Render for DesignPreview {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        // The page has no height until it has been drawn once, and a scroll position set before
+        // then is clamped to the top. So wait for a frame that knows how far it can scroll.
+        if let Some(offset) = self.start_at {
+            if self.scroll.max_offset().y > px(0.0) {
+                self.scroll.set_offset(point(px(0.0), px(-offset)));
+                self.start_at = None;
+            } else {
+                window.request_animation_frame();
+            }
+        }
         let colors = palette(cx);
         let secondary = colors.text_secondary;
         let dark = mode(cx) == tokens::Mode::Dark;
@@ -135,6 +184,7 @@ impl Render for DesignPreview {
                     if dark { "Light mode" } else { "Dark mode" },
                     ButtonVariant::Ghost,
                     ControlSize::Sm,
+                    cx,
                 )
                 .on_click(move |_, _, cx| {
                     let next = if dark {
@@ -232,11 +282,13 @@ impl Render for DesignPreview {
 
         let buttons = VARIANTS.map(|(name, variant)| {
             labelled(name, secondary)
-                .child(button((name, 0usize), "Save", variant, ControlSize::Sm))
-                .child(button((name, 1usize), "Save", variant, ControlSize::Md))
-                .child(button((name, 2usize), "Save", variant, ControlSize::Lg))
-                .child(button((name, 3usize), "Disabled", variant, ControlSize::Md).disabled(true))
-                .child(button((name, 4usize), "Saving", variant, ControlSize::Md).loading(true))
+                .child(button((name, 0usize), "Save", variant, ControlSize::Sm, cx))
+                .child(button((name, 1usize), "Save", variant, ControlSize::Md, cx))
+                .child(button((name, 2usize), "Save", variant, ControlSize::Lg, cx))
+                .child(
+                    button((name, 3usize), "Disabled", variant, ControlSize::Md, cx).disabled(true),
+                )
+                .child(button((name, 4usize), "Saving", variant, ControlSize::Md, cx).loading(true))
         });
 
         let banners = [
@@ -284,6 +336,49 @@ impl Render for DesignPreview {
                     .child(TextField::new("Organization", &self.organization).disabled(true)),
             )
             .child(
+                section("Selection")
+                    .child(
+                        labelled("switch", secondary)
+                            .child(
+                                switch("notifications", self.notifications)
+                                    .label("Notifications")
+                                    .on_click(cx.listener(|this, checked: &bool, _, cx| {
+                                        this.notifications = *checked;
+                                        cx.notify();
+                                    })),
+                            )
+                            .child(switch("switch-off", false).label("Off"))
+                            .child(switch("switch-locked", true).label("Locked").disabled(true)),
+                    )
+                    .child(
+                        labelled("checkbox", secondary)
+                            .child(
+                                checkbox("remember", self.remember)
+                                    .label("Remember me")
+                                    .on_click(cx.listener(|this, checked: &bool, _, cx| {
+                                        this.remember = *checked;
+                                        cx.notify();
+                                    })),
+                            )
+                            .child(checkbox("checkbox-off", false).label("Unchecked"))
+                            .child(
+                                checkbox("checkbox-locked", true)
+                                    .label("Locked")
+                                    .disabled(true),
+                            ),
+                    )
+                    .child(
+                        labelled("segmented", secondary).child(
+                            SegmentedControl::new("view", VIEWS)
+                                .selected(self.view)
+                                .on_change(cx.listener(|this, index: &usize, _, cx| {
+                                    this.view = *index;
+                                    cx.notify();
+                                })),
+                        ),
+                    ),
+            )
+            .child(
                 section("Badges")
                     .child(
                         labelled("tone", secondary)
@@ -302,13 +397,67 @@ impl Render for DesignPreview {
             )
             .child(section("Banners").children(banners))
             .child(
-                section("Card and divider").child(
+                section("Card").child(
                     card(cx)
                         .child(text("Weekly report", tokens::TYPOGRAPHY_HEADING))
-                        .child(divider(cx))
                         .child(
                             text("A card groups related content.", tokens::TYPOGRAPHY_BODY)
                                 .text_color(color(secondary)),
+                        )
+                        .child(divider(cx))
+                        .child(
+                            labelled("avatar", secondary)
+                                .child(Avatar::new("Ada Lovelace").size(AvatarSize::Sm))
+                                .child(Avatar::new("Ada Lovelace"))
+                                .child(Avatar::new("Grace Hopper").size(AvatarSize::Lg)),
+                        )
+                        .child(
+                            labelled("progress", secondary)
+                                .child(div().w(px(320.0)).child(ProgressBar::new(0.6))),
+                        ),
+                ),
+            )
+            .child(
+                section("List").child(
+                    // Rows bring their own padding, and the dividers run edge to edge.
+                    card(cx)
+                        .p(px(0.0))
+                        .gap(px(0.0))
+                        .overflow_hidden()
+                        .child(
+                            ListRow::new("row-person", "Ada Lovelace")
+                                .description("ada@example.com")
+                                .leading(Avatar::new("Ada Lovelace"))
+                                .trailing(Badge::new("Owner").tone(BadgeTone::Accent)),
+                        )
+                        .child(divider(cx))
+                        .child(
+                            ListRow::new("row-notifications", "Notifications")
+                                .description("Mentions and replies")
+                                .trailing(switch("row-switch", self.notifications).on_click(
+                                    cx.listener(|this, checked: &bool, _, cx| {
+                                        this.notifications = *checked;
+                                        cx.notify();
+                                    }),
+                                )),
+                        )
+                        .child(divider(cx))
+                        .child(
+                            ListRow::new("row-language", "Language")
+                                .trailing(
+                                    text("English", tokens::TYPOGRAPHY_BODY)
+                                        .text_color(color(secondary)),
+                                )
+                                .chevron()
+                                .on_click(|_, _, _| {}),
+                        )
+                        .child(divider(cx))
+                        .child(
+                            ListRow::new("row-storage", "Storage")
+                                .description("Unavailable offline")
+                                .chevron()
+                                .disabled(true)
+                                .on_click(|_, _, _| {}),
                         ),
                 ),
             );

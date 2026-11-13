@@ -269,11 +269,149 @@ export function emitTypeScript(model: Model): string {
   return lines.join("\n");
 }
 
-// ---------------------------------------------------------------- Rust
+// ---------------------------------------------------------------- Kotlin
 
 function float(value: number): string {
   return Number.isInteger(value) ? `${value}.0` : String(value);
 }
+
+function pascal(text: string): string {
+  const name = camel(text);
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+function kotlinFloat(value: number): string {
+  return `${float(value)}f`;
+}
+
+function kotlinColor({ r, g, b, a }: Rgba): string {
+  const channels = [Math.round(a * 255), r, g, b];
+  return `Color(0x${channels.map((channel) => channel.toString(16).padStart(2, "0").toUpperCase()).join("")})`;
+}
+
+/** Type sizes are in sp, so they follow the system's text size setting. Everything else is dp. */
+function kotlinValue(token: ValueToken): [type: string, value: string] {
+  const { value } = token;
+  switch (value.kind) {
+    case "dimension":
+      return token.path[0] === "font" ? ["TextUnit", `${value.px}.sp`] : ["Dp", `${value.px}.dp`];
+    case "duration":
+      return ["Int", String(value.ms)];
+    case "number":
+      return ["Float", kotlinFloat(value.value)];
+    case "fontWeight":
+      return ["FontWeight", `FontWeight(${value.value})`];
+    case "fontFamily":
+      return [
+        "List<String>",
+        `listOf(${value.families.map((family) => JSON.stringify(family)).join(", ")})`,
+      ];
+    case "cubicBezier":
+      return ["Easing", `CubicBezierEasing(${value.points.map(kotlinFloat).join(", ")})`];
+    case "shadow": {
+      const { color, offsetX, offsetY, blur, spread } = value.shadow;
+      return [
+        "ShadowToken",
+        `ShadowToken(color = ${kotlinColor(color)}, offsetX = ${offsetX}.dp, offsetY = ${offsetY}.dp, ` +
+          `blur = ${blur}.dp, spread = ${spread}.dp)`,
+      ];
+    }
+    case "typography": {
+      const { sizePx, weight, lineHeight, letterSpacingPx } = value.typography;
+      return [
+        "TextStyle",
+        `TextStyle(fontSize = ${sizePx}.sp, lineHeight = ${Math.round(sizePx * lineHeight)}.sp, ` +
+          `fontWeight = FontWeight(${weight}), letterSpacing = ${letterSpacingPx}.sp)`,
+      ];
+    }
+  }
+}
+
+/**
+ * Compose types, in one object per token group: `Space.s4`, `Radius.md`, `Typography.body`. A
+ * name that starts with a digit gets the first letter of its group in front. Colors are one
+ * object per mode behind an interface, not a class with a constructor: a constructor with this
+ * many color parameters does not fit in a JVM method.
+ */
+export function emitKotlin(model: Model, packageName: string): string {
+  const property = (path: string[]) => camel(kebab(path));
+  const lines = [
+    `// ${HEADER}`,
+    "",
+    `package ${packageName}`,
+    "",
+    "import androidx.compose.animation.core.CubicBezierEasing",
+    "import androidx.compose.animation.core.Easing",
+    "import androidx.compose.ui.graphics.Color",
+    "import androidx.compose.ui.text.TextStyle",
+    "import androidx.compose.ui.text.font.FontWeight",
+    "import androidx.compose.ui.unit.Dp",
+    "import androidx.compose.ui.unit.TextUnit",
+    "import androidx.compose.ui.unit.dp",
+    "import androidx.compose.ui.unit.sp",
+    "",
+    "/** Every color token, for one mode. */",
+    "interface Colors {",
+  ];
+  for (const token of model.colors) {
+    if (token.description) lines.push(`    /** ${token.description} */`);
+    lines.push(`    val ${property(token.path)}: Color`);
+  }
+  lines.push(
+    "",
+    "    /** Every color with its token name, in token order. For screens that list the colors. */",
+    "    fun entries(): List<Pair<String, Color>> = listOf(",
+  );
+  for (const token of model.colors) {
+    lines.push(`        "${kebab(token.path)}" to ${property(token.path)},`);
+  }
+  lines.push("    )", "}");
+  for (const mode of ["light", "dark"] as const) {
+    lines.push("", `object ${pascal(mode)}Colors : Colors {`);
+    for (const token of model.colors) {
+      lines.push(`    override val ${property(token.path)} = ${kotlinColor(token[mode])}`);
+    }
+    lines.push("}");
+  }
+
+  const groups = new Map<string, ValueToken[]>();
+  for (const token of model.values) {
+    const group = token.path[0] as string;
+    groups.set(group, [...(groups.get(group) ?? []), token]);
+  }
+  for (const [group, tokens] of groups) {
+    lines.push("", `object ${pascal(group)} {`);
+    for (const token of tokens) {
+      const name = property(token.path.slice(1));
+      const [type, value] = kotlinValue(token);
+      if (token.description) lines.push(`    /** ${token.description} */`);
+      lines.push(
+        `    val ${/^[0-9]/.test(name) ? group.charAt(0) + name : name}: ${type} = ${value}`,
+      );
+    }
+    lines.push("}");
+  }
+
+  if (model.sizes.length > 0) {
+    lines.push("", "/** Control sizes, for one input device. */", "class Sizes(");
+    for (const token of model.sizes) {
+      if (token.description) lines.push(`    /** ${token.description} */`);
+      lines.push(`    val ${property(token.path)}: Dp,`);
+    }
+    lines.push(")");
+    for (const mode of INPUT_MODES) {
+      lines.push("", `val ${pascal(mode)}Sizes = Sizes(`);
+      for (const token of model.sizes) {
+        lines.push(`    ${property(token.path)} = ${token[mode]}.dp,`);
+      }
+      lines.push(")");
+    }
+  }
+  lines.push("");
+  return lines.join("\n");
+}
+
+// ---------------------------------------------------------------- Rust
 
 function rustColor(color: Rgba): string {
   return `Color::rgba(${color.r}, ${color.g}, ${color.b}, ${float(color.a)})`;

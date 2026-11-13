@@ -64,6 +64,7 @@ impl Render for Home {
                                 "Open the design preview",
                                 ButtonVariant::Primary,
                                 ControlSize::Md,
+                                cx,
                             )
                             .on_click(|_, _, cx| DesignPreview::open(cx)),
                         ),

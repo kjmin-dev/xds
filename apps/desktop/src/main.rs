@@ -2,6 +2,7 @@
 //!
 //!   acme [--light | --dark]            the app
 //!   acme --design [--light | --dark]   the design preview: every token and component
+//!   acme --design --scroll <pixels>    the preview, scrolled down, for scripted screenshots
 //!
 //! Without `--light` or `--dark` the app follows the system appearance.
 
@@ -20,6 +21,8 @@ struct Options {
     /// Open the design preview instead of the app.
     design: bool,
     mode: Option<acme_tokens::Mode>,
+    /// How far down the design preview starts.
+    scroll: f32,
     /// Quit after this long. For smoke tests.
     exit_after: Option<Duration>,
 }
@@ -28,12 +31,17 @@ impl Options {
     fn from_env() -> Self {
         let args: Vec<String> = std::env::args().skip(1).collect();
         let has = |flag: &str| args.iter().any(|arg| arg == flag);
-        let exit_after = args
-            .iter()
-            .position(|arg| arg == "--exit-after")
-            .and_then(|index| args.get(index + 1))
+        let value = |flag: &str| {
+            args.iter()
+                .position(|arg| arg == flag)
+                .and_then(|index| args.get(index + 1))
+        };
+        let exit_after = value("--exit-after")
             .and_then(|seconds| seconds.parse().ok())
             .map(Duration::from_secs_f64);
+        let scroll = value("--scroll")
+            .and_then(|pixels| pixels.parse().ok())
+            .unwrap_or(0.0);
         let mode = if has("--light") {
             Some(acme_tokens::Mode::Light)
         } else if has("--dark") {
@@ -44,6 +52,7 @@ impl Options {
         Self {
             design: has("--design"),
             mode,
+            scroll,
             exit_after,
         }
     }
@@ -61,7 +70,7 @@ fn main() {
             acme_ui::set_mode(mode, cx);
         }
         if options.design {
-            acme_ui::DesignPreview::open(cx);
+            acme_ui::DesignPreview::open_scrolled(options.scroll, cx);
         } else {
             Home::open(cx);
         }

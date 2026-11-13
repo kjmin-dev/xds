@@ -4,6 +4,7 @@
 
 import { colors, radius, size, space, typography } from "@acme/tokens";
 import {
+  Avatar,
   Badge,
   type BadgeTone,
   Banner,
@@ -11,9 +12,14 @@ import {
   Button,
   type ButtonVariant,
   Card,
+  Checkbox,
   type ControlSize,
   Divider,
+  ListRow,
+  ProgressBar,
+  SegmentedControl,
   Spinner,
+  Switch,
   Text,
   TextField,
   type TextVariant,
@@ -25,7 +31,14 @@ type Theme = "light" | "dark";
 const kebab = (name: string) => name.replace(/[A-Z0-9]+/g, (match) => `-${match.toLowerCase()}`);
 
 /** Semantic colors by group. Component colors are shown by the components that use them. */
-const COMPONENT_COLORS = /^(button|field|badge|banner)/;
+const COMPONENT_COLORS =
+  /^(button|field|badge|banner|switch|checkbox|segmented|avatar|progress|listRow|topBar|tabBar|sheet)/;
+
+const VIEWS = [
+  { value: "day", label: "Day" },
+  { value: "week", label: "Week" },
+  { value: "month", label: "Month" },
+] as const;
 const COLOR_GROUPS = Object.entries(
   Object.groupBy(
     Object.keys(colors.light).filter((name) => !COMPONENT_COLORS.test(name)),
@@ -39,9 +52,25 @@ const BADGE_TONES: BadgeTone[] = ["neutral", "accent", "success", "warning", "da
 const BANNER_TONES: BannerTone[] = ["info", "success", "warning", "danger"];
 const TEXT_VARIANTS = Object.keys(typography) as (keyof typeof typography)[];
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+const SECTIONS = [
+  "Colors",
+  "Typography",
+  "Space, radius, size",
+  "Buttons",
+  "Text fields",
+  "Selection",
+  "Badges",
+  "Banners",
+  "Card",
+  "List",
+];
+
+const anchor = (title: string) => title.toLowerCase().replace(/[^a-z]+/g, "-");
+
+/** Each section can be linked to: `/design#buttons`. */
+function Section({ title, children }: { title: (typeof SECTIONS)[number]; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-4">
+    <section id={anchor(title)} className="flex scroll-mt-20 flex-col gap-4">
       <Text variant="title" as="h2">
         {title}
       </Text>
@@ -64,6 +93,9 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 export function DesignPreview() {
   const [theme, setTheme] = useState(document.documentElement.dataset.theme as Theme);
   const [value, setValue] = useState("");
+  const [notifications, setNotifications] = useState(true);
+  const [agreed, setAgreed] = useState(true);
+  const [view, setView] = useState<(typeof VIEWS)[number]["value"]>("week");
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
@@ -85,6 +117,22 @@ export function DesignPreview() {
           </Button>
         </div>
       </header>
+
+      {/* Stays in view while the page scrolls, so any section is one press away. */}
+      <nav
+        aria-label="Sections"
+        className="sticky top-0 z-10 -mx-6 flex gap-1 overflow-x-auto border-acme-border-default border-b bg-acme-background-base px-6 py-2"
+      >
+        {SECTIONS.map((title) => (
+          <a
+            key={title}
+            href={`#${anchor(title)}`}
+            className="whitespace-nowrap rounded-full px-3 py-1 text-acme-label text-acme-text-secondary transition-colors hover:bg-acme-control-default hover:text-acme-text-primary"
+          >
+            {title}
+          </a>
+        ))}
+      </nav>
 
       <Section title="Colors">
         {COLOR_GROUPS.map(([group, names]) => (
@@ -190,6 +238,27 @@ export function DesignPreview() {
         </div>
       </Section>
 
+      <Section title="Selection">
+        <Row label="switch">
+          <Switch checked={notifications} onChange={setNotifications} label="Notifications" />
+          <Switch checked={false} onChange={() => {}} label="Off" />
+          <Switch checked onChange={() => {}} label="Locked" disabled />
+        </Row>
+        <Row label="checkbox">
+          <Checkbox checked={agreed} onChange={setAgreed} label="Remember me" />
+          <Checkbox checked={false} onChange={() => {}} label="Unchecked" />
+          <Checkbox checked onChange={() => {}} label="Locked" disabled />
+        </Row>
+        <Row label="segmented">
+          <SegmentedControl
+            options={VIEWS}
+            value={view}
+            onChange={setView}
+            aria-label="Calendar view"
+          />
+        </Row>
+      </Section>
+
       <Section title="Badges">
         <Row label="tone">
           {BADGE_TONES.map((tone) => (
@@ -219,7 +288,7 @@ export function DesignPreview() {
         ))}
       </Section>
 
-      <Section title="Card, divider, spinner">
+      <Section title="Card">
         <Card
           title="Weekly report"
           description="Updated a few minutes ago."
@@ -236,6 +305,58 @@ export function DesignPreview() {
             <Spinner size="md" />
             <Spinner size="lg" label="Loading" />
           </Row>
+          <Row label="avatar">
+            <Avatar name="Ada Lovelace" size="sm" />
+            <Avatar name="Ada Lovelace" />
+            <Avatar name="Grace Hopper" size="lg" />
+          </Row>
+          <Row label="progress">
+            <div className="max-w-xs flex-1">
+              <ProgressBar value={0.6} label="Upload" />
+            </div>
+          </Row>
+        </Card>
+      </Section>
+
+      <Section title="List">
+        <Card flush>
+          <ListRow
+            leading={<Avatar name="Ada Lovelace" />}
+            title="Ada Lovelace"
+            description="ada@example.com"
+            trailing={<Badge tone="accent">Owner</Badge>}
+          />
+          <Divider />
+          <ListRow
+            title="Notifications"
+            description="Mentions and replies"
+            trailing={
+              <Switch
+                checked={notifications}
+                onChange={setNotifications}
+                aria-label="Notifications"
+              />
+            }
+          />
+          <Divider />
+          <ListRow
+            title="Language"
+            trailing={
+              <Text tone="secondary" as="span">
+                English
+              </Text>
+            }
+            chevron
+            onPress={() => {}}
+          />
+          <Divider />
+          <ListRow
+            title="Storage"
+            description="Unavailable offline"
+            chevron
+            onPress={() => {}}
+            disabled
+          />
         </Card>
       </Section>
     </main>

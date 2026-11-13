@@ -53,6 +53,25 @@ curl -fsSL https://raw.githubusercontent.com/kjmin-dev/xds/main/install.sh | sh
 
 See the [CLI documentation](docs/cli.md) for a full reference of all commands, how the template is filtered down to the selected clients, and how to add a new client stack.
 
+## For coding agents
+
+`xds` also answers questions about a design system, for a person or for an agent working in a project:
+
+```sh
+xds tokens button.primary                         # token values in light and dark
+xds components Button                             # options, states, and the source file on each client
+xds contrast text.secondary background.surface    # WCAG contrast in both modes
+xds doctor                                        # is the project in a consistent state?
+```
+
+Every command takes `--json`. There are three more ways in:
+
+- `AGENTS.md` holds the rules of the design system. `xds create` writes one into each new project, naming only the clients it has.
+- `skills/xds` is an [Agent Skill](https://agentskills.io). Install it with `npx skills add kjmin-dev/xds`, or in Claude Code with `/plugin install xds --marketplace kjmin-dev/xds`.
+- `xds mcp` is a Model Context Protocol server over stdio with the same commands as tools: `claude mcp add xds -- xds mcp`.
+
+The [CLI documentation](docs/cli.md#for-scripts-and-agents) has the JSON shapes and the exit codes.
+
 ## What's included
 
 - `design/tokens` contains the design tokens in DTCG format: a color palette, light and dark semantic colors, component-specific colors, typographic roles, spacing, border radius, motion, shadows, and control sizes for pointer and touch input.

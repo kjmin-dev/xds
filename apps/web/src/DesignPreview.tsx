@@ -70,6 +70,15 @@ const SECTIONS = [
 
 const anchor = (title: string) => title.toLowerCase().replace(/[^a-z]+/g, "-");
 
+/** The links beside the mode switch. */
+const LINKS: { label: string; href: string }[] = [{ label: "Back to the app", href: "/" }];
+// @if template
+// The deployment of this repository's preview links back to the documentation, whose address
+// the Preview workflow passes to the build. A project made by `xds create` has no such site.
+const DOCS_SITE: string | undefined = import.meta.env.VITE_DOCS_SITE;
+if (DOCS_SITE) LINKS.push({ label: "Documentation", href: DOCS_SITE });
+// @endif
+
 /** Each section can be linked to: `/design#buttons`. */
 function Section({ title, children }: { title: (typeof SECTIONS)[number]; children: ReactNode }) {
   return (
@@ -112,9 +121,11 @@ export function DesignPreview() {
           Acme design system
         </Text>
         <div className="flex items-center gap-3">
-          <a className="text-acme-detail text-acme-text-accent underline" href="/">
-            Back to the app
-          </a>
+          {LINKS.map(({ label, href }) => (
+            <a key={href} className="text-acme-detail text-acme-text-accent underline" href={href}>
+              {label}
+            </a>
+          ))}
           <Button variant="ghost" size="sm" onPress={toggleTheme}>
             {theme === "dark" ? "Light mode" : "Dark mode"}
           </Button>

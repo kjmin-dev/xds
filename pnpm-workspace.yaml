@@ -33,3 +33,11 @@ minimumReleaseAgeExclude:
   - "@biomejs/cli-linux-x64@2.6.7"
   - "@biomejs/cli-win32-arm64@2.6.7"
   - "@biomejs/cli-win32-x64@2.6.7"
+# @if template
+
+# Wrangler (tools/deploy) deploys the two sites as static assets, which needs neither package's
+# install script. Deployments run with a credential, so nothing runs that does not have to.
+allowBuilds:
+  esbuild: false
+  workerd: false
+# @endif

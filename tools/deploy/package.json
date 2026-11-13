@@ -1,0 +1,8 @@
+{
+  "name": "@acme/deploy",
+  "private": true,
+  "description": "Holds Wrangler at a version the lockfile pins, so a deployment installs nothing but what was reviewed.",
+  "devDependencies": {
+    "wrangler": "4.155.0"
+  }
+}

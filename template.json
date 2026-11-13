@@ -4,6 +4,8 @@
   "exclude": [
     "cli",
     "apps/docs",
+    "apps/web/wrangler.jsonc",
+    "tools/deploy",
     "npm",
     "install.sh",
     "template.json",
@@ -19,6 +21,8 @@
     "docs/cli.md",
     ".github/workflows/release.yml",
     ".github/workflows/docs.yml",
+    ".github/workflows/preview.yml",
+    ".github/dependabot.yml",
     "Cargo.lock",
     "pnpm-lock.yaml",
     "mise.lock"

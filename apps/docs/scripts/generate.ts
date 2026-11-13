@@ -17,6 +17,7 @@ import {
 } from "../../../tools/design-build/src/model.ts";
 import { listThemes } from "../../../tools/design-build/src/themes.ts";
 import { COMPONENTS } from "./components.ts";
+import { previewAnchor, previewLink } from "./preview.ts";
 
 const root = join(import.meta.dirname, "../../..");
 const content = join(import.meta.dirname, "../src/content/docs");
@@ -308,6 +309,11 @@ const PLATFORM = {
 };
 
 async function components() {
+  // The sections of the web design preview, by title: each component page links to its own.
+  const preview = await readFile(join(root, "apps/web/src/DesignPreview.tsx"), "utf8");
+  const sections = new Set(
+    [...preview.matchAll(/<Section title="([^"]+)">/g)].map(([, title]) => title),
+  );
   for (const [index, component] of COMPONENTS.entries()) {
     const sources = Object.entries(component.sources) as [keyof typeof PLATFORM, string][];
     for (const [, file] of sources) {
@@ -315,6 +321,15 @@ async function components() {
         throw new Error(`${component.name}: ${file} does not exist`);
       });
     }
+    if (component.sources.web && !component.preview) {
+      throw new Error(`${component.name}: name the design preview section that shows it`);
+    }
+    if (component.preview && !sections.has(component.preview)) {
+      throw new Error(
+        `${component.name}: the design preview has no "${component.preview}" section`,
+      );
+    }
+    const link = component.preview && previewLink(previewAnchor(component.preview));
     const body = [
       NOTE("apps/docs/scripts/components.ts"),
       ...(component.demo
@@ -323,6 +338,9 @@ async function components() {
             `<Demo name="${component.slug}" title="${component.name} examples" />`,
             "The frame above shows the real web components, in the mode this site is in.",
           ]
+        : []),
+      ...(link
+        ? [`The [design preview](${link}) shows it next to every other web component.`]
         : []),
       "## When to use it",
       component.guidance.map((line) => `- ${line}`).join("\n"),

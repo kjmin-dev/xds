@@ -24,3 +24,9 @@ mise.*.local.toml
 # Environment
 .env
 .env.*
+
+# @if template
+# Wrangler's local state, which names the Cloudflare account, and its file of local secrets
+.wrangler/
+.dev.vars*
+# @endif

@@ -1,0 +1,20 @@
+// The web app on Cloudflare Workers, as static assets, so that the documentation can link to
+// its design preview at /design. Only this repository deploys it: template.json excludes this
+// file, and a project made by `xds create` never gets it.
+{
+  "name": "xds-preview",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    // There is no design/index.html: main.tsx picks the screen from the path, so every path
+    // is answered with index.html.
+    "not_found_handling": "single-page-application"
+  },
+  // Two levels below the zone, where Universal SSL has no certificate. A Custom Domain gets a
+  // certificate of its own, so this hostname works without Advanced Certificate Manager, and a
+  // DNS record made by hand would not: .app is HTTPS-only.
+  "routes": [{ "pattern": "preview.xds.studiocyf.app", "custom_domain": true }],
+  // As in apps/docs/wrangler.jsonc: one address, and no account_id in the file.
+  "workers_dev": false,
+  "preview_urls": false
+}

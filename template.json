@@ -4,6 +4,7 @@
   "exclude": [
     "cli",
     "apps/docs",
+    "apps/web/wrangler.jsonc",
     "npm",
     "install.sh",
     "template.json",

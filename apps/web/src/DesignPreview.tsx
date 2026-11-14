@@ -362,6 +362,12 @@ export function DesignPreview() {
   const menu = useRef<HTMLSpanElement>(null);
   const select = useRef<HTMLDivElement>(null);
   const tooltip = useRef<HTMLSpanElement>(null);
+  // The browser looks for the section an address names (`/design#buttons`) while the page loads,
+  // before this screen has rendered any, and gives up; look again now that they are here.
+  useEffect(() => {
+    const id = decodeURIComponent(location.hash.slice(1));
+    if (id) document.getElementById(id)?.scrollIntoView();
+  }, []);
   // A menu, a select's list and a tooltip open from their control, so the scripted mode works
   // that control the way a person would: a press for the menu and the list, keyboard focus for
   // the tooltip.

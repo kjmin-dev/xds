@@ -3,6 +3,7 @@ import starlight from "@astrojs/starlight";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
 import starlightLlmsTxt from "starlight-llms-txt";
+import { demoFrames } from "./scripts/demo-frames.ts";
 import { previewLink } from "./scripts/preview.ts";
 
 // The public address of the site. `llms.txt`, the sitemap and canonical links are built from it,
@@ -13,6 +14,8 @@ const preview = previewLink();
 export default defineConfig({
   site,
   trailingSlash: "always",
+  // Fetch a page while the pointer rests on its link, so it is often in before the click.
+  prefetch: { prefetchAll: true, defaultStrategy: "hover" },
   integrations: [
     starlight({
       title: "xds",
@@ -75,6 +78,7 @@ export default defineConfig({
       ],
     }),
     react(),
+    demoFrames(),
   ],
   vite: { plugins: [tailwindcss()] },
 });

@@ -35,6 +35,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -66,9 +68,9 @@ import androidx.compose.ui.unit.dp
  * use them, so the color list leaves them out.
  */
 private val ComponentColorGroups = setOf(
-    "button", "field", "badge", "banner", "card", "switch", "checkbox", "segmented", "chip",
-    "tabs", "menu", "dialog", "toast", "tooltip", "skeleton", "avatar", "progress", "list", "top",
-    "tab", "sheet", "scrim",
+    "button", "field", "badge", "banner", "card", "switch", "checkbox", "radio", "segmented",
+    "chip", "tabs", "menu", "dialog", "toast", "tooltip", "skeleton", "thumbnail", "sidebar",
+    "empty", "accordion", "avatar", "progress", "slider", "list", "top", "tab", "sheet", "scrim",
 )
 
 // The preview has to work without a network, so the picture it shows is part of the code: a
@@ -137,7 +139,7 @@ fun DesignPreview(onBack: () -> Unit) {
 }
 
 /** What the preview can start with open, so that it can be drawn into an image open. */
-internal enum class PreviewOverlay { Sheet, Menu, Dialog, Toast }
+internal enum class PreviewOverlay { Sheet, Menu, Select, Dialog, Toast }
 
 /**
  * @param scrolls False lays the whole page out at its full height, for drawing it into one image.
@@ -183,12 +185,16 @@ internal fun DesignPreviewScreen(onBack: () -> Unit, scrolls: Boolean, open: Pre
                 ButtonsSection()
                 TextFieldsSection()
                 SelectionSection()
+                ControlsSection(selectOpen = open == PreviewOverlay.Select)
                 ChipsSection()
                 TabsSection()
                 BadgesSection(colors)
                 BannersSection()
                 CardSection(colors)
+                MediaSection()
                 ListSection()
+                AccordionSection()
+                EmptyStateSection()
                 NavigationSection(colors, sheetOpen = open == PreviewOverlay.Sheet)
                 MenuSection(open = open == PreviewOverlay.Menu)
                 DialogSection(open = open == PreviewOverlay.Dialog)
@@ -514,10 +520,117 @@ private fun SelectionSection() {
             Checkbox(false, {}, label = "Off, disabled", enabled = false)
         }
 
+        var delivery by remember { mutableStateOf<String?>("standard") }
+        RadioGroup(
+            label = "Delivery",
+            options = listOf(
+                RadioOption("standard", "Standard", description = "3 to 5 days, free"),
+                RadioOption("express", "Express", description = "The next day, 5,000 won"),
+                RadioOption("pickup", "Pick up at the store"),
+            ),
+            value = delivery,
+            onValueChange = { delivery = it },
+        )
+        // Nothing is chosen yet, which is what the error is about: choosing clears it.
+        var billing by remember { mutableStateOf<String?>(null) }
+        RadioGroup(
+            label = "Billing",
+            options = listOf(RadioOption("monthly", "Monthly"), RadioOption("yearly", "Yearly")),
+            value = billing,
+            onValueChange = { billing = it },
+            error = if (billing == null) "Choose how often to be billed." else null,
+        )
+        RadioGroup(
+            label = "Region",
+            options = listOf(
+                RadioOption("kr", "Korea", description = "Set by your organization"),
+                RadioOption("jp", "Japan"),
+            ),
+            value = "kr",
+            onValueChange = {},
+            enabled = false,
+        )
+
         val periods = listOf("day" to "Day", "week" to "Week", "month" to "Month")
         var period by remember { mutableStateOf("week") }
         SegmentedControl(periods, period, { period = it })
         SegmentedControl(periods, period, { period = it }, fullWidth = true)
+    }
+}
+
+private val Countries = listOf(
+    SelectOption("kr", "Korea"),
+    SelectOption("jp", "Japan"),
+    SelectOption("tw", "Taiwan"),
+    SelectOption("sg", "Singapore"),
+    SelectOption("us", "United States"),
+)
+
+// With a second line, which the list shows under each label.
+private val Languages = listOf(
+    SelectOption("ko", "한국어", description = "Korean"),
+    SelectOption("en", "English"),
+    SelectOption("ja", "日本語", description = "Japanese"),
+    SelectOption("zh", "中文", description = "Chinese, simplified"),
+)
+
+/** @param selectOpen Starts with the list of the select that has a value open. */
+@Composable
+private fun ControlsSection(selectOpen: Boolean) {
+    Section("Controls") {
+        // Empty, chosen, with an error, and disabled.
+        var country by remember { mutableStateOf<String?>(null) }
+        Select(
+            label = "Country",
+            options = Countries,
+            value = country,
+            onValueChange = { country = it },
+            placeholder = "Choose a country",
+            description = "Where the order is sent.",
+        )
+        var language by remember { mutableStateOf<String?>("ko") }
+        Select(
+            label = "Language",
+            options = Languages,
+            value = language,
+            onValueChange = { language = it },
+            modifier = Modifier,
+            placeholder = null,
+            description = null,
+            error = null,
+            enabled = true,
+            initiallyOpen = selectOpen,
+        )
+        var zone by remember { mutableStateOf<String?>(null) }
+        Select(
+            label = "Time zone",
+            options = listOf(SelectOption("seoul", "Seoul"), SelectOption("tokyo", "Tokyo")),
+            value = zone,
+            onValueChange = { zone = it },
+            placeholder = "Choose a time zone",
+            error = if (zone == null) "Choose a time zone to see the right times." else null,
+        )
+        Select(
+            label = "Currency",
+            options = listOf(SelectOption("krw", "Korean won")),
+            value = "krw",
+            onValueChange = {},
+            enabled = false,
+        )
+
+        var volume by remember { mutableStateOf(40f) }
+        Slider(label = "Volume", value = volume, onValueChange = { volume = it }, showValue = true)
+        var opacity by remember { mutableStateOf(0.75f) }
+        Slider(
+            label = "Opacity",
+            value = opacity,
+            onValueChange = { opacity = it },
+            min = 0f,
+            max = 1f,
+            step = 0.05f,
+            showValue = true,
+        )
+        Slider(label = "Brightness", value = 70f, onValueChange = {}, enabled = false)
     }
 }
 
@@ -797,6 +910,160 @@ private fun ListSection() {
                 compact = true,
             )
         }
+    }
+}
+
+@Composable
+private fun MediaSection() {
+    Section("Media") {
+        SectionHeader(
+            title = "Continue watching",
+            description = "Pick up where you left off.",
+            action = SectionHeaderAction("See all") {},
+        )
+        // Every ratio at the same width, so the heights show the shapes.
+        Samples(gap = Space.s3) {
+            for (ratio in ThumbnailRatio.entries) {
+                Thumbnail(SamplePicture, "A portrait at sunset", Modifier.width(120.dp), ratio = ratio)
+            }
+        }
+        // The picture cannot be loaded, there is none, a badge, a bar, and both.
+        Samples(gap = Space.s3) {
+            val wide = Modifier.width(160.dp)
+            Thumbnail(BrokenPicture, "Hallasan at dawn", wide)
+            Thumbnail(null, "", wide)
+            Thumbnail(SamplePicture, "A portrait at sunset", wide, badge = "12:04")
+            Thumbnail(SamplePicture, "A portrait at sunset", wide, progress = 0.4f)
+            Thumbnail(SamplePicture, "A portrait at sunset", wide, badge = "1:02:45", progress = 0.75f)
+        }
+
+        BoxWithConstraints {
+            // Two across where there is room, as in a feed, their tops in line.
+            val across = if (maxWidth >= 640.dp) 2 else 1
+            val width = (maxWidth - Space.s4 * (across - 1)) / across
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(Space.s4),
+                verticalArrangement = Arrangement.spacedBy(Space.s4),
+            ) {
+                MediaCard(
+                    title = "Designing tokens that last: a talk from the Seoul design meetup",
+                    modifier = Modifier.width(width),
+                    src = SamplePicture,
+                    alt = "A portrait at sunset",
+                    badge = "24:10",
+                    progress = 0.35f,
+                    meta = listOf("Kim Minjun", "12K views · 3 days ago"),
+                    leading = { Avatar("Kim Minjun", src = SamplePicture) },
+                    action = { VideoMenu() },
+                    onClick = {},
+                )
+                MediaCard(
+                    title = "Hallasan at dawn",
+                    modifier = Modifier.width(width),
+                    src = BrokenPicture,
+                    alt = "Hallasan at dawn",
+                    badge = "8:31",
+                    meta = listOf("Lee Seoyeon", "2 weeks ago"),
+                    leading = { Avatar("Lee Seoyeon") },
+                    action = { VideoMenu() },
+                    onClick = {},
+                )
+            }
+        }
+        // As wide as a list beside a video would be, rather than the whole window.
+        val listWidth = Modifier.widthIn(max = 560.dp)
+        MediaCard(
+            title = "A short guide to color contrast, and why 4.5 to 1 is the number",
+            modifier = listWidth,
+            layout = MediaCardLayout.Horizontal,
+            src = SamplePicture,
+            alt = "A portrait at sunset",
+            badge = "6:12",
+            meta = listOf("Park Jihoon", "3.4K views"),
+            action = { VideoMenu() },
+            onClick = {},
+        )
+        MediaCard(
+            title = "Not pressable: the card has no fill and no padding of its own",
+            modifier = listWidth,
+            layout = MediaCardLayout.Horizontal,
+            src = SamplePicture,
+            alt = "A portrait at sunset",
+            ratio = ThumbnailRatio.Ratio1x1,
+            meta = listOf("Choi Yuna"),
+        )
+
+        // On its own, not over a group of content.
+        SectionHeader(
+            title = "Recommended for you",
+            description = "Based on what you watched this week.",
+            icon = IconName.Sparkles,
+            level = 3,
+        )
+    }
+}
+
+/** The menu a media card's action opens. */
+@Composable
+private fun VideoMenu() {
+    Menu(
+        label = "Video",
+        items = listOf(
+            MenuItem.Action("Save to a list", onSelect = {}, icon = IconName.ListPlus),
+            MenuItem.Action("Share", onSelect = {}, icon = IconName.Share2),
+            MenuItem.Separator,
+            MenuItem.Action("Not interested", onSelect = {}, icon = IconName.Ban),
+        ),
+        align = MenuAlign.End,
+    ) { open ->
+        IconButton(IconName.EllipsisVertical, "More actions", onClick = open, size = ControlSize.Sm)
+    }
+}
+
+// Plain text in a body takes the body's look; the second body holds a control as well.
+private val Questions = listOf(
+    AccordionItem("tokens", "Where do the colors come from?") {
+        Text("From the design tokens. Every component reads them, so a change to a token changes every client at once.")
+    },
+    AccordionItem("themes", "Can I change the accent color?", description = "Themes and ramps") {
+        Column(verticalArrangement = Arrangement.spacedBy(Space.s3)) {
+            Text("Make a theme with a new hue. Its ramps are generated, and the contrast of every pairing is checked on build.")
+            Button("Make a theme", onClick = {}, size = ControlSize.Sm, iconStart = IconName.Palette)
+        }
+    },
+    AccordionItem("fonts", "Why does the text look different on each platform?") {
+        Text("The font files are not bundled, so each platform draws text in its own default font.")
+    },
+)
+
+@Composable
+private fun AccordionSection() {
+    Section("Accordion") {
+        // One open at a time.
+        var single by remember { mutableStateOf(setOf("tokens")) }
+        Accordion(Questions, single, { single = it })
+        // Several open at once.
+        var several by remember { mutableStateOf(setOf("tokens", "themes")) }
+        Accordion(Questions, several, { several = it }, multiple = true)
+    }
+}
+
+@Composable
+private fun EmptyStateSection() {
+    Section("Empty state") {
+        Card {
+            EmptyState(
+                icon = IconName.Search,
+                title = "No results for “tokens”",
+                description = "Check the spelling, or search all files instead of this folder.",
+                action = { Button("Search all files", onClick = {}) },
+            )
+        }
+        EmptyState(
+            icon = IconName.BellOff,
+            title = "No notifications",
+            description = "When someone mentions you, it shows up here.",
+        )
     }
 }
 

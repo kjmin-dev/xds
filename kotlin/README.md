@@ -28,7 +28,7 @@ On Android and iOS, tap the button on the home screen to open the design preview
 | | Command |
 | --- | --- |
 | Unit tests | `./gradlew :ui:jvmTest` |
-| Render preview images | `./gradlew :ui:renderPreview` writes PNG snapshots to `build/preview`, each in light and dark modes: the full preview at phone width and at desktop width with pointer sizes; a phone screen with the bottom sheet, the menu's sheet, the dialog, or the toast open; a desktop window with the dialog or the toast open; and the full desktop-width preview with the menu's popup open |
+| Render preview images | `./gradlew :ui:renderPreview` writes PNG snapshots to `build/preview`, each in light and dark modes: the full preview at phone width and at desktop width with pointer sizes; a phone screen with the bottom sheet, the menu's sheet, the select's sheet, the dialog, or the toast open; a desktop window with the dialog or the toast open; and the full desktop-width preview with the menu's popup or the select's popup open |
 | Linux CI suite | `mise run check`: runs the unit tests, desktop compilation, and Android debug build |
 | macOS iOS build | `mise run check:ios` |
 
@@ -39,14 +39,14 @@ Verified on macOS with Kotlin 2.4.21, Compose Multiplatform 1.12.2, Android Grad
 | | Status |
 | --- | --- |
 | Tests | Pass on the JVM and against the Android library build |
-| Rendered images | Inspected at phone width and at desktop width in light and dark modes, and with the bottom sheet, the menu (sheet and popup), the dialog, and the toast open |
+| Rendered images | Inspected at phone width and at desktop width in light and dark modes, and with the bottom sheet, the menu (sheet and popup), the select's list (sheet and popup), the dialog, and the toast open |
 | Desktop | Runs on macOS; design preview checked in a window in both light and dark modes |
 | Android | `assembleDebug` builds. Run on an API 36 emulator: checked the home screen, the design preview in both modes, a switch, and the bottom sheet with its scrim, drag, and Back |
 | iOS | Builds for the simulator in Xcode. Run on an iPhone 17 simulator: checked the home screen and the design preview in both modes. Interactive controls were not tapped, so the bottom sheet has not been checked on iOS |
 | Focus rings | Checked in an off-screen render driven by simulated Tab key events rather than in a running app |
 | Not checked | Screen readers on any platform, physical devices, Windows and Linux, text fields with a real keyboard, and larger system text sizes |
 
-The interactive desktop, emulator, and simulator runs were performed before capsule buttons, the floating tab bar, and the inset bottom sheet were added, and before IconButton, Chip, ChipBar, Tabs, Menu, Dialog, Toast, Skeleton, and SearchField. Since those changes landed, the unit tests, rendered preview images, Android and desktop builds, and iOS framework linking have been re-run, but the apps have not been launched interactively again.
+The interactive desktop, emulator, and simulator runs were performed before capsule buttons, the floating tab bar, and the inset bottom sheet were added, and before IconButton, Chip, ChipBar, Tabs, Menu, Dialog, Toast, Skeleton, SearchField, RadioGroup, Select, Slider, Thumbnail, MediaCard, SectionHeader, EmptyState, and Accordion. Since those changes landed, the unit tests, rendered preview images, Android and desktop builds, and iOS framework linking have been re-run, but the apps have not been launched interactively again.
 
 ## Known limitations
 

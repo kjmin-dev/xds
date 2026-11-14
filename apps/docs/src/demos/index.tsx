@@ -3,6 +3,7 @@
 // the design system's stylesheet and the site's stay apart.
 
 import {
+  Accordion,
   Avatar,
   AvatarStack,
   Badge,
@@ -16,20 +17,29 @@ import {
   CountBadge,
   Dialog,
   Divider,
+  EmptyState,
   Icon,
   IconButton,
   type IconName,
   ListRow,
+  MediaCard,
   Menu,
   ProgressBar,
+  RadioGroup,
   SearchField,
+  SectionHeader,
   SegmentedControl,
+  Select,
+  Sidebar,
+  type SidebarSection,
   Skeleton,
+  Slider,
   Spinner,
   Switch,
   Tabs,
   Text,
   TextField,
+  Thumbnail,
   Toast,
   Tooltip,
 } from "@acme/ui";
@@ -778,6 +788,271 @@ function SearchFieldDemo() {
   );
 }
 
+const DELIVERY = [
+  { value: "standard", label: "Standard", description: "Three to five working days. Free." },
+  { value: "express", label: "Express", description: "The next working day. 9 euros." },
+  { value: "pickup", label: "Pick up in a store" },
+] as const;
+
+function RadioGroupDemo() {
+  const [delivery, setDelivery] = useState<(typeof DELIVERY)[number]["value"]>("standard");
+  const [size, setSize] = useState<string>();
+  return (
+    <div className="grid gap-6 sm:grid-cols-3">
+      <RadioGroup label="Delivery" options={DELIVERY} value={delivery} onChange={setDelivery} />
+      <RadioGroup
+        label="Size"
+        options={[
+          { value: "s", label: "Small" },
+          { value: "m", label: "Medium" },
+          { value: "l", label: "Large" },
+        ]}
+        value={size}
+        onChange={setSize}
+        {...(size === undefined ? { error: "Choose a size to continue." } : {})}
+      />
+      <RadioGroup label="Locked" options={DELIVERY} value="express" onChange={() => {}} disabled />
+    </div>
+  );
+}
+
+function SelectDemo() {
+  const [plan, setPlan] = useState<string>("team");
+  const [country, setCountry] = useState<string>();
+  return (
+    // Tall enough for the open list, which would otherwise be cut off by the frame.
+    <div className="grid min-h-80 content-start gap-4 sm:grid-cols-2">
+      <Select
+        label="Plan"
+        options={[
+          { value: "free", label: "Free", description: "Up to 3 projects" },
+          { value: "team", label: "Team", description: "Up to 20 people" },
+          { value: "business", label: "Business", description: "Single sign-on and audit logs" },
+        ]}
+        value={plan}
+        onChange={setPlan}
+        description="Change it at any time."
+      />
+      <Select
+        label="Country"
+        placeholder="Choose a country"
+        options={["France", "Germany", "Japan", "Korea", "Spain"].map((name) => ({
+          value: name.toLowerCase(),
+          label: name,
+        }))}
+        value={country}
+        onChange={setCountry}
+        {...(country === undefined ? { error: "Choose the country of the invoice." } : {})}
+      />
+      <Select
+        label="Currency"
+        options={[{ value: "eur", label: "Euro" }]}
+        value="eur"
+        onChange={() => {}}
+        disabled
+      />
+    </div>
+  );
+}
+
+function SliderDemo() {
+  const [volume, setVolume] = useState(60);
+  const [size, setSize] = useState(16);
+  return (
+    <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+      <Slider label="Volume" value={volume} onChange={setVolume} showValue />
+      <Slider
+        label="Font size"
+        min={12}
+        max={24}
+        step={2}
+        value={size}
+        onChange={setSize}
+        showValue
+      />
+      <Slider label="Brightness" value={volume} onChange={setVolume} />
+      <Slider label="Locked" value={30} onChange={() => {}} disabled showValue />
+    </div>
+  );
+}
+
+function ThumbnailDemo() {
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <Thumbnail src={NIGHT} alt="A mountain at night" badge="12:04" />
+      <Thumbnail src={NIGHT} alt="" progress={0.35} />
+      <Thumbnail src={PORTRAIT} alt="" ratio="1:1" badge="3:27" progress={0.8} />
+      {/* A picture that fails to load leaves the placeholder. */}
+      <Thumbnail src={BROKEN} alt="A picture that fails to load" ratio="4:3" />
+    </div>
+  );
+}
+
+function MediaCardDemo() {
+  const [opened, setOpened] = useState("Nothing opened yet.");
+  const actions = (title: string) => (
+    <Menu
+      label={`Actions for ${title}`}
+      align="end"
+      trigger={<IconButton icon="ellipsis-vertical" label="More actions" />}
+      items={[
+        {
+          label: "Save to watch later",
+          icon: "clock",
+          onSelect: () => setOpened(`Saved ${title}.`),
+        },
+        { label: "Share", icon: "share-2", onSelect: () => setOpened(`Shared ${title}.`) },
+      ]}
+    />
+  );
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="grid items-start gap-2 sm:grid-cols-2">
+        <MediaCard
+          src={NIGHT}
+          title="Night hike above the city: four hours, twelve kilometres and one long staircase"
+          meta={["Ada Lovelace", "12K views · 3 days ago"]}
+          badge="12:04"
+          progress={0.35}
+          leading={<Avatar name="Ada Lovelace" src={PORTRAIT} />}
+          action={actions("Night hike")}
+          onPress={() => setOpened("Opened Night hike.")}
+        />
+        <MediaCard
+          layout="horizontal"
+          src={NIGHT}
+          title="Ten small changes that make a report easier to read"
+          meta={["Grace Hopper", "5 min read"]}
+          badge="5:12"
+          action={actions("Ten small changes")}
+          onPress={() => setOpened("Opened Ten small changes.")}
+        />
+      </div>
+      <Text variant="detail" tone="secondary">
+        {opened}
+      </Text>
+    </div>
+  );
+}
+
+function SectionHeaderDemo() {
+  return (
+    <div className="flex flex-col gap-6">
+      <SectionHeader
+        title="Continue watching"
+        description="Pick up where you left off."
+        action={{ label: "See all", onPress: () => {} }}
+      />
+      <SectionHeader icon="history" title="Recently viewed" level={3} />
+    </div>
+  );
+}
+
+function EmptyStateDemo() {
+  return (
+    <Card>
+      <EmptyState
+        icon="mail"
+        title="No messages yet"
+        description="When someone writes to you, the conversation shows up here."
+        action={
+          <Button variant="primary" iconStart="plus">
+            New message
+          </Button>
+        }
+      />
+    </Card>
+  );
+}
+
+function AccordionDemo() {
+  const [open, setOpen] = useState<string[]>(["seats"]);
+  return (
+    <Column>
+      <Accordion
+        items={[
+          {
+            value: "cancel",
+            title: "Can I cancel at any time?",
+            content: "Yes. The plan stays active until the end of the period you paid for.",
+          },
+          {
+            value: "seats",
+            title: "How are seats counted?",
+            description: "Guests are free",
+            content: "Each person with an account in the workspace takes a seat. Guests do not.",
+          },
+          {
+            value: "invoice",
+            title: "Where do I find my invoices?",
+            content: "Under Settings, then Billing.",
+          },
+        ]}
+        expanded={open}
+        onChange={setOpen}
+      />
+    </Column>
+  );
+}
+
+// Icons made of closed shapes, since the current place's icon is filled.
+const PLACES: SidebarSection[] = [
+  {
+    items: [
+      { value: "home", label: "Home", icon: "house" },
+      { value: "messages", label: "Messages", icon: "message-square", count: 12 },
+      { value: "activity", label: "Activity", icon: "bell", count: 3 },
+    ],
+  },
+  {
+    title: "Library",
+    items: [
+      { value: "saved", label: "Saved", icon: "bookmark", count: 128 },
+      { value: "starred", label: "Starred", icon: "star" },
+    ],
+  },
+];
+
+function SidebarDemo() {
+  const [place, setPlace] = useState("messages");
+  return (
+    <div className="flex flex-wrap gap-4">
+      {[false, true].map((collapsed) => (
+        // A fixed height, as a window would give it, so the footer sits at the bottom.
+        <div
+          key={String(collapsed)}
+          className="flex h-80 overflow-hidden rounded-acme-md border border-acme-border-default"
+        >
+          <Sidebar
+            label={collapsed ? "Main, collapsed" : "Main"}
+            sections={PLACES}
+            value={place}
+            onChange={setPlace}
+            collapsed={collapsed}
+            footer={
+              <div
+                className={`flex items-center gap-2 py-1 ${collapsed ? "justify-center" : "px-2"}`}
+              >
+                <Avatar name="Ada Lovelace" src={PORTRAIT} size="sm" />
+                {!collapsed && (
+                  <Text variant="detail" as="span">
+                    Ada Lovelace
+                  </Text>
+                )}
+              </div>
+            }
+          />
+          <div className="w-32 p-4">
+            <Text variant="detail" tone="secondary" as="span">
+              {place}
+            </Text>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const DEMOS = {
   button: ButtonDemo,
   "text-field": TextFieldDemo,
@@ -806,6 +1081,15 @@ const DEMOS = {
   tooltip: TooltipDemo,
   skeleton: SkeletonDemo,
   "search-field": SearchFieldDemo,
+  "radio-group": RadioGroupDemo,
+  select: SelectDemo,
+  slider: SliderDemo,
+  thumbnail: ThumbnailDemo,
+  "media-card": MediaCardDemo,
+  "section-header": SectionHeaderDemo,
+  "empty-state": EmptyStateDemo,
+  accordion: AccordionDemo,
+  sidebar: SidebarDemo,
 } as const;
 
 export type DemoName = keyof typeof DEMOS;

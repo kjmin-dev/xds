@@ -2,6 +2,7 @@ package acme.ui
 
 import acme.tokens.Motion
 import acme.tokens.Space
+import acme.tokens.Typography
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -78,6 +79,6 @@ fun Switch(
                     .background(if (enabled) colors.switchThumb else colors.switchDisabledThumb, CircleShape),
             )
         }
-        if (label != null) Text(label, tone = if (enabled) TextTone.Primary else TextTone.Secondary)
+        if (label != null) Text(label, style = Typography.body, tone = if (enabled) TextTone.Primary else TextTone.Secondary)
     }
 }

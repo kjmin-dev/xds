@@ -16,6 +16,7 @@ use gpui_kit::component::{
     Disableable,
     input::{InputState, TextareaState},
 };
+use gpui_kit::prelude::FluentBuilder;
 use gpui_kit::{
     App, AppContext, Bounds, ClickEvent, Context, Div, Entity, Image, ImageFormat,
     InteractiveElement, IntoElement, ObjectFit, ParentElement, Pixels, Render, Role, ScrollHandle,
@@ -24,16 +25,18 @@ use gpui_kit::{
 };
 
 use crate::{
-    Avatar, AvatarSize, AvatarStack, Badge, BadgeTone, Banner, BannerTone, ButtonVariant, Chip,
-    ChipBar, ControlSize, CountBadge, Dialog, IconSize, ListRow, Menu, MenuAlign, MenuItem, Person,
-    ProgressBar, SearchField, SegmentedControl, Skeleton, SkeletonShape, SpinnerSize, TabItem,
-    Tabs, TextField, Toast, TooltipPlacement, TypographyExt, button, card, checkbox, color,
-    divider, icon, icon_button, icon_filled, mode, palette, set_mode, spinner, switch, text,
-    tooltip,
+    Accordion, AccordionItem, Avatar, AvatarSize, AvatarStack, Badge, BadgeTone, Banner,
+    BannerTone, ButtonVariant, Chip, ChipBar, ControlSize, CountBadge, Dialog, EmptyState,
+    IconSize, ListRow, MediaCard, MediaCardLayout, Menu, MenuAlign, MenuItem, Person, ProgressBar,
+    RadioGroup, RadioOption, SearchField, SectionHeader, SegmentedControl, Select, SelectOption,
+    Sidebar, SidebarItem, SidebarSection, Skeleton, SkeletonShape, Slider, SpinnerSize, TabItem,
+    Tabs, TextField, Thumbnail, ThumbnailRatio, Toast, TooltipPlacement, TypographyExt, button,
+    card, checkbox, color, divider, icon, icon_button, icon_filled, mode, palette, set_mode,
+    spinner, switch, text, tooltip,
 };
 
 /// Component colors are shown by the components that use them, not as swatches.
-const COMPONENT_COLORS: [&str; 21] = [
+const COMPONENT_COLORS: [&str; 27] = [
     "button-",
     "field-",
     "badge-",
@@ -55,6 +58,12 @@ const COMPONENT_COLORS: [&str; 21] = [
     "toast-",
     "tooltip-",
     "skeleton-",
+    "radio-",
+    "slider-",
+    "thumbnail-",
+    "sidebar-",
+    "empty-state-",
+    "accordion-",
 ];
 
 /// An overlay the preview shows open from the start, for a script that takes screenshots and
@@ -62,6 +71,7 @@ const COMPONENT_COLORS: [&str; 21] = [
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PreviewOverlay {
     Menu,
+    Select,
     Dialog,
     Toast,
     Tooltip,
@@ -73,14 +83,148 @@ impl FromStr for PreviewOverlay {
     fn from_str(name: &str) -> Result<Self, Self::Err> {
         match name {
             "menu" => Ok(Self::Menu),
+            "select" => Ok(Self::Select),
             "dialog" => Ok(Self::Dialog),
             "toast" => Ok(Self::Toast),
             "tooltip" => Ok(Self::Tooltip),
             _ => Err(format!(
-                "there is no overlay called `{name}`: use menu, dialog, toast or tooltip"
+                "there is no overlay called `{name}`: use menu, select, dialog, toast or tooltip"
             )),
         }
     }
+}
+
+const BILLING: [(&str, &str, &str); 3] = [
+    ("monthly", "Monthly", "Pay as you go, and stop at any time."),
+    ("yearly", "Yearly", "Two months free, paid once a year."),
+    ("team", "Team", "Five people or more, paid per seat."),
+];
+
+const DELIVERY: [(&str, &str); 3] = [
+    ("standard", "Standard"),
+    ("express", "Express"),
+    ("pickup", "Pick up in store"),
+];
+
+const COUNTRIES: [(&str, &str); 6] = [
+    ("br", "Brazil"),
+    ("ca", "Canada"),
+    ("fr", "France"),
+    ("de", "Germany"),
+    ("jp", "Japan"),
+    ("kr", "South Korea"),
+];
+
+/// More than the list shows at once, so it scrolls, with the chosen one near the end.
+const TIME_ZONES: [(&str, &str, &str); 12] = [
+    ("honolulu", "Honolulu", "UTC−10"),
+    ("los-angeles", "Los Angeles", "UTC−8"),
+    ("denver", "Denver", "UTC−7"),
+    ("chicago", "Chicago", "UTC−6"),
+    ("new-york", "New York", "UTC−5"),
+    ("sao-paulo", "São Paulo", "UTC−3"),
+    ("london", "London", "UTC+0"),
+    ("berlin", "Berlin", "UTC+1"),
+    ("dubai", "Dubai", "UTC+4"),
+    ("delhi", "Delhi", "UTC+5:30"),
+    ("seoul", "Seoul", "UTC+9"),
+    ("sydney", "Sydney", "UTC+10"),
+];
+
+const LANGUAGES: [(&str, &str); 4] = [
+    ("en", "English"),
+    ("ko", "한국어"),
+    ("ja", "日本語"),
+    ("de", "Deutsch"),
+];
+
+const QUESTIONS: [(&str, &str, &str); 3] = [
+    (
+        "cancel",
+        "Can I cancel at any time?",
+        "Yes. Your plan stays active until the end of the period you paid for, and nothing is charged after that.",
+    ),
+    (
+        "devices",
+        "How many devices can I use?",
+        "Up to five at once. Signing in on a sixth signs out the one used least recently.",
+    ),
+    (
+        "offline",
+        "Can I watch offline?",
+        "Download a video from its menu, and it stays on the device for thirty days.",
+    ),
+];
+
+const SETTINGS: [(&str, &str, &str, &str); 3] = [
+    (
+        "playback",
+        "Playback",
+        "Autoplay and quality",
+        "Autoplay starts the next video when one ends. Quality follows the connection unless it is set here.",
+    ),
+    (
+        "captions",
+        "Captions",
+        "Shown for every video",
+        "Captions are drawn in the language of the app when the video has them.",
+    ),
+    (
+        "privacy",
+        "Privacy",
+        "History is kept",
+        "What you watch is kept for recommendations. Pause the history to stop it.",
+    ),
+];
+
+/// A place of the sidebar: the value, the label, the icon and a count.
+type Place = (&'static str, &'static str, tokens::Icon, i64);
+
+/// The places of the sidebar, in sections under an optional title.
+const PLACES: [(Option<&str>, &[Place]); 3] = [
+    (
+        None,
+        &[
+            ("home", "Home", tokens::Icon::House, 0),
+            ("explore", "Explore", tokens::Icon::Compass, 0),
+            (
+                "subscriptions",
+                "Subscriptions",
+                tokens::Icon::ListVideo,
+                12,
+            ),
+        ],
+    ),
+    (
+        Some("Library"),
+        &[
+            ("history", "History", tokens::Icon::History, 0),
+            ("later", "Watch later", tokens::Icon::Clock, 4),
+            ("liked", "Liked videos", tokens::Icon::ThumbsUp, 128),
+        ],
+    ),
+    (
+        Some("More"),
+        &[
+            ("settings", "Settings", tokens::Icon::Settings, 0),
+            ("help", "Help", tokens::Icon::CircleHelp, 0),
+        ],
+    ),
+];
+
+fn places() -> Vec<SidebarSection> {
+    PLACES
+        .iter()
+        .map(|(title, items)| {
+            let section = SidebarSection::new(items.iter().map(|(value, label, glyph, count)| {
+                SidebarItem::new(*value, *label, *glyph).count(*count)
+            }));
+            match title {
+                Some(title) => section.title(*title),
+                None => section,
+            }
+        })
+        .collect()
 }
 
 const FILTERS: [(&str, &str, tokens::Icon); 7] = [
@@ -242,6 +386,16 @@ pub struct DesignPreview {
     copy_name: Entity<InputState>,
     toast_open: bool,
     draft_deleted: bool,
+    billing: SharedString,
+    delivery: Option<SharedString>,
+    country: Option<SharedString>,
+    time_zone: SharedString,
+    volume: f32,
+    speed: f32,
+    faq: Vec<SharedString>,
+    settings_open: Vec<SharedString>,
+    place: SharedString,
+    opened: SharedString,
     /// The overlay a script asked to see open. See `open_scripted`.
     overlay: Option<PreviewOverlay>,
     /// How far down the page the control of that overlay was drawn, for a script that did not
@@ -328,6 +482,16 @@ impl DesignPreview {
             copy_name,
             toast_open: false,
             draft_deleted: true,
+            billing: "yearly".into(),
+            delivery: None,
+            country: None,
+            time_zone: "seoul".into(),
+            volume: 60.0,
+            speed: 1.25,
+            faq: vec!["cancel".into()],
+            settings_open: vec!["playback".into(), "captions".into()],
+            place: "home".into(),
+            opened: "Press a card.".into(),
             overlay: None,
             overlay_top: Rc::new(Cell::new(None)),
             find_overlay: false,
@@ -348,9 +512,9 @@ impl DesignPreview {
         Self::open_scripted(offset, None, cx);
     }
 
-    /// Opens the preview scrolled `offset` pixels down, with `overlay` open. A menu and a
-    /// tooltip open beside their control, so without an offset the preview starts at that
-    /// control. A toast opened this way stays until it is closed, so a capture does not race
+    /// Opens the preview scrolled `offset` pixels down, with `overlay` open. A menu, a select's
+    /// list and a tooltip open beside their control, so without an offset the preview starts at
+    /// that control. A toast opened this way stays until it is closed, so a capture does not race
     /// its timer.
     pub fn open_scripted(offset: f32, overlay: Option<PreviewOverlay>, cx: &mut App) {
         let options = WindowOptions {
@@ -371,7 +535,9 @@ impl DesignPreview {
                 preview.find_overlay = preview.start_at.is_none()
                     && matches!(
                         overlay,
-                        Some(PreviewOverlay::Menu | PreviewOverlay::Tooltip)
+                        Some(
+                            PreviewOverlay::Menu | PreviewOverlay::Select | PreviewOverlay::Tooltip
+                        )
                     );
                 preview
             })
@@ -887,6 +1053,339 @@ impl Render for DesignPreview {
                 cx.notify();
             })
         };
+
+        let delivery = || DELIVERY.map(|(value, label)| RadioOption::new(value, label));
+        let radio_groups = labelled("radio", secondary)
+            .items_start()
+            .child(
+                div().w(px(280.0)).child(
+                    RadioGroup::new(
+                        "billing",
+                        "Billing",
+                        BILLING.map(|(value, label, terms)| {
+                            RadioOption::new(value, label).description(terms)
+                        }),
+                    )
+                    .value(self.billing.clone())
+                    .on_change(cx.listener(
+                        |this, value: &SharedString, _, cx| {
+                            this.billing = value.clone();
+                            cx.notify();
+                        },
+                    )),
+                ),
+            )
+            .child(
+                div().w(px(220.0)).child(
+                    RadioGroup::new("delivery", "Delivery", delivery())
+                        .when_some(self.delivery.clone(), |group, value| group.value(value))
+                        .error(
+                            self.delivery
+                                .is_none()
+                                .then_some("Choose how the order reaches you."),
+                        )
+                        .on_change(cx.listener(|this, value: &SharedString, _, cx| {
+                            this.delivery = Some(value.clone());
+                            cx.notify();
+                        })),
+                ),
+            )
+            .child(
+                div().w(px(180.0)).child(
+                    RadioGroup::new("delivery-locked", "Delivery, locked", delivery())
+                        .value("express")
+                        .disabled(true),
+                ),
+            );
+
+        let field = |select: Select| div().w(px(300.0)).child(select);
+        let countries = || COUNTRIES.map(|(value, label)| SelectOption::new(value, label));
+        let selects = self.mark_overlay(
+            PreviewOverlay::Select,
+            labelled("select", secondary).items_start().child(
+                div()
+                    .flex_1()
+                    .flex()
+                    .flex_wrap()
+                    .gap(px(tokens::SPACE_4))
+                    .child(field(
+                        Select::new(
+                            "time-zone",
+                            "Time zone",
+                            TIME_ZONES.map(|(value, label, offset)| {
+                                SelectOption::new(value, label).description(offset)
+                            }),
+                        )
+                        .value(self.time_zone.clone())
+                        .description("Reminders follow it.")
+                        .default_open(self.overlay == Some(PreviewOverlay::Select))
+                        .on_change(cx.listener(
+                            |this, value: &SharedString, _, cx| {
+                                this.time_zone = value.clone();
+                                cx.notify();
+                            },
+                        )),
+                    ))
+                    .child(field(
+                        Select::new("country", "Country", countries())
+                            .placeholder("Choose a country")
+                            .when_some(self.country.clone(), |select, value| select.value(value))
+                            .on_change(cx.listener(|this, value: &SharedString, _, cx| {
+                                this.country = Some(value.clone());
+                                cx.notify();
+                            })),
+                    ))
+                    .child(field(
+                        Select::new(
+                            "language",
+                            "Language",
+                            LANGUAGES.map(|(value, label)| SelectOption::new(value, label)),
+                        )
+                        .placeholder("Choose a language")
+                        .error(Some("Choose the language of the app.")),
+                    ))
+                    .child(field(
+                        Select::new("region", "Region", countries())
+                            .value("kr")
+                            .description("Set by your organization.")
+                            .disabled(true),
+                    )),
+            ),
+        );
+        let sliders = labelled("slider", secondary)
+            .items_start()
+            .child(
+                div().w(px(240.0)).child(
+                    Slider::new("volume", "Volume", self.volume)
+                        .show_value(true)
+                        .on_change(cx.listener(|this, value: &f32, _, cx| {
+                            this.volume = *value;
+                            cx.notify();
+                        })),
+                ),
+            )
+            .child(
+                div().w(px(240.0)).child(
+                    Slider::new("speed", "Playback speed", self.speed)
+                        .min(0.5)
+                        .max(2.0)
+                        .step(0.25)
+                        .show_value(true)
+                        .on_change(cx.listener(|this, value: &f32, _, cx| {
+                            this.speed = *value;
+                            cx.notify();
+                        })),
+                ),
+            )
+            .child(
+                div().w(px(240.0)).child(
+                    Slider::new("brightness", "Brightness", 40.0)
+                        .show_value(true)
+                        .disabled(true),
+                ),
+            );
+
+        let picture = self.landscape.clone();
+        let shot = |width: f32, caption: &'static str, thumbnail: Thumbnail| {
+            div()
+                .flex()
+                .flex_col()
+                .gap(px(tokens::SPACE_1))
+                .w(px(width))
+                .child(thumbnail)
+                .child(text(caption, tokens::TYPOGRAPHY_FOOTNOTE).text_color(color(secondary)))
+        };
+        let ratios = labelled("ratio", secondary)
+            .items_start()
+            .child(shot(
+                176.0,
+                "16:9",
+                Thumbnail::new("thumb-16x9")
+                    .src(picture.clone())
+                    .alt("Hills under a morning sun"),
+            ))
+            .child(shot(
+                132.0,
+                "4:3",
+                Thumbnail::new("thumb-4x3")
+                    .src(picture.clone())
+                    .ratio(ThumbnailRatio::Ratio4x3),
+            ))
+            .child(shot(
+                100.0,
+                "1:1",
+                Thumbnail::new("thumb-1x1")
+                    .src(self.portrait.clone())
+                    .ratio(ThumbnailRatio::Ratio1x1),
+            ))
+            .child(shot(
+                90.0,
+                "9:16",
+                Thumbnail::new("thumb-9x16")
+                    .src(picture.clone())
+                    .ratio(ThumbnailRatio::Ratio9x16),
+            ));
+        let thumbnail_states = labelled("state", secondary)
+            .items_start()
+            .child(shot(
+                176.0,
+                "a picture that fails",
+                // No such file: the place and its mark stay.
+                Thumbnail::new("thumb-missing").src(PathBuf::from("/acme/missing/thumbnail.png")),
+            ))
+            .child(shot(
+                176.0,
+                "badge",
+                Thumbnail::new("thumb-badge")
+                    .src(picture.clone())
+                    .badge("12:04"),
+            ))
+            .child(shot(
+                176.0,
+                "progress",
+                Thumbnail::new("thumb-progress")
+                    .src(picture.clone())
+                    .progress(0.35),
+            ))
+            .child(shot(
+                176.0,
+                "badge and progress",
+                Thumbnail::new("thumb-both")
+                    .src(picture.clone())
+                    .badge("1:02:45")
+                    .progress(0.8),
+            ));
+        let card_menu = |id: &'static str, title: &'static str| {
+            Menu::new(id, format!("More actions for {title}"))
+                .align(MenuAlign::End)
+                .trigger(
+                    icon_button(
+                        format!("{id}-trigger"),
+                        tokens::Icon::EllipsisVertical,
+                        "More actions",
+                        cx,
+                    )
+                    .control_size(ControlSize::Sm),
+                )
+                .item(MenuItem::new("Save to Watch later").icon(tokens::Icon::Clock))
+                .item(MenuItem::new("Share").icon(tokens::Icon::Share2))
+                .separator()
+                .item(MenuItem::new("Not interested").icon(tokens::Icon::Ban))
+        };
+        let open_card = |title: &'static str| {
+            cx.listener(move |this: &mut Self, _: &ClickEvent, _, cx| {
+                this.opened = format!("Opened “{title}”.").into();
+                cx.notify();
+            })
+        };
+        let media_cards = row()
+            .items_start()
+            .gap(px(tokens::SPACE_4))
+            .child(
+                div().w(px(280.0)).child(
+                    MediaCard::new(
+                        "card-hike",
+                        "A night hike to the summit: what to pack, and where to stop for the view",
+                    )
+                    .src(picture.clone())
+                    .badge("12:04")
+                    .progress(0.35)
+                    .meta(["Acme Outdoors", "48K views · 3 days ago"])
+                    .leading(Avatar::new("Acme Outdoors").src(self.portrait.clone()))
+                    .action(card_menu("card-hike-menu", "the night hike"))
+                    .on_press(open_card("A night hike to the summit")),
+                ),
+            )
+            .child(
+                div().w(px(460.0)).child(
+                    MediaCard::new("card-bread", "Bread at home, in four steps")
+                        .layout(MediaCardLayout::Horizontal)
+                        .src(picture.clone())
+                        .badge("8:30")
+                        .meta(["Grace Bakes", "2 weeks ago"])
+                        .action(card_menu("card-bread-menu", "bread at home"))
+                        .on_press(open_card("Bread at home")),
+                ),
+            );
+
+        let on_place = Rc::new(cx.listener(|this, value: &SharedString, _, cx| {
+            this.place = value.clone();
+            cx.notify();
+        }));
+        let brand = || {
+            div()
+                .flex()
+                .flex_none()
+                .items_center()
+                .justify_center()
+                .size(px(tokens::POINTER.avatar_sm))
+                .rounded(px(tokens::RADIUS_SM))
+                .bg(color(colors.accent_default))
+                .text_color(color(colors.text_on_accent))
+                .child(icon_filled(tokens::Icon::Play, IconSize::Xs))
+        };
+        let sidebar = |id: &'static str, collapsed: bool| {
+            let on_place = on_place.clone();
+            let (header, footer) = if collapsed {
+                (
+                    div().flex().justify_center().w_full().child(brand()),
+                    div().flex().justify_center().w_full().child(
+                        Avatar::new("Ada Lovelace")
+                            .size(AvatarSize::Sm)
+                            .src(self.portrait.clone()),
+                    ),
+                )
+            } else {
+                (
+                    div()
+                        .flex()
+                        .items_center()
+                        .gap(px(tokens::SPACE_2))
+                        .px(px(tokens::SPACE_2))
+                        .child(brand())
+                        .child(text("Acme", tokens::TYPOGRAPHY_LABEL)),
+                    div()
+                        .flex()
+                        .items_center()
+                        .gap(px(tokens::SPACE_2))
+                        .px(px(tokens::SPACE_2))
+                        .child(
+                            Avatar::new("Ada Lovelace")
+                                .size(AvatarSize::Sm)
+                                .src(self.portrait.clone()),
+                        )
+                        .child(text("Ada Lovelace", tokens::TYPOGRAPHY_DETAIL)),
+                )
+            };
+            Sidebar::new(id, "Places", places())
+                .value(self.place.clone())
+                .collapsed(collapsed)
+                .header(header.h(px(tokens::POINTER.list_row_compact)))
+                .footer(footer.h(px(tokens::POINTER.list_row_compact)))
+                .on_change(move |value, window, cx| on_place(value, window, cx))
+        };
+        let place = PLACES
+            .iter()
+            .flat_map(|(_, items)| items.iter())
+            .find(|(value, ..)| self.place.as_ref() == *value)
+            .map_or("", |(_, label, ..)| label);
+        let in_frame = |sidebar: Sidebar, width: f32| {
+            div()
+                .flex()
+                .h(px(420.0))
+                .w(px(width))
+                .rounded(px(tokens::RADIUS_MD))
+                .border(px(tokens::BORDER_WIDTH_THIN))
+                .border_color(color(colors.border_default))
+                .overflow_hidden()
+                .child(sidebar)
+                .child(
+                    div()
+                        .flex_1()
+                        .p(px(tokens::SPACE_4))
+                        .child(text(place, tokens::TYPOGRAPHY_HEADING)),
+                )
+        };
         let report_menu = Menu::new("report-menu", "Report actions")
             .trigger(
                 button(
@@ -1247,6 +1746,7 @@ impl Render for DesignPreview {
                     .children(search_fields)
                     .child(text(searched, tokens::TYPOGRAPHY_DETAIL).text_color(color(secondary))),
             )
+            .child(section("Controls").child(selects).child(sliders))
             .child(
                 section("Selection")
                     .child(
@@ -1288,7 +1788,8 @@ impl Render for DesignPreview {
                                     cx.notify();
                                 })),
                         ),
-                    ),
+                    )
+                    .child(radio_groups),
             )
             .child(
                 section("Chips").child(state_chips).child(
@@ -1706,6 +2207,99 @@ impl Render for DesignPreview {
                                 ),
                         ),
                     ),
+            )
+            .child(
+                section("Media")
+                    .child(
+                        SectionHeader::new("media-header", "Continue watching")
+                            .action("See all", |_, _, _| {}),
+                    )
+                    .child(ratios)
+                    .child(thumbnail_states)
+                    .child(media_cards)
+                    .child(
+                        text(self.opened.clone(), tokens::TYPOGRAPHY_DETAIL)
+                            .text_color(color(secondary)),
+                    )
+                    .child(
+                        labelled("header", secondary).child(
+                            div().flex_1().child(
+                                SectionHeader::new("header-recommended", "Recommended for you")
+                                    .icon(tokens::Icon::Sparkles)
+                                    .description("Picked from what you watched this week.")
+                                    .action("See all", |_, _, _| {})
+                                    .level(3),
+                            ),
+                        ),
+                    ),
+            )
+            .child(
+                section("Empty state").child(
+                    card(cx).child(
+                        EmptyState::new(tokens::Icon::Search, "No results")
+                            .description(
+                                "Nothing matches “night hikes”. Check the spelling, or search for something else.",
+                            )
+                            .action(button(
+                                "empty-clear",
+                                "Clear the search",
+                                ButtonVariant::Secondary,
+                                ControlSize::Md,
+                                cx,
+                            )),
+                    ),
+                ),
+            )
+            .child(
+                section("Accordion")
+                    .child(
+                        labelled("single", secondary).items_start().child(
+                            div().flex_1().max_w(px(560.0)).child(
+                                Accordion::new(
+                                    "questions",
+                                    QUESTIONS.map(|(value, title, answer)| {
+                                        AccordionItem::new(value, title, answer)
+                                    }),
+                                )
+                                .expanded(self.faq.clone())
+                                .on_change(cx.listener(
+                                    |this, open: &[SharedString], _, cx| {
+                                        this.faq = open.to_vec();
+                                        cx.notify();
+                                    },
+                                )),
+                            ),
+                        ),
+                    )
+                    .child(
+                        labelled("multiple", secondary).items_start().child(
+                            div().flex_1().max_w(px(560.0)).child(
+                                Accordion::new(
+                                    "settings",
+                                    SETTINGS.map(|(value, title, summary, body)| {
+                                        AccordionItem::new(value, title, body).description(summary)
+                                    }),
+                                )
+                                .multiple(true)
+                                .expanded(self.settings_open.clone())
+                                .on_change(cx.listener(
+                                    |this, open: &[SharedString], _, cx| {
+                                        this.settings_open = open.to_vec();
+                                        cx.notify();
+                                    },
+                                )),
+                            ),
+                        ),
+                    ),
+            )
+            .child(
+                section("Sidebar").child(
+                    row()
+                        .items_start()
+                        .gap(px(tokens::SPACE_4))
+                        .child(in_frame(sidebar("sidebar-open", false), 460.0))
+                        .child(in_frame(sidebar("sidebar-rail", true), 280.0)),
+                ),
             );
 
         div()
@@ -1726,6 +2320,7 @@ mod tests {
     #[test]
     fn an_overlay_is_named_as_on_the_web() {
         assert_eq!("menu".parse(), Ok(PreviewOverlay::Menu));
+        assert_eq!("select".parse(), Ok(PreviewOverlay::Select));
         assert_eq!("dialog".parse(), Ok(PreviewOverlay::Dialog));
         assert_eq!("toast".parse(), Ok(PreviewOverlay::Toast));
         assert_eq!("tooltip".parse(), Ok(PreviewOverlay::Tooltip));
@@ -1736,7 +2331,19 @@ mod tests {
     fn every_component_color_is_left_out_of_the_swatches() {
         let colors = acme_tokens::colors(acme_tokens::Mode::Light);
         for group in [
-            "chip", "tabs", "menu", "dialog", "toast", "tooltip", "skeleton",
+            "chip",
+            "tabs",
+            "menu",
+            "dialog",
+            "toast",
+            "tooltip",
+            "skeleton",
+            "radio",
+            "slider",
+            "thumbnail",
+            "sidebar",
+            "empty-state",
+            "accordion",
         ] {
             let names = colors
                 .entries()

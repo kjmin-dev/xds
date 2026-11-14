@@ -76,13 +76,13 @@ Inspect the design preview in both light and dark modes after making visual chan
 | Client | How to open the preview |
 | --- | --- |
 <!-- @if web-react -->
-| Web | Open `http://localhost:5173/design#buttons` while the web dev server is running. Each section has an anchor, `?theme=light` or `?theme=dark` pins the color mode, and `?open=menu`, `dialog`, `toast`, or `tooltip` opens that overlay |
+| Web | Open `http://localhost:5173/design#buttons` while the web dev server is running. Each section has an anchor, `?theme=light` or `?theme=dark` pins the color mode, and `?open=menu`, `select`, `dialog`, `toast`, or `tooltip` opens that overlay |
 <!-- @endif -->
 <!-- @if desktop-gpui -->
-| Desktop | Run `mise run //desktop:design`. Pass `--light` or `--dark` to pin the mode, `--scroll <pixels>` to open at a vertical offset, and `--open menu`, `dialog`, `toast`, or `tooltip` to open with that overlay showing |
+| Desktop | Run `mise run //desktop:design`. Pass `--light` or `--dark` to pin the mode, `--scroll <pixels>` to open at a vertical offset, and `--open menu`, `select`, `dialog`, `toast`, or `tooltip` to open with that overlay showing |
 <!-- @endif -->
 <!-- @if mobile-react-native -->
-| Mobile | Tap the preview button on the home screen, or navigate to the design route with `?from=<section number>`, `?sheet=1`, `?menu=1`, `?dialog=1`, or `?toast=1` |
+| Mobile | Tap the preview button on the home screen, or navigate to the design route with `?from=<section number>`, `?sheet=1`, `?menu=1`, `?select=1`, `?dialog=1`, or `?toast=1` |
 <!-- @endif -->
 <!-- @if kotlin-compose -->
 | Compose | Run `mise run //kotlin:render` to render PNG screenshots into `kotlin/build/preview`, or `mise run //kotlin:design` to open the interactive preview window |

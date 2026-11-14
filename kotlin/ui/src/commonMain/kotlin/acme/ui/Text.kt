@@ -20,7 +20,7 @@ enum class TextTone {
     Success,
     Warning,
 
-    /** The color of the component the text is in: see [LocalContentColor]. */
+    /** The color of the component the text is in, or primary: see [LocalContentColor]. The default. */
     Inherit,
 }
 
@@ -42,15 +42,18 @@ private fun toneColor(colors: Colors, tone: TextTone): Color = when (tone) {
  * outside Android 13 and later.
  *
  * @param style What the text is for: one of the [Typography] roles. Sets size, weight, line
- *   height and tracking together.
+ *   height and tracking together. Without it the text takes [LocalTextStyle]: body text, unless
+ *   the component it is in sets another.
+ * @param tone Without it the text takes [LocalContentColor]: primary, unless the component it is
+ *   in sets another color.
  * @param heading Marks the text as a heading for screen readers.
  */
 @Composable
 fun Text(
     text: String,
     modifier: Modifier = Modifier,
-    style: TextStyle = Typography.body,
-    tone: TextTone = TextTone.Primary,
+    style: TextStyle = LocalTextStyle.current,
+    tone: TextTone = TextTone.Inherit,
     heading: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
 ) {

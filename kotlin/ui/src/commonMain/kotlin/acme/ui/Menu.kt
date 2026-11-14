@@ -24,8 +24,11 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
@@ -124,23 +127,64 @@ internal fun Menu(
         CompositionLocalProvider(LocalMenuTrigger provides MenuTrigger(open) { open = it }) {
             trigger { open = true }
         }
-        // The form goes with the sizes: rows sized for a finger are never squeezed into a popup.
-        if (LocalSizes.current.forPointer) {
-            if (open) MenuPopup(label, items, align, onClose = close)
-        } else {
-            BottomSheet(open = open, onDismiss = close, title = label) {
-                // The rows reach into the sheet's padding, so their text lines up with the title
-                // while their fill stays clear of the sheet's rounded corners.
-                Column(Modifier.reach(Space.s3).fillMaxWidth()) {
-                    for (item in items) MenuEntry(item, compact = false, onChosen = close)
-                }
+        MenuList(label, open, onClose = close, align = align) { compact ->
+            for (item in items) MenuEntry(item, compact, onChosen = close)
+        }
+    }
+}
+
+/**
+ * The list of a [Menu], and of anything else that opens a list the way a menu does, such as a
+ * [Select]. With a pointer it is a popup under the box it is composed in; on touch it is a
+ * [BottomSheet] titled with [label]. A press outside, Escape and Back call [onClose]. Long lists
+ * scroll in either form.
+ *
+ * @param width The popup's width. Without it the popup is as wide as its longest row.
+ * @param listModifier Goes on what holds the rows, in either form, for what a screen reader is
+ *   told about the list as a whole.
+ * @param rows Told whether they are the popup's compact rows or the sheet's full ones.
+ */
+@Composable
+internal fun MenuList(
+    label: String,
+    open: Boolean,
+    onClose: () -> Unit,
+    align: MenuAlign = MenuAlign.Start,
+    width: Dp? = null,
+    listModifier: Modifier = Modifier,
+    rows: @Composable (compact: Boolean) -> Unit,
+) {
+    // The form goes with the sizes: rows sized for a finger are never squeezed into a popup.
+    if (LocalSizes.current.forPointer) {
+        if (open) MenuPopup(label, align, width, listModifier, onClose) { rows(true) }
+    } else {
+        BottomSheet(open = open, onDismiss = onClose, title = label) {
+            // The rows reach into the sheet's padding, so their text lines up with the title
+            // while their fill stays clear of the sheet's rounded corners. They give way to the
+            // title when there are more than fit on the screen.
+            Column(
+                Modifier
+                    .weight(1f, fill = false)
+                    .reach(Space.s3)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .then(listModifier),
+            ) {
+                rows(false)
             }
         }
     }
 }
 
 @Composable
-private fun MenuPopup(label: String, items: List<MenuItem>, align: MenuAlign, onClose: () -> Unit) {
+private fun MenuPopup(
+    label: String,
+    align: MenuAlign,
+    width: Dp?,
+    listModifier: Modifier,
+    onClose: () -> Unit,
+    rows: @Composable () -> Unit,
+) {
     val colors = LocalColors.current
     val gap = with(LocalDensity.current) { Space.s1.roundToPx() }
     val position = remember(align, gap) { MenuPosition(align, gap) }
@@ -153,17 +197,25 @@ private fun MenuPopup(label: String, items: List<MenuItem>, align: MenuAlign, on
     ) {
         Column(
             Modifier
-                // Four times `space.12`: wide enough that a menu of short words does not look
-                // like a stack of chips. Beyond that it is as wide as its longest row.
-                .widthIn(min = Space.s12 * 4)
-                .width(IntrinsicSize.Max)
+                .then(
+                    if (width != null) {
+                        Modifier.width(width)
+                    } else {
+                        // Four times `space.12`: wide enough that a menu of short words does not
+                        // look like a stack of chips. Beyond that it is as wide as its longest row.
+                        Modifier.widthIn(min = Space.s12 * 4).width(IntrinsicSize.Max)
+                    },
+                )
                 .shadow(Shadow.raised, shape)
                 .background(colors.menuBackground, shape)
                 .border(Border.widthThin, colors.menuBorder, shape)
                 .semantics { paneTitle = label }
-                .padding(Space.s1),
+                // Inside the outline, so the outline stays put while the rows scroll.
+                .verticalScroll(rememberScrollState())
+                .padding(Space.s1)
+                .then(listModifier),
         ) {
-            for (item in items) MenuEntry(item, compact = true, onChosen = onClose)
+            rows()
         }
     }
 }
@@ -180,12 +232,44 @@ private fun MenuEntry(item: MenuItem, compact: Boolean, onChosen: () -> Unit) {
                 .height(Border.widthThin)
                 .background(LocalColors.current.menuBorder),
         )
-        is MenuItem.Action -> MenuRow(item, compact, onChosen)
+        is MenuItem.Action -> MenuRow(
+            label = item.label,
+            onClick = {
+                item.onSelect()
+                onChosen()
+            },
+            compact = compact,
+            icon = item.icon,
+            danger = item.danger,
+            enabled = item.enabled,
+            selected = item.selected,
+        )
     }
 }
 
+/**
+ * One row of a [MenuList].
+ *
+ * @param compact A popup's row, like a compact list row. Otherwise a full list row, for a sheet.
+ * @param description A second line under the label, in the secondary color.
+ * @param selected Marks the current choice with a check at the end of the row, so the choice
+ *   does not depend on color. A screen reader says it as well.
+ * @param option For a choice in a list, such as a [Select]'s: a screen reader hears whether it is
+ *   selected, rather than that it is a button.
+ */
 @Composable
-private fun MenuRow(item: MenuItem.Action, compact: Boolean, onChosen: () -> Unit) {
+internal fun MenuRow(
+    label: String,
+    onClick: () -> Unit,
+    compact: Boolean,
+    modifier: Modifier = Modifier,
+    icon: IconName? = null,
+    description: String? = null,
+    danger: Boolean = false,
+    enabled: Boolean = true,
+    selected: Boolean = false,
+    option: Boolean = false,
+) {
     val colors = LocalColors.current
     val sizes = LocalSizes.current
     val interactions = remember { MutableInteractionSource() }
@@ -196,38 +280,48 @@ private fun MenuRow(item: MenuItem.Action, compact: Boolean, onChosen: () -> Uni
     // which would stick out of the menu.
     val highlighted = hovered || (focused && LocalInputModeManager.current.inputMode == InputMode.Keyboard)
     val fill = when {
-        !item.enabled -> Color.Transparent
+        !enabled -> Color.Transparent
         // One token for both: a neutral fill would not carry the danger text in dark mode.
-        item.danger && (pressed || highlighted) -> colors.menuDangerBackgroundHover
+        danger && (pressed || highlighted) -> colors.menuDangerBackgroundHover
         pressed -> colors.menuItemBackgroundPressed
         highlighted -> colors.menuItemBackgroundHover
         else -> Color.Transparent
     }
     // Recolored, not faded, like a disabled button. Disabled and danger take the icon along.
     val text = when {
-        !item.enabled -> colors.menuTextDisabled
-        item.danger -> colors.menuDangerText
+        !enabled -> colors.menuTextDisabled
+        danger -> colors.menuDangerText
         else -> colors.menuText
     }
-    val iconColor = if (item.enabled && !item.danger) colors.menuIcon else text
+    val iconColor = if (enabled && !danger) colors.menuIcon else text
     val iconSize = if (compact) IconSize.Sm else IconSize.Md
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             // A minimum, not a height: the label may grow with the system's text size.
             .heightIn(min = if (compact) sizes.listRowCompact else sizes.listRow)
             .background(fill, RoundedCornerShape(if (compact) Radius.sm else Radius.md))
-            .semantics { if (item.selected) this.selected = true }
-            .clickable(
-                interactionSource = interactions,
-                // No ripple or overlay: the pressed and hover colors are tokens.
-                indication = null,
-                enabled = item.enabled,
-                role = Role.Button,
-                onClick = {
-                    item.onSelect()
-                    onChosen()
+            .then(
+                if (option) {
+                    Modifier.selectable(
+                        selected = selected,
+                        interactionSource = interactions,
+                        indication = null,
+                        enabled = enabled,
+                        onClick = onClick,
+                    )
+                } else {
+                    Modifier
+                        .semantics { if (selected) this.selected = true }
+                        .clickable(
+                            interactionSource = interactions,
+                            // No ripple or overlay: the pressed and hover colors are tokens.
+                            indication = null,
+                            enabled = enabled,
+                            role = Role.Button,
+                            onClick = onClick,
+                        )
                 },
             )
             .padding(
@@ -237,22 +331,31 @@ private fun MenuRow(item: MenuItem.Action, compact: Boolean, onChosen: () -> Uni
         horizontalArrangement = Arrangement.spacedBy(if (compact) Space.s2 else Space.s3),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (item.icon != null) Icon(item.icon, size = iconSize, color = iconColor)
-        BasicText(
-            text = item.label,
-            modifier = Modifier.weight(1f),
-            style = (if (compact) Typography.detail else Typography.body).resolved(text),
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1,
-        )
+        if (icon != null) Icon(icon, size = iconSize, color = iconColor)
+        Column(Modifier.weight(1f)) {
+            BasicText(
+                text = label,
+                style = (if (compact) Typography.detail else Typography.body).resolved(text),
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+            )
+            if (description != null) {
+                BasicText(
+                    text = description,
+                    style = (if (compact) Typography.footnote else Typography.detail)
+                        .resolved(if (enabled) colors.textSecondary else colors.menuTextDisabled),
+                )
+            }
+        }
         // A mark, so the current choice does not depend on color.
-        if (item.selected) Icon(IconName.Check, size = iconSize, color = text)
+        if (selected) Icon(IconName.Check, size = iconSize, color = text)
     }
 }
 
 /**
  * Under the trigger, [gap] away from it, with the edges [align] names lined up. Above the
- * trigger when there is no room below it but there is above. Never past the window's sides.
+ * trigger when there is no room below it but there is above, and kept inside the window when
+ * there is room on neither side. Never past the window's sides.
  */
 private class MenuPosition(private val align: MenuAlign, private val gap: Int) : PopupPositionProvider {
     override fun calculatePosition(
@@ -266,7 +369,10 @@ private class MenuPosition(private val align: MenuAlign, private val gap: Int) :
         val below = anchorBounds.bottom + gap
         val above = anchorBounds.top - gap - popupContentSize.height
         val y = if (below + popupContentSize.height > windowSize.height && above >= 0) above else below
-        return IntOffset(x.coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0)), y)
+        return IntOffset(
+            x.coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0)),
+            y.coerceIn(0, (windowSize.height - popupContentSize.height).coerceAtLeast(0)),
+        )
     }
 }
 

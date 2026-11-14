@@ -59,6 +59,12 @@ const PAIRS: Pair[] = [
     minimum: TEXT,
     over: [WHITE, BLACK],
   },
+  {
+    foreground: "overlay.accent",
+    background: "overlay.background",
+    minimum: PART,
+    over: [WHITE, BLACK],
+  },
   ...STATUSES.flatMap((status) =>
     on(`status.${status}`, [...SURFACES, `status.${status}-subtle`], TEXT),
   ),
@@ -117,6 +123,24 @@ const PAIRS: Pair[] = [
   ...on("checkbox.border", SURFACES, PART),
   ...on("checkbox.background-checked", SURFACES, PART),
   ...on("checkbox.mark", ["checkbox.background-checked"], PART),
+  ...on("radio.border", SURFACES, PART),
+  ...on("radio.border-checked", SURFACES, PART),
+  ...on("radio.dot", SURFACES, PART),
+  // A slider's value shows in the fill against the track, and its thumb by its outline.
+  ...on("slider.fill", ["slider.track", ...SURFACES], PART),
+  ...on("slider.thumb-border", ["slider.track", "slider.thumb", ...SURFACES], PART),
+  ...on("thumbnail.icon", ["thumbnail.background"], PART),
+  ...on("sidebar.section-title", ["sidebar.background"], TEXT),
+  ...["text.primary", "text.secondary"].flatMap((text) => on(text, ["sidebar.background"], TEXT)),
+  ...on("empty-state.icon", SURFACES, PART),
+  ...["text.primary", "text.secondary"].flatMap((text) =>
+    on(text, ["accordion.header-background-hover", "accordion.header-background-pressed"], TEXT),
+  ),
+  ...on(
+    "accordion.icon",
+    [...SURFACES, "accordion.header-background-hover", "accordion.header-background-pressed"],
+    PART,
+  ),
   ...on("segmented.text", ["segmented.track"], TEXT),
   ...on("segmented.selected-text", ["segmented.selected-background"], TEXT),
   ...on("avatar.text", ["avatar.background"], TEXT),
@@ -137,6 +161,8 @@ const PAIRS: Pair[] = [
     ),
   ),
   ...on("card.border-selected", SURFACES, PART),
+  // A media card keeps its own action, usually a ghost icon button, on the card's hover fills.
+  ...on("button.ghost.text", ["card.background-hover", "card.background-pressed"], TEXT),
   ...on("chip.text", ["chip.background", "chip.background-hover", "chip.background-pressed"], TEXT),
   ...on(
     "chip.selected-text",
@@ -152,10 +178,13 @@ const PAIRS: Pair[] = [
     on(text, SURFACES, TEXT),
   ),
   ...on("tabs.indicator", SURFACES, PART),
-  ...on(
-    "menu.text",
-    ["menu.background", "menu.item-background-hover", "menu.item-background-pressed"],
-    TEXT,
+  // A select option can carry a description in secondary text.
+  ...["menu.text", "text.secondary"].flatMap((text) =>
+    on(
+      text,
+      ["menu.background", "menu.item-background-hover", "menu.item-background-pressed"],
+      TEXT,
+    ),
   ),
   ...on(
     "menu.icon",

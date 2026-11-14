@@ -89,7 +89,7 @@ Semantic color groups:
 | control | default, hover, pressed | Neutral control fills |
 | danger | default, hover, pressed | Destructive action fills |
 | status | danger, success, warning, info, plus a subtle variant of each | Status text and its matching tinted background |
-| overlay | background, text | Text drawn over a picture, such as a badge on an image. The background is translucent black in both modes, and the build checks its text over both a white and a black picture |
+| overlay | background, text, accent | Text and marks drawn over a picture, such as a badge on an image or how much of a video was watched. The same in both modes, and the build checks them over both a white and a black picture |
 
 Interactive state colors (hover and pressed) are defined as explicit solid values rather than alpha overlays. GPUI and React Native cannot blend colors at runtime, and explicit values allow the build script to check contrast statically.
 
@@ -166,6 +166,9 @@ On the web, the Tailwind configuration generates utility classes for typographic
 | `size.chip` | 32 | 40 |
 | `size.tab` | 40 | 48 |
 | `size.dialog`, `size.toast` | 480 | 480 |
+| `size.radio` | 18 | 24 |
+| `size.slider-track`, `size.slider-thumb` | 4, 16 | 4, 24 |
+| `size.sidebar`, `size.sidebar-rail` | 240, 72 | 240, 72 |
 | `size.progress` | 8 | 8 |
 
 On the web, `@media (pointer: coarse)` switches between the pointer and touch scales. Keying off the input device rather than viewport width avoids common edge cases: a narrow browser window on a laptop is still used with a mouse, and a large tablet is still used with touch. The GPUI desktop app always uses pointer sizes, the React Native app always uses touch sizes, and the Compose client uses touch sizes on Android and iOS and pointer sizes on desktop.
@@ -254,6 +257,14 @@ Every platform exposes the same component names, variants, sizes, and tones.
 | Toast | open, message, action, duration | An inverse surface at the bottom center that leaves after `motion.duration.toast`. Announced politely, without taking focus |
 | Skeleton | shape: text, rect, circle. width, height | Pulses between two neutral fills, and stands still with reduced motion. Hidden from assistive technologies |
 | SearchField | label, value, placeholder, onSubmit, clearLabel, disabled | A pill-shaped field with a search mark and a clear control. `label` is required and not shown |
+| RadioGroup | label, options (value, label, description), value, error, disabled | One choice among a few, applied later with a form. The whole row of an option is pressable, and the chosen one has a dot |
+| Select | label, options, value, placeholder, description, error, disabled | Looks like a TextField. Its list opens with Menu's surfaces: a popup for pointer input, a bottom sheet for touch. The chosen option has a check |
+| Slider | label, value, min, max, step, showValue, disabled | A track with an accent fill and an outlined thumb. Values snap to `step`, and each arrow key moves one step |
+| Thumbnail | src, alt, ratio: 16:9, 1:1, 4:3, 9:16. badge, progress | A picture in a fixed shape. While it loads or when it fails, an empty place with a picture mark. `progress` draws a bar across the bottom |
+| MediaCard | layout: vertical, horizontal. thumbnail options, title, meta, leading, action, onPress | A thumbnail with its title (two lines at most) and details. Pressable as a whole without a surface at rest; its action stays a control of its own |
+| SectionHeader | title, description, icon, action, level | The title row of a group of content. The title is a heading at `level` |
+| EmptyState | icon, title, description, action | Centered, with an illustrative icon at `size.icon.xl` and one action at most |
+| Accordion | items (value, title, description, content), expanded, multiple | Hairline-separated items whose bodies open under their titles. One at a time unless `multiple` |
 
 Three additional navigation components exist only on the touch-oriented platforms (React Native and Compose):
 
@@ -263,11 +274,12 @@ Three additional navigation components exist only on the touch-oriented platform
 | TabBar | items (label and icon), value | Holds three to five top-level destinations. Floats above the bottom edge as a capsule, with the active tab enclosed in its own pill so selection does not depend on color |
 | BottomSheet | open, title, content | Floats inset from the screen edges. Closes when tapping the scrim, dragging down, or pressing the back button |
 
-One component exists only on the pointer-oriented platforms (web and GPUI), because a touch screen has no hover:
+Two components exist only on the pointer-oriented platforms (web and GPUI):
 
 | Component | Options | Rule |
 | --- | --- | --- |
-| Tooltip | label, shortcut, placement | Shows after `motion.duration.tooltip-delay` of hover and at once on keyboard focus. It describes a control and never holds anything pressable; the control still needs a name of its own |
+| Tooltip | label, shortcut, placement | Shows after `motion.duration.tooltip-delay` of hover and at once on keyboard focus. It describes a control and never holds anything pressable; the control still needs a name of its own. A touch screen has no hover |
+| Sidebar | sections (title, items: value, label, icon, count), value, label, collapsed, header, footer | The top-level places of an app, the pointer counterpart of TabBar. Rows are compact list rows; the current one is selected and its icon filled. Collapsed, it is a rail of icons, each named by a Tooltip |
 
 Icons are passed as slots: a TabBar item or a ListRow accepts any element, and `Icon` is the component the design system provides.
 
@@ -321,7 +333,7 @@ Every platform includes a design preview screen that renders all tokens and comp
 | Mobile | The `/design` screen | The button on the home screen | Follows the system |
 | Kotlin | `mise run //kotlin:design` on desktop; the home screen button elsewhere | The button on the home screen | Follows the system. Includes an in-app mode switch |
 
-To support automated screenshot scripts that cannot scroll or tap interactively: web sections expose URL hash anchors (`/design#buttons`) and `?open=<overlay>`, the desktop binary accepts `--scroll <pixels>` and `--open <overlay>`, and the mobile preview accepts `?from=<section number>`, `?sheet=1`, `?menu=1`, `?dialog=1`, and `?toast=1`. The overlays are `menu`, `dialog`, `toast`, and, on the pointer clients, `tooltip`.
+To support automated screenshot scripts that cannot scroll or tap interactively: web sections expose URL hash anchors (`/design#buttons`) and `?open=<overlay>`, the desktop binary accepts `--scroll <pixels>` and `--open <overlay>`, and the mobile preview accepts `?from=<section number>`, `?sheet=1`, `?menu=1`, `?select=1`, `?dialog=1`, and `?toast=1`. The overlays are `menu`, `select`, `dialog`, `toast`, and, on the pointer clients, `tooltip`.
 
 On the web, the preview code is lazy-loaded only when navigating to `/design`. Static file hosts must be configured to serve `index.html` for `/design`.
 

@@ -42,6 +42,7 @@
   --color-acme-status-info-subtle: var(--acme-color-status-info-subtle);
   --color-acme-overlay-background: var(--acme-color-overlay-background);
   --color-acme-overlay-text: var(--acme-color-overlay-text);
+  --color-acme-overlay-accent: var(--acme-color-overlay-accent);
   --color-acme-button-primary-background: var(--acme-color-button-primary-background);
   --color-acme-button-primary-background-hover: var(--acme-color-button-primary-background-hover);
   --color-acme-button-primary-background-pressed: var(--acme-color-button-primary-background-pressed);
@@ -107,6 +108,11 @@
   --color-acme-checkbox-mark: var(--acme-color-checkbox-mark);
   --color-acme-checkbox-disabled-background: var(--acme-color-checkbox-disabled-background);
   --color-acme-checkbox-disabled-mark: var(--acme-color-checkbox-disabled-mark);
+  --color-acme-radio-border: var(--acme-color-radio-border);
+  --color-acme-radio-border-checked: var(--acme-color-radio-border-checked);
+  --color-acme-radio-dot: var(--acme-color-radio-dot);
+  --color-acme-radio-disabled-background: var(--acme-color-radio-disabled-background);
+  --color-acme-radio-disabled-dot: var(--acme-color-radio-disabled-dot);
   --color-acme-segmented-track: var(--acme-color-segmented-track);
   --color-acme-segmented-text: var(--acme-color-segmented-text);
   --color-acme-segmented-selected-background: var(--acme-color-segmented-selected-background);
@@ -148,6 +154,16 @@
   --color-acme-tooltip-text: var(--acme-color-tooltip-text);
   --color-acme-skeleton-background: var(--acme-color-skeleton-background);
   --color-acme-skeleton-highlight: var(--acme-color-skeleton-highlight);
+  --color-acme-thumbnail-background: var(--acme-color-thumbnail-background);
+  --color-acme-thumbnail-icon: var(--acme-color-thumbnail-icon);
+  --color-acme-sidebar-background: var(--acme-color-sidebar-background);
+  --color-acme-sidebar-border: var(--acme-color-sidebar-border);
+  --color-acme-sidebar-section-title: var(--acme-color-sidebar-section-title);
+  --color-acme-empty-state-icon: var(--acme-color-empty-state-icon);
+  --color-acme-accordion-border: var(--acme-color-accordion-border);
+  --color-acme-accordion-header-background-hover: var(--acme-color-accordion-header-background-hover);
+  --color-acme-accordion-header-background-pressed: var(--acme-color-accordion-header-background-pressed);
+  --color-acme-accordion-icon: var(--acme-color-accordion-icon);
   --color-acme-avatar-background: var(--acme-color-avatar-background);
   --color-acme-avatar-text: var(--acme-color-avatar-text);
   --color-acme-avatar-ring: var(--acme-color-avatar-ring);
@@ -155,6 +171,11 @@
   --color-acme-avatar-overflow-text: var(--acme-color-avatar-overflow-text);
   --color-acme-progress-track: var(--acme-color-progress-track);
   --color-acme-progress-fill: var(--acme-color-progress-fill);
+  --color-acme-slider-track: var(--acme-color-slider-track);
+  --color-acme-slider-fill: var(--acme-color-slider-fill);
+  --color-acme-slider-thumb: var(--acme-color-slider-thumb);
+  --color-acme-slider-thumb-border: var(--acme-color-slider-thumb-border);
+  --color-acme-slider-disabled-fill: var(--acme-color-slider-disabled-fill);
   --color-acme-list-row-background-hover: var(--acme-color-list-row-background-hover);
   --color-acme-list-row-background-pressed: var(--acme-color-list-row-background-pressed);
   --color-acme-list-row-background-selected: var(--acme-color-list-row-background-selected);
@@ -236,6 +257,7 @@
   --spacing-acme-switch-width: var(--acme-size-switch-width);
   --spacing-acme-switch-height: var(--acme-size-switch-height);
   --spacing-acme-checkbox: var(--acme-size-checkbox);
+  --spacing-acme-radio: var(--acme-size-radio);
   --spacing-acme-list-row: var(--acme-size-list-row);
   --spacing-acme-list-row-compact: var(--acme-size-list-row-compact);
   --spacing-acme-bar: var(--acme-size-bar);
@@ -254,9 +276,13 @@
   --spacing-acme-tab: var(--acme-size-tab);
   --spacing-acme-count-badge: var(--acme-size-count-badge);
   --spacing-acme-progress: var(--acme-size-progress);
+  --spacing-acme-slider-track: var(--acme-size-slider-track);
+  --spacing-acme-slider-thumb: var(--acme-size-slider-thumb);
   --spacing-acme-spinner-sm: var(--acme-size-spinner-sm);
   --spacing-acme-spinner-md: var(--acme-size-spinner-md);
   --spacing-acme-spinner-lg: var(--acme-size-spinner-lg);
   --spacing-acme-dialog: var(--acme-size-dialog);
   --spacing-acme-toast: var(--acme-size-toast);
+  --spacing-acme-sidebar: var(--acme-size-sidebar);
+  --spacing-acme-sidebar-rail: var(--acme-size-sidebar-rail);
 }

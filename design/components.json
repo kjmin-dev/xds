@@ -1131,6 +1131,388 @@
       }
     },
     {
+      "name": "RadioGroup",
+      "purpose": "One choice among a few, applied later with the form it belongs to. For a choice that takes effect at once, a SegmentedControl is the usual pick.",
+      "options": {
+        "fields": [
+          "label",
+          "options",
+          "value",
+          "error"
+        ],
+        "flags": [
+          "disabled"
+        ]
+      },
+      "states": [
+        "focus",
+        "disabled",
+        "invalid"
+      ],
+      "accessibility": "A radio group named by its visible legend. The whole row of an option is pressable, and the chosen one has a dot, not only a color.",
+      "tokens": [
+        "color.radio",
+        "size.radio"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/RadioGroup.tsx",
+          "symbol": "RadioGroup"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/controls.rs",
+          "symbol": "RadioGroup"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/RadioGroup.tsx",
+          "symbol": "RadioGroup"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/RadioGroup.kt",
+          "symbol": "RadioGroup"
+        }
+      }
+    },
+    {
+      "name": "Select",
+      "purpose": "A field for choosing one option from a list too long to show at once. The list opens as a popup where a pointer is used and as a bottom sheet where fingers are.",
+      "options": {
+        "fields": [
+          "label",
+          "options",
+          "value",
+          "placeholder",
+          "description",
+          "error"
+        ],
+        "flags": [
+          "disabled"
+        ]
+      },
+      "states": [
+        "focus",
+        "disabled",
+        "invalid"
+      ],
+      "accessibility": "The field says that it opens a list and whether it is open. The list is a listbox, and the chosen option is marked with a check.",
+      "tokens": [
+        "color.field",
+        "color.menu",
+        "size.control"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Select.tsx",
+          "symbol": "Select"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/overlays.rs",
+          "symbol": "Select"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Select.tsx",
+          "symbol": "Select"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Select.kt",
+          "symbol": "Select"
+        }
+      }
+    },
+    {
+      "name": "Slider",
+      "purpose": "Picks a number in a range by dragging, or with the arrow keys.",
+      "options": {
+        "fields": [
+          "label",
+          "value",
+          "min",
+          "max",
+          "step"
+        ],
+        "flags": [
+          "disabled",
+          "showValue"
+        ]
+      },
+      "states": [
+        "focus",
+        "disabled"
+      ],
+      "accessibility": "A slider named by its label, with its value, minimum and maximum. Each key press moves it one step.",
+      "tokens": [
+        "color.slider",
+        "size.slider-track",
+        "size.slider-thumb"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Slider.tsx",
+          "symbol": "Slider"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/controls.rs",
+          "symbol": "Slider"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Slider.tsx",
+          "symbol": "Slider"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Slider.kt",
+          "symbol": "Slider"
+        }
+      }
+    },
+    {
+      "name": "Thumbnail",
+      "purpose": "A picture in a fixed shape, for a video, an article or a product, with an optional badge and a bar for how much was watched.",
+      "options": {
+        "ratio": [
+          "16:9",
+          "1:1",
+          "4:3",
+          "9:16"
+        ],
+        "fields": [
+          "src",
+          "alt",
+          "badge",
+          "progress"
+        ]
+      },
+      "states": [],
+      "accessibility": "`alt` describes the picture; an empty `alt` makes it decoration.",
+      "tokens": [
+        "color.thumbnail",
+        "color.overlay",
+        "color.badge.overlay"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Thumbnail.tsx",
+          "symbol": "Thumbnail"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/components.rs",
+          "symbol": "Thumbnail"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Thumbnail.tsx",
+          "symbol": "Thumbnail"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Thumbnail.kt",
+          "symbol": "Thumbnail"
+        }
+      }
+    },
+    {
+      "name": "MediaCard",
+      "purpose": "A thumbnail with its title and details: a video in a feed, an article in a list. Vertical, or horizontal with the picture at the start.",
+      "options": {
+        "layout": [
+          "vertical",
+          "horizontal"
+        ],
+        "fields": [
+          "src",
+          "alt",
+          "ratio",
+          "badge",
+          "progress",
+          "title",
+          "meta",
+          "leading",
+          "action",
+          "onPress"
+        ]
+      },
+      "states": [
+        "hover",
+        "pressed",
+        "focus"
+      ],
+      "accessibility": "A pressable card is one button named by its title and details. Its action is a control of its own.",
+      "tokens": [
+        "color.card",
+        "color.text",
+        "radius.lg"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/MediaCard.tsx",
+          "symbol": "MediaCard"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/components.rs",
+          "symbol": "MediaCard"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/MediaCard.tsx",
+          "symbol": "MediaCard"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/MediaCard.kt",
+          "symbol": "MediaCard"
+        }
+      }
+    },
+    {
+      "name": "SectionHeader",
+      "purpose": "The title row of a group of content, with an optional description and an action such as \"See all\".",
+      "options": {
+        "fields": [
+          "title",
+          "description",
+          "icon",
+          "action",
+          "level"
+        ]
+      },
+      "states": [],
+      "accessibility": "The title is a heading, at the level given for the document outline.",
+      "tokens": [
+        "typography",
+        "color.text"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/SectionHeader.tsx",
+          "symbol": "SectionHeader"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/components.rs",
+          "symbol": "SectionHeader"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/SectionHeader.tsx",
+          "symbol": "SectionHeader"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/SectionHeader.kt",
+          "symbol": "SectionHeader"
+        }
+      }
+    },
+    {
+      "name": "Sidebar",
+      "purpose": "The top-level places of an app where a pointer is used, the counterpart of TabBar on touch. Pointer clients only. Collapsed, it shows icons only.",
+      "options": {
+        "fields": [
+          "sections",
+          "value",
+          "label",
+          "header",
+          "footer"
+        ],
+        "flags": [
+          "collapsed"
+        ]
+      },
+      "states": [
+        "hover",
+        "pressed",
+        "focus",
+        "selected"
+      ],
+      "accessibility": "Navigation named by `label`. The current item says it is the current page; collapsed items keep their names and show them in tooltips.",
+      "tokens": [
+        "color.sidebar",
+        "color.list-row",
+        "size.sidebar",
+        "size.sidebar-rail"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Sidebar.tsx",
+          "symbol": "Sidebar"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/navigation.rs",
+          "symbol": "Sidebar"
+        }
+      }
+    },
+    {
+      "name": "EmptyState",
+      "purpose": "What a screen says when it has nothing to show, and the one thing to do about it.",
+      "options": {
+        "fields": [
+          "icon",
+          "title",
+          "description",
+          "action"
+        ]
+      },
+      "states": [],
+      "accessibility": "The icon is decoration; the title says what is missing.",
+      "tokens": [
+        "color.empty-state",
+        "size.icon"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/EmptyState.tsx",
+          "symbol": "EmptyState"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/components.rs",
+          "symbol": "EmptyState"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/EmptyState.tsx",
+          "symbol": "EmptyState"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/EmptyState.kt",
+          "symbol": "EmptyState"
+        }
+      }
+    },
+    {
+      "name": "Accordion",
+      "purpose": "Items whose bodies open and close under their titles. One at a time, or several with `multiple`.",
+      "options": {
+        "fields": [
+          "items",
+          "expanded"
+        ],
+        "flags": [
+          "multiple"
+        ]
+      },
+      "states": [
+        "hover",
+        "pressed",
+        "focus",
+        "expanded"
+      ],
+      "accessibility": "Each title row is a button that says whether its body is expanded.",
+      "tokens": [
+        "color.accordion",
+        "size.list-row"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Accordion.tsx",
+          "symbol": "Accordion"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/controls.rs",
+          "symbol": "Accordion"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Accordion.tsx",
+          "symbol": "Accordion"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Accordion.kt",
+          "symbol": "Accordion"
+        }
+      }
+    },
+    {
       "name": "TopBar",
       "purpose": "The bar at the top of a screen: a title, a back action and a trailing action.",
       "options": {

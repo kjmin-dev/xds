@@ -64,13 +64,15 @@ fun main(args: Array<String>) {
     }
     screen("sheet-touch", PreviewOverlay.Sheet, TouchSizes)
     screen("menu-touch", PreviewOverlay.Menu, TouchSizes)
+    screen("select-touch", PreviewOverlay.Select, TouchSizes)
     screen("dialog-touch", PreviewOverlay.Dialog, TouchSizes)
     screen("dialog-pointer", PreviewOverlay.Dialog, PointerSizes)
     screen("toast-touch", PreviewOverlay.Toast, TouchSizes)
     screen("toast-pointer", PreviewOverlay.Toast, PointerSizes)
-    // A popup menu opens under its trigger, far down the page, so the whole page is drawn.
+    // A popup opens under its trigger, far down the page, so the whole page is drawn.
     for (mode in Mode.entries) {
         page("menu-pointer-${mode.name.lowercase()}.png", 900, mode, PointerSizes, open = PreviewOverlay.Menu)
+        page("select-pointer-${mode.name.lowercase()}.png", 900, mode, PointerSizes, open = PreviewOverlay.Select)
     }
 }
 

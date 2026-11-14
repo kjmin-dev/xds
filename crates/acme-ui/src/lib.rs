@@ -7,19 +7,25 @@
 
 mod components;
 mod controls;
+mod navigation;
 mod overlays;
 mod preview;
 mod theme;
 
 pub use components::{
     Badge, BadgeTone, Banner, BannerTone, Button, ButtonVariant, Card, ControlSize, CountBadge,
-    SearchField, TextField, button, card, divider, icon_button, text,
+    EmptyState, MediaCard, MediaCardLayout, SearchField, SectionHeader, TextField, Thumbnail,
+    ThumbnailRatio, button, card, divider, icon_button, text,
 };
 pub use controls::{
-    Avatar, AvatarSize, AvatarStack, Chip, ChipBar, IconSize, ListRow, Person, ProgressBar,
-    SegmentedControl, Skeleton, SkeletonShape, SpinnerSize, TabItem, Tabs, checkbox, icon,
-    icon_filled, initials, spinner, switch,
+    Accordion, AccordionItem, Avatar, AvatarSize, AvatarStack, Chip, ChipBar, IconSize, ListRow,
+    Person, ProgressBar, RadioGroup, RadioOption, SegmentedControl, Skeleton, SkeletonShape,
+    Slider, SpinnerSize, TabItem, Tabs, checkbox, icon, icon_filled, initials, spinner, switch,
 };
-pub use overlays::{Dialog, Menu, MenuAlign, MenuItem, Toast, Tooltip, TooltipPlacement, tooltip};
+pub use navigation::{Sidebar, SidebarItem, SidebarSection};
+pub use overlays::{
+    Dialog, Menu, MenuAlign, MenuItem, Select, SelectOption, Toast, Tooltip, TooltipPlacement,
+    tooltip,
+};
 pub use preview::{DesignPreview, PreviewOverlay};
 pub use theme::{TypographyExt, color, font, init, mode, palette, set_mode};

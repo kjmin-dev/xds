@@ -82,6 +82,8 @@ interface Colors {
     val overlayBackground: Color
     /** Text and icons on the overlay background. */
     val overlayText: Color
+    /** Accent-colored marks on the overlay background, such as how much of a video was watched. Light enough to read over any picture, so the same in both modes. */
+    val overlayAccent: Color
     val buttonPrimaryBackground: Color
     val buttonPrimaryBackgroundHover: Color
     val buttonPrimaryBackgroundPressed: Color
@@ -158,6 +160,13 @@ interface Colors {
     val checkboxMark: Color
     val checkboxDisabledBackground: Color
     val checkboxDisabledMark: Color
+    /** Off. It holds 3:1 against the page, so the choice is visible before it is made. */
+    val radioBorder: Color
+    val radioBorderChecked: Color
+    /** The dot inside the chosen one: its shape marks the choice, so color is not the only signal. */
+    val radioDot: Color
+    val radioDisabledBackground: Color
+    val radioDisabledDot: Color
     val segmentedTrack: Color
     val segmentedText: Color
     val segmentedSelectedBackground: Color
@@ -191,6 +200,7 @@ interface Colors {
     val menuTextDisabled: Color
     /** Under the pointer, and under the keyboard's highlight. */
     val menuItemBackgroundHover: Color
+    /** In dark mode the same as the hover fill: the next step up would not carry the secondary text of a row with a description. */
     val menuItemBackgroundPressed: Color
     /** An item that destroys something. */
     val menuDangerText: Color
@@ -209,6 +219,22 @@ interface Colors {
     val skeletonBackground: Color
     /** What the placeholder pulses toward. */
     val skeletonHighlight: Color
+    /** Where a picture goes, while it loads or when there is none. */
+    val thumbnailBackground: Color
+    /** The picture mark on the empty place. */
+    val thumbnailIcon: Color
+    /** The same as the page: the sidebar is set apart by a hairline, not a fill. */
+    val sidebarBackground: Color
+    val sidebarBorder: Color
+    val sidebarSectionTitle: Color
+    val emptyStateIcon: Color
+    /** The hairlines between the items. */
+    val accordionBorder: Color
+    /** The title row of an item under a pointer. */
+    val accordionHeaderBackgroundHover: Color
+    val accordionHeaderBackgroundPressed: Color
+    /** The chevron that turns when an item opens. */
+    val accordionIcon: Color
     val avatarBackground: Color
     val avatarText: Color
     /** The gap between the avatars of a stack. The color of the surface the stack sits on. */
@@ -219,6 +245,14 @@ interface Colors {
     val progressTrack: Color
     /** A mark on a neutral track, so it takes the accent text color, which holds 3:1 against the track in both modes. */
     val progressFill: Color
+    /** The part of the range above the value. */
+    val sliderTrack: Color
+    /** The part of the range up to the value. A mark on a neutral track, so it takes the accent text color, as a progress bar does. */
+    val sliderFill: Color
+    val sliderThumb: Color
+    /** The outline that makes the thumb visible on the page and on the track. */
+    val sliderThumbBorder: Color
+    val sliderDisabledFill: Color
     val listRowBackgroundHover: Color
     /** Secondary text still has to read on it. */
     val listRowBackgroundPressed: Color
@@ -284,6 +318,7 @@ interface Colors {
         "status-info-subtle" to statusInfoSubtle,
         "overlay-background" to overlayBackground,
         "overlay-text" to overlayText,
+        "overlay-accent" to overlayAccent,
         "button-primary-background" to buttonPrimaryBackground,
         "button-primary-background-hover" to buttonPrimaryBackgroundHover,
         "button-primary-background-pressed" to buttonPrimaryBackgroundPressed,
@@ -349,6 +384,11 @@ interface Colors {
         "checkbox-mark" to checkboxMark,
         "checkbox-disabled-background" to checkboxDisabledBackground,
         "checkbox-disabled-mark" to checkboxDisabledMark,
+        "radio-border" to radioBorder,
+        "radio-border-checked" to radioBorderChecked,
+        "radio-dot" to radioDot,
+        "radio-disabled-background" to radioDisabledBackground,
+        "radio-disabled-dot" to radioDisabledDot,
         "segmented-track" to segmentedTrack,
         "segmented-text" to segmentedText,
         "segmented-selected-background" to segmentedSelectedBackground,
@@ -390,6 +430,16 @@ interface Colors {
         "tooltip-text" to tooltipText,
         "skeleton-background" to skeletonBackground,
         "skeleton-highlight" to skeletonHighlight,
+        "thumbnail-background" to thumbnailBackground,
+        "thumbnail-icon" to thumbnailIcon,
+        "sidebar-background" to sidebarBackground,
+        "sidebar-border" to sidebarBorder,
+        "sidebar-section-title" to sidebarSectionTitle,
+        "empty-state-icon" to emptyStateIcon,
+        "accordion-border" to accordionBorder,
+        "accordion-header-background-hover" to accordionHeaderBackgroundHover,
+        "accordion-header-background-pressed" to accordionHeaderBackgroundPressed,
+        "accordion-icon" to accordionIcon,
         "avatar-background" to avatarBackground,
         "avatar-text" to avatarText,
         "avatar-ring" to avatarRing,
@@ -397,6 +447,11 @@ interface Colors {
         "avatar-overflow-text" to avatarOverflowText,
         "progress-track" to progressTrack,
         "progress-fill" to progressFill,
+        "slider-track" to sliderTrack,
+        "slider-fill" to sliderFill,
+        "slider-thumb" to sliderThumb,
+        "slider-thumb-border" to sliderThumbBorder,
+        "slider-disabled-fill" to sliderDisabledFill,
         "list-row-background-hover" to listRowBackgroundHover,
         "list-row-background-pressed" to listRowBackgroundPressed,
         "list-row-background-selected" to listRowBackgroundSelected,
@@ -457,6 +512,7 @@ object LightColors : Colors {
     override val statusInfoSubtle = Color(0xFFEFF8FF)
     override val overlayBackground = Color(0xB8000000)
     override val overlayText = Color(0xFFFFFFFF)
+    override val overlayAccent = Color(0xFFA5B4FC)
     override val buttonPrimaryBackground = Color(0xFF4F46E5)
     override val buttonPrimaryBackgroundHover = Color(0xFF4338CA)
     override val buttonPrimaryBackgroundPressed = Color(0xFF3730A3)
@@ -522,6 +578,11 @@ object LightColors : Colors {
     override val checkboxMark = Color(0xFFFFFFFF)
     override val checkboxDisabledBackground = Color(0xFFECECF0)
     override val checkboxDisabledMark = Color(0xFFA9A9B4)
+    override val radioBorder = Color(0xFF84848F)
+    override val radioBorderChecked = Color(0xFF4F46E5)
+    override val radioDot = Color(0xFF4F46E5)
+    override val radioDisabledBackground = Color(0xFFECECF0)
+    override val radioDisabledDot = Color(0xFFA9A9B4)
     override val segmentedTrack = Color(0xFFECECF0)
     override val segmentedText = Color(0xFF5C5C66)
     override val segmentedSelectedBackground = Color(0xFFFFFFFF)
@@ -563,6 +624,16 @@ object LightColors : Colors {
     override val tooltipText = Color(0xFFF5F5F7)
     override val skeletonBackground = Color(0xFFECECF0)
     override val skeletonHighlight = Color(0xFFE2E2E8)
+    override val thumbnailBackground = Color(0xFFECECF0)
+    override val thumbnailIcon = Color(0xFF6E6E79)
+    override val sidebarBackground = Color(0xFFF5F5F7)
+    override val sidebarBorder = Color(0xFFE2E2E8)
+    override val sidebarSectionTitle = Color(0xFF6E6E79)
+    override val emptyStateIcon = Color(0xFF6E6E79)
+    override val accordionBorder = Color(0xFFE2E2E8)
+    override val accordionHeaderBackgroundHover = Color(0xFFECECF0)
+    override val accordionHeaderBackgroundPressed = Color(0xFFE2E2E8)
+    override val accordionIcon = Color(0xFF5C5C66)
     override val avatarBackground = Color(0xFFEEF2FF)
     override val avatarText = Color(0xFF4F46E5)
     override val avatarRing = Color(0xFFFFFFFF)
@@ -570,6 +641,11 @@ object LightColors : Colors {
     override val avatarOverflowText = Color(0xFF5C5C66)
     override val progressTrack = Color(0xFFECECF0)
     override val progressFill = Color(0xFF4F46E5)
+    override val sliderTrack = Color(0xFFECECF0)
+    override val sliderFill = Color(0xFF4F46E5)
+    override val sliderThumb = Color(0xFFFFFFFF)
+    override val sliderThumbBorder = Color(0xFF4F46E5)
+    override val sliderDisabledFill = Color(0xFFA9A9B4)
     override val listRowBackgroundHover = Color(0xFFECECF0)
     override val listRowBackgroundPressed = Color(0xFFE2E2E8)
     override val listRowBackgroundSelected = Color(0xFFEEF2FF)
@@ -629,6 +705,7 @@ object DarkColors : Colors {
     override val statusInfoSubtle = Color(0xFF102A56)
     override val overlayBackground = Color(0xB8000000)
     override val overlayText = Color(0xFFFFFFFF)
+    override val overlayAccent = Color(0xFFA5B4FC)
     override val buttonPrimaryBackground = Color(0xFF5B5EF0)
     override val buttonPrimaryBackgroundHover = Color(0xFF4F46E5)
     override val buttonPrimaryBackgroundPressed = Color(0xFF4338CA)
@@ -694,6 +771,11 @@ object DarkColors : Colors {
     override val checkboxMark = Color(0xFFFFFFFF)
     override val checkboxDisabledBackground = Color(0xFF2C2C33)
     override val checkboxDisabledMark = Color(0xFF5C5C66)
+    override val radioBorder = Color(0xFF84848F)
+    override val radioBorderChecked = Color(0xFF5B5EF0)
+    override val radioDot = Color(0xFF5B5EF0)
+    override val radioDisabledBackground = Color(0xFF2C2C33)
+    override val radioDisabledDot = Color(0xFF5C5C66)
     override val segmentedTrack = Color(0xFF2C2C33)
     override val segmentedText = Color(0xFFA9A9B4)
     override val segmentedSelectedBackground = Color(0xFF222228)
@@ -721,7 +803,7 @@ object DarkColors : Colors {
     override val menuIcon = Color(0xFFA9A9B4)
     override val menuTextDisabled = Color(0xFF5C5C66)
     override val menuItemBackgroundHover = Color(0xFF2C2C33)
-    override val menuItemBackgroundPressed = Color(0xFF44444C)
+    override val menuItemBackgroundPressed = Color(0xFF2C2C33)
     override val menuDangerText = Color(0xFFF97066)
     override val menuDangerBackgroundHover = Color(0xFF55160C)
     override val dialogBackground = Color(0xFF222228)
@@ -735,6 +817,16 @@ object DarkColors : Colors {
     override val tooltipText = Color(0xFF18181C)
     override val skeletonBackground = Color(0xFF2C2C33)
     override val skeletonHighlight = Color(0xFF44444C)
+    override val thumbnailBackground = Color(0xFF2C2C33)
+    override val thumbnailIcon = Color(0xFF84848F)
+    override val sidebarBackground = Color(0xFF0E0E11)
+    override val sidebarBorder = Color(0xFF2C2C33)
+    override val sidebarSectionTitle = Color(0xFF84848F)
+    override val emptyStateIcon = Color(0xFF84848F)
+    override val accordionBorder = Color(0xFF2C2C33)
+    override val accordionHeaderBackgroundHover = Color(0xFF222228)
+    override val accordionHeaderBackgroundPressed = Color(0xFF2C2C33)
+    override val accordionIcon = Color(0xFFA9A9B4)
     override val avatarBackground = Color(0xFF1E1B4B)
     override val avatarText = Color(0xFFA5B4FC)
     override val avatarRing = Color(0xFF18181C)
@@ -742,6 +834,11 @@ object DarkColors : Colors {
     override val avatarOverflowText = Color(0xFFA9A9B4)
     override val progressTrack = Color(0xFF2C2C33)
     override val progressFill = Color(0xFFA5B4FC)
+    override val sliderTrack = Color(0xFF2C2C33)
+    override val sliderFill = Color(0xFFA5B4FC)
+    override val sliderThumb = Color(0xFF222228)
+    override val sliderThumbBorder = Color(0xFFA5B4FC)
+    override val sliderDisabledFill = Color(0xFF5C5C66)
     override val listRowBackgroundHover = Color(0xFF222228)
     override val listRowBackgroundPressed = Color(0xFF2C2C33)
     override val listRowBackgroundSelected = Color(0xFF1E1B4B)
@@ -891,6 +988,8 @@ class Sizes(
     val switchHeight: Dp,
     /** The box, not the pressable area. */
     val checkbox: Dp,
+    /** The circle, not the pressable area. */
+    val radio: Dp,
     /** The least height of a row in a list. */
     val listRow: Dp,
     /** A row of a menu or a sidebar, where many rows share little room. */
@@ -923,6 +1022,10 @@ class Sizes(
     val countBadge: Dp,
     /** The thickness of a progress bar. */
     val progress: Dp,
+    /** The thickness of a slider's track. */
+    val sliderTrack: Dp,
+    /** The thumb, not the pressable area. */
+    val sliderThumb: Dp,
     val spinnerSm: Dp,
     val spinnerMd: Dp,
     val spinnerLg: Dp,
@@ -930,6 +1033,10 @@ class Sizes(
     val dialog: Dp,
     /** The most a toast is wide. */
     val toast: Dp,
+    /** The width of an open sidebar. */
+    val sidebar: Dp,
+    /** The width of a collapsed sidebar, which shows icons only. */
+    val sidebarRail: Dp,
 )
 
 val PointerSizes = Sizes(
@@ -940,6 +1047,7 @@ val PointerSizes = Sizes(
     switchWidth = 36.dp,
     switchHeight = 20.dp,
     checkbox = 18.dp,
+    radio = 18.dp,
     listRow = 40.dp,
     listRowCompact = 32.dp,
     bar = 48.dp,
@@ -958,11 +1066,15 @@ val PointerSizes = Sizes(
     tab = 40.dp,
     countBadge = 18.dp,
     progress = 8.dp,
+    sliderTrack = 4.dp,
+    sliderThumb = 16.dp,
     spinnerSm = 16.dp,
     spinnerMd = 24.dp,
     spinnerLg = 32.dp,
     dialog = 480.dp,
     toast = 480.dp,
+    sidebar = 240.dp,
+    sidebarRail = 72.dp,
 )
 
 val TouchSizes = Sizes(
@@ -973,6 +1085,7 @@ val TouchSizes = Sizes(
     switchWidth = 52.dp,
     switchHeight = 32.dp,
     checkbox = 24.dp,
+    radio = 24.dp,
     listRow = 56.dp,
     listRowCompact = 44.dp,
     bar = 56.dp,
@@ -991,11 +1104,15 @@ val TouchSizes = Sizes(
     tab = 48.dp,
     countBadge = 20.dp,
     progress = 8.dp,
+    sliderTrack = 4.dp,
+    sliderThumb = 24.dp,
     spinnerSm = 16.dp,
     spinnerMd = 24.dp,
     spinnerLg = 32.dp,
     dialog = 480.dp,
     toast = 480.dp,
+    sidebar = 240.dp,
+    sidebarRail = 72.dp,
 )
 
 /** Icons as SVG path data on a 24 by 24 grid, stroked 2 wide with round caps and joins. */

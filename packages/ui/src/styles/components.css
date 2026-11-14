@@ -280,6 +280,41 @@
     color: var(--acme-color-status-danger);
   }
 
+  /* ------------------------------------------------------------ select */
+
+  /* The closed field is a text field's box: the same height, inset, corners and type, with the
+     chevrons a gap away from the value. */
+  .select .select__trigger {
+    align-items: center;
+    gap: var(--acme-space-2);
+    min-height: var(--acme-size-control-md);
+    padding-block: 0;
+    padding-inline: var(--acme-space-3);
+    border-radius: var(--acme-radius-md);
+    text-align: start;
+  }
+
+  /* One line, cut short with an ellipsis, so a long option does not make the field taller. */
+  .select .select__value {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--acme-typography-body-size);
+    line-height: var(--acme-typography-body-line-height);
+  }
+
+  /* A text field's ring sits on its border, not a gap away from it. */
+  .select .select__trigger[data-focus-visible="true"] {
+    --tw-ring-offset-width: 0px;
+  }
+
+  /* Invalid as a text field is: red, and thicker. */
+  .select[data-invalid="true"] .select__trigger {
+    border-color: var(--acme-color-field-border-invalid);
+    box-shadow: inset 0 0 0 var(--acme-border-width-thin) var(--acme-color-field-border-invalid);
+  }
+
   /* ------------------------------------------------------------ icon button */
 
   /* A square exactly as tall as a button of its size. Where that is smaller than a finger
@@ -390,9 +425,12 @@
     transition-timing-function: var(--acme-motion-easing-standard);
   }
 
-  /* ------------------------------------------------------------ menu */
+  /* ------------------------------------------------------------ menu, and a select's list */
 
-  .dropdown__popover {
+  /* A Select's list is a menu: the same surface, the same rows and the same highlight. Where a
+     rule names both, the second selector is the Select's list box and its options. */
+  .dropdown__popover,
+  .select__popover {
     /* Four times `space.12`: wide enough that a menu of short words does not look like a
        stack of chips. Beyond that it is as wide as its longest row. */
     min-width: calc(4 * var(--acme-space-12));
@@ -402,23 +440,39 @@
     box-shadow: var(--acme-shadow-raised);
   }
 
+  /* A select's list is exactly as wide as its field, however short its options. */
+  .select__popover {
+    width: var(--trigger-width);
+    min-width: var(--trigger-width);
+  }
+
   .dropdown__popover[data-entering="true"],
-  .dropdown__popover[data-entering="true"][data-placement] {
+  .dropdown__popover[data-entering="true"][data-placement],
+  .select__popover[data-entering="true"],
+  .select__popover[data-entering="true"][data-placement] {
     animation-duration: var(--acme-motion-duration-fast);
     animation-timing-function: var(--acme-motion-easing-enter);
   }
 
-  .dropdown__popover .dropdown__menu {
+  .dropdown__popover .dropdown__menu,
+  .select__popover .list-box {
     gap: 0;
     padding: var(--acme-space-1);
   }
 
+  /* HeroUI spaces a list box's options apart; a menu's rows touch. */
+  .select__popover .list-box > * + * {
+    margin-top: 0;
+  }
+
   /* A row of a menu looks like a compact list row. A compact row is shorter than a finger
-     needs, so on a touch screen it grows to the smallest pressable size. */
-  .dropdown__popover .menu-item {
+     needs, so on a touch screen it grows to the smallest pressable size. The padding above and
+     below only shows on a row of two lines, such as an option with a description. */
+  .dropdown__popover .menu-item,
+  .select__popover .list-box-item {
     gap: var(--acme-space-2);
     min-height: max(var(--acme-size-list-row-compact), var(--acme-size-target-min));
-    padding: 0 var(--acme-space-2);
+    padding: var(--acme-space-1) var(--acme-space-2);
     border-radius: var(--acme-radius-sm);
     white-space: nowrap;
     font-size: var(--acme-typography-detail-size);
@@ -436,13 +490,18 @@
      highlight is a fill, which shows inside the menu where a focus ring would be clipped. */
   .dropdown__popover .menu-item[data-hovered="true"],
   .dropdown__popover .menu-item[data-focused="true"],
-  .dropdown__popover .menu-item[data-focus-visible="true"] {
+  .dropdown__popover .menu-item[data-focus-visible="true"],
+  .select__popover .list-box-item[data-hovered="true"],
+  .select__popover .list-box-item[data-focused="true"],
+  .select__popover .list-box-item[data-focus-visible="true"] {
     background: var(--acme-color-menu-item-background-hover);
     box-shadow: none;
   }
 
   .dropdown__popover .menu-item:active,
-  .dropdown__popover .menu-item[data-pressed="true"] {
+  .dropdown__popover .menu-item[data-pressed="true"],
+  .select__popover .list-box-item:active,
+  .select__popover .list-box-item[data-pressed="true"] {
     background: var(--acme-color-menu-item-background-pressed);
     transform: none;
   }
@@ -575,6 +634,177 @@
     border: var(--acme-border-width-thin) solid currentColor;
     border-radius: calc(var(--acme-radius-sm) - var(--acme-space-0-5));
     font: inherit;
+  }
+
+  /* ------------------------------------------------------------ slider */
+
+  /* The label and the value share the line above the track. */
+  .slider {
+    row-gap: var(--acme-space-1);
+    column-gap: var(--acme-space-2);
+  }
+
+  .slider [data-slot="label"] {
+    font-size: var(--acme-typography-label-size);
+    font-weight: var(--acme-typography-label-weight);
+    line-height: var(--acme-typography-label-line-height);
+  }
+
+  .slider .slider__output {
+    align-self: end;
+    font-size: var(--acme-typography-detail-size);
+    font-weight: var(--acme-typography-detail-weight);
+    line-height: var(--acme-typography-detail-line-height);
+    font-variant-numeric: tabular-nums;
+    color: var(--acme-color-text-secondary);
+  }
+
+  /* The track element is the pressable band, as tall as the smallest pressable area, and is
+     inset by half a thumb at each end so the thumb stays inside the slider at both extremes.
+     The line drawn across it runs past those insets to the full width. */
+  .slider[data-orientation="horizontal"] .slider__track,
+  .slider[data-orientation="horizontal"] .slider__track[data-fill-start="true"],
+  .slider[data-orientation="horizontal"] .slider__track[data-fill-end="true"] {
+    height: max(var(--acme-size-target-min), var(--acme-size-slider-thumb));
+    margin-inline: calc(var(--acme-size-slider-thumb) / 2);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .slider[data-orientation="horizontal"] .slider__track::before {
+    content: "";
+    position: absolute;
+    inset-inline: calc(var(--acme-size-slider-thumb) / -2);
+    top: 50%;
+    height: var(--acme-size-slider-track);
+    translate: 0 -50%;
+    border-radius: var(--acme-radius-full);
+    background: var(--acme-color-slider-track);
+  }
+
+  /* React Aria sizes the fill from the start of the inset track; the padding reaches back
+     over the inset, so the fill starts where the line does. */
+  .slider[data-orientation="horizontal"] .slider__fill {
+    top: 50%;
+    height: var(--acme-size-slider-track);
+    box-sizing: content-box;
+    margin-inline-start: calc(var(--acme-size-slider-thumb) / -2);
+    padding-inline-start: calc(var(--acme-size-slider-thumb) / 2);
+    translate: 0 -50%;
+    border-radius: var(--acme-radius-full);
+    background: var(--acme-color-slider-fill);
+  }
+
+  /* React Aria centers the thumb on the value with a transform of its own. */
+  .slider[data-orientation="horizontal"] .slider__thumb {
+    top: 50%;
+    box-sizing: border-box;
+    width: var(--acme-size-slider-thumb);
+    height: var(--acme-size-slider-thumb);
+    border: var(--acme-border-width-thick) solid var(--acme-color-slider-thumb-border);
+    border-radius: var(--acme-radius-full);
+    background: var(--acme-color-slider-thumb);
+    transition: border-color var(--acme-motion-duration-fast) var(--acme-motion-easing-standard);
+  }
+
+  /* HeroUI draws its thumb in this layer; the thumb above is drawn by the element itself. */
+  .slider[data-orientation="horizontal"] .slider__thumb::after {
+    display: none;
+  }
+
+  .slider .slider__thumb[data-focus-visible="true"] {
+    outline: var(--acme-focus-width) solid var(--acme-color-border-focus);
+    outline-offset: var(--acme-focus-offset);
+    box-shadow: none;
+  }
+
+  /* Disabled is recolored, not faded: the fill and the thumb's ring turn grey, and so do the
+     label and the value. */
+  .slider[data-disabled="true"] {
+    opacity: 1;
+  }
+
+  .slider[data-disabled="true"] [data-slot="label"],
+  .slider[data-disabled="true"] .slider__output {
+    color: var(--acme-color-text-disabled);
+  }
+
+  .slider[data-disabled="true"] .slider__fill {
+    background: var(--acme-color-slider-disabled-fill);
+  }
+
+  .slider[data-disabled="true"] .slider__thumb {
+    border-color: var(--acme-color-slider-disabled-fill);
+    cursor: default;
+  }
+
+  .slider[data-disabled="true"] .slider__track {
+    cursor: default;
+  }
+
+  /* ------------------------------------------------------------ accordion */
+
+  /* A hairline above the first item and one under every item, the last included. */
+  .accordion {
+    border-top: var(--acme-border-width-thin) solid var(--acme-color-accordion-border);
+  }
+
+  .accordion .accordion__item {
+    border-bottom: var(--acme-border-width-thin) solid var(--acme-color-accordion-border);
+  }
+
+  .accordion .accordion__item::after {
+    content: none;
+  }
+
+  .accordion .accordion__trigger {
+    gap: var(--acme-space-3);
+    min-height: var(--acme-size-list-row);
+    padding: var(--acme-space-2) var(--acme-space-4);
+    transition: background-color var(--acme-motion-duration-fast) var(--acme-motion-easing-standard);
+  }
+
+  /* Open or closed, the row takes its own fills under the pointer and while pressed. */
+  @media (hover: hover) {
+    .accordion .accordion__trigger:hover {
+      background: var(--acme-color-accordion-header-background-hover);
+    }
+  }
+
+  .accordion .accordion__trigger[data-pressed="true"] {
+    background: var(--acme-color-accordion-header-background-pressed);
+  }
+
+  /* Inside the row, so the hairlines next to it do not cut through the ring. */
+  .accordion .accordion__trigger[data-focus-visible="true"] {
+    outline: var(--acme-focus-width) solid var(--acme-color-border-focus);
+    outline-offset: calc(-1 * var(--acme-focus-offset));
+    box-shadow: none;
+  }
+
+  /* Only the height moves. HeroUI also fades the body, which would empty it at once as it
+     starts to close. */
+  .accordion .accordion__panel {
+    opacity: 1;
+    transition: height var(--acme-motion-duration-normal) var(--acme-motion-easing-standard);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .accordion .accordion__panel {
+      transition: none;
+    }
+  }
+
+  .accordion .accordion__body {
+    font-size: var(--acme-typography-body-size);
+    line-height: var(--acme-typography-body-line-height);
+  }
+
+  .accordion .accordion__body-inner {
+    padding: 0 var(--acme-space-4) var(--acme-space-4);
+    color: var(--acme-color-text-secondary);
   }
 }
 

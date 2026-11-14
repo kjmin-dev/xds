@@ -14,6 +14,7 @@ import acme.tokens.Mode
 import acme.tokens.PointerSizes
 import acme.tokens.ShadowToken
 import acme.tokens.Sizes
+import acme.tokens.Typography
 import acme.tokens.colors
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.horizontalScroll
@@ -69,10 +70,17 @@ val LocalSizes = staticCompositionLocalOf { platformSizes }
 internal val Sizes.forPointer: Boolean get() = this === PointerSizes
 
 /**
- * The color of the text and marks inside a component that sets its own fill, such as a button.
- * `Text` reads it with the `Inherit` tone, and icons drawn by a screen should read it too.
+ * The color of the text and marks inside a component that sets its own fill or its own look for
+ * the content it holds, such as the body of an [Accordion]. [Text] and [Icon] take it unless
+ * they are given a tone or a color, and anything else a screen draws there should read it too.
  */
 val LocalContentColor = compositionLocalOf { Color.Unspecified }
+
+/**
+ * The type role [Text] takes when it is given none: body text, unless a component that holds
+ * content in a type of its own, such as the body of an [Accordion], sets another around it.
+ */
+val LocalTextStyle = compositionLocalOf { Typography.body }
 
 /** Whether the person asked the system for less motion. Animations check it and jump instead. */
 val LocalReducedMotion = staticCompositionLocalOf { false }

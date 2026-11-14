@@ -145,7 +145,7 @@ fun BottomSheet(
                             .background(colors.sheetHandle, CircleShape),
                     )
                     Column(Modifier.padding(Space.s4), verticalArrangement = Arrangement.spacedBy(Space.s3)) {
-                        if (title != null) Text(title, style = Typography.heading, heading = true)
+                        if (title != null) Text(title, style = Typography.heading, tone = TextTone.Primary, heading = true)
                         content()
                     }
                 }

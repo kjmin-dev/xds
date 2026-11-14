@@ -1,6 +1,6 @@
 # Working in this repository
 
-This repository is the xds template: a single set of design tokens, component libraries for four clients, a sample app for each client, and the `xds` CLI that scaffolds a new project with a chosen subset of clients. `acme` is the placeholder name replaced by `xds create`, so keep it in all package names, identifiers, and file paths.
+This repository is the xds template: a single set of design tokens, component libraries for five clients (two of them for the web), a sample app for each client, and the `xds` CLI that scaffolds a new project with a chosen subset of clients. `acme` is the placeholder name replaced by `xds create`, so keep it in all package names, identifiers, and file paths.
 
 ## Where things are
 
@@ -10,7 +10,8 @@ This repository is the xds template: a single set of design tokens, component li
 | `design/themes` | Color themes, each defining an accent ramp and a neutral ramp |
 | `design/components.json` | Component contract: variants, sizes, tones, and the source file for each client |
 | `tools/design-build` | Token compiler and WCAG contrast checker |
-| `packages/ui`, `packages/ui-native`, `crates/acme-ui`, `kotlin/ui` | Component libraries for web, React Native, GPUI, and Compose |
+| `packages/ui`, `packages/ui-solid`, `packages/ui-native`, `crates/acme-ui`, `kotlin/ui` | Component libraries for the web (React and Solid), React Native, GPUI, and Compose |
+| `packages/ui-core` | What the web libraries share: the behavior tests that each of them runs, and the prop types, class recipes, and stylesheet of the libraries built on Zag.js. It imports no framework |
 | `apps/*`, `kotlin/*App` | Client apps, each with a design preview screen |
 | `cli`, `template.json` | The `xds` CLI and the manifest mapping repository paths to client targets |
 
@@ -19,7 +20,8 @@ This repository is the xds template: a single set of design tokens, component li
 - Design tokens are the source of truth. Never edit generated files (`packages/tokens/src/generated`, `crates/acme-tokens/src/generated.rs`, `kotlin/ui/src/commonMain/kotlin/acme/tokens/Tokens.kt`). Edit the JSON files in `design/tokens`, run `mise run tokens`, and commit both the token sources and the generated files.
 - Components must take all colors, sizes, and spacing from tokens. Do not hardcode hex colors in components, and prefer tokens over raw pixel values. Component-specific colors belong in that component's group in both `color.light.json` and `color.dark.json`.
 - Every foreground and background color pair rendered together by a component must have an entry in `tools/design-build/src/contrast.ts`. The token build fails if any pairing falls below its required contrast ratio.
-- Every component, variant, size, and tone must exist across all four clients under the same name and appear in each client's design preview. TopBar, TabBar, and BottomSheet are touch-only exceptions and exist only on React Native and Compose. Tooltip and Sidebar are pointer-only exceptions and exist only on web and GPUI. Update `design/components.json` in the same change.
+- Every component, variant, size, and tone must exist across all clients under the same name and appear in each client's design preview. TopBar, TabBar, and BottomSheet are touch-only exceptions and exist only on React Native and Compose. Tooltip and Sidebar are pointer-only exceptions and exist only on the web targets (React and Solid) and GPUI. Update `design/components.json` in the same change.
+- On the web, the React library is the reference. A Solid component takes its classes and its CSS from `packages/ui-core`; the overlays and the composite controls take their behavior from Zag.js, and the selection controls and fields are native inputs, as in the React library. It must look and behave like the React component in both color modes. `packages/ui-core` keeps one copy of what the Zag.js libraries share, including the DOM helpers their behavior needs, so it never imports a framework, and its CSS selects on its own part classes, native pseudo-classes, `aria-*` attributes, and Zag's state attributes.
 - Do not edit theme color ramps by hand. `design/themes/indigo.json` is the reference theme; generate new themes with `node tools/design-build/src/make-theme.ts <name> --hue <0-360>`.
 - Every top-level path in the repository must be accounted for in `template.json` (under a target, a shared group, `common`, or `exclude`). Target-specific lines in shared files must be wrapped in `@if <names>` and `@endif` comments. A name is a target id or a shared unit from `template.json`; use the unit (`@if js-workspace`) when the lines serve every target that requires it, so that a new target gets them too. Use `@if template` for lines needed only in this template repository.
 - Machine-written JSON files under `design/` must be formatted with `JSON.stringify(value, null, 2)` followed by a trailing newline.
@@ -34,8 +36,8 @@ This repository is the xds template: a single set of design tokens, component li
 | Regenerate token files | `mise run tokens` |
 | Verify generated files are up to date | `mise run check:generated` |
 | Format code | `mise run fmt` |
-| TypeScript lint, typecheck, tests, and web build | `mise run check:js` |
-| Web component behavior tests, in headless Google Chrome | `pnpm --filter @acme/ui test` |
+| TypeScript lint, typecheck, tests, and web builds | `mise run check:js` |
+| Web component behavior tests, in headless Google Chrome | `pnpm --filter @acme/ui test` (React), `pnpm --filter @acme/ui-solid test` (Solid) |
 | Rust lint and tests | `mise run check:rust`, `mise run check:desktop` (macOS), `mise run check:cli` |
 | Kotlin tests and builds | `mise run //kotlin:check` |
 | Run the CLI from source | `mise run xds -- list` |
@@ -47,11 +49,12 @@ Use `xds tokens`, `xds components`, `xds contrast`, and `xds doctor` to inspect 
 
 There is no automated visual regression test, so inspect the design preview in both light and dark modes on every client you modify.
 
-How the interactive web components behave (keyboard, focus, and ARIA state) is tested in `packages/ui/test`, in the Google Chrome installed on the machine. The checks in `behavior.ts` find elements by role and name and do not depend on React; `behavior.test.tsx` mounts the scenarios of `scenarios.ts` with the React components. When you add or change an interactive web component, add its scenario and its checks there.
+How the interactive web components behave (keyboard, focus, and ARIA state) is tested in the Google Chrome installed on the machine, with the same checks for every web library. The checks are in `packages/ui-core/test`: `behavior.ts` finds elements by role and name and depends on no framework, and `scenarios.ts` says what each check runs against. Each library's `test/behavior.test.tsx` (`packages/ui` for React, `packages/ui-solid` for Solid) builds those scenarios with its own components and runs the checks. When you add or change an interactive web component, add its scenario and its checks to `packages/ui-core/test`, and build the scenario in every library's `behavior.test.tsx`.
 
 | Client | How to open a specific section directly |
 | --- | --- |
-| Web | Run `mise run //web:dev`, then open `http://localhost:5173/design#buttons` (each section has an anchor; `?theme=light` or `?theme=dark` pins the color mode; `?open=menu`, `select`, `dialog`, `toast`, or `tooltip` opens that overlay) |
+| Web (React) | Run `mise run //web:dev`, then open `http://localhost:5173/design#buttons` (each section has an anchor; `?theme=light` or `?theme=dark` pins the color mode; `?open=menu`, `select`, `dialog`, `toast`, or `tooltip` opens that overlay) |
+| Web (Solid) | Run `mise run //web-solid:dev`, then open `http://localhost:5174/design#buttons` (the same anchors and parameters as the React preview; compare the two side by side) |
 | GPUI desktop | `cargo run --package acme-desktop -- --design --dark --scroll 800` (`--open menu`, `select`, `dialog`, `toast`, or `tooltip` opens that overlay) |
 | React Native | Pass `?from=<section number>`, `?sheet=1`, `?menu=1`, `?select=1`, `?dialog=1`, or `?toast=1` to the design screen route |
 | Compose | `mise run //kotlin:render` renders PNG screenshots to `kotlin/build/preview` |

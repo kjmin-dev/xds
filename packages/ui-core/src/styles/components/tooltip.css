@@ -1,0 +1,99 @@
+/*
+ * Tooltip: Zag's tooltip machine, rendered into the body only while open or animating out.
+ *
+ * Parts: `.tooltip__positioner` (placed by Zag), `.tooltip` (role="tooltip"),
+ * `.tooltip__shortcut` (a key hint after the label).
+ * States: `[data-side]` on the tooltip for the side of the control it is on, and
+ * `[data-state="closed"]` while it animates out.
+ */
+@layer components {
+  .tooltip__positioner {
+    z-index: calc(var(--layer-overlay) + var(--layer-index, 0));
+  }
+
+  .tooltip {
+    /* The widest the React library's tooltip gets; a longer label wraps. */
+    max-width: 20rem;
+    padding: var(--acme-space-1) var(--acme-space-2);
+    border-radius: var(--acme-radius-sm);
+    background: var(--acme-color-tooltip-background);
+    font-size: var(--acme-typography-footnote-size);
+    font-weight: var(--acme-typography-footnote-weight);
+    line-height: var(--acme-typography-footnote-line-height);
+    color: var(--acme-color-tooltip-text);
+    transform-origin: var(--transform-origin);
+  }
+
+  /* It grows in from the control's side. */
+  .tooltip[data-side="top"] {
+    animation: acme-tooltip-enter-up var(--acme-motion-duration-fast)
+      var(--acme-motion-easing-enter);
+  }
+
+  .tooltip[data-side="bottom"] {
+    animation: acme-tooltip-enter-down var(--acme-motion-duration-fast)
+      var(--acme-motion-easing-enter);
+  }
+
+  .tooltip[data-side="left"] {
+    animation: acme-tooltip-enter-left var(--acme-motion-duration-fast)
+      var(--acme-motion-easing-enter);
+  }
+
+  .tooltip[data-side="right"] {
+    animation: acme-tooltip-enter-right var(--acme-motion-duration-fast)
+      var(--acme-motion-easing-enter);
+  }
+
+  /* After the rules above, which it replaces. */
+  .tooltip[data-state="closed"] {
+    animation: acme-overlay-exit var(--acme-motion-duration-fast) var(--acme-motion-easing-exit);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tooltip[data-side],
+    .tooltip[data-state="closed"] {
+      animation: none;
+    }
+  }
+
+  /* A key hint: the same text in a hairline box of its own, in the text's color, which is
+     the one color known to stand out from the tooltip. */
+  .tooltip__shortcut {
+    margin-inline-start: var(--acme-space-2);
+    padding-inline: var(--acme-space-1);
+    border: var(--acme-border-width-thin) solid currentColor;
+    border-radius: calc(var(--acme-radius-sm) - var(--acme-space-0-5));
+    font: inherit;
+  }
+}
+
+/* Literal offsets and scales: a custom property inside a keyframe keeps WebKit from running the
+   animation on the compositor. */
+@keyframes acme-tooltip-enter-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.25rem, 0) scale(0.9);
+  }
+}
+
+@keyframes acme-tooltip-enter-down {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -0.25rem, 0) scale(0.9);
+  }
+}
+
+@keyframes acme-tooltip-enter-left {
+  from {
+    opacity: 0;
+    transform: translate3d(0.25rem, 0, 0) scale(0.9);
+  }
+}
+
+@keyframes acme-tooltip-enter-right {
+  from {
+    opacity: 0;
+    transform: translate3d(-0.25rem, 0, 0) scale(0.9);
+  }
+}

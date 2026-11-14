@@ -1,10 +1,15 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   // React and jsx-a11y are enabled per client below: an override can add a plugin to some
-  // files, but cannot take one away, and their rules do not apply to Solid, Vue or Svelte.
+  // files, but cannot take one away. React's rules assume React (keys on list items, hooks) and
+  // do not apply to Solid, Vue or Svelte; jsx-a11y's apply to any JSX.
   "plugins": ["eslint", "typescript", "unicorn", "oxc"],
   "categories": { "correctness": "error" },
   "ignorePatterns": ["**/generated/**"],
+  // @if web-solid
+  // Solid writes the DOM's attribute names: a label names its control with `for`, not `htmlFor`.
+  "settings": { "jsx-a11y": { "attributes": { "for": ["htmlFor", "for"] } } },
+  // @endif
   // Rules outside the correctness category that the code already keeps to: suspicious code,
   // and the shorter or safer form where there are two.
   "rules": {
@@ -118,14 +123,6 @@
         "jsx-a11y/prefer-tag-over-role": "off",
       },
     },
-    // packages/ui is tested with Vitest. The plugin's correctness rules catch a focused or
-    // skipped test, and an expect.element or expect.poll that is not awaited, which the test does
-    // not wait for.
-    {
-      "files": ["packages/ui/**"],
-      "plugins": ["vitest"],
-      "rules": { "vitest/no-identical-title": "error" },
-    },
     // @endif
     // @if mobile-react-native
     {
@@ -141,6 +138,36 @@
         // Banner and NativeText render their string children inside a <Text>.
         "react-native/no-raw-text": ["error", { "skip": ["Banner", "NativeText"] }],
       },
+    },
+    // @endif
+    // @if web-solid
+    {
+      "files": ["apps/web-solid/**", "packages/ui-solid/**"],
+      "plugins": ["jsx-a11y"],
+      "rules": {
+        "jsx-a11y/anchor-ambiguous-text": "error",
+        // As for apps/web: the components use these roles deliberately. no-autofocus is left
+        // out because it reads React's `autoFocus` only.
+        "jsx-a11y/prefer-tag-over-role": "off",
+      },
+    },
+    // @endif
+    // @if ui-core
+    // The web libraries are tested with Vitest, each against the checks in packages/ui-core/test.
+    // The plugin's correctness rules catch a focused or skipped test, and an expect.element or
+    // expect.poll that is not awaited, which the test does not wait for.
+    {
+      "files": [
+        "packages/ui-core/test/**",
+        // @if web-react
+        "packages/ui/**",
+        // @endif
+        // @if web-solid
+        "packages/ui-solid/test/**",
+        // @endif
+      ],
+      "plugins": ["vitest"],
+      "rules": { "vitest/no-identical-title": "error" },
     },
     // @endif
     // @if template

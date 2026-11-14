@@ -1,0 +1,16 @@
+[tasks.dev]
+description = "Run the Solid web app on http://localhost:5174"
+depends = ["//:install"]
+run = "pnpm exec vite"
+
+[tasks.build]
+description = "Build the Solid web app into dist/"
+depends = ["//:install"]
+run = "pnpm exec vite build"
+sources = ["src/**/*", "index.html", "vite.config.ts", "../../packages/*/src/**/*"]
+outputs = ["dist/**/*"]
+
+[tasks.preview]
+description = "Serve the built Solid web app"
+depends = ["build"]
+run = "pnpm exec vite preview"

@@ -45,6 +45,9 @@ mobile = "apps/mobile"
 # @if web-react
 web = "apps/web"
 # @endif
+# @if web-solid
+web-solid = "apps/web-solid"
+# @endif
 # @if template
 docs = "apps/docs"
 # @endif
@@ -130,10 +133,15 @@ run = [
   "pnpm exec oxlint --type-aware --report-unused-disable-directives-severity=error",
   "pnpm --recursive --if-present run typecheck",
   "pnpm --recursive --if-present run test",
+  # @if ui-core
+  # A production build of a web app catches what the type checker cannot: unresolved imports,
+  # and CSS that Tailwind rejects.
+  # @endif
   # @if web-react
-  # A production build of the web app catches what the type checker cannot: unresolved
-  # imports, and CSS that Tailwind rejects.
   "pnpm --filter @acme/web build",
+  # @endif
+  # @if web-solid
+  "pnpm --filter @acme/web-solid build",
   # @endif
 ]
 

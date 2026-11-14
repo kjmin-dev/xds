@@ -13,6 +13,25 @@ mise run //web:dev        # serves http://localhost:5173
 - Use `?open=menu`, `?open=select`, `?open=dialog`, `?open=toast`, or `?open=tooltip` to load the preview with that overlay showing.
 - To capture a screenshot with headless Chrome: `chrome --headless --screenshot=buttons.png --window-size=1200,900 "http://localhost:5173/design?theme=dark#buttons"`.
 
+## Web (Solid)
+
+```sh
+mise run //web-solid:dev  # serves http://localhost:5174
+```
+
+The Solid preview at `/design` has the same sections, anchors, `?theme=` and `?open=` parameters as the React one. The React preview is the reference: when both clients are in the project, capture the same section from both and compare them.
+
+## Web behavior tests
+
+`mise run check:js` tests how the interactive web components behave, in the Google Chrome installed on the machine. To run them for one library:
+
+```sh
+pnpm --filter @acme/ui test        # React
+pnpm --filter @acme/ui-solid test  # Solid
+```
+
+The checks in `packages/ui-core/test/behavior.ts` drive each component with the keyboard and the pointer and check focus, roles, names, and ARIA state. Every web library runs the same checks against its own components, so a failure in one library and not the other is a difference between the two. They check behavior, not appearance: look at the preview as well.
+
 ## GPUI desktop (macOS)
 
 ```sh

@@ -1,0 +1,226 @@
+/*
+ * TextField and SearchField: a native <input> or <textarea>.
+ *
+ * Parts: `.text-field` (the column), `__label`, `__control` (what draws the box), `__group` (a
+ * control that holds the input and its slots), `__input`, `__slot` with `--leading` or
+ * `--trailing`, `__footer`, `__description`, `__error`. `.text-field__control--pill` rounds
+ * the box fully.
+ * States: `:hover`, `:focus`, `:disabled`, `:required` and `[aria-invalid="true"]` on the input;
+ * the box and the label follow the input through `:has()`.
+ */
+@layer components {
+  .text-field {
+    /* What a line of text has above and below it inside the box of a one-line field. A text
+       area uses it too, so its first line sits where a one-line field has its text and one
+       row is exactly as tall as a one-line field. */
+    --text-field-inset-block: calc(
+      (
+          var(--acme-size-control-md) - var(--acme-typography-body-size) *
+            var(--acme-typography-body-line-height)
+        ) /
+        2 - var(--acme-border-width-thin)
+    );
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--acme-space-1);
+    width: 100%;
+  }
+
+  .text-field__label {
+    font-size: var(--acme-typography-label-size);
+    font-weight: var(--acme-typography-label-weight);
+    line-height: var(--acme-typography-label-line-height);
+    color: var(--acme-color-text-primary);
+  }
+
+  .text-field:has(.text-field__input:required) .text-field__label::after {
+    content: "*";
+    margin-inline-start: var(--acme-space-0-5);
+    color: var(--acme-color-danger-default);
+  }
+
+  .text-field:has(.text-field__input:disabled) .text-field__label {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* ------------------------------------------------------------ the box */
+
+  /* Drawn by the input itself until something has to sit inside it beside the text; then a
+     group draws it and the input inside has none. */
+  .text-field__control {
+    min-height: var(--acme-size-control-md);
+    border: var(--acme-border-width-thin) solid var(--acme-color-field-border);
+    border-radius: var(--acme-radius-md);
+    background-color: var(--acme-color-field-background);
+    color: var(--acme-color-field-text);
+    outline-style: none;
+    transition-property: background-color, border-color, box-shadow;
+    transition-duration: var(--acme-motion-duration-fast);
+    transition-timing-function: var(--acme-motion-easing-standard);
+  }
+
+  .text-field__control--pill {
+    border-radius: var(--acme-radius-full);
+  }
+
+  .text-field__control:focus,
+  .text-field__control:has(> .text-field__input:focus) {
+    border-color: var(--acme-color-field-border-focus);
+  }
+
+  /* Thicker as well as red, so the state does not depend on telling colors apart. */
+  .text-field__control[aria-invalid="true"],
+  .text-field__control:has(> .text-field__input[aria-invalid="true"]) {
+    border-color: var(--acme-color-field-border-invalid);
+    box-shadow: inset 0 0 0 var(--acme-border-width-thin) var(--acme-color-field-border-invalid);
+    outline: var(--acme-border-width-thin) solid var(--acme-color-danger-default);
+  }
+
+  /* Focused, an invalid field keeps its red border; a group shows focus instead. Both as the
+     React library draws them. */
+  .text-field__control[aria-invalid="true"]:focus {
+    box-shadow: none;
+  }
+
+  .text-field__control:has(> .text-field__input[aria-invalid="true"]:focus) {
+    border-color: var(--acme-color-field-border-focus);
+    box-shadow: none;
+    outline-style: none;
+  }
+
+  /* After the error, which it outranks, as in the React library. */
+  @media (hover: hover) {
+    .text-field__control:hover:not(:focus, :has(:focus)) {
+      border-color: var(--acme-color-text-primary);
+    }
+  }
+
+  .text-field__control:disabled,
+  .text-field__control:has(> .text-field__input:disabled) {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* ------------------------------------------------------------ the text */
+
+  .text-field__input {
+    width: 100%;
+    padding-block: 0;
+    padding-inline: var(--acme-space-3);
+    /* 16px on every screen: below that, iOS zooms the page when the field takes focus. */
+    font-size: var(--acme-typography-body-size);
+    line-height: var(--acme-typography-body-line-height);
+    outline-style: none;
+  }
+
+  .text-field__input::placeholder {
+    color: var(--acme-color-field-placeholder);
+  }
+
+  /* `rows` is the height. Longer text scrolls; a handle would let the layout be dragged apart. */
+  textarea.text-field__input {
+    min-height: 0;
+    padding-block: var(--text-field-inset-block);
+    resize: none;
+  }
+
+  .text-field__group {
+    display: flex;
+    align-items: stretch;
+    /* For text put straight into a slot. The input has its own size. */
+    font-size: var(--acme-font-size-sm);
+    line-height: var(--acme-font-line-height-snug);
+  }
+
+  .text-field__group:has(> textarea) {
+    align-items: flex-start;
+  }
+
+  /* Rounded where it meets the box, so the paint of an autofilled value stays inside it. */
+  .text-field__group > .text-field__input {
+    flex: 1;
+    min-width: 0;
+    border-width: 0;
+    border-radius: var(--acme-radius-md);
+    background-color: transparent;
+    color: inherit;
+  }
+
+  .text-field__slot--leading + .text-field__input {
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+  }
+
+  .text-field__input:has(+ .text-field__slot--trailing) {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  /* A slot is a full inset away from the edge of the box and a smaller one from the text. */
+  .text-field__slot--leading + .text-field__input {
+    padding-inline-start: var(--acme-space-2);
+  }
+
+  .text-field__input:has(+ .text-field__slot--trailing) {
+    padding-inline-end: var(--acme-space-2);
+  }
+
+  /* As tall as the inside of a one-line field and at the top of the box, which centers a slot
+     in a one-line field and lines it up with the first line of a text area. */
+  .text-field__slot {
+    display: flex;
+    align-self: flex-start;
+    align-items: center;
+    justify-content: center;
+    height: calc(var(--acme-size-control-md) - 2 * var(--acme-border-width-thin));
+    border: 0;
+    color: var(--acme-color-field-placeholder);
+  }
+
+  .text-field__slot--leading {
+    padding-inline-start: var(--acme-space-3);
+  }
+
+  .text-field__slot--trailing {
+    padding-inline-end: var(--acme-space-3);
+  }
+
+  /* ------------------------------------------------------------ under the box */
+
+  /* The help or the error at the start edge, the count at the end. */
+  .text-field__footer {
+    display: flex;
+    align-items: baseline;
+    gap: var(--acme-space-3);
+  }
+
+  /* With nothing to show, the line takes no room but stays in the page: the error inside it
+     is a live region, which has to be there before a message is put in it for the message to
+     be announced. */
+  .text-field__footer:not(:has(> :not(:empty))) {
+    position: absolute;
+  }
+
+  .text-field__description,
+  .text-field__error {
+    font-size: var(--acme-typography-detail-size);
+    line-height: var(--acme-typography-detail-line-height);
+    overflow-wrap: break-word;
+  }
+
+  .text-field__description {
+    color: var(--acme-color-text-secondary);
+  }
+
+  .text-field__error {
+    color: var(--acme-color-status-danger);
+  }
+
+  .text-field__error:empty {
+    position: absolute;
+  }
+}

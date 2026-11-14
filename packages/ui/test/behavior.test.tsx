@@ -1,9 +1,27 @@
-// The behavior tests of behavior.ts, run against this package's React components. Each
-// scenario is a small screen built as an app would build it, with its state in the screen.
+// The behavior tests that every web library shares, from @acme/ui-core, run against this
+// package's React components. Each scenario is a small screen built as an app would build it,
+// with its state in the screen.
 
+import { describeBehavior } from "@acme/ui-core/test/behavior";
+import {
+  CONFIRM,
+  COUNTRIES,
+  COUNTRY_PLACEHOLDER,
+  DELIVERY,
+  PAGES,
+  PLANS,
+  PREFERENCES,
+  QUESTION,
+  QUESTIONS,
+  type Scenario,
+  SIZE_ERROR,
+  SIZES,
+  TOAST,
+} from "@acme/ui-core/test/scenarios";
 import { type ReactNode, StrictMode, useState } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
+import "../src/styles/index.css";
 import { afterEach } from "vitest";
 import {
   Accordion,
@@ -20,23 +38,6 @@ import {
   Toast,
   Tooltip,
 } from "../src/index.ts";
-import "../src/styles/index.css";
-import { describeBehavior } from "./behavior.ts";
-import {
-  CONFIRM,
-  COUNTRIES,
-  COUNTRY_PLACEHOLDER,
-  DELIVERY,
-  PAGES,
-  PLANS,
-  PREFERENCES,
-  QUESTION,
-  QUESTIONS,
-  type Scenario,
-  SIZE_ERROR,
-  SIZES,
-  TOAST,
-} from "./scenarios.ts";
 
 function Selection() {
   const [notifications, setNotifications] = useState(true);

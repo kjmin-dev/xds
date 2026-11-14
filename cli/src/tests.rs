@@ -5,7 +5,12 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
+use std::num::NonZeroUsize;
+use std::panic;
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::thread;
 
 use serde_json::Value;
 use tempfile::TempDir;
@@ -21,6 +26,7 @@ use crate::template::{File, Files, Template, is_binary, template};
 use crate::theme::{self, PALETTE_PATH, Source};
 
 const WEB: &str = "web-react";
+const SOLID: &str = "web-solid";
 const DESKTOP: &str = "desktop-gpui";
 const MOBILE: &str = "mobile-react-native";
 const KOTLIN: &str = "kotlin-compose";
@@ -334,15 +340,8 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
     // The template's component contract, which each project's is cut down from.
     let contract: Value =
         serde_json::from_slice(&template().files[COMPONENTS_PATH].contents).expect("valid JSON");
-    // Every non-empty subset of the targets.
-    for mask in 1u32..(1 << ids.len()) {
-        let selected: Vec<String> = ids
-            .iter()
-            .enumerate()
-            .filter(|(bit, _)| mask & (1 << bit) != 0)
-            .map(|(_, id)| (*id).to_owned())
-            .collect();
-        let targets = manifest().select(&selected).expect("known ids");
+    let check = |selected: &Vec<String>| {
+        let targets = manifest().select(selected).expect("known ids");
         let files = render::render(template(), manifest(), &targets, &names).expect("renders");
         let has = |id: &str| selected.iter().any(|selected| selected == id);
         // What follows from template.json is read from it, so that a new target which requires
@@ -564,11 +563,18 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
             }
         }
         assert!(readme.starts_with("# Orbit\n"), "{selected:?}");
+        assert_eq!(
+            readme.contains("packages/ui-core"),
+            requires("ui-core"),
+            "{selected:?}"
+        );
 
         // So does the guide for coding agents, and it points at paths that exist.
         let agents = read("AGENTS.md");
         for (path, expected) in [
             ("`packages/ui`", has(WEB)),
+            ("`packages/ui-solid`", has(SOLID)),
+            ("`packages/ui-core`", requires("ui-core")),
             ("`crates/orbit-ui`", has(DESKTOP)),
             ("`packages/ui-native`", has(MOBILE)),
             ("`kotlin/ui`", has(KOTLIN)),
@@ -615,7 +621,59 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
                 assert!(files.contains_key(path), "{selected:?}: {path} is missing");
             }
         }
-    }
+    };
+
+    // Every non-empty subset of the targets: 2^n - 1 of them, so they are spread over the cores.
+    let subsets: Vec<Vec<String>> = (1u32..(1 << ids.len()))
+        .map(|mask| {
+            ids.iter()
+                .enumerate()
+                .filter(|(bit, _)| mask & (1 << bit) != 0)
+                .map(|(_, id)| (*id).to_owned())
+                .collect()
+        })
+        .collect();
+    let next = AtomicUsize::new(0);
+    // A failed check panics on a worker thread. It is caught there, so that the test reports
+    // every subset that failed, each with its message, rather than "a scoped thread panicked".
+    let failures = Mutex::new(Vec::new());
+    let workers = thread::available_parallelism().map_or(1, NonZeroUsize::get);
+    thread::scope(|scope| {
+        for _ in 0..workers.min(subsets.len()) {
+            scope.spawn(|| {
+                loop {
+                    let index = next.fetch_add(1, Ordering::Relaxed);
+                    let Some(selected) = subsets.get(index) else {
+                        break;
+                    };
+                    if let Err(payload) = panic::catch_unwind(|| check(selected)) {
+                        let message = payload
+                            .downcast_ref::<String>()
+                            .map(String::as_str)
+                            .or_else(|| payload.downcast_ref::<&str>().copied())
+                            .unwrap_or("a panic without a message");
+                        failures
+                            .lock()
+                            .expect("no panic while it is held")
+                            .push((index, format!("{selected:?}: {message}")));
+                    }
+                }
+            });
+        }
+    });
+    let mut failures = failures.into_inner().expect("no panic while it was held");
+    failures.sort();
+    assert!(
+        failures.is_empty(),
+        "{} of {} combinations failed:\n{}",
+        failures.len(),
+        subsets.len(),
+        failures
+            .iter()
+            .map(|(_, failure)| failure.as_str())
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
 }
 
 /// A marker can name a shared unit, which stands for every target that requires it.
@@ -684,6 +742,9 @@ fn creates_a_web_project() {
             "packages/tokens/src/generated/theme.css",
             "packages/tokens/src/generated/tailwind.css",
             "packages/tokens/src/generated/tokens.ts",
+            // The behavior checks that every web library runs.
+            "packages/ui-core/test/behavior.ts",
+            "packages/ui-core/test/scenarios.ts",
             "package.json",
             "pnpm-workspace.yaml",
             ".oxfmtrc.jsonc",
@@ -695,22 +756,162 @@ fn creates_a_web_project() {
         &[
             "apps/desktop",
             "apps/mobile",
+            "apps/web-solid",
             "packages/ui-native",
+            "packages/ui-solid",
             "tools/lint",
             "crates",
             "kotlin",
             "Cargo.toml",
         ],
     );
-    assert!(!text(&tree, ".oxlintrc.jsonc").contains("react-native"));
+    let lint = text(&tree, ".oxlintrc.jsonc");
+    assert!(!lint.contains("react-native") && !lint.contains("\"settings\""));
+    let vitest = jsonc(&lint, ".oxlintrc.jsonc")["overrides"]
+        .as_array()
+        .expect("overrides")
+        .iter()
+        .find(|entry| entry["plugins"] == serde_json::json!(["vitest"]))
+        .expect("the Vitest override")["files"]
+        .clone();
+    assert_eq!(
+        vitest,
+        serde_json::json!(["packages/ui-core/test/**", "packages/ui/**"])
+    );
     let format = text(&tree, ".oxfmtrc.jsonc");
     assert!(
-        format.contains("\"./packages/ui/src/styles/index.css\"") && !format.contains("apps/docs")
+        format.contains("\"./packages/ui/src/styles/index.css\"")
+            && !format.contains("apps/docs")
+            && !format.contains("web-solid")
     );
+    // React is not on Zag.js yet: its project has none of the Zag.js pins.
+    let workspace = text(&tree, "pnpm-workspace.yaml");
+    assert!(!workspace.contains("@zag-js") && !workspace.contains("minimumReleaseAgeExclude"));
     assert_eq!(json(&tree, "package.json")["name"], "orbit");
     assert_eq!(json(&tree, "packages/ui/package.json")["name"], "@orbit/ui");
+    assert_eq!(
+        json(&tree, "packages/ui/package.json")["devDependencies"]["@orbit/ui-core"],
+        "workspace:*"
+    );
     assert!(text(&tree, "packages/tokens/src/generated/theme.css").contains("--orbit-color-"));
     assert!(text(&tree, "mise.toml").contains("pnpm --filter @orbit/web build"));
+}
+
+#[test]
+fn creates_a_solid_web_project() {
+    let (_temp, directory) = project(&[SOLID]);
+    let tree = read_tree(&directory);
+    assert_clean(&tree, &[SOLID]);
+    assert_paths(
+        &tree,
+        &[
+            "apps/web-solid/package.json",
+            "apps/web-solid/mise.toml",
+            "packages/ui-solid/package.json",
+            "packages/ui-core/package.json",
+            "packages/ui-core/src/styles/index.css",
+            "packages/tokens/src/generated/theme.css",
+            "packages/tokens/src/generated/tailwind.css",
+            "pnpm-workspace.yaml",
+            ".oxfmtrc.jsonc",
+            ".oxlintrc.jsonc",
+        ],
+        &[
+            "apps/web",
+            "packages/ui",
+            "apps/mobile",
+            "packages/ui-native",
+            "tools/lint",
+            "crates",
+            "kotlin",
+        ],
+    );
+    assert_eq!(
+        json(&tree, "packages/ui-solid/package.json")["name"],
+        "@orbit/ui-solid"
+    );
+    assert_eq!(
+        json(&tree, "packages/ui-core/package.json")["name"],
+        "@orbit/ui-core"
+    );
+    let mise = text(&tree, "mise.toml");
+    assert!(mise.contains("pnpm --filter @orbit/web-solid build"));
+    assert!(!mise.contains("pnpm --filter @orbit/web build"));
+    // The Zag.js and Solid pins, and Zag's release-age exclusions, come with the target.
+    let workspace = text(&tree, "pnpm-workspace.yaml");
+    assert!(workspace.contains("\"@zag-js/menu\"") && workspace.contains("solid-js:"));
+    assert!(workspace.contains("minimumReleaseAgeExclude:"));
+    assert!(!workspace.contains("react:"));
+    // Solid's classes sort against ui-core's stylesheet; React's rules stay out of its lint.
+    let format = jsonc(&text(&tree, ".oxfmtrc.jsonc"), ".oxfmtrc.jsonc");
+    let stylesheets: Vec<&str> = format["overrides"]
+        .as_array()
+        .expect("overrides")
+        .iter()
+        .map(|entry| {
+            entry["options"]["sortTailwindcss"]["stylesheet"]
+                .as_str()
+                .expect("a stylesheet")
+        })
+        .collect();
+    assert_eq!(
+        stylesheets, ["./packages/ui-core/src/styles/index.css"; 2],
+        "ui-core and the Solid app and library"
+    );
+    let lint = jsonc(&text(&tree, ".oxlintrc.jsonc"), ".oxlintrc.jsonc");
+    let overrides = lint["overrides"].as_array().expect("overrides");
+    assert_eq!(overrides.len(), 2);
+    assert_eq!(overrides[0]["plugins"], serde_json::json!(["jsx-a11y"]));
+    assert_eq!(overrides[1]["plugins"], serde_json::json!(["vitest"]));
+    assert_eq!(
+        overrides[1]["files"],
+        serde_json::json!(["packages/ui-core/test/**", "packages/ui-solid/test/**"])
+    );
+    assert_eq!(
+        lint["settings"]["jsx-a11y"]["attributes"]["for"],
+        serde_json::json!(["htmlFor", "for"])
+    );
+}
+
+#[test]
+fn the_web_targets_coexist() {
+    let (_temp, directory) = project(&[WEB, SOLID]);
+    let tree = read_tree(&directory);
+    assert_clean(&tree, &[WEB, SOLID]);
+    assert_paths(
+        &tree,
+        &[
+            "apps/web/package.json",
+            "packages/ui/package.json",
+            "apps/web-solid/package.json",
+            "packages/ui-solid/package.json",
+            "packages/ui-core/package.json",
+        ],
+        &[],
+    );
+    let mise = text(&tree, "mise.toml");
+    for build in [
+        "pnpm --filter @orbit/web build",
+        "pnpm --filter @orbit/web-solid build",
+    ] {
+        assert!(mise.contains(build), "{build}");
+    }
+    // Each app keeps its own dev server port, which it does not give up for a free one.
+    for (app, port) in [("apps/web", 5173), ("apps/web-solid", 5174)] {
+        let config = text(&tree, &format!("{app}/vite.config.ts"));
+        assert!(
+            config.contains(&format!("port: {port}, strictPort: true")),
+            "{app}: {port}"
+        );
+    }
+    // Both libraries run the behavior checks of ui-core, under the project's name.
+    for library in ["packages/ui", "packages/ui-solid"] {
+        let test = text(&tree, &format!("{library}/test/behavior.test.tsx"));
+        assert!(
+            test.contains("from \"@orbit/ui-core/test/behavior\""),
+            "{library}"
+        );
+    }
 }
 
 #[test]
@@ -835,9 +1036,12 @@ fn creates_a_project_with_every_target() {
         &tree,
         &[
             "apps/web",
+            "apps/web-solid",
             "apps/desktop",
             "apps/mobile",
             "packages/ui",
+            "packages/ui-core",
+            "packages/ui-solid",
             "packages/ui-native",
             "crates/orbit-ui",
             "kotlin",
@@ -1013,6 +1217,8 @@ fn adding_a_target_gives_the_project_that_create_would_have() {
         (DESKTOP, MOBILE),
         (KOTLIN, WEB),
         (MOBILE, KOTLIN),
+        (WEB, SOLID),
+        (SOLID, MOBILE),
     ] {
         let (_temp, grown) = project(&[first]);
         add(&grown, &[second]);
@@ -1349,16 +1555,21 @@ fn the_component_contract_matches_the_code() {
     // Every component a TypeScript library exports is in the contract.
     for (id, index) in [
         (WEB, "packages/ui/src/index.ts"),
+        (SOLID, "packages/ui-solid/src/index.ts"),
         (MOBILE, "packages/ui-native/src/index.ts"),
     ] {
         let index = String::from_utf8_lossy(&template.files[index].contents).into_owned();
-        for line in index.lines().filter(|line| line.starts_with("export {")) {
-            let names = line
-                .split_once('{')
-                .and_then(|(_, rest)| rest.split_once('}'))
+        // An export list may run over several lines once the formatter wraps it.
+        for statement in index.split("\nexport {").skip(1) {
+            let names = statement
+                .split_once('}')
                 .map(|(names, _)| names)
                 .unwrap_or_default();
-            for name in names.split(',').map(str::trim) {
+            for name in names
+                .split(',')
+                .map(str::trim)
+                .filter(|name| !name.is_empty())
+            {
                 // Types and hooks are not components.
                 if name.starts_with("type ") || !name.starts_with(char::is_uppercase) {
                     continue;

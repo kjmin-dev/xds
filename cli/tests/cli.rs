@@ -74,6 +74,7 @@ fn lists_targets_and_themes_without_color_when_piped() {
     assert!(output.status.success());
     for expected in [
         "web-react",
+        "web-solid",
         "desktop-gpui",
         "mobile-react-native",
         "kotlin-compose",
@@ -93,6 +94,11 @@ fn lists_targets_and_themes_without_color_when_piped() {
         .find(|line| line.trim_start().starts_with("web-react "))
         .expect("a line for web-react");
     assert!(web.ends_with(" (default)"), "{web}");
+    let solid = stdout
+        .lines()
+        .find(|line| line.trim_start().starts_with("web-solid "))
+        .expect("a line for web-solid");
+    assert!(!solid.ends_with(" (default)"), "{solid}");
 }
 
 #[test]

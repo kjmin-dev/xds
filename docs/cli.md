@@ -64,6 +64,7 @@ Lists the available client stacks and color themes, and marks the defaults.
 $ xds list
 Targets
   web-react            Web                             React 19, Vite, Tailwind v4, HeroUI v3 (default)
+  web-solid            Web                             SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js
   desktop-gpui         Desktop (macOS)                 Rust, GPUI, GPUI Component
   mobile-react-native  Mobile (iOS, Android)           React Native, Expo
   kotlin-compose       Kotlin (Android, iOS, Desktop)  Kotlin, Compose Multiplatform
@@ -129,7 +130,7 @@ When stdout is not a terminal (for example, in a script or CI job), there is no 
 
 What a scaffolded project contains:
 
-- The files for the selected targets along with shared project files: `design/`, `tools/design-build/`, `mise.toml`, the CI workflow, and `docs/design-system.md`. Selecting any JavaScript target also includes the pnpm workspace configuration and `packages/tokens`. Selecting the desktop target includes the Cargo workspace configuration.
+- The files for the selected targets along with shared project files: `design/`, `tools/design-build/`, `mise.toml`, the CI workflow, and `docs/design-system.md`. Selecting any JavaScript target also includes the pnpm workspace configuration and `packages/tokens`. Selecting a web target also includes `packages/ui-core`. Selecting the desktop target includes the Cargo workspace configuration.
 - Only the generated token files consumed by the selected targets. `design/build.json` is filtered to those outputs so `mise run tokens` does not generate files for unused stacks.
 - Root configuration files trimmed to match the selection: `mise.toml` includes only the relevant tools and tasks, and the CI workflow includes only the relevant jobs.
 - A project `README.md` with the run commands for the selected stacks.
@@ -340,12 +341,15 @@ Agents with shell access do not need the MCP server; running the CLI commands wi
 
 | Id | Runs on | Stack | Paths |
 | --- | --- | --- | --- |
-| `web-react` | Web | React 19, Vite, Tailwind v4, HeroUI v3 | `apps/web`, `packages/ui` |
+| `web-react` | Web | React 19, Vite, Tailwind v4, HeroUI v3 | `apps/web`, `packages/ui`, and the shared `packages/ui-core` |
+| `web-solid` | Web | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js | `apps/web-solid`, `packages/ui-solid`, and the shared `packages/ui-core` |
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component | `apps/desktop`, `crates/acme-ui`, `crates/acme-tokens` |
 | `mobile-react-native` | iOS, Android | React Native, Expo | `apps/mobile`, `packages/ui-native` |
 | `kotlin-compose` | Android, iOS, desktop | Kotlin, Compose Multiplatform | `kotlin` |
 
-The two JavaScript targets share `packages/tokens` and the root pnpm workspace configuration. Every project must include at least one target.
+The JavaScript targets share `packages/tokens` and the root pnpm workspace configuration. The web targets also require the shared group `ui-core`, which is `packages/ui-core`: the behavior tests that every web library runs, and the prop types, class recipes, and stylesheet that the web libraries built on Zag.js share. Every project must include at least one target.
+
+The web targets can be combined in one project. Each has its own app directory, dev server port (5173 for `web-react`, 5174 for `web-solid`), and `mise` alias (`//web`, `//web-solid`), so `--targets all` creates both apps side by side.
 
 `web-react` is the default target: `xds create --yes` without `--targets` creates a project with it alone, and the interactive list starts with it selected. `xds list` marks it `(default)`, and `xds list --json` gives each target a `default` field.
 

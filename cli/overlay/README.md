@@ -11,6 +11,9 @@ A single set of design tokens drives a component library for each client, paired
 <!-- @if web-react -->
 | Web | React 19, Vite, Tailwind v4, HeroUI v3 | `packages/ui` | `apps/web` |
 <!-- @endif -->
+<!-- @if web-solid -->
+| Web | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js | `packages/ui-solid`, `packages/ui-core` | `apps/web-solid` |
+<!-- @endif -->
 <!-- @if desktop-gpui -->
 | Desktop (macOS) | Rust, GPUI, GPUI Component | `crates/acme-ui` | `apps/desktop` |
 <!-- @endif -->
@@ -41,6 +44,10 @@ The first run resolves dependencies and generates the lockfiles. Commit them to 
 | Start the web app | `mise run //web:dev`, then open `http://localhost:5173` |
 | Open the web design preview | Visit `http://localhost:5173/design` |
 <!-- @endif -->
+<!-- @if web-solid -->
+| Start the Solid web app | `mise run //web-solid:dev`, then open `http://localhost:5174` |
+| Open the Solid design preview | Visit `http://localhost:5174/design` |
+<!-- @endif -->
 <!-- @if desktop-gpui -->
 | Start the desktop app | `mise run //desktop:dev` |
 | Open the desktop design preview | `mise run //desktop:design` |
@@ -60,7 +67,7 @@ The first run resolves dependencies and generates the lockfiles. Commit them to 
 <!-- @endif -->
 | List all tasks | `mise tasks --all` |
 
-<!-- @if web-react -->
+<!-- @if ui-core -->
 The tests of the web components run in Google Chrome, which `mise run check` needs installed.
 <!-- @endif -->
 <!-- @if desktop-gpui -->
@@ -86,8 +93,15 @@ tools/design-build/     tokens to platform files, plus the contrast check
 packages/tokens/        generated CSS and TypeScript
 <!-- @endif -->
 <!-- @if web-react -->
-packages/ui/            web components
+packages/ui/            React web components
 apps/web/               React app
+<!-- @endif -->
+<!-- @if ui-core -->
+packages/ui-core/       behavior tests of the web components; prop types, classes, and CSS of the Zag.js ones
+<!-- @endif -->
+<!-- @if web-solid -->
+packages/ui-solid/      Solid web components
+apps/web-solid/         Solid app
 <!-- @endif -->
 <!-- @if mobile-react-native -->
 packages/ui-native/     React Native components

@@ -51,6 +51,9 @@
     "js-tokens": {
       "paths": ["packages/tokens"]
     },
+    "ui-core": {
+      "paths": ["packages/ui-core"]
+    },
     "rust-workspace": {
       "paths": ["Cargo.toml"]
     }
@@ -63,13 +66,29 @@
       "stack": "React 19, Vite, Tailwind v4, HeroUI v3",
       "platforms": ["Web"],
       "paths": ["apps/web", "packages/ui"],
-      "requires": ["js-workspace", "js-tokens"],
+      "requires": ["js-workspace", "js-tokens", "ui-core"],
       "outputs": ["css", "tailwind", "typescript"],
       "format": "mise run fmt",
       "run": [
         {
           "command": "mise run //web:dev",
           "description": "Start the web app on http://localhost:5173"
+        }
+      ]
+    },
+    {
+      "id": "web-solid",
+      "title": "Web",
+      "stack": "SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js",
+      "platforms": ["Web"],
+      "paths": ["apps/web-solid", "packages/ui-solid"],
+      "requires": ["js-workspace", "js-tokens", "ui-core"],
+      "outputs": ["css", "tailwind", "typescript"],
+      "format": "mise run fmt",
+      "run": [
+        {
+          "command": "mise run //web-solid:dev",
+          "description": "Start the Solid web app on http://localhost:5174"
         }
       ]
     },

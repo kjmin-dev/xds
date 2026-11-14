@@ -1,7 +1,8 @@
 // How the interactive components behave, checked the way a person meets them: through roles,
 // accessible names, ARIA state, the keyboard and the pointer. Nothing here knows which
-// framework drew the component, so every web component library runs the same checks: it mounts
-// each scenario of scenarios.ts with its own components and calls describeBehavior.
+// framework drew the component, so every web component library runs the same checks: its
+// test/behavior.test.tsx mounts each scenario of scenarios.ts with its own components and calls
+// describeBehavior, imported from @acme/ui-core/test/behavior.
 
 import { describe, expect, test } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
@@ -26,10 +27,26 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 /** Whether focus is on the element or inside it. */
 const holdsFocus = (locator: Locator) => locator.element().contains(document.activeElement);
 
-// A modal hides the rest of the page with `inert` or with aria-hidden; either takes it out of
-// the accessibility tree.
-const hiddenFromAssistiveTechnology = (locator: Locator) =>
-  locator.element().closest('[inert], [aria-hidden="true"]') !== null;
+// The ARIA Authoring Practices give a menu or a list box two ways to move the keyboard's focus
+// through its items: DOM focus moves to the item (React Aria), or stays on the menu or the list
+// and its aria-activedescendant names the item (Zag.js). Assistive technology reports either as
+// focus on the item.
+const isFocused = (locator: Locator) => {
+  const element = locator.element();
+  const focused = document.activeElement;
+  return (
+    focused === element ||
+    (element.id !== "" && focused?.getAttribute("aria-activedescendant") === element.id)
+  );
+};
+
+// A modal hides the rest of the page with `inert` (React Aria) or with aria-hidden (Zag.js);
+// either takes it out of the accessibility tree. An open Menu, Select or Dialog is modal, so the
+// control that opened it is hidden too until it closes, and a role query, which passes over
+// what aria-hidden hides, no longer finds it. A check of the page behind an open overlay holds
+// on to the element it found before the overlay opened.
+const hiddenFromAssistiveTechnology = (element: Element) =>
+  element.closest('[inert], [aria-hidden="true"]') !== null;
 
 // React Aria makes the field of a select a button that opens a list box, the ARIA pattern for
 // a select-only combobox makes it a combobox. Both are named by the label.
@@ -172,12 +189,13 @@ export function describeBehavior(mount: Mount) {
       // `true` and `menu` both say that the control opens a menu.
       expect(trigger.element().getAttribute("aria-haspopup")).toMatch(/^(true|menu)$/);
       await expect.element(trigger).toHaveAttribute("aria-expanded", "false");
+      const button = trigger.element();
       await trigger.click();
       // Not found by its name: React Aria names the menu after its trigger with
       // aria-labelledby, which takes precedence over the aria-label that the Menu's `label` sets.
       const menu = page.getByRole("menu");
       await expect.element(menu).toBeVisible();
-      await expect.element(trigger).toHaveAttribute("aria-expanded", "true");
+      await expect.element(button).toHaveAttribute("aria-expanded", "true");
       await expect
         .element(menu.getByRole("menuitem", { name: "Share" }))
         .toHaveAttribute("aria-disabled", "true");
@@ -190,11 +208,11 @@ export function describeBehavior(mount: Mount) {
       await userEvent.tab();
       await expect.element(trigger).toHaveFocus();
       await userEvent.keyboard("{Enter}");
-      await expect.element(item("Rename")).toHaveFocus();
+      await expect.poll(() => isFocused(item("Rename"))).toBe(true);
       await userEvent.keyboard("{ArrowDown}");
-      await expect.element(item("Duplicate")).toHaveFocus();
+      await expect.poll(() => isFocused(item("Duplicate"))).toBe(true);
       await userEvent.keyboard("{ArrowDown}");
-      await expect.element(item("Delete")).toHaveFocus();
+      await expect.poll(() => isFocused(item("Delete"))).toBe(true);
       await userEvent.keyboard("{Escape}");
       await expect.element(page.getByRole("menu")).not.toBeInTheDocument();
       await expect.element(trigger).toHaveFocus();
@@ -217,10 +235,11 @@ export function describeBehavior(mount: Mount) {
       const plan = selectField("Plan");
       await expect.element(plan).toHaveTextContent("Team");
       await expect.element(plan).toHaveAttribute("aria-haspopup", "listbox");
+      const field = plan.element();
       await plan.click();
       const list = page.getByRole("listbox");
       await expect.element(list).toBeVisible();
-      await expect.element(plan).toHaveAttribute("aria-expanded", "true");
+      await expect.element(field).toHaveAttribute("aria-expanded", "true");
       // Not exact: React Aria names an option by all of its text, the description included.
       await expect
         .element(list.getByRole("option", { name: "Team", exact: false }))
@@ -241,7 +260,7 @@ export function describeBehavior(mount: Mount) {
       await userEvent.keyboard("{ArrowDown}");
       await expect.element(page.getByRole("listbox")).toBeVisible();
       await userEvent.keyboard("j");
-      await expect.element(page.getByRole("option", { name: "Japan" })).toHaveFocus();
+      await expect.poll(() => isFocused(page.getByRole("option", { name: "Japan" }))).toBe(true);
       await userEvent.keyboard("{Enter}");
       await expect.element(page.getByRole("listbox")).not.toBeInTheDocument();
       await expect.element(country).toHaveTextContent("Japan");
@@ -281,12 +300,14 @@ export function describeBehavior(mount: Mount) {
     test("the page behind is hidden from assistive technology while it is open", async () => {
       await mount("dialog");
       const opener = page.getByRole("button", { name: "Delete the report" });
+      const ask = page.getByRole("button", { name: "Ask" });
+      const behind = ask.element();
       await opener.click();
       await expect.element(page.getByRole("dialog")).toBeVisible();
-      expect(hiddenFromAssistiveTechnology(page.getByRole("button", { name: "Ask" }))).toBe(true);
+      expect(hiddenFromAssistiveTechnology(behind)).toBe(true);
       await page.getByRole("button", { name: "Cancel" }).click();
       await expect.element(page.getByRole("dialog")).not.toBeInTheDocument();
-      expect(hiddenFromAssistiveTechnology(page.getByRole("button", { name: "Ask" }))).toBe(false);
+      expect(hiddenFromAssistiveTechnology(ask.element())).toBe(false);
       await expect.element(opener).toHaveFocus();
     });
 

@@ -1,0 +1,57 @@
+/* The page itself, as packages/ui draws it. */
+
+:root {
+  font-family: var(--acme-font-family-sans);
+  /* Korean breaks between words, not between syllables. */
+  word-break: keep-all;
+  /* Long unbroken strings (URLs, email addresses) still wrap instead of overflowing. */
+  overflow-wrap: anywhere;
+
+  /* The level every overlay is drawn on: a dialog's scrim and the dialog, a menu, a select's
+     list, a tooltip. Zag puts `--layer-index` on each layer it opens (0 for the first, 1 for
+     one opened from it), and an overlay adds it, so the later one is on top. The design
+     tokens have no z-index: only the web needs one. A toast needs none, as it is in the top
+     layer. */
+  --layer-overlay: 100000;
+}
+
+body {
+  background-color: var(--acme-color-background-base);
+  color: var(--acme-color-text-primary);
+  font-size: var(--acme-typography-body-size);
+  line-height: var(--acme-typography-body-line-height);
+}
+
+@layer base {
+  /* A border without a color of its own is a divider, not text-colored. */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--acme-color-border-default);
+  }
+}
+
+/* How every overlay leaves, as in the React library: a menu, a select's list, a tooltip and a
+   dialog fade and shrink a little, a dialog's scrim fades. Each starts it on
+   `[data-state="closed"]`, and its component keeps it on the page until it ends. Both ends
+   are set: WebKit does not run a transform animation that starts from an implicit `none`.
+   The scale is a literal because a custom property inside a keyframe keeps WebKit from running
+   the animation on the compositor. */
+@keyframes acme-overlay-exit {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes acme-fade-out {
+  to {
+    opacity: 0;
+  }
+}

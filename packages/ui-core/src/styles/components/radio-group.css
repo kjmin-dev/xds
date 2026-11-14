@@ -1,0 +1,153 @@
+/*
+ * RadioGroup: native radio buttons, hidden and drawn beside, in a group named by its legend.
+ *
+ * Parts: `.radio-group` (the column), `__label` (the legend), `__options`, `__option` (the
+ * pressable row, a <label>), `__input` (the hidden radio), `__row`, `__circle-line`, `__circle`,
+ * `__dot`, `__words`, `__text`, `__description`, `__error`.
+ * States: `:checked`, `:focus-visible` and `:disabled` on the input; the row and the legend
+ * follow it through `:has()`.
+ */
+@layer components {
+  .radio-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .radio-group__label {
+    margin-bottom: var(--acme-space-1);
+    font-size: var(--acme-typography-label-size);
+    font-weight: var(--acme-typography-label-weight);
+    line-height: var(--acme-typography-label-line-height);
+    color: var(--acme-color-text-primary);
+  }
+
+  .radio-group__options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acme-space-2);
+  }
+
+  .radio-group__option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    min-height: var(--acme-size-target-min);
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  .radio-group__row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--acme-space-2);
+    font-size: var(--acme-typography-body-size);
+    font-weight: var(--acme-typography-body-weight);
+    line-height: var(--acme-typography-body-line-height);
+  }
+
+  /* The circle sits on the first line of the label, however many lines the label wraps to.
+     `1lh` is the height of that line; on a touch screen the circle may be the taller of the
+     two. */
+  .radio-group__circle-line {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    height: max(1lh, var(--acme-size-radio));
+  }
+
+  .radio-group__circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--acme-size-radio);
+    height: var(--acme-size-radio);
+    border-radius: calc(infinity * 1px);
+  }
+
+  /* Half of the whole circle, ring included, not of the space inside it. */
+  .radio-group__dot {
+    display: none;
+    width: calc(var(--acme-size-radio) / 2);
+    height: calc(var(--acme-size-radio) / 2);
+    border-radius: calc(infinity * 1px);
+    background-color: var(--acme-color-radio-dot);
+  }
+
+  .radio-group__option:has(> .radio-group__input:checked) .radio-group__dot {
+    display: block;
+  }
+
+  /* Around the circle, as around a checkbox's box. */
+  .radio-group__option:has(> .radio-group__input:focus-visible) .radio-group__circle {
+    outline: var(--acme-focus-width) solid var(--acme-color-border-focus);
+    outline-offset: var(--acme-focus-offset);
+  }
+
+  /* The whole group is enabled or disabled, so the circle has one look or the other. Enabled,
+     a thin ring at rest and a thick one around a dot when chosen, so the choice does not
+     depend on color; disabled, filled instead of outlined, like a disabled checkbox. */
+  .radio-group__option:has(> .radio-group__input:disabled) .radio-group__circle {
+    background-color: var(--acme-color-radio-disabled-background);
+  }
+
+  .radio-group__option:has(> .radio-group__input:enabled) .radio-group__circle {
+    border: var(--acme-border-width-thin) solid var(--acme-color-radio-border);
+  }
+
+  .radio-group__option:has(> .radio-group__input:enabled:checked) .radio-group__circle {
+    border-width: var(--acme-border-width-thick);
+    border-color: var(--acme-color-radio-border-checked);
+  }
+
+  /* The label and the description under it. */
+  .radio-group__words {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .radio-group__text {
+    color: var(--acme-color-text-primary);
+  }
+
+  .radio-group__description {
+    font-size: var(--acme-typography-detail-size);
+    line-height: var(--acme-typography-detail-line-height);
+    overflow-wrap: break-word;
+    color: var(--acme-color-text-secondary);
+  }
+
+  /* An inline run in its live region, which is as tall as a line of the group's text. */
+  .radio-group__error {
+    margin-top: var(--acme-space-1);
+    font-size: var(--acme-typography-detail-size);
+    line-height: var(--acme-typography-detail-line-height);
+    overflow-wrap: break-word;
+    color: var(--acme-color-status-danger);
+  }
+
+  /* ------------------------------------------------------------ disabled */
+
+  /* The text is recolored rather than faded. */
+  .radio-group:has(.radio-group__input:disabled) .radio-group__label {
+    color: var(--acme-color-text-disabled);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .radio-group__option:has(> .radio-group__input:disabled) {
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .radio-group__option:has(> .radio-group__input:disabled) .radio-group__dot {
+    background-color: var(--acme-color-radio-disabled-dot);
+  }
+
+  .radio-group__option:has(> .radio-group__input:disabled) .radio-group__text,
+  .radio-group__option:has(> .radio-group__input:disabled) .radio-group__description {
+    color: var(--acme-color-text-disabled);
+  }
+}

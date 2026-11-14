@@ -1,0 +1,133 @@
+/*
+ * Dialog: Zag's dialog machine, rendered into the body only while open or animating out.
+ *
+ * Parts: `.dialog__backdrop` (the scrim), `.dialog__positioner` (fills the window and centers
+ * the dialog), `.dialog` (the dialog itself), `__title`, `__description`, `__body`, `__actions`.
+ * States: `[data-state="closed"]` on the backdrop and the dialog while they animate out.
+ * The backdrop and the positioner stack by `--layer-overlay` and Zag's `--layer-index`.
+ */
+@layer components {
+  .dialog__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--layer-overlay) + var(--layer-index, 0));
+    background: var(--acme-color-scrim);
+    /* Zag turns pointer events off on the body while the dialog is open, and the backdrop would
+       inherit that. It takes a press beside the dialog itself, so the component can keep the
+       focus in the dialog. */
+    pointer-events: auto;
+    animation: acme-fade-in var(--acme-motion-duration-normal) var(--acme-motion-easing-enter);
+  }
+
+  /* As wide as the window, so the dialog inside can be `size.dialog` wide whatever it holds,
+     and never closer to an edge than the padding. */
+  .dialog__positioner {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--layer-overlay) + var(--layer-index, 0));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--acme-space-4);
+    /* A press beside the dialog reaches the backdrop, which is outside the dialog. */
+    pointer-events: none;
+    animation: acme-dialog-enter var(--acme-motion-duration-normal) var(--acme-motion-easing-enter);
+  }
+
+  /* After the rules above, which they replace. The positioner follows the dialog's state, as
+     Zag gives the positioner none; a closing dialog takes no more presses. */
+  .dialog__backdrop[data-state="closed"] {
+    animation: acme-fade-out var(--acme-motion-duration-fast) var(--acme-motion-easing-exit);
+  }
+
+  .dialog__positioner:has(> .dialog[data-state="closed"]) {
+    animation: acme-overlay-exit var(--acme-motion-duration-fast) var(--acme-motion-easing-exit);
+  }
+
+  .dialog[data-state="closed"] {
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dialog__backdrop,
+    .dialog__positioner,
+    .dialog__backdrop[data-state="closed"],
+    .dialog__positioner:has(> .dialog[data-state="closed"]) {
+      animation: none;
+    }
+  }
+
+  .dialog {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--acme-space-4);
+    width: 100%;
+    max-width: var(--acme-size-dialog);
+    max-height: 100%;
+    min-height: 0;
+    margin-block: auto;
+    padding: var(--acme-space-6);
+    overflow: clip;
+    border: var(--acme-border-width-thin) solid var(--acme-color-dialog-border);
+    border-radius: var(--acme-radius-lg);
+    background: var(--acme-color-dialog-background);
+    box-shadow: var(--acme-shadow-overlay);
+    outline: none;
+    pointer-events: auto;
+  }
+
+  .dialog__title {
+    font-size: var(--acme-typography-title-size);
+    font-weight: var(--acme-typography-title-weight);
+    line-height: var(--acme-typography-title-line-height);
+    letter-spacing: var(--acme-typography-title-letter-spacing);
+    color: var(--acme-color-dialog-title);
+  }
+
+  .dialog__description {
+    font-size: var(--acme-typography-body-size);
+    font-weight: var(--acme-typography-body-weight);
+    line-height: var(--acme-typography-body-line-height);
+    letter-spacing: var(--acme-typography-body-letter-spacing);
+    color: var(--acme-color-dialog-text);
+  }
+
+  /* The body scrolls, which clips whatever is drawn outside it. The inset leaves room for
+     the focus ring of a field inside, and the negative margin takes it back, so the text
+     still lines up with the title. */
+  .dialog__body {
+    flex: 1;
+    min-height: 0;
+    margin: calc(-1 * (var(--acme-focus-width) + var(--acme-focus-offset)));
+    padding: calc(var(--acme-focus-width) + var(--acme-focus-offset));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    font-size: var(--acme-typography-body-size);
+    line-height: var(--acme-typography-body-line-height);
+    color: var(--acme-color-dialog-text);
+  }
+
+  /* Buttons, in a row at the end edge. */
+  .dialog__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--acme-space-2);
+  }
+}
+
+@keyframes acme-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* A dialog grows a little as it fades in. The scale is a literal because a custom property
+   inside a keyframe keeps WebKit from running the animation on the compositor. */
+@keyframes acme-dialog-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}

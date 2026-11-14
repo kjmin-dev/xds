@@ -1,0 +1,26 @@
+/*
+ * The stylesheet of every web component library built on @acme/ui-core. A library's own
+ * stylesheet imports this one and adds an `@source` for its components. Order matters:
+ * Tailwind first, then the tokens, then the page, then one file per component.
+ */
+@import "tailwindcss";
+
+@import "@acme/tokens/theme.css";
+@import "@acme/tokens/tailwind.css";
+@import "./base.css";
+
+@import "./components/accordion.css";
+@import "./components/button.css";
+@import "./components/dialog.css";
+@import "./components/menu.css";
+@import "./components/radio-group.css";
+@import "./components/select.css";
+@import "./components/skeleton.css";
+@import "./components/slider.css";
+@import "./components/tabs.css";
+@import "./components/text-field.css";
+@import "./components/toast.css";
+@import "./components/tooltip.css";
+
+/* The recipes in this package hold Tailwind classes; tell Tailwind where to find them. */
+@source "..";

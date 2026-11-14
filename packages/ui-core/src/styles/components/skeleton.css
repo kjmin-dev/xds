@@ -1,0 +1,9 @@
+/*
+ * Skeleton: a <span> drawn with Tailwind utilities (skeletonClass). This file holds only the
+ * pulse its `animate-[acme-skeleton-pulse_...]` utility names, which Tailwind cannot generate.
+ */
+@keyframes acme-skeleton-pulse {
+  50% {
+    background-color: var(--acme-color-skeleton-highlight);
+  }
+}

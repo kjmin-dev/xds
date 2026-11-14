@@ -34,7 +34,7 @@ export default defineConfig({
         starlightLlmsTxt({
           projectName: "xds",
           description:
-            "xds is a cross-platform design system template. Design tokens in DTCG format are compiled to CSS, Tailwind, TypeScript, Rust and Kotlin; the same components exist for React (web), GPUI (desktop), React Native and Compose Multiplatform; and the `xds` CLI scaffolds a project with the chosen clients and color theme.",
+            "xds is a cross-platform design system template. Design tokens in DTCG format are compiled to CSS, Tailwind, TypeScript, Rust and Kotlin; the same components exist for React and Solid (web), GPUI (desktop), React Native and Compose Multiplatform; and the `xds` CLI scaffolds a project with the chosen clients and color theme.",
           // The Korean pages translate the English ones; one language is enough for a model.
           exclude: ["ko/**"],
         }),

@@ -1,0 +1,10 @@
+/*
+ * Toast: drawn with the utilities in `TOAST_PARTS`. This file holds only the motion they name,
+ * `animate-[acme-toast-enter_...]`: the toast rises a little as it fades in.
+ */
+@keyframes acme-toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}

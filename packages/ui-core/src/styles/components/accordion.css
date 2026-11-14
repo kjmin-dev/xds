@@ -1,0 +1,85 @@
+/*
+ * Accordion: Zag's accordion machine.
+ *
+ * Parts: `.accordion`, `.accordion__item`, `.accordion__heading` (the h3),
+ * `.accordion__trigger` (the button; also a Tailwind `group` for the chevron),
+ * `.accordion__panel` (the body's box, whose height moves) and `.accordion__body`.
+ * States: `:hover`, `:active`, `:focus-visible` and `[aria-expanded]` on the trigger. The
+ * panel's height is `--accordion-panel-height`, which the component sets: a length while it
+ * moves, `auto` while open and `0px` while closed.
+ */
+@layer components {
+  /* A hairline above the first item and one under every item, the last included. */
+  .accordion {
+    width: 100%;
+    border-top: var(--acme-border-width-thin) solid var(--acme-color-accordion-border);
+    contain: layout style;
+  }
+
+  .accordion__item {
+    position: relative;
+    border-style: none;
+    border-bottom: var(--acme-border-width-thin) solid var(--acme-color-accordion-border);
+  }
+
+  .accordion__heading {
+    display: flex;
+  }
+
+  .accordion__trigger {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--acme-space-3);
+    min-height: var(--acme-size-list-row);
+    padding: var(--acme-space-2) var(--acme-space-4);
+    font-size: var(--acme-typography-label-size);
+    font-weight: var(--acme-typography-label-weight);
+    line-height: var(--acme-typography-label-line-height);
+    text-align: start;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color var(--acme-motion-duration-fast) var(--acme-motion-easing-standard);
+  }
+
+  /* Open or closed, the row takes its own fills under the pointer and while pressed. */
+  @media (hover: hover) {
+    .accordion__trigger:hover {
+      background: var(--acme-color-accordion-header-background-hover);
+    }
+  }
+
+  /* A press that drags does not select the title, as in the React library. */
+  .accordion__trigger:active {
+    background: var(--acme-color-accordion-header-background-pressed);
+    user-select: none;
+  }
+
+  /* Inside the row, so the hairlines next to it do not cut through the ring. */
+  .accordion__trigger:focus-visible {
+    outline: var(--acme-focus-width) solid var(--acme-color-border-focus);
+    outline-offset: calc(-1 * var(--acme-focus-offset));
+  }
+
+  /* Only the height moves. */
+  .accordion__panel {
+    height: var(--accordion-panel-height, auto);
+    overflow: clip;
+    transition: height var(--acme-motion-duration-normal) var(--acme-motion-easing-standard);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .accordion__panel {
+      transition: none;
+    }
+  }
+
+  .accordion__body {
+    padding: 0 var(--acme-space-4) var(--acme-space-4);
+    font-size: var(--acme-typography-body-size);
+    line-height: var(--acme-typography-body-line-height);
+    color: var(--acme-color-text-secondary);
+  }
+}

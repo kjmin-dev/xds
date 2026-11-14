@@ -1,7 +1,7 @@
 // What each scenario of the behavior tests renders. A web component library mounts these with
 // its own components, in a fixture of its own, and runs behavior.ts against them: the data is
 // here so that every library renders the same labels and options. The scenarios follow the
-// web design preview (apps/web/src/DesignPreview.tsx).
+// design preview of the web apps.
 
 /**
  * - `selection`: Switch "Notifications" (on), Switch "Locked" (on, disabled), Checkbox

@@ -11,9 +11,12 @@
 | 클라이언트 | 실행 환경 | 스택 | 컴포넌트 | 앱 |
 | --- | --- | --- | --- | --- |
 | `web-react` | 브라우저 | React 19, Vite, Tailwind v4, HeroUI v3 | `packages/ui` | `apps/web` |
+| `web-solid` | 브라우저 | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js | `packages/ui-solid`, `packages/ui-core` | `apps/web-solid` |
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component | `crates/acme-ui` | `apps/desktop` |
 | `mobile-react-native` | iOS, Android | React Native, Expo | `packages/ui-native` | `apps/mobile` |
 | `kotlin-compose` | Android, iOS, 데스크톱 | Kotlin Multiplatform, Compose Multiplatform | `kotlin/ui` | `kotlin/androidApp`, `kotlin/iosApp`, `kotlin/desktopApp` |
+
+두 웹 클라이언트는 한 프로젝트에 함께 넣을 수 있습니다. 각각 디렉터리, 포트, `mise` 별칭이 따로 있습니다. `packages/ui-core`에는 Zag.js 기반 웹 라이브러리들이 함께 쓰는 것(prop 타입, 클래스 레시피, 스타일시트)이 있어서, 프레임워크별 라이브러리는 컴포넌트만 더합니다.
 
 `acme`는 플레이스홀더 이름이며, `xds create` 실행 시 입력한 프로젝트 이름으로 치환됩니다.
 
@@ -23,7 +26,7 @@
 xds create my-app
 ```
 
-`xds`를 실행하면 프로젝트 이름, 포함할 클라이언트, 컬러 테마를 차례로 입력받아 선택한 클라이언트만 포함된 저장소를 생성합니다. 테마 목록을 이동할 때마다 터미널에 해당 테마의 미리보기가 바로 렌더링됩니다. 각 프롬프트는 기본값(디렉터리 이름, 웹 클라이언트, indigo 테마)이 선택된 상태로 시작하며, `--yes`를 전달하면 묻지 않고 이 기본값을 사용합니다.
+`xds`를 실행하면 프로젝트 이름, 포함할 클라이언트, 컬러 테마를 차례로 입력받아 선택한 클라이언트만 포함된 저장소를 생성합니다. 테마 목록을 이동할 때마다 터미널에 해당 테마의 미리보기가 바로 렌더링됩니다. 각 프롬프트는 기본값(디렉터리 이름, React 웹 클라이언트, indigo 테마)이 선택된 상태로 시작하며, `--yes`를 전달하면 묻지 않고 이 기본값을 사용합니다.
 
 ```sh
 # 질문 없이 만들기:
@@ -77,7 +80,7 @@ JSON 출력 형식과 종료 코드에 대한 자세한 내용은 [CLI 문서](d
 - `design/tokens`에는 DTCG 형식의 디자인 토큰이 들어 있습니다. 컬러 팔레트, 라이트·다크 모드 시맨틱 컬러, 컴포넌트 전용 컬러, 타이포그래피 역할, 여백, 모서리 반경, 모션, 그림자, 포인터 및 터치 입력 환경별 컨트롤 크기를 정의합니다.
 - `design/themes`에는 `indigo`(기본값), `ocean`, `forest`, `sunset`, `plum` 다섯 가지 컬러 테마가 있습니다. 각 테마는 강조색(accent) 단계와 무채색(neutral) 단계로 구성되며, 모든 테마가 전체 명암비 검사를 통과합니다.
 - `tools/design-build`는 토큰을 CSS 커스텀 프로퍼티, Tailwind 테마, TypeScript 상수, Rust 상수, Compose 값으로 컴파일합니다. 외부 의존성 없이 Node만으로 실행되며, 색상 조합의 명암비가 WCAG 기준에 미달하면 빌드가 실패합니다.
-- 모든 클라이언트는 동일한 이름과 옵션을 가진 컴포넌트를 구현합니다: Button, TextField, Text, Badge, CountBadge, Banner, Card, Divider, Spinner, Switch, Checkbox, SegmentedControl, Avatar, AvatarStack, ProgressBar, ListRow, Icon, IconButton, Chip, ChipBar, Tabs, Menu, Dialog, Toast, Skeleton, SearchField, RadioGroup, Select, Slider, Thumbnail, MediaCard, SectionHeader, EmptyState, Accordion. 터치 기반의 두 클라이언트에는 TopBar, TabBar, BottomSheet가, 포인터 기반의 두 클라이언트(웹, GPUI)에는 Tooltip과 Sidebar가 추가로 포함됩니다.
+- 모든 클라이언트는 동일한 이름과 옵션을 가진 컴포넌트를 구현합니다: Button, TextField, Text, Badge, CountBadge, Banner, Card, Divider, Spinner, Switch, Checkbox, SegmentedControl, Avatar, AvatarStack, ProgressBar, ListRow, Icon, IconButton, Chip, ChipBar, Tabs, Menu, Dialog, Toast, Skeleton, SearchField, RadioGroup, Select, Slider, Thumbnail, MediaCard, SectionHeader, EmptyState, Accordion. 터치 기반의 두 클라이언트에는 TopBar, TabBar, BottomSheet가, 포인터 기반의 클라이언트(두 웹 클라이언트와 GPUI)에는 Tooltip과 Sidebar가 추가로 포함됩니다.
 - 각 앱에는 모든 토큰과 컴포넌트를 한 화면에서 확인할 수 있는 디자인 프리뷰 화면이 포함되어 있습니다.
 
 시스템 구조의 설계 배경과 최신 오픈소스 디자인 시스템에서 참고한 관례는 [디자인 시스템 문서](docs/design-system.md)(영문)에서 설명합니다.
@@ -95,6 +98,8 @@ mise run check          # CI가 돌리는 것 전부
 | --- | --- |
 | 웹 앱 실행 | `mise run //web:dev` 실행 후 `http://localhost:5173` 접속 |
 | 웹 디자인 프리뷰 열기 | `http://localhost:5173/design` 접속 |
+| Solid 웹 앱 실행 | `mise run //web-solid:dev` 실행 후 `http://localhost:5174` 접속 |
+| Solid 디자인 프리뷰 열기 | `http://localhost:5174/design` 접속 |
 | GPUI 데스크톱 앱 실행 | `mise run //desktop:dev` |
 | GPUI 디자인 프리뷰 열기 | `mise run //desktop:design` |
 | React Native 앱 실행 | `mise run //mobile:ios` 또는 `mise run //mobile:android` |
@@ -123,12 +128,15 @@ design/themes/          컬러 테마
 design/icons/           아이콘 (SVG 파일)
 tools/design-build/     토큰을 플랫폼 파일로 변환하고 대비를 검사
 packages/tokens/        생성된 CSS와 TypeScript
-packages/ui/            웹 컴포넌트
+packages/ui/            React 웹 컴포넌트
+packages/ui-core/       Zag.js 기반 웹 컴포넌트가 함께 쓰는 prop 타입, 클래스, CSS
+packages/ui-solid/      Solid 웹 컴포넌트
 packages/ui-native/     React Native 컴포넌트
 crates/acme-tokens/     생성된 Rust
 crates/acme-ui/         GPUI 컴포넌트
 kotlin/                 Compose 컴포넌트와 앱 (별도의 Gradle 빌드)
 apps/web/               React 앱
+apps/web-solid/         Solid 앱
 apps/desktop/           GPUI 앱
 apps/mobile/            Expo 앱
 apps/docs/              문서 사이트 (프로젝트에는 복사되지 않음)
@@ -143,11 +151,12 @@ template.json           어떤 경로가 어느 클라이언트에 속하는지
 | | 상태 |
 | --- | --- |
 | 웹 | 헤드리스 Chrome에서 라이트·다크 모드 디자인 프리뷰 확인 |
+| 웹 (Solid) | 헤드리스 Chrome에서 라이트·다크 모드 모두 React 디자인 프리뷰와 비교: 모든 섹션과 열린 오버레이의 스크린샷, 계산된 스타일, 접근성 트리, 키보드와 포인터 동작. 알려진 차이: 열린 Menu와 Select는 포커스를 목록에 둔 채 `aria-activedescendant`로 강조된 항목을 가리킴(React는 항목으로 포커스를 옮김). Tooltip은 컨트롤에 포커스나 포인터가 있는 동안 페이지가 스크롤돼도 열려 있음(React는 닫음). Menu와 Select 목록에서 글자를 입력하면 강조된 항목을 지나 그 글자로 시작하는 다음 항목으로 가고, 아무것도 고르지 않은 RadioGroup에 Shift+Tab으로 들어가면 첫 옵션에 포커스가 감. 둘 다 ARIA Authoring Practices를 따른 것으로, React는 강조된 항목에 머물 수 있고 마지막 옵션에 포커스를 둠 |
 | GPUI 데스크톱 | macOS에서 앱 실행 및 라이트·다크 모드 프리뷰 확인 |
 | React Native | iOS 시뮬레이터에서 라이트·다크 모드 및 바텀 시트 동작 확인. Android와 실제 기기는 아직 확인하지 않음 |
 | Compose | 데스크톱, Android 에뮬레이터, iOS 시뮬레이터에서 확인. 자세한 내용은 [kotlin/README.md](kotlin/README.md) 참고 |
-| `xds` | 개별 클라이언트만 선택한 프로젝트와 네 클라이언트를 모두 선택한 프로젝트를 생성해 macOS에서 각각의 `mise run check` 통과 확인. Linux·Windows 바이너리 및 릴리스 워크플로는 아직 실행하지 않음 |
-| 접근성 | 명암비는 빌드 시 자동 검증. 웹의 인터랙티브 컴포넌트는 키보드·포커스·ARIA 동작을 헤드리스 Chrome에서 테스트. 스크린 리더 테스트는 어느 클라이언트에서도 진행하지 않음 |
+| `xds` | `web-solid`를 뺀 네 클라이언트를 하나씩 선택한 프로젝트와 그 넷을 모두 선택한 프로젝트를 생성해 macOS에서 각각의 `mise run check` 통과 확인. `web-solid`만 선택한 프로젝트와 두 웹 클라이언트를 함께 선택한 프로젝트는 설치, `check:js`, Solid 빌드 통과 확인. Linux·Windows 바이너리 및 릴리스 워크플로는 아직 실행하지 않음 |
+| 접근성 | 명암비는 빌드 시 자동 검증. 웹의 인터랙티브 컴포넌트는 키보드·포커스·ARIA 동작을 헤드리스 Chrome에서 테스트하며, React와 Solid 라이브러리가 같은 검사를 통과함. 스크린 리더 테스트는 어느 클라이언트에서도 진행하지 않음 |
 
 ## 라이선스
 

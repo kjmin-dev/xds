@@ -7,7 +7,7 @@ xds create my-app --name orbit --targets web-react,kotlin-compose --theme ocean 
 ```
 
 - `--name` must start with a lowercase ASCII letter followed by lowercase letters or digits. It replaces the `acme` placeholder throughout the project (`@orbit/ui`, `orbit-ui`, `--orbit-color-*`, `orbit.tokens`).
-- `--targets` accepts a comma-separated list of target IDs from `xds list` (`web-react`, `desktop-gpui`, `mobile-react-native`, `kotlin-compose`), or `all`.
+- `--targets` accepts a comma-separated list of target IDs from `xds list` (`web-react`, `web-solid`, `desktop-gpui`, `mobile-react-native`, `kotlin-compose`), or `all`. The two web targets can be combined in one project.
 - Pass `--dry-run` first to preview the files that would be generated without writing to disk.
 - In non-interactive environments, `--name` and `--targets` are required unless `--yes` is passed. `--yes` fills in what is missing with the defaults: the directory name, the default targets (only `web-react`; `xds list --json` marks them with `"default": true`), and the default theme. Pass `--targets` for any other client. Passing `--json` always disables interactive prompts.
 

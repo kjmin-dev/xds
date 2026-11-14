@@ -6,7 +6,7 @@ A single set of token files serves as the source of truth, and each platform ren
 - Color tokens are organized into three tiers: a raw palette, semantic colors tied to UI roles, and component-specific colors. Application screens never reference the raw palette directly.
 - Accessibility contrast is verified at build time. Every token build checks 110 color pairings across both light and dark modes.
 - Control heights scale with the input device (mouse pointer vs. touch) rather than screen width.
-- Applications import only the design system package, never the underlying UI libraries directly (HeroUI v3 on web, GPUI Component on desktop, React Native primitives on mobile, and Compose foundation in the Kotlin client).
+- Applications import only the design system package, never the underlying UI libraries directly (HeroUI v3 on the React web client, Zag.js on the Solid one, GPUI Component on desktop, React Native primitives on mobile, and Compose foundation in the Kotlin client).
 - Accent and neutral colors are defined as themes. Five themes ship with the template, and switching between them swaps two color ramps in the palette without changing anything else.
 
 ## How it fits together
@@ -25,6 +25,9 @@ flowchart TD
 
   CSS --> WEB["@acme/ui<br/>web components (HeroUI)"]
   TW --> WEB
+  CSS --> CORE["@acme/ui-core<br/>classes and CSS for Zag.js"]
+  TW --> CORE
+  CORE --> SOLID["@acme/ui-solid<br/>web components (Solid)"]
   TS --> RN["@acme/ui-native<br/>React Native components"]
   RS --> UI["acme-ui<br/>GPUI components"]
   KT --> CMP["kotlin/ui<br/>Compose components"]
@@ -274,7 +277,7 @@ Three additional navigation components exist only on the touch-oriented platform
 | TabBar | items (label and icon), value | Holds three to five top-level destinations. Floats above the bottom edge as a capsule, with the active tab enclosed in its own pill so selection does not depend on color |
 | BottomSheet | open, title, content | Floats inset from the screen edges. Closes when tapping the scrim, dragging down, or pressing the back button |
 
-Two components exist only on the pointer-oriented platforms (web and GPUI):
+Two components exist only on the pointer-oriented platforms (the web clients and GPUI):
 
 | Component | Options | Rule |
 | --- | --- | --- |
@@ -297,16 +300,18 @@ Clearing the error state on edit avoids a common web form trap: when an invalid 
 
 ### Platform implementations
 
-| | Web | Desktop | Mobile | Kotlin |
-| --- | --- | --- | --- | --- |
-| Package | `@acme/ui` | `acme-ui` | `@acme/ui-native` | `kotlin/ui` |
-| Built on | HeroUI v3 (React Aria) and native inputs | GPUI Component | React Native primitives | Compose foundation |
-| Runs on | Browsers | macOS | iOS, Android | Android, iOS, desktop (JVM) |
-| Tokens arrive as | CSS custom properties and a Tailwind theme | Rust constants | TypeScript constants | Compose values (`Color`, `Dp`, `TextStyle`) |
-| Sizes | Follow the input device | Pointer | Touch | Touch on phones, pointer on desktop |
-| Design preview | `/design` | `acme --design` | `/design` | The button on the home screen |
+| | Web (React) | Web (Solid) | Desktop | Mobile | Kotlin |
+| --- | --- | --- | --- | --- | --- |
+| Package | `@acme/ui` | `@acme/ui-solid` on `@acme/ui-core` | `acme-ui` | `@acme/ui-native` | `kotlin/ui` |
+| Built on | HeroUI v3 (React Aria) and native inputs | Zag.js state machines and native inputs | GPUI Component | React Native primitives | Compose foundation |
+| Runs on | Browsers | Browsers | macOS | iOS, Android | Android, iOS, desktop (JVM) |
+| Tokens arrive as | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | Rust constants | TypeScript constants | Compose values (`Color`, `Dp`, `TextStyle`) |
+| Sizes | Follow the input device | Follow the input device | Pointer | Touch | Touch on phones, pointer on desktop |
+| Design preview | `/design` | `/design` | `acme --design` | `/design` | The button on the home screen |
 
 On the web, `heroui-theme.css` maps HeroUI's theme variables to the generated tokens, and `components.css` applies the token sizes and state colors to HeroUI's button and input primitives. Those two stylesheets are the only files coupled to HeroUI's internal naming. Button and TextField wrap HeroUI components for their interaction and accessibility behavior. Switch, Checkbox, and SegmentedControl use native HTML inputs (a checkbox or radio group) with custom visuals drawn alongside a hidden input, so keyboard navigation, forms, and screen readers interact with standard controls. The remaining components are plain HTML elements styled with Tailwind utilities. Any unwrapped HeroUI component still inherits the token colors and border radii through the theme variables.
+
+The Solid client is built to look and behave like the React one, which is its reference, without HeroUI or React Aria. Its framework-free half is `@acme/ui-core`: each component's prop types, the Tailwind class strings of the components drawn with utilities, pure helpers, and a stylesheet for each component with states of its own. That CSS selects on the library's own part classes, native pseudo-classes, `aria-*` attributes, and Zag.js state attributes, never on a framework's. `@acme/ui-solid` adds the Solid components. Dialog, Menu, Select, Slider, Tabs, Tooltip, and Accordion take their keyboard, focus, and dismissal behavior from Zag.js state machines; the selection controls are native inputs, as in the React library. A library for another framework can be built on the same core.
 
 On desktop, `acme_ui::set_mode` applies the generated tokens to GPUI Component's theme. `button`, `switch`, and `checkbox` return GPUI Component controls configured with token values, while Badge, Banner, TextField, SegmentedControl, Avatar, ProgressBar, ListRow, `card`, `divider`, and `text` are rendered directly with GPUI primitives.
 
@@ -329,6 +334,7 @@ Every platform includes a design preview screen that renders all tokens and comp
 | | How to open it | Entry point | Light and dark |
 | --- | --- | --- | --- |
 | Web | `mise run //web:dev`, then `http://localhost:5173/design` | The button on the home screen | Follows the system. `?theme=light` and `?theme=dark` pin the mode |
+| Web (Solid) | `mise run //web-solid:dev`, then `http://localhost:5174/design` | The button on the home screen | Follows the system. `?theme=light` and `?theme=dark` pin the mode |
 | Desktop | `mise run //desktop:design` or `acme --design` | The button in the home window | Follows the system. Use the window toggle button, or pass `--light` or `--dark` |
 | Mobile | The `/design` screen | The button on the home screen | Follows the system |
 | Kotlin | `mise run //kotlin:design` on desktop; the home screen button elsewhere | The button on the home screen | Follows the system. Includes an in-app mode switch |

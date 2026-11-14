@@ -19,7 +19,7 @@ export type Component = {
    * Source file per platform. Touch-only components have no web or GPUI entry, and
    * pointer-only ones no React Native or Compose entry.
    */
-  sources: { web?: string; gpui?: string; reactNative?: string; compose?: string };
+  sources: { web?: string; solid?: string; gpui?: string; reactNative?: string; compose?: string };
   /** The live example at /demo/<slug>/. Touch-only components have none. */
   demo: boolean;
   /**
@@ -30,6 +30,7 @@ export type Component = {
 };
 
 const web = (file: string) => `packages/ui/src/${file}.tsx`;
+const solid = (file: string) => `packages/ui-solid/src/${file}.tsx`;
 const native = (file: string) => `packages/ui-native/src/${file}.tsx`;
 const compose = (file: string) => `kotlin/ui/src/commonMain/kotlin/acme/ui/${file}.kt`;
 const GPUI_COMPONENTS = "crates/acme-ui/src/components.rs";
@@ -38,6 +39,7 @@ const GPUI_OVERLAYS = "crates/acme-ui/src/overlays.rs";
 
 const everywhere = (file: string, gpui: string) => ({
   web: web(file),
+  solid: solid(file),
   gpui,
   reactNative: native(file),
   compose: compose(file),
@@ -394,6 +396,7 @@ export const COMPONENTS: Component[] = [
     props: [],
     sources: {
       web: web("Divider"),
+      solid: solid("Divider"),
       gpui: GPUI_COMPONENTS,
       reactNative: native("Card"),
       compose: compose("Card"),
@@ -1016,7 +1019,7 @@ export const COMPONENTS: Component[] = [
         description: "Required. The control it describes: a Button or an IconButton.",
       },
     ],
-    sources: { web: web("Tooltip"), gpui: GPUI_OVERLAYS },
+    sources: { web: web("Tooltip"), solid: solid("Tooltip"), gpui: GPUI_OVERLAYS },
     demo: true,
     preview: "Buttons",
   },
@@ -1461,7 +1464,11 @@ export const COMPONENTS: Component[] = [
       { name: "header", type: "ReactNode", description: "At the top, such as the app's name." },
       { name: "footer", type: "ReactNode", description: "At the bottom, such as an account row." },
     ],
-    sources: { web: web("Sidebar"), gpui: "crates/acme-ui/src/navigation.rs" },
+    sources: {
+      web: web("Sidebar"),
+      solid: solid("Sidebar"),
+      gpui: "crates/acme-ui/src/navigation.rs",
+    },
     demo: true,
     preview: "Sidebar",
   },

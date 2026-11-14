@@ -1,0 +1,238 @@
+/*
+ * Button and IconButton: a native <button>.
+ *
+ * Classes: `.button`, `.button--<variant>`, `.button--<size>`, `.button--icon-only` (a Button
+ * with icons and no label), `.button--full-width`, and `.icon-button` (IconButton).
+ * States: `:hover`, `:active`, `:focus-visible`, `:disabled`, `[aria-pressed]` for a toggle, and
+ * `[aria-disabled="true"][data-pending]` while loading.
+ */
+@layer components {
+  .button {
+    /* The fill and the text color of the current state. Variants and states set these. */
+    --button-bg: transparent;
+    --button-bg-hover: var(--button-bg);
+    --button-bg-pressed: var(--button-bg-hover);
+    --button-fg: currentColor;
+
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--acme-space-2);
+    width: fit-content;
+    height: var(--acme-size-control-md);
+    /* Never narrower than it is tall, and never smaller than the smallest pressable area. */
+    min-width: max(var(--acme-size-control-md), var(--acme-size-target-min));
+    padding-inline: var(--acme-space-4);
+    /* A rounded rectangle for a pointer, a capsule for fingers. */
+    border-radius: var(--acme-size-button-radius);
+    background-color: var(--button-bg);
+    color: var(--button-fg);
+    font-size: var(--acme-typography-label-size);
+    font-weight: var(--acme-typography-label-weight);
+    line-height: var(--acme-typography-label-line-height);
+    white-space: nowrap;
+    outline: none;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transform-origin: center;
+    transition-property: background-color, border-color, color, transform;
+    transition-duration: var(--acme-motion-duration-fast);
+    transition-timing-function: var(--acme-motion-easing-standard);
+  }
+
+  /* Icons, and the spinner that stands in for one, are sized by their own classes. */
+  .button svg {
+    flex-shrink: 0;
+    align-self: center;
+    pointer-events: none;
+  }
+
+  .button:active {
+    background-color: var(--button-bg-pressed);
+  }
+
+  /* A press shrinks the button a little: feedback that does not depend on color. */
+  .button:active:not(:disabled) {
+    transform: scale(var(--acme-motion-press-scale));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .button:active:not(:disabled) {
+      transform: none;
+    }
+  }
+
+  /* After the press and as specific, as in the React library: under a pointer a pressed button
+     keeps its hover fill and only shrinks; a finger, which does not hover, gets the pressed
+     fill. */
+  @media (hover: hover) {
+    .button:hover {
+      background-color: var(--button-bg-hover);
+    }
+  }
+
+  /* ------------------------------------------------------------ sizes */
+
+  .button--sm {
+    height: var(--acme-size-control-sm);
+    min-width: max(var(--acme-size-control-sm), var(--acme-size-target-min));
+    padding-inline: var(--acme-space-3);
+  }
+
+  .button--lg {
+    height: var(--acme-size-control-lg);
+    min-width: var(--acme-size-control-lg);
+    padding-inline: var(--acme-space-6);
+    font-size: var(--acme-typography-body-strong-size);
+  }
+
+  .button--full-width {
+    width: 100%;
+  }
+
+  /* ------------------------------------------------------------ variants */
+
+  .button--primary {
+    --button-bg: var(--acme-color-button-primary-background);
+    --button-bg-hover: var(--acme-color-button-primary-background-hover);
+    --button-bg-pressed: var(--acme-color-button-primary-background-pressed);
+    --button-fg: var(--acme-color-button-primary-text);
+    /* The same trace of shadow as a secondary button, so the primary one never looks flatter. */
+    box-shadow: var(--acme-shadow-subtle);
+  }
+
+  .button--secondary {
+    --button-bg: var(--acme-color-button-secondary-background);
+    --button-bg-hover: var(--acme-color-button-secondary-background-hover);
+    --button-bg-pressed: var(--acme-color-button-secondary-background-pressed);
+    --button-fg: var(--acme-color-button-secondary-text);
+    /* Outlined, with a trace of shadow, so it sits quietly beside a primary button. */
+    border: var(--acme-border-width-thin) solid var(--acme-color-button-secondary-border);
+    box-shadow: var(--acme-shadow-subtle);
+  }
+
+  .button--ghost {
+    --button-bg: transparent;
+    --button-bg-hover: var(--acme-color-button-ghost-background-hover);
+    --button-bg-pressed: var(--acme-color-button-ghost-background-pressed);
+    --button-fg: var(--acme-color-button-ghost-text);
+  }
+
+  .button--danger {
+    --button-bg: var(--acme-color-button-danger-background);
+    --button-bg-hover: var(--acme-color-button-danger-background-hover);
+    --button-bg-pressed: var(--acme-color-button-danger-background-pressed);
+    --button-fg: var(--acme-color-button-danger-text);
+    box-shadow: var(--acme-shadow-subtle);
+  }
+
+  /* ------------------------------------------------------------ toggles */
+
+  /* A ghost toggle has its outline before it is selected, transparent, so that selecting it
+     does not change its width. */
+  .button--ghost[aria-pressed] {
+    border: var(--acme-border-width-thin) solid transparent;
+  }
+
+  /* A toggle that is on. The outline, not only the tint, says so; primary and danger buttons
+     keep their look and only report the state. */
+  .button--secondary[aria-pressed="true"],
+  .button--ghost[aria-pressed="true"] {
+    --button-bg: var(--acme-color-button-selected-background);
+    --button-bg-hover: var(--acme-color-button-selected-background-hover);
+    --button-bg-pressed: var(--acme-color-button-selected-background-pressed);
+    --button-fg: var(--acme-color-button-selected-text);
+    border-color: var(--acme-color-button-selected-border);
+    /* Held down, so nothing lifts it off the page. */
+    box-shadow: none;
+  }
+
+  /* ------------------------------------------------------------ disabled and loading */
+
+  /* Neither takes the pointer: a disabled button is not there to press, and a loading one has
+     already been pressed. */
+  .button:disabled,
+  .button[aria-disabled="true"] {
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* A disabled button is recolored, not faded: fading a colored fill leaves a pale version of
+     the same color that still looks pressable. */
+  .button:disabled:not([data-pending]),
+  .button[aria-disabled="true"]:not([data-pending]) {
+    --button-bg: var(--acme-color-button-disabled-background);
+    --button-fg: var(--acme-color-button-disabled-text);
+    box-shadow: none;
+  }
+
+  .button--secondary:disabled:not([data-pending]),
+  .button--secondary[aria-disabled="true"]:not([data-pending]) {
+    border-color: transparent;
+  }
+
+  .button--ghost:disabled:not([data-pending]),
+  .button--ghost[aria-disabled="true"]:not([data-pending]) {
+    --button-bg: transparent;
+    border-color: transparent;
+  }
+
+  /* While loading the label stays, so the button keeps its width, and so do the colors: the
+     action was accepted, which is the opposite of unavailable. */
+  .button[data-pending] {
+    cursor: progress;
+  }
+
+  /* ------------------------------------------------------------ icon only */
+
+  /* A Button that holds only an icon is as wide as it is tall, which `min-width` already
+     ensures once the padding is gone. A small one is shorter than a finger needs, so its
+     height has the same floor as its width. */
+  .button.button--icon-only {
+    padding-inline: 0;
+  }
+
+  .button.button--icon-only.button--sm {
+    height: max(var(--acme-size-control-sm), var(--acme-size-target-min));
+  }
+
+  /* IconButton: a square exactly as tall as a button of its size. Where that is smaller than
+     a finger needs, the pressable area grows around it and the square stays what it is. */
+  .button.icon-button {
+    width: var(--acme-size-control-md);
+    min-width: 0;
+    padding-inline: 0;
+  }
+
+  .button.icon-button.button--sm {
+    width: var(--acme-size-control-sm);
+  }
+
+  .button.icon-button.button--lg {
+    width: var(--acme-size-control-lg);
+  }
+
+  /* Centered with physical offsets, which need no mirroring in a right-to-left layout. */
+  .button.icon-button::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, var(--acme-size-target-min));
+    height: max(100%, var(--acme-size-target-min));
+    translate: -50% -50%;
+  }
+
+  /* ------------------------------------------------------------ focus */
+
+  /* A ring a gap away from the button, in the page's color, so it shows on any fill. It
+     replaces the shadow of the variant and of a selected toggle, so it comes last. */
+  .button:focus-visible {
+    box-shadow:
+      0 0 0 var(--acme-focus-offset) var(--acme-color-background-base),
+      0 0 0 calc(var(--acme-focus-width) + var(--acme-focus-offset)) var(--acme-color-border-focus);
+  }
+}

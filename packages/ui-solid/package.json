@@ -1,0 +1,44 @@
+{
+  "name": "@acme/ui-solid",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles/index.css"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@acme/tokens": "workspace:*",
+    "@acme/ui-core": "workspace:*",
+    "@zag-js/accordion": "catalog:",
+    "@zag-js/aria-hidden": "catalog:",
+    "@zag-js/dialog": "catalog:",
+    "@zag-js/menu": "catalog:",
+    "@zag-js/remove-scroll": "catalog:",
+    "@zag-js/select": "catalog:",
+    "@zag-js/slider": "catalog:",
+    "@zag-js/solid": "catalog:",
+    "@zag-js/tabs": "catalog:",
+    "@zag-js/tooltip": "catalog:"
+  },
+  "peerDependencies": {
+    "@solidjs/web": "catalog:",
+    "solid-js": "catalog:",
+    "tailwindcss": "^4.3.5"
+  },
+  "devDependencies": {
+    "@solidjs/vite-plugin": "catalog:",
+    "@solidjs/web": "catalog:",
+    "@tailwindcss/vite": "^4.3.5",
+    "@vitest/browser-playwright": "^5.1.0",
+    "playwright": "^1.65.0",
+    "solid-js": "catalog:",
+    "tailwindcss": "^4.3.5",
+    "typescript": "catalog:",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}

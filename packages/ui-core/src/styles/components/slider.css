@@ -1,0 +1,132 @@
+/*
+ * Slider: Zag's slider machine, with one thumb.
+ *
+ * Parts: `.slider` (a grid: the label and the value on one line, the track under them),
+ * `__label`, `__output`, `__control` (the pressable band, which Zag measures to turn a press into
+ * a value), `__track` (the line), `__range` (the fill), `__thumb`.
+ * States: `[data-disabled]` on the root, `:focus-visible` and `[data-dragging]` on the thumb.
+ * Zag places the thumb and the ends of the fill with its own inline styles.
+ */
+@layer components {
+  .slider {
+    display: grid;
+    grid-template-areas:
+      "label output"
+      "track track";
+    grid-template-columns: 1fr auto;
+    row-gap: var(--acme-space-1);
+    column-gap: var(--acme-space-2);
+    width: 100%;
+  }
+
+  .slider__label {
+    grid-area: label;
+    width: fit-content;
+    font-size: var(--acme-typography-label-size);
+    font-weight: var(--acme-typography-label-weight);
+    line-height: var(--acme-typography-label-line-height);
+  }
+
+  .slider__output {
+    grid-area: output;
+    align-self: end;
+    font-size: var(--acme-typography-detail-size);
+    font-weight: var(--acme-typography-detail-weight);
+    line-height: var(--acme-typography-detail-line-height);
+    font-variant-numeric: tabular-nums;
+    color: var(--acme-color-text-secondary);
+  }
+
+  /* The pressable band, as tall as the smallest pressable area, and inset by half a thumb at
+     each end so the thumb is centered on the value. As in the React library it is as wide as
+     the slider besides, so the far end reaches half a thumb past the slider's edge. */
+  .slider__control {
+    grid-area: track;
+    width: 100%;
+    height: max(var(--acme-size-target-min), var(--acme-size-slider-thumb));
+    margin-inline: calc(var(--acme-size-slider-thumb) / 2);
+    cursor: pointer;
+  }
+
+  .slider__track {
+    height: 100%;
+  }
+
+  /* The line runs past the band's insets, to where the thumb's edge is at either extreme. */
+  .slider__track::before {
+    content: "";
+    position: absolute;
+    inset-inline: calc(var(--acme-size-slider-thumb) / -2);
+    top: 50%;
+    height: var(--acme-size-slider-track);
+    translate: 0 -50%;
+    border-radius: var(--acme-radius-full);
+    background: var(--acme-color-slider-track);
+  }
+
+  /* Zag sizes the fill from the start of the inset band; the padding reaches back over the
+     inset, so the fill starts where the line does. */
+  .slider__range {
+    top: 50%;
+    box-sizing: content-box;
+    height: var(--acme-size-slider-track);
+    margin-inline-start: calc(var(--acme-size-slider-thumb) / -2);
+    padding-inline-start: calc(var(--acme-size-slider-thumb) / 2);
+    translate: 0 -50%;
+    border-radius: var(--acme-radius-full);
+    background: var(--acme-color-slider-fill);
+    pointer-events: none;
+  }
+
+  /* Zag centers the thumb on the value across; this centers it on the line. */
+  .slider__thumb {
+    top: 50%;
+    z-index: 2;
+    box-sizing: border-box;
+    width: var(--acme-size-slider-thumb);
+    height: var(--acme-size-slider-thumb);
+    translate: 0 -50%;
+    border: var(--acme-border-width-thick) solid var(--acme-color-slider-thumb-border);
+    border-radius: var(--acme-radius-full);
+    background: var(--acme-color-slider-thumb);
+    outline: none;
+    cursor: grab;
+    transition: border-color var(--acme-motion-duration-fast) var(--acme-motion-easing-standard);
+  }
+
+  .slider__thumb[data-dragging] {
+    cursor: grabbing;
+  }
+
+  .slider__thumb:focus-visible {
+    z-index: 10;
+    outline: var(--acme-focus-width) solid var(--acme-color-border-focus);
+    outline-offset: var(--acme-focus-offset);
+  }
+
+  /* Disabled is recolored, not faded: the fill and the thumb's ring turn grey, and so do the
+     label and the value. */
+  .slider[data-disabled] {
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .slider[data-disabled] .slider__label,
+  .slider[data-disabled] .slider__output {
+    color: var(--acme-color-text-disabled);
+    cursor: not-allowed;
+  }
+
+  .slider[data-disabled] .slider__range {
+    background: var(--acme-color-slider-disabled-fill);
+  }
+
+  .slider[data-disabled] .slider__thumb {
+    border-color: var(--acme-color-slider-disabled-fill);
+    cursor: default;
+  }
+
+  .slider[data-disabled] .slider__control {
+    cursor: default;
+  }
+}

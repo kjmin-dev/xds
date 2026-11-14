@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "jsx": "preserve",
+    "jsxImportSource": "@solidjs/web",
+    // The behavior tests import the stylesheet, which Vite resolves.
+    "types": ["vite/client"]
+  },
+  "include": ["src", "test", "vitest.config.ts"]
+}

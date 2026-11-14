@@ -1,6 +1,6 @@
 ---
 name: xds
-description: Work with a design system made from the xds template (one set of design tokens, with matching component libraries for React web, GPUI desktop, React Native, and Compose Multiplatform). Use when scaffolding a project with the xds CLI, adding a client, switching the color theme, adding or changing a design token, adding a component or a variant across clients, or checking a UI change in the design preview. Applies to any repository that has design/tokens and an .xds.json or template.json file.
+description: Work with a design system made from the xds template (one set of design tokens, with matching component libraries for React and Solid on the web, GPUI desktop, React Native, and Compose Multiplatform). Use when scaffolding a project with the xds CLI, adding a client, switching the color theme, adding or changing a design token, adding a component or a variant across clients, or checking a UI change in the design preview. Applies to any repository that has design/tokens and an .xds.json or template.json file.
 license: MIT
 ---
 

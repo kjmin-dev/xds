@@ -8,18 +8,74 @@ packages:
   # @if mobile-react-native
   - apps/mobile
   # @endif
+  # @if web-solid
+  - apps/web-solid
+  # @endif
   - packages/*
   - tools/*
 
-# One version of each of these across the workspace. Expo pins React exactly, and two copies of
-# React in one bundle break hooks.
+# One version of each of these across the workspace.
 catalog:
+  # @if web-react mobile-react-native
+  # Expo pins React exactly, and two copies of React in one bundle break hooks.
   "@types/react": ~19.3.0
   react: 19.3.0
   react-dom: 19.3.0
+  # @endif
   # Exact pin while 7.1 is in beta: a range such as ~7.1.0-beta also matches the nightly
   # 7.1.0-dev.* builds, which sort above "beta". Move to ~7.1.0 when 7.1.0 is released.
   typescript: 7.1.0-beta
+  # @if web-solid
+  # The state machines behind the overlays and the composite controls of the Zag.js web
+  # libraries. Every @zag-js package must be the same exact version: each framework adapter
+  # pins @zag-js/core exactly, and 2.0 is still a prerelease that changes the attributes the
+  # stylesheet of @acme/ui-core selects on.
+  "@zag-js/accordion": 2.0.0-next.4
+  "@zag-js/aria-hidden": 2.0.0-next.4
+  "@zag-js/dialog": 2.0.0-next.4
+  "@zag-js/menu": 2.0.0-next.4
+  "@zag-js/remove-scroll": 2.0.0-next.4
+  "@zag-js/select": 2.0.0-next.4
+  "@zag-js/slider": 2.0.0-next.4
+  "@zag-js/tabs": 2.0.0-next.4
+  "@zag-js/tooltip": 2.0.0-next.4
+  "@zag-js/solid": 2.0.0-next.4
+  # Exact pins while Solid 2 is a release candidate: @solidjs/web's `latest` tag is still rc.0,
+  # and @solidjs/vite-plugin's `next` tag is older than its `latest`.
+  solid-js: 2.0.0-rc.21
+  "@solidjs/web": 2.0.0-rc.21
+  "@solidjs/vite-plugin": 3.0.0-next.57
+  # @endif
+# @if web-solid
+
+# Zag 2.0.0-next.4 was less than a day old when it was added. Drop these once it is older than
+# pnpm's minimum release age.
+minimumReleaseAgeExclude:
+  - "@zag-js/accordion@2.0.0-next.4"
+  - "@zag-js/anatomy@2.0.0-next.4"
+  - "@zag-js/aria-hidden@2.0.0-next.4"
+  - "@zag-js/collection@2.0.0-next.4"
+  - "@zag-js/core@2.0.0-next.4"
+  - "@zag-js/dialog@2.0.0-next.4"
+  - "@zag-js/dismissable@2.0.0-next.4"
+  - "@zag-js/dom-query@2.0.0-next.4"
+  - "@zag-js/focus-trap@2.0.0-next.4"
+  - "@zag-js/focus-visible@2.0.0-next.4"
+  - "@zag-js/interact-outside@2.0.0-next.4"
+  - "@zag-js/live-region@2.0.0-next.4"
+  - "@zag-js/menu@2.0.0-next.4"
+  - "@zag-js/popper@2.0.0-next.4"
+  - "@zag-js/rect-utils@2.0.0-next.4"
+  - "@zag-js/remove-scroll@2.0.0-next.4"
+  - "@zag-js/safe-area@2.0.0-next.4"
+  - "@zag-js/select@2.0.0-next.4"
+  - "@zag-js/slider@2.0.0-next.4"
+  - "@zag-js/solid@2.0.0-next.4"
+  - "@zag-js/tabs@2.0.0-next.4"
+  - "@zag-js/tooltip@2.0.0-next.4"
+  - "@zag-js/types@2.0.0-next.4"
+  - "@zag-js/utils@2.0.0-next.4"
+# @endif
 # @if template
 
 # Wrangler (tools/deploy) deploys the two sites as static assets, which needs neither package's

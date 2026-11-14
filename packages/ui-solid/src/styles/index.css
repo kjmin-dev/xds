@@ -1,0 +1,5 @@
+/* The one stylesheet a Solid app imports: the shared one, and this package's own classes. */
+@import "@acme/ui-core/styles.css";
+
+/* The components in this package use Tailwind utilities; tell Tailwind where to find them. */
+@source "..";

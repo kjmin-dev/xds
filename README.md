@@ -11,9 +11,12 @@ A cross-platform design system template. A single set of design tokens drives a 
 | Client | Runs on | Stack | Components | App |
 | --- | --- | --- | --- | --- |
 | `web-react` | Browsers | React 19, Vite, Tailwind v4, HeroUI v3 | `packages/ui` | `apps/web` |
+| `web-solid` | Browsers | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js | `packages/ui-solid`, `packages/ui-core` | `apps/web-solid` |
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component | `crates/acme-ui` | `apps/desktop` |
 | `mobile-react-native` | iOS, Android | React Native, Expo | `packages/ui-native` | `apps/mobile` |
 | `kotlin-compose` | Android, iOS, desktop | Kotlin Multiplatform, Compose Multiplatform | `kotlin/ui` | `kotlin/androidApp`, `kotlin/iosApp`, `kotlin/desktopApp` |
+
+The two web clients can be combined in one project: each has its own directory, port, and `mise` alias. `packages/ui-core` holds what the web libraries built on Zag.js share (prop types, class recipes, and the stylesheet), so that each framework's library adds only its components.
 
 `acme` is a placeholder name that `xds create` replaces with your project name.
 
@@ -23,7 +26,7 @@ A cross-platform design system template. A single set of design tokens drives a 
 xds create my-app
 ```
 
-`xds` prompts for a project name, the clients to include, and a color theme, then generates a repository containing only those clients. As you move through the theme list, it renders a preview of each theme in the terminal. Each prompt starts at its default (the directory name, the web client, and the indigo theme), and `--yes` takes those defaults without asking.
+`xds` prompts for a project name, the clients to include, and a color theme, then generates a repository containing only those clients. As you move through the theme list, it renders a preview of each theme in the terminal. Each prompt starts at its default (the directory name, the React web client, and the indigo theme), and `--yes` takes those defaults without asking.
 
 ```sh
 # Or without questions:
@@ -77,7 +80,7 @@ See the [CLI documentation](docs/cli.md#for-scripts-and-agents) for details on t
 - `design/tokens` contains the design tokens in DTCG format: a color palette, light and dark semantic colors, component-specific colors, typographic roles, spacing, border radius, motion, shadows, and control sizes for pointer and touch input.
 - `design/themes` provides five color themes: `indigo` (the default), `ocean`, `forest`, `sunset`, and `plum`. Each theme defines an accent ramp and a neutral ramp, and every theme passes all contrast checks.
 - `tools/design-build` compiles the tokens into CSS custom properties, a Tailwind theme, TypeScript constants, Rust constants, and Compose values. It runs on plain Node with no external dependencies, and fails the build if any color pairing falls below its required WCAG contrast ratio.
-- Every client implements the same set of components with matching names and options: Button, TextField, Text, Badge, CountBadge, Banner, Card, Divider, Spinner, Switch, Checkbox, SegmentedControl, Avatar, AvatarStack, ProgressBar, ListRow, Icon, IconButton, Chip, ChipBar, Tabs, Menu, Dialog, Toast, Skeleton, SearchField, RadioGroup, Select, Slider, Thumbnail, MediaCard, SectionHeader, EmptyState, and Accordion. The two touch clients also provide TopBar, TabBar, and BottomSheet, and the two pointer clients (web and GPUI) provide Tooltip and Sidebar.
+- Every client implements the same set of components with matching names and options: Button, TextField, Text, Badge, CountBadge, Banner, Card, Divider, Spinner, Switch, Checkbox, SegmentedControl, Avatar, AvatarStack, ProgressBar, ListRow, Icon, IconButton, Chip, ChipBar, Tabs, Menu, Dialog, Toast, Skeleton, SearchField, RadioGroup, Select, Slider, Thumbnail, MediaCard, SectionHeader, EmptyState, and Accordion. The two touch clients also provide TopBar, TabBar, and BottomSheet, and the pointer clients (the two web clients and GPUI) provide Tooltip and Sidebar.
 - Each app includes a design preview screen that renders every token and component in a single view.
 
 See the [design system documentation](docs/design-system.md) for the rationale behind this structure and the conventions it adopts from current open-source design systems.
@@ -95,6 +98,8 @@ mise run check          # everything CI runs
 | --- | --- |
 | Start the web app | `mise run //web:dev`, then open `http://localhost:5173` |
 | Open the web design preview | Visit `http://localhost:5173/design` |
+| Start the Solid web app | `mise run //web-solid:dev`, then open `http://localhost:5174` |
+| Open the Solid design preview | Visit `http://localhost:5174/design` |
 | Start the GPUI desktop app | `mise run //desktop:dev` |
 | Open the GPUI design preview | `mise run //desktop:design` |
 | Start the React Native app | `mise run //mobile:ios` or `mise run //mobile:android` |
@@ -123,12 +128,15 @@ design/themes/          color themes
 design/icons/           icons, as SVG files
 tools/design-build/     tokens to platform files, plus the contrast check
 packages/tokens/        generated CSS and TypeScript
-packages/ui/            web components
+packages/ui/            React web components
+packages/ui-core/       prop types, classes, and CSS shared by the Zag.js web components
+packages/ui-solid/      Solid web components
 packages/ui-native/     React Native components
 crates/acme-tokens/     generated Rust
 crates/acme-ui/         GPUI components
 kotlin/                 Compose components and apps (a Gradle build of its own)
 apps/web/               React app
+apps/web-solid/         Solid app
 apps/desktop/           GPUI app
 apps/mobile/            Expo app
 apps/docs/              the documentation site (not copied into projects)
@@ -143,11 +151,12 @@ template.json           which paths belong to which client
 | | Status |
 | --- | --- |
 | Web | Design preview checked in headless Chrome in both light and dark modes |
+| Web (Solid) | Compared with the React design preview in headless Chrome, in both light and dark modes: screenshots of every section and of each open overlay, computed styles, accessibility trees, and keyboard and pointer behavior. Known differences: an open Menu or Select keeps focus on the list and points at the highlighted item with `aria-activedescendant`, where React moves focus to the item; a Tooltip stays open while the page scrolls, for as long as its control has focus or the pointer, where React closes it; a letter typed in a Menu or a Select's list moves past the highlighted item to the next one that starts with it, and Shift+Tab into a RadioGroup with nothing chosen lands on its first option, as the ARIA Authoring Practices describe, where React can stay on the highlighted item and lands on the last option |
 | GPUI desktop | Run on macOS; design preview checked in both light and dark modes |
 | React Native | Run on the iOS simulator in light and dark modes, including the bottom sheet. Android and physical devices have not been checked |
 | Compose | Checked on desktop, an Android emulator, and the iOS simulator; see [kotlin/README.md](kotlin/README.md) for details |
-| `xds` | Generated projects for each individual client and for all four combined; each passed its own `mise run check` on macOS. The Linux and Windows binaries and the release workflow have not been run |
-| Accessibility | Contrast is verified by the build. The keyboard, focus, and ARIA behavior of the interactive web components is tested in headless Chrome. No client has been tested with a screen reader |
+| `xds` | Generated projects for each client other than `web-solid` alone and for those four combined; each passed its own `mise run check` on macOS. Projects with `web-solid` alone and with both web clients passed their install, `check:js`, and the Solid build. The Linux and Windows binaries and the release workflow have not been run |
+| Accessibility | Contrast is verified by the build. The keyboard, focus, and ARIA behavior of the interactive web components is tested in headless Chrome, with the same checks for the React and the Solid library. No client has been tested with a screen reader |
 
 ## License
 

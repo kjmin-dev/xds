@@ -11,10 +11,14 @@ import acme.tokens.Colors
 import acme.tokens.Focus
 import acme.tokens.LightColors
 import acme.tokens.Mode
+import acme.tokens.PointerSizes
 import acme.tokens.ShadowToken
 import acme.tokens.Sizes
 import acme.tokens.colors
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.runtime.Composable
@@ -40,6 +44,7 @@ import androidx.compose.ui.graphics.shadow.Shadow as DropShadow
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewConfiguration
@@ -47,12 +52,21 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.offset
 
 /** The color tokens of the mode in effect. */
 val LocalColors = staticCompositionLocalOf<Colors> { LightColors }
 
 /** The control sizes of the input device in effect. */
 val LocalSizes = staticCompositionLocalOf { platformSizes }
+
+/**
+ * Whether these are the sizes for a pointer. Components that take a different form for each
+ * input device ask this, so the form always goes with the sizes: a menu is a popup with them
+ * and a sheet without. Sizes an app made itself count as touch, whose forms work with a pointer
+ * as well.
+ */
+internal val Sizes.forPointer: Boolean get() = this === PointerSizes
 
 /**
  * The color of the text and marks inside a component that sets its own fill, such as a button.
@@ -171,3 +185,20 @@ internal fun Modifier.focusRing(shape: Shape): Modifier {
 
 // Read when focus changes, never while drawing, so it does not need to be observable state.
 private class Press(var underWay: Boolean = false)
+
+/**
+ * Scrolls sideways when the content does not fit. A scrolling row cuts off what is drawn outside
+ * it, which would cut the focus rings of the controls in it, so the part that scrolls reaches
+ * past the row's bounds by a ring's width on every side. The row keeps its own size and place.
+ */
+internal fun Modifier.sidewaysScroll(state: ScrollState): Modifier {
+    val room = Focus.offset + Focus.width
+    return this
+        .layout { measurable, constraints ->
+            val reach = room.roundToPx()
+            val placeable = measurable.measure(constraints.offset(horizontal = 2 * reach, vertical = 2 * reach))
+            layout(placeable.width - 2 * reach, placeable.height - 2 * reach) { placeable.place(-reach, -reach) }
+        }
+        .horizontalScroll(state)
+        .padding(room)
+}

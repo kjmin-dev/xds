@@ -1,17 +1,22 @@
 //! Selection controls, and the pieces a list is made of.
 //!
 //! The switch and the checkbox come from GPUI Component, which gives them focus and keyboard
-//! handling; `set_mode` points their colors at the tokens. The rest are drawn here.
+//! handling; `set_mode` points their colors at the tokens. The rest are drawn here: the chip,
+//! the tabs and the skeleton too, whose GPUI Component counterparts take their look from its
+//! theme and not from the tokens of these components.
 
 use std::rc::Rc;
 
 use acme_tokens as tokens;
-use gpui_kit::component::{Icon, Sizable, checkbox::Checkbox, spinner::Spinner, switch::Switch};
+use gpui_kit::component::{
+    Icon, Sizable, ThemeStyled, checkbox::Checkbox, spinner::Spinner, switch::Switch,
+};
 use gpui_kit::prelude::FluentBuilder;
 use gpui_kit::{
-    AnyElement, App, BoxShadow, ClickEvent, Div, ElementId, ImageSource, InteractiveElement,
-    IntoElement, ObjectFit, ParentElement, RenderOnce, Role, SharedString,
-    StatefulInteractiveElement, Styled, StyledImage, Window, div, img, point, px, relative,
+    Animation, AnimationExt, AnyElement, App, BoxShadow, ClickEvent, Div, ElementId, FocusHandle,
+    Hsla, ImageSource, InteractiveElement, IntoElement, Length, MouseButton, ObjectFit,
+    ParentElement, RenderOnce, Rgba, Role, SharedString, StatefulInteractiveElement, Styled,
+    StyledImage, Toggled, Window, div, img, point, px, relative,
 };
 
 use crate::components::{ControlSize, shadow};
@@ -113,6 +118,476 @@ impl RenderOnce for SegmentedControl {
             .rounded(px(tokens::RADIUS_MD))
             .bg(color(c.segmented_track))
             .children(segments)
+    }
+}
+
+// ---------------------------------------------------------------- chip
+
+/// The focus handle of a control that is drawn here rather than by GPUI Component, kept from
+/// frame to frame under the control's id.
+pub(crate) fn focus_handle(id: &ElementId, window: &mut Window, cx: &mut App) -> FocusHandle {
+    window
+        .use_keyed_state(id.clone(), cx, |_, cx| cx.focus_handle())
+        .read(cx)
+        .clone()
+}
+
+/// A choice that filters what is shown. Unlike a badge it is pressed. A selected chip gains a
+/// check mark and an outline, so the state does not depend on color.
+#[derive(IntoElement)]
+pub struct Chip {
+    id: ElementId,
+    label: SharedString,
+    selected: bool,
+    icon_start: Option<tokens::Icon>,
+    disabled: bool,
+    on_click: Option<ClickHandler>,
+}
+
+impl Chip {
+    pub fn new(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Self {
+        Self {
+            id: id.into(),
+            label: label.into(),
+            selected: false,
+            icon_start: None,
+            disabled: false,
+            on_click: None,
+        }
+    }
+
+    pub fn selected(mut self, selected: bool) -> Self {
+        self.selected = selected;
+        self
+    }
+
+    /// An icon in front of the label. The check mark takes its place while the chip is
+    /// selected.
+    pub fn icon_start(mut self, icon: tokens::Icon) -> Self {
+        self.icon_start = Some(icon);
+        self
+    }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+
+    /// The chip does not select itself: the handler decides.
+    pub fn on_click(
+        mut self,
+        handler: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static,
+    ) -> Self {
+        self.on_click = Some(Rc::new(handler));
+        self
+    }
+}
+
+impl RenderOnce for Chip {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let c = palette(cx);
+        let leading = if self.selected {
+            Some(tokens::Icon::Check)
+        } else {
+            self.icon_start
+        };
+        let focus = focus_handle(&self.id, window, cx);
+        let focused = !self.disabled && focus.is_focused(window);
+        let (background, hover, pressed, text) = if self.disabled {
+            (
+                c.chip_disabled_background,
+                c.chip_disabled_background,
+                c.chip_disabled_background,
+                c.chip_disabled_text,
+            )
+        } else if self.selected {
+            (
+                c.chip_selected_background,
+                c.chip_selected_background_hover,
+                c.chip_selected_background_pressed,
+                c.chip_selected_text,
+            )
+        } else {
+            (
+                c.chip_background,
+                c.chip_background_hover,
+                c.chip_background_pressed,
+                c.chip_text,
+            )
+        };
+        div()
+            .id(self.id)
+            .role(Role::Button)
+            .aria_label(self.label.clone())
+            .aria_toggled(if self.selected {
+                Toggled::True
+            } else {
+                Toggled::False
+            })
+            .flex()
+            .flex_none()
+            .items_center()
+            .gap(px(tokens::SPACE_1_5))
+            .h(px(tokens::POINTER.chip))
+            .px(px(tokens::SPACE_3))
+            .rounded_full()
+            // Present on every chip, and transparent until selected, so selecting does not
+            // change the size.
+            .border(px(tokens::BORDER_WIDTH_THIN))
+            .border_color(if self.selected && !self.disabled {
+                color(c.chip_selected_border)
+            } else {
+                gpui_kit::transparent_black()
+            })
+            .bg(color(background))
+            .text_color(color(text))
+            .typography(tokens::TYPOGRAPHY_LABEL)
+            .whitespace_nowrap()
+            .children(leading.map(|name| icon(name, IconSize::Sm)))
+            .child(self.label)
+            .when(!self.disabled, |chip| {
+                chip.track_focus(&focus.tab_index(0).tab_stop(true))
+                    .hover(|chip| chip.bg(color(hover)))
+                    .active(|chip| chip.bg(color(pressed)))
+                    // A click does not move the focus here, as on a button, so the ring shows
+                    // only when the keyboard got there.
+                    .on_mouse_down(MouseButton::Left, |_, window, _| window.prevent_default())
+                    .when_some(self.on_click, |chip, on_click| {
+                        chip.on_click(move |event, window, cx| on_click(event, window, cx))
+                    })
+            })
+            .when(focused, |chip| chip.focus_ring_style(window, cx))
+    }
+}
+
+/// A row of chips. It scrolls sideways when the chips do not fit, and never wraps. Which chips
+/// are selected is the app's business: the bar holds no state. Add the chips as children.
+#[derive(IntoElement)]
+pub struct ChipBar {
+    id: ElementId,
+    label: SharedString,
+    children: Vec<AnyElement>,
+}
+
+impl ChipBar {
+    /// The label names the group for assistive technology.
+    pub fn new(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Self {
+        Self {
+            id: id.into(),
+            label: label.into(),
+            children: Vec::new(),
+        }
+    }
+}
+
+impl ParentElement for ChipBar {
+    fn extend(&mut self, elements: impl IntoIterator<Item = AnyElement>) {
+        self.children.extend(elements);
+    }
+}
+
+impl RenderOnce for ChipBar {
+    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
+        // A scrolling row clips what it holds, and the focus ring of a chip lies outside the
+        // chip. The row is this much larger on every side, and pulled back by as much, so the
+        // ring has room and the chips stay where they were.
+        let room = px(tokens::SPACE_1);
+        div()
+            .id(self.id)
+            .role(Role::Group)
+            .aria_label(self.label)
+            .flex()
+            .items_center()
+            .gap(px(tokens::SPACE_2))
+            .p(room)
+            .m(-room)
+            .overflow_x_scroll()
+            .children(self.children)
+    }
+}
+
+// ---------------------------------------------------------------- tabs
+
+type ValueHandler = Rc<dyn Fn(&SharedString, &mut Window, &mut App)>;
+
+/// One tab of [`Tabs`]: the value it stands for, and what it shows.
+pub struct TabItem {
+    value: SharedString,
+    label: SharedString,
+    icon: Option<tokens::Icon>,
+}
+
+impl TabItem {
+    pub fn new(value: impl Into<SharedString>, label: impl Into<SharedString>) -> Self {
+        Self {
+            value: value.into(),
+            label: label.into(),
+            icon: None,
+        }
+    }
+
+    /// An icon in front of the label.
+    pub fn icon(mut self, icon: tokens::Icon) -> Self {
+        self.icon = Some(icon);
+        self
+    }
+}
+
+/// Switches between views inside one window. For two to four short modes a segmented control
+/// is lighter; tabs are for more items, longer labels, or a row that may have to scroll. This
+/// is only the row: the app shows the view that matches the value.
+#[derive(IntoElement)]
+pub struct Tabs {
+    id: ElementId,
+    label: SharedString,
+    items: Vec<TabItem>,
+    value: SharedString,
+    full_width: bool,
+    on_change: Option<ValueHandler>,
+}
+
+impl Tabs {
+    /// The label names the row for assistive technology.
+    pub fn new(
+        id: impl Into<ElementId>,
+        label: impl Into<SharedString>,
+        items: impl IntoIterator<Item = TabItem>,
+    ) -> Self {
+        Self {
+            id: id.into(),
+            label: label.into(),
+            items: items.into_iter().collect(),
+            value: SharedString::default(),
+            full_width: false,
+            on_change: None,
+        }
+    }
+
+    /// The value of the selected tab.
+    pub fn value(mut self, value: impl Into<SharedString>) -> Self {
+        self.value = value.into();
+        self
+    }
+
+    /// The tabs share the width of the row equally.
+    pub fn full_width(mut self, full_width: bool) -> Self {
+        self.full_width = full_width;
+        self
+    }
+
+    /// Called with the value of the tab that was clicked. Takes a reference, like the handlers
+    /// of GPUI Component, so `cx.listener` fits.
+    pub fn on_change(
+        mut self,
+        handler: impl Fn(&SharedString, &mut Window, &mut App) + 'static,
+    ) -> Self {
+        self.on_change = Some(Rc::new(handler));
+        self
+    }
+}
+
+impl RenderOnce for Tabs {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let c = palette(cx);
+        let tabs = self
+            .items
+            .into_iter()
+            .enumerate()
+            .map(|(index, item)| {
+                let selected = item.value == self.value;
+                let id: ElementId = (self.id.clone(), index.to_string()).into();
+                let focus = focus_handle(&id, window, cx);
+                let focused = focus.is_focused(window);
+                let on_change = self.on_change.clone();
+                let value = item.value;
+                div()
+                    .id(id)
+                    .role(Role::Tab)
+                    .aria_label(item.label.clone())
+                    .aria_selected(selected)
+                    .track_focus(&focus.tab_index(0).tab_stop(true))
+                    .relative()
+                    .flex()
+                    .items_center()
+                    .justify_center()
+                    .gap(px(tokens::SPACE_2))
+                    .h(px(tokens::POINTER.tab))
+                    .px(px(tokens::SPACE_4))
+                    .typography(tokens::TYPOGRAPHY_LABEL)
+                    .whitespace_nowrap()
+                    .map(|tab| {
+                        if self.full_width {
+                            tab.flex_1()
+                        } else {
+                            tab.flex_none()
+                        }
+                    })
+                    .map(|tab| {
+                        if selected {
+                            tab.text_color(color(c.tabs_text_selected))
+                        } else {
+                            tab.text_color(color(c.tabs_text))
+                                .hover(|tab| tab.text_color(color(c.tabs_text_hover)))
+                        }
+                    })
+                    // A click does not move the focus here, as on a button, so the ring shows
+                    // only when the keyboard got there.
+                    .on_mouse_down(MouseButton::Left, |_, window, _| window.prevent_default())
+                    .when_some(on_change, |tab, on_change| {
+                        tab.on_click(move |_, window, cx| on_change(&value, window, cx))
+                    })
+                    .children(item.icon.map(|name| icon(name, IconSize::Sm)))
+                    .child(item.label)
+                    .when(selected, |tab| {
+                        // A bar as well as a color, so the choice shows in the form.
+                        tab.child(
+                            div()
+                                .absolute()
+                                .left_0()
+                                .right_0()
+                                .bottom_0()
+                                .h(px(tokens::BORDER_WIDTH_THICK))
+                                .bg(color(c.tabs_indicator)),
+                        )
+                    })
+                    .when(focused, |tab| tab.focus_ring_style(window, cx))
+            })
+            .collect::<Vec<_>>();
+        // As in a chip bar: the scrolling row would clip the focus ring of a tab, so it is
+        // this much larger on every side and pulled back by as much.
+        let room = px(tokens::SPACE_1);
+        div()
+            .relative()
+            .w_full()
+            .child(
+                // Under the row, and drawn before it, so the bar of the selected tab lies
+                // over the hairline.
+                div()
+                    .absolute()
+                    .left_0()
+                    .right_0()
+                    .bottom_0()
+                    .h(px(tokens::BORDER_WIDTH_THIN))
+                    .bg(color(c.tabs_border)),
+            )
+            .child(
+                div()
+                    .id(self.id)
+                    .role(Role::TabList)
+                    .aria_label(self.label)
+                    .flex()
+                    .p(room)
+                    .m(-room)
+                    .overflow_x_scroll()
+                    .children(tabs),
+            )
+    }
+}
+
+// ---------------------------------------------------------------- skeleton
+
+/// `Text` is one line of body text, `Rect` a block such as a picture, `Circle` an avatar.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum SkeletonShape {
+    #[default]
+    Text,
+    Rect,
+    Circle,
+}
+
+/// Holds the place of content that is loading. It has no role and no name, so assistive
+/// technology passes over it: the view that shows skeletons says that it is loading.
+#[derive(IntoElement)]
+pub struct Skeleton {
+    id: ElementId,
+    shape: SkeletonShape,
+    width: Option<Length>,
+    height: Option<Length>,
+}
+
+impl Skeleton {
+    /// GPUI keeps the time of an animation under an id, so the skeleton takes one.
+    pub fn new(id: impl Into<ElementId>) -> Self {
+        Self {
+            id: id.into(),
+            shape: SkeletonShape::default(),
+            width: None,
+            height: None,
+        }
+    }
+
+    pub fn shape(mut self, shape: SkeletonShape) -> Self {
+        self.shape = shape;
+        self
+    }
+
+    /// A line and a rectangle are as wide as their parent unless this is set.
+    pub fn width(mut self, width: impl Into<Length>) -> Self {
+        self.width = Some(width.into());
+        self
+    }
+
+    /// A rectangle needs a height. A circle is as wide as it is tall.
+    pub fn height(mut self, height: impl Into<Length>) -> Self {
+        self.height = Some(height.into());
+        self
+    }
+}
+
+/// The color `amount` of the way from one token to another.
+fn mix(from: tokens::Color, to: tokens::Color, amount: f32) -> Hsla {
+    let channel = |from: u8, to: u8| f32::from(from) + (f32::from(to) - f32::from(from)) * amount;
+    Rgba {
+        r: channel(from.r, to.r) / 255.0,
+        g: channel(from.g, to.g) / 255.0,
+        b: channel(from.b, to.b) / 255.0,
+        a: from.a + (to.a - from.a) * amount,
+    }
+    .into()
+}
+
+/// How far a pulse is from its resting color, `phase` of the way through one beat: there and
+/// back, slowing at both ends.
+fn pulse(phase: f32) -> f32 {
+    (1.0 - (phase * std::f32::consts::TAU).cos()) / 2.0
+}
+
+impl RenderOnce for Skeleton {
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let c = palette(cx);
+        let block = div().flex_none().bg(color(c.skeleton_background));
+        let block = match self.shape {
+            SkeletonShape::Text => block
+                .h(self
+                    .height
+                    .unwrap_or_else(|| px(tokens::TYPOGRAPHY_BODY.size).into()))
+                .w(self.width.unwrap_or_else(|| relative(1.0).into()))
+                .rounded(px(tokens::RADIUS_SM)),
+            SkeletonShape::Rect => block
+                .when_some(self.height, |block, height| block.h(height))
+                .w(self.width.unwrap_or_else(|| relative(1.0).into()))
+                .rounded(px(tokens::RADIUS_MD)),
+            SkeletonShape::Circle => {
+                let diameter = self
+                    .height
+                    .or(self.width)
+                    .unwrap_or_else(|| px(tokens::POINTER.avatar_md).into());
+                block.size(diameter).rounded_full()
+            }
+        };
+        // GPUI holds a repeating animation still under reduced motion; asking here as well
+        // keeps the skeleton from registering one at all.
+        if cx.reduce_motion() {
+            return block.into_any_element();
+        }
+        let (rest, highlight) = (c.skeleton_background, c.skeleton_highlight);
+        block
+            .with_animation(
+                self.id,
+                Animation::new(tokens::MOTION_DURATION_PULSE).repeat(),
+                move |block, phase| block.bg(mix(rest, highlight, pulse(phase))),
+            )
+            .into_any_element()
     }
 }
 
@@ -678,7 +1153,15 @@ pub fn icon_filled(icon: tokens::Icon, size: IconSize) -> Icon {
 
 #[cfg(test)]
 mod tests {
-    use super::{initials, overflow};
+    use super::{initials, overflow, pulse};
+
+    #[test]
+    fn a_pulse_goes_to_the_highlight_and_back_once_per_beat() {
+        assert!(pulse(0.0).abs() < 1e-6);
+        assert!((pulse(0.5) - 1.0).abs() < 1e-6);
+        assert!(pulse(1.0).abs() < 1e-6);
+        assert!((pulse(0.25) - pulse(0.75)).abs() < 1e-6);
+    }
 
     #[test]
     fn a_stack_counts_the_people_it_does_not_draw() {

@@ -7,16 +7,19 @@
 
 mod components;
 mod controls;
+mod overlays;
 mod preview;
 mod theme;
 
 pub use components::{
     Badge, BadgeTone, Banner, BannerTone, Button, ButtonVariant, Card, ControlSize, CountBadge,
-    TextField, button, card, divider, text,
+    SearchField, TextField, button, card, divider, icon_button, text,
 };
 pub use controls::{
-    Avatar, AvatarSize, AvatarStack, IconSize, ListRow, Person, ProgressBar, SegmentedControl,
-    SpinnerSize, checkbox, icon, icon_filled, initials, spinner, switch,
+    Avatar, AvatarSize, AvatarStack, Chip, ChipBar, IconSize, ListRow, Person, ProgressBar,
+    SegmentedControl, Skeleton, SkeletonShape, SpinnerSize, TabItem, Tabs, checkbox, icon,
+    icon_filled, initials, spinner, switch,
 };
-pub use preview::DesignPreview;
+pub use overlays::{Dialog, Menu, MenuAlign, MenuItem, Toast, Tooltip, TooltipPlacement, tooltip};
+pub use preview::{DesignPreview, PreviewOverlay};
 pub use theme::{TypographyExt, color, font, init, mode, palette, set_mode};

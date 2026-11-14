@@ -358,9 +358,11 @@ async function components() {
       ...(component.props.length > 0
         ? [
             "## Options",
-            component.demo
-              ? "The web component's props. The other platforms take the same options under their own naming conventions."
-              : "The React Native component's props. Compose takes the same options under its own naming conventions.",
+            !component.demo
+              ? "The React Native component's props. Compose takes the same options under its own naming conventions."
+              : component.sources.reactNative || component.sources.compose
+                ? "The web component's props. The other platforms take the same options under their own naming conventions."
+                : "The web component's props. GPUI takes the same options under its own naming conventions.",
             table(
               ["Prop", "Type", "Notes"],
               component.props.map((prop) => [

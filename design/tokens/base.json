@@ -395,6 +395,27 @@
           "unit": "ms"
         },
         "$description": "Large surfaces: sheets, full panels."
+      },
+      "pulse": {
+        "$value": {
+          "value": 1200,
+          "unit": "ms"
+        },
+        "$description": "One beat of a loading placeholder: slow enough not to nag."
+      },
+      "tooltip-delay": {
+        "$value": {
+          "value": 500,
+          "unit": "ms"
+        },
+        "$description": "How long the pointer rests on a control before its tooltip shows."
+      },
+      "toast": {
+        "$value": {
+          "value": 5000,
+          "unit": "ms"
+        },
+        "$description": "How long a toast stays before it leaves on its own."
       }
     },
     "easing": {

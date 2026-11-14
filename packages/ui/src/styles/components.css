@@ -279,4 +279,323 @@
   .field-error {
     color: var(--acme-color-status-danger);
   }
+
+  /* ------------------------------------------------------------ icon button */
+
+  /* A square exactly as tall as a button of its size. Where that is smaller than a finger
+     needs, the pressable area grows around it and the square stays what it is. */
+  .button.icon-button {
+    width: var(--acme-size-control-md);
+    min-width: 0;
+    height: var(--acme-size-control-md);
+    padding-inline: 0;
+  }
+
+  .button.icon-button.button--sm {
+    width: var(--acme-size-control-sm);
+    height: var(--acme-size-control-sm);
+  }
+
+  .button.icon-button.button--lg {
+    width: var(--acme-size-control-lg);
+    height: var(--acme-size-control-lg);
+  }
+
+  /* Centered with physical offsets, which need no mirroring in a right-to-left layout. */
+  .button.icon-button::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, var(--acme-size-target-min));
+    height: max(100%, var(--acme-size-target-min));
+    translate: -50% -50%;
+  }
+
+  /* ------------------------------------------------------------ search field */
+
+  .input-group.input-group--pill {
+    border-radius: var(--acme-radius-full);
+  }
+
+  /* ------------------------------------------------------------ tabs */
+
+  /* The root is what scrolls, so the hairline under the row stays put while the tabs move.
+     It is drawn as a shadow inside the box, which lets the selected tab's bar cover it. */
+  .tabs {
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    box-shadow: inset 0 calc(-1 * var(--acme-border-width-thin)) 0 var(--acme-color-tabs-border);
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tabs .tabs__list {
+    padding: 0;
+  }
+
+  .tabs .tabs__tab {
+    flex: none;
+    gap: var(--acme-space-2);
+    width: auto;
+    height: var(--acme-size-tab);
+    padding-inline: var(--acme-space-4);
+    border-radius: 0;
+    white-space: nowrap;
+    font-size: var(--acme-typography-label-size);
+    font-weight: var(--acme-typography-label-weight);
+    line-height: var(--acme-typography-label-line-height);
+    color: var(--acme-color-tabs-text);
+    transition: color var(--acme-motion-duration-fast) var(--acme-motion-easing-standard);
+  }
+
+  .tabs.tabs--full-width .tabs__list {
+    width: 100%;
+  }
+
+  .tabs.tabs--full-width .tabs__tab {
+    flex: 1 1 0;
+  }
+
+  /* HeroUI fades a tab under the pointer. Ours takes a color of its own instead. */
+  .tabs .tabs__tab:not([data-selected="true"]):not([data-disabled="true"]):hover,
+  .tabs .tabs__tab[data-hovered="true"]:not([data-selected="true"]):not([data-disabled="true"]) {
+    opacity: 1;
+    color: var(--acme-color-tabs-text-hover);
+  }
+
+  .tabs .tabs__tab[data-selected="true"] {
+    color: var(--acme-color-tabs-text-selected);
+  }
+
+  /* Inside the tab, because the row clips whatever is drawn outside it. */
+  .tabs .tabs__tab[data-focus-visible="true"] {
+    box-shadow: none;
+    outline: var(--acme-focus-width) solid var(--acme-color-border-focus);
+    outline-offset: calc(-1 * var(--acme-focus-offset));
+  }
+
+  /* A bar across the bottom edge of the selected tab, over the hairline. It slides to the
+     tab that is selected next. */
+  .tabs .tabs__indicator {
+    inset-block: auto 0;
+    height: var(--acme-border-width-thick);
+    border-radius: 0;
+    background: var(--acme-color-tabs-indicator);
+    box-shadow: none;
+    transition-duration: var(--acme-motion-duration-normal);
+    transition-timing-function: var(--acme-motion-easing-standard);
+  }
+
+  /* ------------------------------------------------------------ menu */
+
+  .dropdown__popover {
+    /* Four times `space.12`: wide enough that a menu of short words does not look like a
+       stack of chips. Beyond that it is as wide as its longest row. */
+    min-width: calc(4 * var(--acme-space-12));
+    border: var(--acme-border-width-thin) solid var(--acme-color-menu-border);
+    border-radius: var(--acme-radius-md);
+    background: var(--acme-color-menu-background);
+    box-shadow: var(--acme-shadow-raised);
+  }
+
+  .dropdown__popover[data-entering="true"],
+  .dropdown__popover[data-entering="true"][data-placement] {
+    animation-duration: var(--acme-motion-duration-fast);
+    animation-timing-function: var(--acme-motion-easing-enter);
+  }
+
+  .dropdown__popover .dropdown__menu {
+    gap: 0;
+    padding: var(--acme-space-1);
+  }
+
+  /* A row of a menu looks like a compact list row. A compact row is shorter than a finger
+     needs, so on a touch screen it grows to the smallest pressable size. */
+  .dropdown__popover .menu-item {
+    gap: var(--acme-space-2);
+    min-height: max(var(--acme-size-list-row-compact), var(--acme-size-target-min));
+    padding: 0 var(--acme-space-2);
+    border-radius: var(--acme-radius-sm);
+    white-space: nowrap;
+    font-size: var(--acme-typography-detail-size);
+    font-weight: var(--acme-typography-detail-weight);
+    line-height: var(--acme-typography-detail-line-height);
+    color: var(--acme-color-menu-text);
+    transition: background-color var(--acme-motion-duration-fast) var(--acme-motion-easing-standard);
+  }
+
+  .dropdown__popover .menu-item__icon {
+    color: var(--acme-color-menu-icon);
+  }
+
+  /* The pointer moves the same highlight as the arrow keys, so one rule draws both. The
+     highlight is a fill, which shows inside the menu where a focus ring would be clipped. */
+  .dropdown__popover .menu-item[data-hovered="true"],
+  .dropdown__popover .menu-item[data-focused="true"],
+  .dropdown__popover .menu-item[data-focus-visible="true"] {
+    background: var(--acme-color-menu-item-background-hover);
+    box-shadow: none;
+  }
+
+  .dropdown__popover .menu-item:active,
+  .dropdown__popover .menu-item[data-pressed="true"] {
+    background: var(--acme-color-menu-item-background-pressed);
+    transform: none;
+  }
+
+  .dropdown__popover .menu-item--danger,
+  .dropdown__popover .menu-item--danger .menu-item__icon {
+    color: var(--acme-color-menu-danger-text);
+  }
+
+  .dropdown__popover .menu-item--danger[data-hovered="true"],
+  .dropdown__popover .menu-item--danger[data-focused="true"],
+  .dropdown__popover .menu-item--danger[data-focus-visible="true"],
+  .dropdown__popover .menu-item--danger[data-pressed="true"] {
+    background: var(--acme-color-menu-danger-background-hover);
+  }
+
+  /* Recolored, not faded, like a disabled button. */
+  .dropdown__popover .menu-item[data-disabled="true"],
+  .dropdown__popover .menu-item[data-disabled="true"] .menu-item__icon {
+    opacity: 1;
+    color: var(--acme-color-menu-text-disabled);
+  }
+
+  .dropdown__popover .dropdown__menu [data-slot="separator"] {
+    width: auto;
+    height: var(--acme-border-width-thin);
+    margin: var(--acme-space-1) 0;
+    border-radius: 0;
+    background: var(--acme-color-menu-border);
+  }
+
+  /* ------------------------------------------------------------ dialog */
+
+  /* The scrim covers the whole window, also where an on-screen keyboard leaves less of it
+     visible; the container inside still centers the dialog in the part that can be seen. */
+  .modal__backdrop {
+    height: auto;
+    background: var(--acme-color-scrim);
+  }
+
+  .modal__backdrop[data-entering="true"] {
+    animation-duration: var(--acme-motion-duration-normal);
+  }
+
+  /* As wide as the window, so the dialog inside can be `size.dialog` wide whatever it holds,
+     and never closer to an edge than the padding. */
+  .modal__container {
+    width: 100%;
+    padding: var(--acme-space-4);
+  }
+
+  .modal__container[data-entering="true"],
+  .modal__container[data-entering="true"][data-placement="center"] {
+    animation: acme-dialog-enter var(--acme-motion-duration-normal) var(--acme-motion-easing-enter);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .modal__backdrop[data-entering="true"],
+    .modal__container[data-entering="true"],
+    .modal__container[data-entering="true"][data-placement="center"] {
+      animation: none;
+    }
+  }
+
+  .modal__dialog {
+    gap: var(--acme-space-4);
+    max-width: var(--acme-size-dialog);
+    padding: var(--acme-space-6);
+    border: var(--acme-border-width-thin) solid var(--acme-color-dialog-border);
+    border-radius: var(--acme-radius-lg);
+    background: var(--acme-color-dialog-background);
+    box-shadow: var(--acme-shadow-overlay);
+  }
+
+  .modal__dialog .modal__heading {
+    font-size: var(--acme-typography-title-size);
+    font-weight: var(--acme-typography-title-weight);
+    line-height: var(--acme-typography-title-line-height);
+    letter-spacing: var(--acme-typography-title-letter-spacing);
+    color: var(--acme-color-dialog-title);
+  }
+
+  /* The gap of the dialog separates its parts; HeroUI's own margins would add to it. */
+  .modal__dialog > .modal__footer {
+    margin: 0;
+  }
+
+  /* The body scrolls, which clips whatever is drawn outside it. The inset leaves room for
+     the focus ring of a field inside, and the negative margin takes it back, so the text
+     still lines up with the title. */
+  .modal__dialog > .modal__body {
+    margin: calc(-1 * (var(--acme-focus-width) + var(--acme-focus-offset)));
+    padding: calc(var(--acme-focus-width) + var(--acme-focus-offset));
+    font-size: var(--acme-typography-body-size);
+    line-height: var(--acme-typography-body-line-height);
+    color: var(--acme-color-dialog-text);
+  }
+
+  .modal__dialog > .modal__footer {
+    gap: var(--acme-space-2);
+  }
+
+  /* ------------------------------------------------------------ tooltip */
+
+  .tooltip {
+    padding: var(--acme-space-1) var(--acme-space-2);
+    border-radius: var(--acme-radius-sm);
+    background: var(--acme-color-tooltip-background);
+    box-shadow: none;
+    /* HeroUI breaks a tooltip anywhere, which splits Korean words; the page breaks between
+       words. */
+    word-break: inherit;
+    font-size: var(--acme-typography-footnote-size);
+    font-weight: var(--acme-typography-footnote-weight);
+    line-height: var(--acme-typography-footnote-line-height);
+    color: var(--acme-color-tooltip-text);
+  }
+
+  .tooltip[data-entering="true"],
+  .tooltip[data-entering="true"][data-placement] {
+    animation-duration: var(--acme-motion-duration-fast);
+    animation-timing-function: var(--acme-motion-easing-enter);
+  }
+
+  /* A key hint: the same text in a hairline box of its own, in the text's color, which is
+     the one color known to stand out from the tooltip. */
+  .tooltip__shortcut {
+    margin-inline-start: var(--acme-space-2);
+    padding-inline: var(--acme-space-1);
+    border: var(--acme-border-width-thin) solid currentColor;
+    border-radius: calc(var(--acme-radius-sm) - var(--acme-space-0-5));
+    font: inherit;
+  }
+}
+
+/* A dialog grows a little as it fades in. The scale is a literal because a custom property
+   inside a keyframe keeps WebKit from running the animation on the compositor. */
+@keyframes acme-dialog-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes acme-toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+@keyframes acme-skeleton-pulse {
+  50% {
+    background-color: var(--acme-color-skeleton-highlight);
+  }
 }

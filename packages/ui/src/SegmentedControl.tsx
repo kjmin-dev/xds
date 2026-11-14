@@ -12,7 +12,8 @@ export type SegmentedControlProps<Value extends string> = {
 };
 
 /**
- * A choice between a few views or modes, all visible at once. X * as well as filled, so the choice does not depend on telling two greys apart.
+ * A choice between a few views or modes, all visible at once. The selected segment is outlined
+ * as well as filled, so the choice does not depend on telling two greys apart.
  *
  * It is a group of native radio buttons, so the arrow keys move between segments.
  */

@@ -38,10 +38,10 @@ fun main(args: Array<String>) {
     )
 
     val directory = File(args.firstOrNull() ?: "build/preview").apply { mkdirs() }
-    fun page(name: String, width: Int, mode: Mode, sizes: Sizes) {
+    fun page(name: String, width: Int, mode: Mode, sizes: Sizes, open: PreviewOverlay? = null) {
         val file = File(directory, name)
         draw(file, width, height = null) {
-            AcmeTheme(mode, sizes) { DesignPreviewScreen(onBack = {}, scrolls = false, sheetOpen = false) }
+            AcmeTheme(mode, sizes) { DesignPreviewScreen(onBack = {}, scrolls = false, open = open) }
         }
         println(file)
     }
@@ -50,13 +50,27 @@ fun main(args: Array<String>) {
     page("preview-pointer-light.png", 900, Mode.Light, PointerSizes)
     page("preview-pointer-dark.png", 900, Mode.Dark, PointerSizes)
 
-    // The sheet covers a window, so these are the size of a phone screen rather than of the page.
-    for (mode in Mode.entries) {
-        val file = File(directory, "sheet-touch-${mode.name.lowercase()}.png")
-        draw(file, width = 390, height = 844) {
-            AcmeTheme(mode, TouchSizes) { DesignPreviewScreen(onBack = {}, scrolls = true, sheetOpen = true) }
+    // An overlay that covers or sits on a window is drawn in a window the size of a screen
+    // rather than of the page: a phone's, or a small desktop window's.
+    fun screen(name: String, open: PreviewOverlay, sizes: Sizes) {
+        val (width, height) = if (sizes === TouchSizes) 390 to 844 else 900 to 640
+        for (mode in Mode.entries) {
+            val file = File(directory, "$name-${mode.name.lowercase()}.png")
+            draw(file, width, height) {
+                AcmeTheme(mode, sizes) { DesignPreviewScreen(onBack = {}, scrolls = true, open = open) }
+            }
+            println(file)
         }
-        println(file)
+    }
+    screen("sheet-touch", PreviewOverlay.Sheet, TouchSizes)
+    screen("menu-touch", PreviewOverlay.Menu, TouchSizes)
+    screen("dialog-touch", PreviewOverlay.Dialog, TouchSizes)
+    screen("dialog-pointer", PreviewOverlay.Dialog, PointerSizes)
+    screen("toast-touch", PreviewOverlay.Toast, TouchSizes)
+    screen("toast-pointer", PreviewOverlay.Toast, PointerSizes)
+    // A popup menu opens under its trigger, far down the page, so the whole page is drawn.
+    for (mode in Mode.entries) {
+        page("menu-pointer-${mode.name.lowercase()}.png", 900, mode, PointerSizes, open = PreviewOverlay.Menu)
     }
 }
 
@@ -66,7 +80,8 @@ private fun draw(file: File, width: Int, height: Int?, content: @Composable () -
     val tall = height?.let { (it * Scale).toInt() } ?: measureHeight(pixels, content)
     val scene = ImageComposeScene(pixels, tall, Density(Scale), content = content)
     try {
-        // Half a second of frames, so what animates on appearing has settled: the sheet slides in.
+        // Half a second of frames, so what animates on appearing has settled: the sheet slides
+        // in, the dialog and the toast fade in.
         var image = scene.render()
         for (frame in 1..30) image = scene.render(nanoTime = frame * 16_000_000L)
         file.writeBytes(image.encodeToData(EncodedImageFormat.PNG)!!.bytes)

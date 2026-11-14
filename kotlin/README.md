@@ -28,7 +28,7 @@ On Android and iOS, tap the button on the home screen to open the design preview
 | | Command |
 | --- | --- |
 | Unit tests | `./gradlew :ui:jvmTest` |
-| Render preview images | `./gradlew :ui:renderPreview` writes PNG snapshots to `build/preview`: the full preview at phone width in light and dark modes, at desktop width with pointer sizes, and a phone screen with the bottom sheet open |
+| Render preview images | `./gradlew :ui:renderPreview` writes PNG snapshots to `build/preview`, each in light and dark modes: the full preview at phone width and at desktop width with pointer sizes; a phone screen with the bottom sheet, the menu's sheet, the dialog, or the toast open; a desktop window with the dialog or the toast open; and the full desktop-width preview with the menu's popup open |
 | Linux CI suite | `mise run check`: runs the unit tests, desktop compilation, and Android debug build |
 | macOS iOS build | `mise run check:ios` |
 
@@ -39,19 +39,19 @@ Verified on macOS with Kotlin 2.4.21, Compose Multiplatform 1.12.2, Android Grad
 | | Status |
 | --- | --- |
 | Tests | Pass on the JVM and against the Android library build |
-| Rendered images | Inspected at phone width in light and dark modes, desktop width in light mode, and with the bottom sheet open |
+| Rendered images | Inspected at phone width and at desktop width in light and dark modes, and with the bottom sheet, the menu (sheet and popup), the dialog, and the toast open |
 | Desktop | Runs on macOS; design preview checked in a window in both light and dark modes |
 | Android | `assembleDebug` builds. Run on an API 36 emulator: checked the home screen, the design preview in both modes, a switch, and the bottom sheet with its scrim, drag, and Back |
 | iOS | Builds for the simulator in Xcode. Run on an iPhone 17 simulator: checked the home screen and the design preview in both modes. Interactive controls were not tapped, so the bottom sheet has not been checked on iOS |
 | Focus rings | Checked in an off-screen render driven by simulated Tab key events rather than in a running app |
 | Not checked | Screen readers on any platform, physical devices, Windows and Linux, text fields with a real keyboard, and larger system text sizes |
 
-The interactive desktop, emulator, and simulator runs were performed before capsule buttons, the floating tab bar, and the inset bottom sheet were added. Since those changes landed, the unit tests, rendered preview images, Android and desktop builds, and iOS framework linking have been re-run, but the apps have not been launched interactively again.
+The interactive desktop, emulator, and simulator runs were performed before capsule buttons, the floating tab bar, and the inset bottom sheet were added, and before IconButton, Chip, ChipBar, Tabs, Menu, Dialog, Toast, Skeleton, and SearchField. Since those changes landed, the unit tests, rendered preview images, Android and desktop builds, and iOS framework linking have been re-run, but the apps have not been launched interactively again.
 
 ## Known limitations
 
 - Korean text wraps between syllables rather than at word boundaries. Compose does not support word-based line breaking outside Android 13 and later.
-- On desktop, the spinner always spins and presses always animate because the JVM cannot read the OS reduced-motion setting. The Android ("Remove animations") and iOS ("Reduce Motion") settings are read when the theme is first composed.
+- On desktop, the spinner always spins, skeletons always pulse, and presses, dialogs, and toasts always animate because the JVM cannot read the OS reduced-motion setting. The Android ("Remove animations") and iOS ("Reduce Motion") settings are read when the theme is first composed.
 - As on the other platforms, font files are not bundled in the repository, so text renders using the system default font.
 - The sample apps do not include app icons.
 - When the mode switch inside the design preview overrides the OS color scheme, the Android status bar icons remain in the OS mode's color.

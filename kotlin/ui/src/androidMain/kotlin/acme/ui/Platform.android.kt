@@ -25,14 +25,14 @@ internal actual fun systemReducedMotion(): Boolean {
 }
 
 @Composable
-internal actual fun SheetWindow(onDismiss: () -> Unit, content: @Composable () -> Unit) {
+internal actual fun WindowLayer(onDismiss: () -> Unit, content: @Composable () -> Unit) {
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
-            // The sheet draws its own scrim from the token and takes the taps on it.
+            // What is shown draws its own scrim from the token and takes the taps on it.
             dismissOnClickOutside = false,
             usePlatformDefaultWidth = false,
-            // The scrim covers the system bars; the sheet pads itself.
+            // The scrim covers the system bars; what is shown pads itself.
             decorFitsSystemWindows = false,
         ),
     ) {

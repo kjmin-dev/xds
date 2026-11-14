@@ -9,6 +9,7 @@ import acme.tokens.Border
 import acme.tokens.Colors
 import acme.tokens.DarkColors
 import acme.tokens.Mode
+import acme.tokens.Motion
 import acme.tokens.PointerSizes
 import acme.tokens.Radius
 import acme.tokens.Sizes
@@ -55,6 +56,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -63,8 +66,9 @@ import androidx.compose.ui.unit.dp
  * use them, so the color list leaves them out.
  */
 private val ComponentColorGroups = setOf(
-    "button", "field", "badge", "banner", "card", "switch", "checkbox", "segmented", "avatar",
-    "progress", "list", "top", "tab", "sheet", "scrim",
+    "button", "field", "badge", "banner", "card", "switch", "checkbox", "segmented", "chip",
+    "tabs", "menu", "dialog", "toast", "tooltip", "skeleton", "avatar", "progress", "list", "top",
+    "tab", "sheet", "scrim",
 )
 
 // The preview has to work without a network, so the picture it shows is part of the code: a
@@ -129,15 +133,18 @@ private val Radii = listOf(
 /** Shows every token and every component. [onBack] is called by the back mark in its top bar. */
 @Composable
 fun DesignPreview(onBack: () -> Unit) {
-    DesignPreviewScreen(onBack = onBack, scrolls = true, sheetOpen = false)
+    DesignPreviewScreen(onBack = onBack, scrolls = true, open = null)
 }
+
+/** What the preview can start with open, so that it can be drawn into an image open. */
+internal enum class PreviewOverlay { Sheet, Menu, Dialog, Toast }
 
 /**
  * @param scrolls False lays the whole page out at its full height, for drawing it into one image.
- * @param sheetOpen Starts with the sample bottom sheet open, for the same reason.
+ * @param open The sample overlay to start with open, for the same reason.
  */
 @Composable
-internal fun DesignPreviewScreen(onBack: () -> Unit, scrolls: Boolean, sheetOpen: Boolean) {
+internal fun DesignPreviewScreen(onBack: () -> Unit, scrolls: Boolean, open: PreviewOverlay?) {
     val ambient = if (LocalColors.current === DarkColors) Mode.Dark else Mode.Light
     // The switch in the top bar pins a mode for this screen only. Until it is used, the screen
     // follows the theme around it.
@@ -176,11 +183,17 @@ internal fun DesignPreviewScreen(onBack: () -> Unit, scrolls: Boolean, sheetOpen
                 ButtonsSection()
                 TextFieldsSection()
                 SelectionSection()
+                ChipsSection()
+                TabsSection()
                 BadgesSection(colors)
                 BannersSection()
                 CardSection(colors)
                 ListSection()
-                NavigationSection(colors, sheetOpen)
+                NavigationSection(colors, sheetOpen = open == PreviewOverlay.Sheet)
+                MenuSection(open = open == PreviewOverlay.Menu)
+                DialogSection(open = open == PreviewOverlay.Dialog)
+                ToastSection(open = open == PreviewOverlay.Toast)
+                SkeletonSection()
             }
         }
     }
@@ -354,6 +367,28 @@ private fun ButtonsSection() {
             Button("Following", onClick = {}, variant = ButtonVariant.Primary, iconStart = IconName.UserCheck, selected = true)
             Button("Like", onClick = {}, enabled = false, iconStart = IconName.Heart, selected = true)
         }
+
+        // The same variants and sizes, holding only an icon.
+        for (variant in ButtonVariant.entries) {
+            Samples {
+                for (size in ControlSize.entries) {
+                    IconButton(IconName.Pencil, "Edit, ${size.name.lowercase()}", onClick = {}, variant = variant, size = size)
+                }
+                IconButton(IconName.Pencil, "Edit, disabled", onClick = {}, variant = variant, enabled = false)
+                IconButton(IconName.Pencil, "Saving", onClick = {}, variant = variant, loading = true)
+            }
+        }
+        var muted by remember { mutableStateOf(true) }
+        var starred by remember { mutableStateOf(true) }
+        // Each toggle next to one that is off, as above.
+        Samples {
+            // Icons of closed shapes, which a selected icon button fills.
+            IconButton(IconName.Bell, "Mute notifications", { muted = !muted }, selected = muted)
+            IconButton(IconName.Bell, "Mute notifications", onClick = {}, selected = false)
+            IconButton(IconName.Star, "Star", { starred = !starred }, variant = ButtonVariant.Secondary, selected = starred)
+            IconButton(IconName.Star, "Star", onClick = {}, variant = ButtonVariant.Secondary, selected = false)
+            IconButton(IconName.Bookmark, "Saved", onClick = {}, enabled = false, selected = true)
+        }
     }
 }
 
@@ -436,6 +471,19 @@ private fun TextFieldsSection() {
             error = "Handles have letters and numbers only.",
             maxLength = 20,
         )
+
+        // Empty, with a value and its clear control, and disabled.
+        var people by remember { mutableStateOf("") }
+        SearchField(label = "Search people", value = people, onValueChange = { people = it }, placeholder = "Search people")
+        var files by remember { mutableStateOf("Quarterly report") }
+        SearchField(label = "Search files", value = files, onValueChange = { files = it }, onSubmit = {})
+        SearchField(
+            label = "Search the archive",
+            value = "",
+            onValueChange = {},
+            placeholder = "Unavailable offline",
+            enabled = false,
+        )
     }
 }
 
@@ -470,6 +518,61 @@ private fun SelectionSection() {
         var period by remember { mutableStateOf("week") }
         SegmentedControl(periods, period, { period = it })
         SegmentedControl(periods, period, { period = it }, fullWidth = true)
+    }
+}
+
+// More than fit across a desktop window, so the bar scrolls there as well as on a phone.
+private val FileKinds = listOf(
+    Triple("docs", "Documents", IconName.FileText),
+    Triple("sheets", "Spreadsheets", IconName.ChartColumn),
+    Triple("images", "Images", IconName.Image),
+    Triple("video", "Videos", IconName.Video),
+    Triple("audio", "Audio", IconName.Music),
+    Triple("links", "Links", IconName.Link),
+    Triple("shared", "Shared with me", IconName.Users),
+    Triple("starred", "Starred", IconName.Star),
+    Triple("archived", "Archived", null),
+    Triple("trash", "In the trash", null),
+)
+
+@Composable
+private fun ChipsSection() {
+    Section("Chips") {
+        Samples {
+            Chip("Unselected", onClick = {})
+            Chip("Selected", onClick = {}, selected = true)
+            Chip("With icon", onClick = {}, iconStart = IconName.Flag)
+            Chip("Selected", onClick = {}, selected = true, iconStart = IconName.Flag)
+            Chip("Off", onClick = {}, enabled = false)
+            Chip("Off", onClick = {}, selected = true, enabled = false)
+        }
+        // Press them: the bar holds no state, the screen does.
+        var kinds by remember { mutableStateOf(setOf("docs", "images")) }
+        ChipBar(label = "Kind of file") {
+            for ((key, label, icon) in FileKinds) {
+                val on = key in kinds
+                Chip(label, onClick = { kinds = if (on) kinds - key else kinds + key }, selected = on, iconStart = icon)
+            }
+        }
+    }
+}
+
+private val Pages = listOf(
+    TabsItem("overview", "Overview", IconName.LayoutGrid),
+    TabsItem("activity", "Activity", IconName.History),
+    TabsItem("members", "Members", IconName.Users),
+    TabsItem("files", "Files", IconName.FileText),
+    TabsItem("settings", "Settings", IconName.Settings),
+)
+
+@Composable
+private fun TabsSection() {
+    Section("Tabs") {
+        var page by remember { mutableStateOf("overview") }
+        Tabs(Pages.map { TabsItem(it.value, it.label) }, page, { page = it }, label = "Project pages")
+        // With icons the row is wider than a phone, and scrolls.
+        Tabs(Pages, page, { page = it }, label = "Project pages")
+        Tabs(Pages.take(3).map { TabsItem(it.value, it.label) }, page, { page = it }, label = "Project pages", fullWidth = true)
     }
 }
 
@@ -733,6 +836,107 @@ private fun NavigationSection(colors: Colors, sheetOpen: Boolean) {
             Text("Anyone with the link can read it.", tone = TextTone.Secondary)
             Button("Copy the link", onClick = { open = false }, variant = ButtonVariant.Primary, fullWidth = true)
             Button("Cancel", onClick = { open = false }, variant = ButtonVariant.Ghost, fullWidth = true)
+        }
+    }
+}
+
+/** @param open Starts with the first menu open. */
+@Composable
+private fun MenuSection(open: Boolean) {
+    Section("Menu") {
+        var pinned by remember { mutableStateOf(true) }
+        var sort by remember { mutableStateOf("name") }
+        // A popup with a pointer, a sheet of rows on touch.
+        Samples {
+            Menu(
+                label = "Report",
+                items = listOf(
+                    MenuItem.Action("Rename", onSelect = {}, icon = IconName.Pencil),
+                    MenuItem.Action("Duplicate", onSelect = {}, icon = IconName.Copy),
+                    MenuItem.Action("Pinned", onSelect = { pinned = !pinned }, icon = IconName.Pin, selected = pinned),
+                    MenuItem.Separator,
+                    MenuItem.Action("Share", onSelect = {}, icon = IconName.Share2, enabled = false),
+                    MenuItem.Action("Delete", onSelect = {}, icon = IconName.Trash, danger = true),
+                ),
+                modifier = Modifier,
+                align = MenuAlign.Start,
+                initiallyOpen = open,
+            ) { openMenu ->
+                Button("Actions", onClick = openMenu, iconEnd = IconName.ChevronDown)
+            }
+            Menu(
+                label = "Sort by",
+                items = listOf("name" to "Name", "date" to "Date", "size" to "Size").map { (key, label) ->
+                    MenuItem.Action(label, onSelect = { sort = key }, selected = sort == key)
+                },
+                align = MenuAlign.End,
+            ) { openMenu ->
+                IconButton(IconName.Ellipsis, "Sort by", onClick = openMenu)
+            }
+        }
+    }
+}
+
+/** @param open Starts with the dialog open. */
+@Composable
+private fun DialogSection(open: Boolean) {
+    Section("Dialog") {
+        var shown by remember { mutableStateOf(open) }
+        Samples {
+            Button("Delete the report", onClick = { shown = true }, variant = ButtonVariant.Danger)
+        }
+        Dialog(
+            open = shown,
+            onClose = { shown = false },
+            title = "Delete the report?",
+            description = "The report and its comments are removed for everyone. This cannot be undone.",
+            actions = {
+                Button("Cancel", onClick = { shown = false })
+                Button("Delete", onClick = { shown = false }, variant = ButtonVariant.Danger)
+            },
+        )
+    }
+}
+
+/** @param open Starts with the toast open, and keeps it until it is drawn. */
+@Composable
+private fun ToastSection(open: Boolean) {
+    Section("Toast") {
+        var shown by remember { mutableStateOf(open) }
+        Samples {
+            Button("Archive the report", onClick = { shown = true })
+        }
+        Toast(
+            open = shown,
+            onClose = { shown = false },
+            message = "The report was archived.",
+            action = ToastAction("Undo") {},
+            duration = if (open) 0 else Motion.durationToast,
+        )
+    }
+}
+
+@Composable
+private fun SkeletonSection() {
+    Section("Skeleton") {
+        // The card says that it is loading; the shapes are hidden from a screen reader.
+        Card(modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = "Loading" }) {
+            Column(verticalArrangement = Arrangement.spacedBy(Space.s3)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(Space.s3),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Skeleton(shape = SkeletonShape.Circle, height = LocalSizes.current.avatarLg)
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.s2)) {
+                        Skeleton(Modifier.fillMaxWidth(0.6f))
+                        Skeleton(Modifier.fillMaxWidth(0.4f))
+                    }
+                }
+                Skeleton(shape = SkeletonShape.Rect, height = Space.s16 * 2)
+                Skeleton()
+                Skeleton()
+                Skeleton(Modifier.fillMaxWidth(0.7f))
+            }
         }
     }
 }

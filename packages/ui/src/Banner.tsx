@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Button } from "./Button.tsx";
+import { IconButton } from "./IconButton.tsx";
 
 const TONE = {
   info: {
@@ -87,13 +88,7 @@ export function Banner({
         // Pulled into the padding, so the cross lines up with the first line of text and a
         // pointer-sized close control does not make a one-line banner taller.
         <div className="-m-1 flex shrink-0">
-          <Button
-            variant="ghost"
-            size="sm"
-            iconStart="x"
-            aria-label={dismissLabel}
-            onPress={onDismiss}
-          />
+          <IconButton icon="x" label={dismissLabel} size="sm" onPress={onDismiss} />
         </div>
       )}
     </div>

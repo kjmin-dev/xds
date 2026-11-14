@@ -15,6 +15,12 @@ export type Colors = ReturnType<typeof useColors>;
  */
 export const ContentColor = createContext<string | undefined>(undefined);
 
+/**
+ * Whether the menu that a button opens is open. A Menu sets it around its trigger, and the
+ * button says so to a screen reader; outside a Menu a button opens nothing and says nothing.
+ */
+export const MenuOpen = createContext<boolean | undefined>(undefined);
+
 /** Phones and tablets are used with fingers, so they take the touch sizes. */
 export const control = size.touch;
 

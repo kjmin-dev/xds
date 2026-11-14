@@ -7,7 +7,7 @@ run = "pnpm exec vite"
 description = "Build the web app into dist/"
 depends = ["//:install"]
 run = "pnpm exec vite build"
-sources = ["src/**/*", "index.html", "vite.config.ts", "../../packages/*/src/**/*"]
+sources = ["src/**/*", "public/**/*", "index.html", "vite.config.ts", "../../packages/*/src/**/*"]
 outputs = ["dist/**/*"]
 
 [tasks.preview]

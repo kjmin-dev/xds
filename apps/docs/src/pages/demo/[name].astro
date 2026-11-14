@@ -19,16 +19,33 @@ const name = Astro.params.name as DemoName;
     <meta name="robots" content="noindex" />
     <title>{name}</title>
     <script is:inline>
-      // The mode comes from the page that embeds the frame: in the address at first, then in
-      // a message whenever the reader switches it.
+      // The page that embeds the frame is on the same site, so the frame follows its mode
+      // directly: it is right at the first paint, and no message can arrive before anyone
+      // listens for it. `frameElement` is null in a frame of another site and outside a frame,
+      // where `?theme=` picks the mode.
+      const host = frameElement && parent.document.documentElement;
       const apply = (theme) => {
         if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
       };
-      apply(new URLSearchParams(location.search).get("theme"));
-      addEventListener("message", (event) => apply(event.data?.theme));
+      apply(new URLSearchParams(location.search).get("theme") ?? host?.dataset.theme);
+      if (host) {
+        new MutationObserver(() => apply(host.dataset.theme)).observe(host, {
+          attributes: true,
+          attributeFilter: ["data-theme"],
+        });
+      }
     </script>
   </head>
   <body>
     <Demo name={name} client:load />
+    <script is:inline>
+      // Sized here rather than once the components are interactive: this runs as soon as the
+      // stylesheet has laid the page out, so the example first appears at its full height.
+      if (frameElement) {
+        new ResizeObserver(() => {
+          frameElement.style.height = `${document.documentElement.scrollHeight}px`;
+        }).observe(document.body);
+      }
+    </script>
   </body>
 </html>

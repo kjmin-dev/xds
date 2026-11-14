@@ -7,13 +7,16 @@ interface Props {
 const { name, title } = Astro.props;
 ---
 
-<demo-frame data-name={name}>
-  <iframe title={title} src={`/demo/${name}/`} loading="lazy"></iframe>
-</demo-frame>
+<!-- Not lazy: every component page opens with its example, and a lazy frame waits for layout
+     before it starts. The frame takes the mode from this page and sets its own height, so
+     nothing here has to run first. In a build, scripts/demo-frames.ts writes the example's page
+     into the frame, and finds the frame by `data-demo`, which must stay the first attribute. -->
+<div class="demo">
+  <iframe data-demo={name} title={title} src={`/demo/${name}/`}></iframe>
+</div>
 
 <style>
-  demo-frame {
-    display: block;
+  .demo {
     border: 1px solid var(--sl-color-hairline);
     border-radius: var(--acme-radius-lg);
     overflow: hidden;
@@ -25,25 +28,3 @@ const { name, title } = Astro.props;
     border: 0;
   }
 </style>
-
-<script>
-  class DemoFrame extends HTMLElement {
-    connectedCallback() {
-      const frame = this.querySelector("iframe");
-      if (!frame) return;
-      const theme = () => document.documentElement.dataset.theme ?? "light";
-      frame.src = `/demo/${this.dataset.name}/?theme=${theme()}`;
-      // Starlight records the mode on the root element; pass each change on to the frame.
-      new MutationObserver(() => frame.contentWindow?.postMessage({ theme: theme() }, "*")).observe(
-        document.documentElement,
-        { attributes: true, attributeFilter: ["data-theme"] },
-      );
-      addEventListener("message", (event) => {
-        if (event.source === frame.contentWindow && typeof event.data?.height === "number") {
-          frame.style.height = `${event.data.height}px`;
-        }
-      });
-    }
-  }
-  customElements.define("demo-frame", DemoFrame);
-</script>

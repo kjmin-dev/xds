@@ -43,7 +43,7 @@ import {
   Toast,
   Tooltip,
 } from "@acme/ui";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useState } from "react";
 
 const Row = ({ children }: { children: ReactNode }) => (
   <div className="flex flex-wrap items-center gap-3">{children}</div>
@@ -1095,16 +1095,7 @@ const DEMOS = {
 export type DemoName = keyof typeof DEMOS;
 export const DEMO_NAMES = Object.keys(DEMOS) as DemoName[];
 
-/** One example, which also tells the page that embeds it how tall it is. */
 export function Demo({ name }: { name: DemoName }) {
   const Example = DEMOS[name];
-  useEffect(() => {
-    const report = () =>
-      parent.postMessage({ demo: name, height: document.documentElement.scrollHeight }, "*");
-    const observer = new ResizeObserver(report);
-    observer.observe(document.body);
-    report();
-    return () => observer.disconnect();
-  }, [name]);
   return <Example />;
 }

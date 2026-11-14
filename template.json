@@ -5,6 +5,7 @@
     "cli",
     "apps/docs",
     "apps/web/wrangler.jsonc",
+    "apps/web/public/_headers",
     "tools/deploy",
     "npm",
     "install.sh",

@@ -1,0 +1,7 @@
+# Only this repository deploys the web app to Cloudflare, for its design preview; template.json
+# keeps this file out of a project made by `xds create`, as it does wrangler.jsonc.
+#
+# Vite names each built script and stylesheet after a hash of its contents, so a file under
+# /assets/ never changes: let browsers keep it rather than ask again on every visit.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

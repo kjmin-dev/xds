@@ -1,12 +1,18 @@
 //! Conditional blocks in files that several stacks share.
 //!
 //! ```toml
-//! # @if web-react mobile-react-native
+//! # @if js-workspace
 //! pnpm = "12.19.0"
+//! # @endif
+//! # @if desktop-gpui
+//! rust = "1.99.1"
 //! # @endif
 //! ```
 //!
-//! The lines between the two markers are kept when any of the listed targets is selected. The
+//! The lines between the two markers are kept when any of the listed names is selected. A name
+//! is a target id, or a shared unit of `template.json`, which is selected when any selected
+//! target requires it. A block that is there for what several targets share names the unit, so
+//! a target added later that requires it gets the block without a change to the marker. The
 //! marker lines themselves never reach a project. Blocks nest. A marker is a whole line holding
 //! nothing but a comment, so the file stays valid in the template repository, where every block
 //! is simply present.
@@ -32,17 +38,17 @@ pub fn parse(line: &str) -> Option<Marker<'_>> {
     if body == "@endif" {
         return Some(Marker::EndIf);
     }
-    let targets = body.strip_prefix("@if")?;
-    // `@iffy` is not a marker, and an `@if` without targets is a mistake that `apply` reports.
-    if !targets.is_empty() && !targets.starts_with(char::is_whitespace) {
+    let names = body.strip_prefix("@if")?;
+    // `@iffy` is not a marker, and an `@if` without names is a mistake that `apply` reports.
+    if !names.is_empty() && !names.starts_with(char::is_whitespace) {
         return None;
     }
-    Some(Marker::If(targets.split_whitespace().collect()))
+    Some(Marker::If(names.split_whitespace().collect()))
 }
 
-/// Keeps or drops each block of `text`. `is_selected` answers for one target id, and `is_known`
-/// says whether an id exists at all, so that a typo in a marker is an error instead of a block
-/// that silently never appears.
+/// Keeps or drops each block of `text`. `is_selected` answers for one name in a marker, and
+/// `is_known` says whether the name exists at all, so that a typo in a marker is an error
+/// instead of a block that silently never appears.
 pub fn apply(
     text: &str,
     is_selected: impl Fn(&str) -> bool,
@@ -64,17 +70,20 @@ pub fn apply(
     for (index, line) in text.split_inclusive('\n').enumerate() {
         let number = index + 1;
         match parse(line) {
-            Some(Marker::If(targets)) => {
-                if targets.is_empty() {
-                    return Err(Error::Message(format!("line {number}: @if needs a target")));
-                }
-                if let Some(unknown) = targets.iter().find(|target| !is_known(target)) {
+            Some(Marker::If(names)) => {
+                if names.is_empty() {
                     return Err(Error::Message(format!(
-                        "line {number}: @if names \"{unknown}\", which is not a target"
+                        "line {number}: @if needs a target or a shared unit"
+                    )));
+                }
+                if let Some(unknown) = names.iter().find(|name| !is_known(name)) {
+                    return Err(Error::Message(format!(
+                        "line {number}: @if names \"{unknown}\", which is neither a target nor a \
+                         shared unit"
                     )));
                 }
                 let kept = open.last().copied().unwrap_or(true);
-                open.push(kept && targets.iter().any(|target| is_selected(target)));
+                open.push(kept && names.iter().any(|name| is_selected(name)));
                 seam = true;
             }
             Some(Marker::EndIf) => {

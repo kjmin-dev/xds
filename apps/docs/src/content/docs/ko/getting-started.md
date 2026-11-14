@@ -21,10 +21,11 @@ cargo install --path cli
 xds create my-app
 ```
 
-기본적으로 `xds`는 프로젝트 이름, 포함할 클라이언트, 컬러 테마를 차례로 묻습니다. 프롬프트를 건너뛰려면 각 옵션을 플래그로 전달하세요.
+기본적으로 `xds`는 프로젝트 이름, 포함할 클라이언트, 컬러 테마를 차례로 묻습니다. 각 프롬프트는 기본값(디렉터리 이름, `web-react` 클라이언트, `indigo` 테마)이 선택된 상태로 시작합니다. 프롬프트를 건너뛰려면 각 옵션을 플래그로 전달하거나, `--yes`를 전달해 기본값을 그대로 사용하세요.
 
 ```sh
 xds create my-app --name orbit --targets web-react,kotlin-compose --theme ocean
+xds create my-app --yes
 ```
 
 선택할 수 있는 클라이언트는 다음과 같습니다.

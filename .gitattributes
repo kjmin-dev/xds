@@ -11,7 +11,7 @@ mise.lock                                 linguist-generated
 Cargo.lock                                linguist-generated
 crates/acme-tokens/src/generated.rs       linguist-generated
 # @endif
-# @if web-react mobile-react-native
+# @if js-workspace
 pnpm-lock.yaml                            linguist-generated
 packages/tokens/src/generated/**          linguist-generated
 # @endif

@@ -28,7 +28,7 @@ jobs:
       - run: mise run check:generated
       - run: mise run check:workflows
 
-  # @if web-react mobile-react-native
+  # @if js-workspace
   js:
     name: TypeScript
     runs-on: ubuntu-latest

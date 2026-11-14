@@ -55,7 +55,7 @@ The first run resolves dependencies and generates the lockfiles. Commit them to 
 <!-- @endif -->
 | Regenerate token files | `mise run tokens` |
 | Switch the color theme | `mise run theme <name>` (`mise run theme` lists available themes) |
-<!-- @if web-react desktop-gpui mobile-react-native -->
+<!-- @if js-workspace rust-workspace -->
 | Format the codebase | `mise run fmt` |
 <!-- @endif -->
 | List all tasks | `mise tasks --all` |
@@ -79,7 +79,7 @@ On mobile, use the button on the home screen to open the design preview.
 design/tokens/          the source of truth
 design/themes/          color themes: an accent ramp and a neutral ramp each
 tools/design-build/     tokens to platform files, plus the contrast check
-<!-- @if web-react mobile-react-native -->
+<!-- @if js-tokens -->
 packages/tokens/        generated CSS and TypeScript
 <!-- @endif -->
 <!-- @if web-react -->

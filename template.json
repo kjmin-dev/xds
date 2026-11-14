@@ -52,6 +52,7 @@
   "targets": [
     {
       "id": "web-react",
+      "default": true,
       "title": "Web",
       "stack": "React 19, Vite, Tailwind v4, HeroUI v3",
       "platforms": ["Web"],

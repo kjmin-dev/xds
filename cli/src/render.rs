@@ -79,12 +79,24 @@ pub fn render(
     let kinds = manifest.output_kinds(targets);
     let outputs = build_outputs(template)?;
     let is_selected = |id: &str| targets.iter().any(|target| target.id == id);
-    let is_known = |id: &str| id == TEMPLATE_ONLY || manifest.target(id).is_some();
+    // A marker may also name a shared unit. A block about the JavaScript workspace then follows
+    // whichever targets require it, and a new target that does gets the block without its id
+    // being added to every marker.
+    let is_marked = |name: &str| {
+        targets
+            .iter()
+            .any(|target| target.id == name || target.requires.iter().any(|unit| unit == name))
+    };
+    let is_known = |name: &str| {
+        name == TEMPLATE_ONLY
+            || manifest.target(name).is_some()
+            || manifest.shared.contains_key(name)
+    };
 
     let transform = |path: &str, file: &File| -> Result<(String, File)> {
         let mut contents = file.contents.clone();
         if let Some(text) = as_text(&contents) {
-            let text = markers::apply(text, is_selected, is_known).context(path)?;
+            let text = markers::apply(text, is_marked, is_known).context(path)?;
             contents = names.apply(&text, &manifest.placeholder).into_bytes();
         }
         let path = names.apply(path, &manifest.placeholder);

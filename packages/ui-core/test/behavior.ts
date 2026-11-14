@@ -28,8 +28,8 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const holdsFocus = (locator: Locator) => locator.element().contains(document.activeElement);
 
 // The ARIA Authoring Practices give a menu or a list box two ways to move the keyboard's focus
-// through its items: DOM focus moves to the item (React Aria), or stays on the menu or the list
-// and its aria-activedescendant names the item (Zag.js). Assistive technology reports either as
+// through its items: DOM focus moves to the item, or stays on the menu or the list and its
+// aria-activedescendant names the item, as with Zag.js. Assistive technology reports either as
 // focus on the item.
 const isFocused = (locator: Locator) => {
   const element = locator.element();
@@ -40,16 +40,17 @@ const isFocused = (locator: Locator) => {
   );
 };
 
-// A modal hides the rest of the page with `inert` (React Aria) or with aria-hidden (Zag.js);
-// either takes it out of the accessibility tree. An open Menu, Select or Dialog is modal, so the
+// A modal hides the rest of the page with `inert` or, as with Zag.js, with aria-hidden; either
+// takes it out of the accessibility tree. An open Menu, Select or Dialog is modal, so the
 // control that opened it is hidden too until it closes, and a role query, which passes over
 // what aria-hidden hides, no longer finds it. A check of the page behind an open overlay holds
 // on to the element it found before the overlay opened.
 const hiddenFromAssistiveTechnology = (element: Element) =>
   element.closest('[inert], [aria-hidden="true"]') !== null;
 
-// React Aria makes the field of a select a button that opens a list box, the ARIA pattern for
-// a select-only combobox makes it a combobox. Both are named by the label.
+// The field of a select is a button that opens a list box, named by the chosen option and the
+// label, as in these libraries, or a combobox named by the label, as in the ARIA pattern for a
+// select-only combobox. Either name holds the label.
 const selectField = (label: string) =>
   page
     .getByRole("button", { name: label, exact: false })
@@ -191,9 +192,8 @@ export function describeBehavior(mount: Mount) {
       await expect.element(trigger).toHaveAttribute("aria-expanded", "false");
       const button = trigger.element();
       await trigger.click();
-      // Not found by its name: React Aria names the menu after its trigger with
-      // aria-labelledby, which takes precedence over the aria-label that the Menu's `label` sets.
-      const menu = page.getByRole("menu");
+      // Named by the Menu's `label`, not by its trigger.
+      const menu = page.getByRole("menu", { name: "Report actions" });
       await expect.element(menu).toBeVisible();
       await expect.element(button).toHaveAttribute("aria-expanded", "true");
       await expect
@@ -240,11 +240,11 @@ export function describeBehavior(mount: Mount) {
       const list = page.getByRole("listbox");
       await expect.element(list).toBeVisible();
       await expect.element(field).toHaveAttribute("aria-expanded", "true");
-      // Not exact: React Aria names an option by all of its text, the description included.
-      await expect
-        .element(list.getByRole("option", { name: "Team", exact: false }))
-        .toHaveAttribute("aria-selected", "true");
-      await list.getByRole("option", { name: "Business", exact: false }).click();
+      // Named by its label alone, as the field shows it, and described by its help line.
+      const team = list.getByRole("option", { name: "Team", exact: true });
+      await expect.element(team).toHaveAttribute("aria-selected", "true");
+      await expect.element(team).toHaveAccessibleDescription("Up to 20 people");
+      await list.getByRole("option", { name: "Business", exact: true }).click();
       await expect.element(list).not.toBeInTheDocument();
       await expect.element(plan).toHaveTextContent("Business");
       await expect.element(plan).toHaveFocus();
@@ -396,6 +396,17 @@ export function describeBehavior(mount: Mount) {
       await userEvent.keyboard(" ");
       await expect.element(cancel).toHaveAttribute("aria-expanded", "false");
     });
+
+    test("a click with no press before it toggles an item that does not have focus", async () => {
+      await mount("accordion");
+      const cancel = page.getByRole("button", { name: QUESTIONS[0].title });
+      const title = cancel.element();
+      expect(holdsFocus(cancel)).toBe(false);
+      // As from a script, a voice command or other assistive technology.
+      if (title instanceof HTMLElement) title.click();
+      await expect.element(cancel).toHaveAttribute("aria-expanded", "true");
+      await expect.element(page.getByText(QUESTIONS[0].content)).toBeVisible();
+    });
   });
 
   describe("Tooltip", () => {
@@ -415,8 +426,8 @@ export function describeBehavior(mount: Mount) {
 
     test("the pointer resting on the control shows it, and leaving hides it", async () => {
       await mount("tooltip");
-      // A person's pointer crosses the page before it reaches a control. React Aria does not
-      // show a tooltip for a hover that no pointer movement came before.
+      // A person's pointer crosses the page before it reaches a control, and a tooltip may
+      // wait for the pointer to move before it shows for a hover.
       await page.getByRole("button", { name: "Search" }).hover();
       await page.getByRole("button", { name: "Export" }).hover();
       const tooltip = page.getByRole("tooltip", { name: "Export as a spreadsheet" });

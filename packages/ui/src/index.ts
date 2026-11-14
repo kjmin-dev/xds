@@ -1,14 +1,15 @@
-// Acme's web components. Apps import from here and from nowhere else, so the component
-// library underneath (HeroUI, which builds on React Aria) can change without touching a screen.
+// Acme's web components for React. Apps import from here and from nowhere else, so the parts
+// underneath (Zag.js for behavior, @acme/ui-core for the classes and the stylesheet) can change
+// without touching a screen.
 //
-// The matching React Native components are in @acme/ui-native, the GPUI ones in the acme-ui
-// crate and the Compose ones under kotlin/ui. All of them take the same variants, sizes and
-// tones, and draw them from the same design tokens.
+// The Solid components are in @acme/ui-solid, the React Native ones in @acme/ui-native, the
+// GPUI ones in the acme-ui crate and the Compose ones under kotlin/ui. All of them take the
+// same variants, sizes and tones, and draw them from the same design tokens.
 
 export { Accordion, type AccordionItem, type AccordionProps } from "./Accordion.tsx";
 export { Avatar, type AvatarProps, type AvatarSize } from "./Avatar.tsx";
 export { AvatarStack, type AvatarStackProps } from "./AvatarStack.tsx";
-export { Badge, type BadgeTone } from "./Badge.tsx";
+export { Badge, type BadgeProps, type BadgeTone } from "./Badge.tsx";
 export { Banner, type BannerProps, type BannerTone } from "./Banner.tsx";
 export { Button, type ButtonProps, type ButtonVariant, type ControlSize } from "./Button.tsx";
 export { Card, type CardProps } from "./Card.tsx";
@@ -33,7 +34,7 @@ export { Select, type SelectOption, type SelectProps } from "./Select.tsx";
 export { Sidebar, type SidebarItem, type SidebarProps, type SidebarSection } from "./Sidebar.tsx";
 export { Skeleton, type SkeletonProps } from "./Skeleton.tsx";
 export { Slider, type SliderProps } from "./Slider.tsx";
-export { Spinner } from "./Spinner.tsx";
+export { Spinner, type SpinnerProps } from "./Spinner.tsx";
 export { Switch, type SwitchProps } from "./Switch.tsx";
 export { Tabs, type TabsProps } from "./Tabs.tsx";
 export { Text, type TextProps, type TextTone, type TextVariant } from "./Text.tsx";

@@ -3,8 +3,8 @@ import { type Accessor, createEffect, createMemo, createSignal } from "solid-js"
 
 /**
  * Whether an overlay is on the page: from when it opens until the exit animation that its
- * stylesheet starts on `[data-state="closed"]` has finished, as in the React library. Zag hides
- * a closed part at once. `parts` are the elements that animate.
+ * stylesheet starts on `[data-state="closed"]` has finished. Zag hides a closed part at once.
+ * `parts` are the elements that animate.
  */
 export function createPresence(
   open: Accessor<boolean>,

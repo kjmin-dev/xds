@@ -1,16 +1,10 @@
 import { motion } from "@acme/tokens";
+import { TOAST_PARTS, type ToastBaseProps } from "@acme/ui-core";
 import { useEffect, useRef, useState } from "react";
 
-export type ToastProps = {
-  /** Whether the toast is shown. It never closes itself: this decides. */
-  open: boolean;
+export type ToastProps = ToastBaseProps & {
   /** Called when the time is up and after the action. Set `open` to false in it. */
   onClose: () => void;
-  message: string;
-  /** One thing the person can do about the message, such as undoing it. */
-  action?: { label: string; onPress: () => void };
-  /** How long it stays, in milliseconds. 0 keeps it until it is closed. */
-  duration?: number;
 };
 
 /**
@@ -56,15 +50,7 @@ export function Toast({
   }, [open, held, duration]);
 
   return (
-    <div
-      ref={region}
-      role="status"
-      // `manual`: nothing but this component shows or hides it, and it does not close other
-      // popovers. The region itself is see-through to the pointer; only the toast is not. On a
-      // phone the bottom inset keeps it clear of the home indicator.
-      popover="manual"
-      className="pointer-events-none fixed inset-x-0 top-auto bottom-0 m-0 w-full max-w-none justify-center overflow-visible border-0 bg-transparent p-4 pb-[calc(var(--acme-space-4)+env(safe-area-inset-bottom))] [&:popover-open]:flex"
-    >
+    <div ref={region} role="status" popover="manual" className={TOAST_PARTS.region}>
       {open && (
         // No role: hover and focus only pause the timer, and the action inside is a real button.
         <div
@@ -72,9 +58,9 @@ export function Toast({
           onPointerLeave={() => setHovered(false)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          className="pointer-events-auto flex max-w-acme-toast animate-[acme-toast-enter_var(--acme-motion-duration-normal)_var(--acme-motion-easing-enter)] items-center gap-4 rounded-acme-md bg-acme-toast-background px-4 py-3 text-acme-toast-text shadow-acme-raised motion-reduce:animate-none"
+          className={TOAST_PARTS.toast}
         >
-          <span className="min-w-0 text-acme-detail">{message}</span>
+          <span className={TOAST_PARTS.message}>{message}</span>
           {action && (
             <button
               type="button"
@@ -82,9 +68,7 @@ export function Toast({
                 action.onPress();
                 onClose();
               }}
-              // Pulled into the toast's padding, so a pressable area of the minimum size does
-              // not make a one-line toast taller.
-              className="-my-2 min-h-acme-target-min min-w-acme-target-min shrink-0 cursor-pointer rounded-acme-sm text-acme-label text-acme-toast-action hover:underline focus-visible:outline-(length:--acme-focus-width) focus-visible:outline-offset-(--acme-focus-offset) focus-visible:outline-current focus-visible:outline-solid"
+              className={TOAST_PARTS.action}
             >
               {action.label}
             </button>

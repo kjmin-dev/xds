@@ -9,7 +9,7 @@ A single set of design tokens drives a component library for each client, paired
 | Client | Stack | Components | App |
 | --- | --- | --- | --- |
 <!-- @if web-react -->
-| Web | React 19, Vite, Tailwind v4, HeroUI v3 | `packages/ui` | `apps/web` |
+| Web | React 19, Vite, Tailwind v4, Zag.js | `packages/ui`, `packages/ui-core` | `apps/web` |
 <!-- @endif -->
 <!-- @if web-solid -->
 | Web | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js | `packages/ui-solid`, `packages/ui-core` | `apps/web-solid` |

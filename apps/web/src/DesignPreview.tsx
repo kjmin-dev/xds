@@ -382,13 +382,14 @@ export function DesignPreview() {
             : null;
     const control = target?.querySelector("button");
     if (!control) return;
-    if (OPEN === "tooltip") {
-      control.focus();
-      return;
-    }
-    // A select collects its options in a render after its first one, and does not open while
-    // it has none, so its press waits a frame.
-    const frame = requestAnimationFrame(() => control.click());
+    // In the frame after the first, once the machines behind the controls have started.
+    const frame = requestAnimationFrame(() => {
+      if (OPEN === "tooltip") {
+        // A tooltip shows on keyboard focus only, which is told by a key pressed before it.
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab" }));
+        control.focus();
+      } else control.click();
+    });
     return () => cancelAnimationFrame(frame);
   }, []);
   const videoActions = (title: string) => (

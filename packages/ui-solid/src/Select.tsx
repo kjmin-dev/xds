@@ -1,5 +1,10 @@
 import { space } from "@acme/tokens";
-import { pageTarget, type SelectBaseProps, type SelectOption } from "@acme/ui-core";
+import {
+  keepListKeys,
+  type SelectBaseProps,
+  type SelectOption,
+  selectOptionIds,
+} from "@acme/ui-core";
 import { type JSX, Portal } from "@solidjs/web";
 import * as select from "@zag-js/select";
 import { mergeProps, normalizeProps, useMachine } from "@zag-js/solid";
@@ -54,7 +59,7 @@ export function Select<Value extends string = string>(props: SelectProps<Value>)
       placement: "bottom-start" as const,
       gutter: space[1],
       sameWidth: true,
-      // As far from the window's edge as the React library keeps it.
+      // The list keeps this far from the window's edges.
       overflowPadding: space[3],
     },
   }));
@@ -64,15 +69,15 @@ export function Select<Value extends string = string>(props: SelectProps<Value>)
   // still search for a space instead of opening the list or choosing. A handler taken from
   // the machine when the key comes reads it then.
   const current = () => select.connect(service, normalizeProps);
-  // A span, as in the React library: the field is a button, which a <label> cannot point at.
-  // A press on it still focuses the field.
+  // A span: the field is a button, which a <label> cannot point at. A press on it still
+  // focuses the field.
   const labelProps = createMemo(() => {
     const { for: _, ...rest } = api().getLabelProps() as JSX.LabelHTMLAttributes<HTMLElement>;
     return rest as JSX.HTMLAttributes<HTMLSpanElement>;
   });
-  // A button that opens a list box, as in the React library, rather than Zag's combobox: named
-  // by the chosen option and then the label, and described by the help or the error. The error
-  // is said there, so the button itself does not claim to be invalid or required.
+  // A button that opens a list box, rather than Zag's combobox: named by the chosen option and
+  // then the label, and described by the help or the error. The error is said there, so the
+  // button itself does not claim to be invalid or required.
   const triggerProps = createMemo(() => {
     const {
       role: _role,
@@ -83,8 +88,8 @@ export function Select<Value extends string = string>(props: SelectProps<Value>)
     } = api().getTriggerProps() as JSX.ButtonHTMLAttributes<HTMLButtonElement>;
     return {
       ...rest,
-      // Home and End leave a closed field to the page, as in the React library; Zag would
-      // choose the first or the last option.
+      // Home and End leave a closed field to the page; Zag would choose the first or the last
+      // option.
       onKeyDown: (event: KeyboardEvent) => {
         if (!api().open && (event.key === "Home" || event.key === "End")) return;
         (current().getTriggerProps().onKeyDown as KeyHandler | undefined)?.(event);
@@ -108,20 +113,9 @@ export function Select<Value extends string = string>(props: SelectProps<Value>)
     },
     {
       onKeyDown: (event: KeyboardEvent) => {
-        // Tab stays in the open list, as in the React library, whose list holds the focus
-        // until Escape or a choice closes it. Zag would close the list and let the focus move
-        // on, but it skips a key that was already handled.
-        if (event.key === "Tab") event.preventDefault();
-        // Zag has no page keys; the React library moves a page, or to the end of a short list.
-        if ((event.key === "PageDown" || event.key === "PageUp") && surface) {
-          event.preventDefault();
-          const value = pageTarget(
-            surface,
-            ".select__item:not([data-disabled])",
-            event.key === "PageDown" ? 1 : -1,
-          );
-          if (value !== undefined) api().setHighlightedValue(value);
-        }
+        keepListKeys(event, surface, ".select__item:not([data-disabled])", (value) =>
+          api().setHighlightedValue(value),
+        );
         (current().getContentProps().onKeyDown as KeyHandler | undefined)?.(event);
       },
     },
@@ -190,25 +184,37 @@ export function Select<Value extends string = string>(props: SelectProps<Value>)
           >
             <div {...api().getListProps()} class="select__list">
               <For each={collection().items}>
-                {(option) => (
-                  <div {...api().getItemProps({ item: option })} class="select__item">
-                    <span class="select__item-words">
-                      <span
-                        {...api().getItemTextProps({ item: option })}
-                        class="select__item-label"
-                      >
-                        {option.label}
+                {(option, index) => {
+                  const ids = () => selectOptionIds(id, index());
+                  return (
+                    // Named by its label alone, as the field shows it; the help line describes it.
+                    <div
+                      {...api().getItemProps({ item: option })}
+                      aria-labelledby={ids().label}
+                      aria-describedby={option.description ? ids().description : undefined}
+                      class="select__item"
+                    >
+                      <span class="select__item-words">
+                        <span
+                          {...api().getItemTextProps({ item: option })}
+                          id={ids().label}
+                          class="select__item-label"
+                        >
+                          {option.label}
+                        </span>
+                        <Show when={option.description}>
+                          <span id={ids().description} class="select__item-description">
+                            {option.description}
+                          </span>
+                        </Show>
                       </span>
-                      <Show when={option.description}>
-                        <span class="select__item-description">{option.description}</span>
+                      {/* Unnamed, unlike a Menu's: the option itself reports that it is selected. */}
+                      <Show when={api().getItemState({ item: option }).selected}>
+                        <Icon name="check" size="sm" />
                       </Show>
-                    </span>
-                    {/* Unnamed, unlike a Menu's: the option itself reports that it is selected. */}
-                    <Show when={api().getItemState({ item: option }).selected}>
-                      <Icon name="check" size="sm" />
-                    </Show>
-                  </div>
-                )}
+                    </div>
+                  );
+                }}
               </For>
             </div>
           </div>

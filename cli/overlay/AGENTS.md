@@ -18,13 +18,13 @@ Acme is built around a shared design system: a single set of design tokens and a
 | `packages/tokens` | Generated CSS and TypeScript token files. Do not edit |
 <!-- @endif -->
 <!-- @if web-react -->
-| `packages/ui`, `apps/web` | Web component library (React, Tailwind, HeroUI) and the web app |
+| `packages/ui`, `apps/web` | Web component library (React, Tailwind, Zag.js) and the web app |
 <!-- @endif -->
 <!-- @if web-solid -->
 | `packages/ui-solid`, `apps/web-solid` | Web component library (Solid, Tailwind, Zag.js) and the Solid web app |
 <!-- @endif -->
 <!-- @if ui-core -->
-| `packages/ui-core` | What the web libraries share: the behavior tests that each of them runs, and the prop types, class recipes, and stylesheet of the libraries built on Zag.js |
+| `packages/ui-core` | What the web libraries share: the prop types, class recipes, and stylesheet of their components, the DOM helpers their behavior needs, and the behavior tests that each of them runs |
 <!-- @endif -->
 <!-- @if mobile-react-native -->
 | `packages/ui-native`, `apps/mobile` | React Native component library and the Expo app |
@@ -47,8 +47,8 @@ Acme is built around a shared design system: a single set of design tokens and a
 <!-- @if ui-core -->
 - On the web, use the generated `acme` Tailwind utility classes (`text-acme-text-secondary`, `bg-acme-background-surface`, `text-acme-body`) instead of Tailwind's default palette.
 <!-- @endif -->
-<!-- @if web-solid -->
-- `packages/ui-core` holds one copy of what the Zag.js web libraries share, so it never imports a framework. Change a component's classes or CSS there, not in a library. Its CSS selects on its own part classes, native pseudo-classes, `aria-*` attributes, and Zag's state attributes.
+<!-- @if ui-core -->
+- `packages/ui-core` holds one copy of what the web libraries share, so it never imports a framework. Change a component's classes or CSS there, not in a library. Its CSS selects on its own part classes, native pseudo-classes, `aria-*` attributes, and Zag's state attributes.
 <!-- @endif -->
 - When adding a variant, size, or tone to a component, implement it under the same name across every client in this project, add it to each client's design preview, and record it in `design/components.json`.
 - Switch color themes with `mise run theme <name>`. Do not edit the accent or neutral color ramps in `design/tokens/palette.json` by hand.

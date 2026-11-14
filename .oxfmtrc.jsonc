@@ -25,32 +25,29 @@
   // the tokens' @theme: with Tailwind's own theme, the acme-* utilities are unknown and sort
   // first. A path that does not exist sorts nothing, without an error.
   "overrides": [
-    // @if web-react
+    // Every web library and its app take their classes from ui-core's stylesheet. ui-core's
+    // recipes are plain strings, which keep the order they were written in: oxfmt sorts class
+    // attributes, @apply, and the arguments of the functions an override names.
     {
-      "files": ["apps/web/**", "packages/ui/**"],
-      "options": { "sortTailwindcss": { "stylesheet": "./packages/ui/src/styles/index.css" } },
-    },
-    // @endif
-    // @if ui-core
-    // ui-core's recipes are plain strings, which keep the order they were written in: oxfmt sorts
-    // class attributes, @apply, and the arguments of the functions an override names.
-    {
-      "files": ["packages/ui-core/**"],
+      "files": [
+        "packages/ui-core/**",
+        // @if web-react
+        "apps/web/**",
+        "packages/ui/**",
+        // @endif
+        // @if web-solid
+        "apps/web-solid/**",
+        "packages/ui-solid/**",
+        // @endif
+      ],
       "options": { "sortTailwindcss": { "stylesheet": "./packages/ui-core/src/styles/index.css" } },
     },
-    // @endif
-    // @if web-solid
-    {
-      "files": ["apps/web-solid/**", "packages/ui-solid/**"],
-      "options": { "sortTailwindcss": { "stylesheet": "./packages/ui-core/src/styles/index.css" } },
-    },
-    // @endif
     // @if template
     {
       "files": ["apps/docs/**"],
       "options": { "sortTailwindcss": { "stylesheet": "./apps/docs/src/styles/demo.css" } },
     },
-    // web-vue and web-svelte each add an override like web-solid's.
+    // web-vue and web-svelte each add their app and library to the files of the first override.
     // @endif
   ],
   // @endif

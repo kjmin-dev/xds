@@ -36,8 +36,8 @@ export function Dialog(props: DialogProps) {
     closeOnEscape: props.dismissible ?? true,
     closeOnInteractOutside: props.dismissible ?? true,
     onEscapeKeyDown: leaveEscapeToFields,
-    // The dialog itself, as in the React library, rather than its first field or button: a
-    // screen reader then reads the title and the description first.
+    // The dialog itself rather than its first field or button: a screen reader then reads the
+    // title and the description first.
     initialFocusEl: () => content ?? null,
   }));
   const api = createMemo(() => dialog.connect(service, normalizeProps));
@@ -50,8 +50,8 @@ export function Dialog(props: DialogProps) {
       <Portal>
         {/* Nothing inside opens an overlay from a control outside it. */}
         <TriggerContext value={null}>
-          {/* A press on the scrim keeps the focus in the dialog, as in the React library: a
-              dialog that cannot be dismissed stays open, and the focus would go to the page.
+          {/* A press on the scrim keeps the focus in the dialog: a dialog that cannot be
+              dismissed stays open, and the focus would go to the page.
               The backdrop and the dialog stay shown until their exit animation ends; Zag
               would hide them as the dialog closes. */}
           {/* oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- not a control: the handler only keeps the focus where it is */}

@@ -160,7 +160,7 @@
       "files": [
         "packages/ui-core/test/**",
         // @if web-react
-        "packages/ui/**",
+        "packages/ui/test/**",
         // @endif
         // @if web-solid
         "packages/ui-solid/test/**",

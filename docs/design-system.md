@@ -6,7 +6,7 @@ A single set of token files serves as the source of truth, and each platform ren
 - Color tokens are organized into three tiers: a raw palette, semantic colors tied to UI roles, and component-specific colors. Application screens never reference the raw palette directly.
 - Accessibility contrast is verified at build time. Every token build checks 110 color pairings across both light and dark modes.
 - Control heights scale with the input device (mouse pointer vs. touch) rather than screen width.
-- Applications import only the design system package, never the underlying UI libraries directly (HeroUI v3 on the React web client, Zag.js on the Solid one, GPUI Component on desktop, React Native primitives on mobile, and Compose foundation in the Kotlin client).
+- Applications import only the design system package, never the underlying UI libraries directly (Zag.js on the web clients, GPUI Component on desktop, React Native primitives on mobile, and Compose foundation in the Kotlin client).
 - Accent and neutral colors are defined as themes. Five themes ship with the template, and switching between them swaps two color ramps in the palette without changing anything else.
 
 ## How it fits together
@@ -23,10 +23,9 @@ flowchart TD
   BUILD --> RS["generated.rs<br/>Rust constants"]
   BUILD --> KT["Tokens.kt<br/>Compose values"]
 
-  CSS --> WEB["@acme/ui<br/>web components (HeroUI)"]
-  TW --> WEB
-  CSS --> CORE["@acme/ui-core<br/>classes and CSS for Zag.js"]
+  CSS --> CORE["@acme/ui-core<br/>classes and CSS of the web components"]
   TW --> CORE
+  CORE --> WEB["@acme/ui<br/>web components (React)"]
   CORE --> SOLID["@acme/ui-solid<br/>web components (Solid)"]
   TS --> RN["@acme/ui-native<br/>React Native components"]
   RS --> UI["acme-ui<br/>GPUI components"]
@@ -302,16 +301,14 @@ Clearing the error state on edit avoids a common web form trap: when an invalid 
 
 | | Web (React) | Web (Solid) | Desktop | Mobile | Kotlin |
 | --- | --- | --- | --- | --- | --- |
-| Package | `@acme/ui` | `@acme/ui-solid` on `@acme/ui-core` | `acme-ui` | `@acme/ui-native` | `kotlin/ui` |
-| Built on | HeroUI v3 (React Aria) and native inputs | Zag.js state machines and native inputs | GPUI Component | React Native primitives | Compose foundation |
+| Package | `@acme/ui` on `@acme/ui-core` | `@acme/ui-solid` on `@acme/ui-core` | `acme-ui` | `@acme/ui-native` | `kotlin/ui` |
+| Built on | Zag.js state machines and native inputs | Zag.js state machines and native inputs | GPUI Component | React Native primitives | Compose foundation |
 | Runs on | Browsers | Browsers | macOS | iOS, Android | Android, iOS, desktop (JVM) |
 | Tokens arrive as | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | Rust constants | TypeScript constants | Compose values (`Color`, `Dp`, `TextStyle`) |
 | Sizes | Follow the input device | Follow the input device | Pointer | Touch | Touch on phones, pointer on desktop |
 | Design preview | `/design` | `/design` | `acme --design` | `/design` | The button on the home screen |
 
-On the web, `heroui-theme.css` maps HeroUI's theme variables to the generated tokens, and `components.css` applies the token sizes and state colors to HeroUI's button and input primitives. Those two stylesheets are the only files coupled to HeroUI's internal naming. Button and TextField wrap HeroUI components for their interaction and accessibility behavior. Switch, Checkbox, and SegmentedControl use native HTML inputs (a checkbox or radio group) with custom visuals drawn alongside a hidden input, so keyboard navigation, forms, and screen readers interact with standard controls. The remaining components are plain HTML elements styled with Tailwind utilities. Any unwrapped HeroUI component still inherits the token colors and border radii through the theme variables.
-
-The Solid client is built to look and behave like the React one, which is its reference, without HeroUI or React Aria. Its framework-free half is `@acme/ui-core`: each component's prop types, the Tailwind class strings of the components drawn with utilities, pure helpers, and a stylesheet for each component with states of its own. That CSS selects on the library's own part classes, native pseudo-classes, `aria-*` attributes, and Zag.js state attributes, never on a framework's. `@acme/ui-solid` adds the Solid components. Dialog, Menu, Select, Slider, Tabs, Tooltip, and Accordion take their keyboard, focus, and dismissal behavior from Zag.js state machines; the selection controls are native inputs, as in the React library. A library for another framework can be built on the same core.
+On the web, the React and Solid clients share their framework-free half, `@acme/ui-core`, and must look and behave the same. It holds each component's prop types, the Tailwind class strings of the components drawn with utilities, pure helpers, the steps on the page that the state machines leave to each library (an overlay's exit animation, an accordion panel's height, the page keys of a list), and a stylesheet for each component with states of its own. That CSS selects on the library's own part classes, native pseudo-classes, `aria-*` attributes, and Zag.js state attributes, never on a framework's. `@acme/ui` adds the React components and `@acme/ui-solid` the Solid ones. Dialog, Menu, Select, Slider, Tabs, Tooltip, and Accordion take their keyboard, focus, and dismissal behavior from Zag.js state machines, with an adapter for each framework. Switch, Checkbox, RadioGroup, SegmentedControl, and the text fields are native HTML inputs with custom visuals drawn alongside or around them, so keyboard navigation, forms, and screen readers interact with standard controls. The remaining components are plain HTML elements styled with Tailwind utilities. A library for another framework can be built on the same core.
 
 On desktop, `acme_ui::set_mode` applies the generated tokens to GPUI Component's theme. `button`, `switch`, and `checkbox` return GPUI Component controls configured with token values, while Badge, Banner, TextField, SegmentedControl, Avatar, ProgressBar, ListRow, `card`, `divider`, and `text` are rendered directly with GPUI primitives.
 
@@ -345,7 +342,7 @@ On the web, the preview code is lazy-loaded only when navigating to `/design`. S
 
 ## Design conventions
 
-The visual design follows conventions shared across widely used open-source design systems as of late 2026, checked against their source code and documentation: [shadcn/ui](https://ui.shadcn.com/docs/theming), [Radix Themes](https://github.com/radix-ui/themes), [HeroUI v3](https://heroui.com/docs/react/releases/v3-0-0), [Primer](https://primer.style/product/primitives/size), [Material 3 Expressive](https://developer.android.com/jetpack/androidx/releases/compose-material3), and Apple's current platform design language.
+The visual design follows conventions shared across widely used open-source design systems as of late 2026, checked against their source code and documentation: [shadcn/ui](https://ui.shadcn.com/docs/theming), [Radix Themes](https://github.com/radix-ui/themes), [Primer](https://primer.style/product/primitives/size), [Material 3 Expressive](https://developer.android.com/jetpack/androidx/releases/compose-material3), and Apple's current platform design language.
 
 | Convention | In this template |
 | --- | --- |
@@ -354,7 +351,7 @@ The visual design follows conventions shared across widely used open-source desi
 | Control heights of 32 to 36px with 14px labels for pointer devices, 44px and up for touch | 36 and 48 at the default size |
 | Outlined secondary buttons paired with filled primary buttons | `button.secondary.border` |
 | Pill-shaped badges | `Badge` |
-| Slight scale-down animation on button press (HeroUI uses 0.97) | `motion.press-scale` |
+| Slight scale-down animation on button press | `motion.press-scale` |
 | Capsule buttons and floating navigation bars on touch platforms | `size.button-radius`, `TabBar`, `BottomSheet` |
 
 Two intentional departures from those systems:
@@ -375,7 +372,7 @@ Two intentional departures from those systems:
 
 | | Issue | Mitigation |
 | --- | --- | --- |
-| HeroUI's class names | `components.css` targets HeroUI's internal classes and component CSS variables. If HeroUI renames them in an update, control sizes and state colors fall back to HeroUI defaults | Check the design preview when upgrading HeroUI. Core semantic colors and border radii are wired through theme variables and remain unaffected |
+| Zag.js | The web libraries run on a 2.0 prerelease, and its stylesheet selects on Zag's state attributes, which can change before 2.0 is stable | Every `@zag-js` package is pinned to the same exact version. Run the behavior tests and check the design previews when moving to another |
 | GPUI Component | Still on 0.x with weekly releases | Pinned to an exact version and wrapped behind `acme-ui` |
 | Mobile | The design preview has been checked on the iOS simulator in both light and dark modes, but Android and physical devices have not been checked | |
 | Desktop accessibility | Has not been tested with a screen reader | |

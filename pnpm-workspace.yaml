@@ -25,10 +25,10 @@ catalog:
   # Exact pin while 7.1 is in beta: a range such as ~7.1.0-beta also matches the nightly
   # 7.1.0-dev.* builds, which sort above "beta". Move to ~7.1.0 when 7.1.0 is released.
   typescript: 7.1.0-beta
-  # @if web-solid
-  # The state machines behind the overlays and the composite controls of the Zag.js web
-  # libraries. Every @zag-js package must be the same exact version: each framework adapter
-  # pins @zag-js/core exactly, and 2.0 is still a prerelease that changes the attributes the
+  # @if ui-core
+  # The state machines behind the overlays and the composite controls of the web libraries.
+  # Every @zag-js package must be the same exact version: each framework adapter pins
+  # @zag-js/core exactly, and 2.0 is still a prerelease that changes the attributes the
   # stylesheet of @acme/ui-core selects on.
   "@zag-js/accordion": 2.0.0-next.4
   "@zag-js/aria-hidden": 2.0.0-next.4
@@ -39,6 +39,11 @@ catalog:
   "@zag-js/slider": 2.0.0-next.4
   "@zag-js/tabs": 2.0.0-next.4
   "@zag-js/tooltip": 2.0.0-next.4
+  # @endif
+  # @if web-react
+  "@zag-js/react": 2.0.0-next.4
+  # @endif
+  # @if web-solid
   "@zag-js/solid": 2.0.0-next.4
   # Exact pins while Solid 2 is a release candidate: @solidjs/web's `latest` tag is still rc.0,
   # and @solidjs/vite-plugin's `next` tag is older than its `latest`.
@@ -46,7 +51,7 @@ catalog:
   "@solidjs/web": 2.0.0-rc.21
   "@solidjs/vite-plugin": 3.0.0-next.57
   # @endif
-# @if web-solid
+# @if ui-core
 
 # Zag 2.0.0-next.4 was less than a day old when it was added. Drop these once it is older than
 # pnpm's minimum release age.
@@ -65,12 +70,17 @@ minimumReleaseAgeExclude:
   - "@zag-js/live-region@2.0.0-next.4"
   - "@zag-js/menu@2.0.0-next.4"
   - "@zag-js/popper@2.0.0-next.4"
+  # @if web-react
+  - "@zag-js/react@2.0.0-next.4"
+  # @endif
   - "@zag-js/rect-utils@2.0.0-next.4"
   - "@zag-js/remove-scroll@2.0.0-next.4"
   - "@zag-js/safe-area@2.0.0-next.4"
   - "@zag-js/select@2.0.0-next.4"
   - "@zag-js/slider@2.0.0-next.4"
+  # @if web-solid
   - "@zag-js/solid@2.0.0-next.4"
+  # @endif
   - "@zag-js/tabs@2.0.0-next.4"
   - "@zag-js/tooltip@2.0.0-next.4"
   - "@zag-js/types@2.0.0-next.4"

@@ -1,15 +1,13 @@
-// The focus ring of a control that is drawn next to a visually hidden native input.
-export const PEER_FOCUS =
-  "peer-focus-visible:outline-solid peer-focus-visible:outline-(length:--acme-focus-width) peer-focus-visible:outline-offset-(--acme-focus-offset) peer-focus-visible:outline-acme-border-focus";
+import {
+  type SwitchBaseProps,
+  switchClass,
+  switchLabelClass,
+  switchThumbClass,
+  switchTrackClass,
+} from "@acme/ui-core";
 
-export type SwitchProps = {
-  checked: boolean;
+export type SwitchProps = SwitchBaseProps & {
   onChange: (checked: boolean) => void;
-  /** Shown beside the switch. Pressing it toggles too. */
-  label?: string;
-  /** Names the switch for assistive technology when there is no visible label. */
-  "aria-label"?: string;
-  disabled?: boolean;
 };
 
 /**
@@ -21,7 +19,7 @@ export type SwitchProps = {
  */
 export function Switch({ checked, onChange, label, disabled = false, ...aria }: SwitchProps) {
   return (
-    <label className="relative inline-flex min-h-acme-target-min w-fit cursor-pointer items-center gap-2 has-disabled:cursor-not-allowed">
+    <label className={switchClass}>
       <input
         {...aria}
         type="checkbox"
@@ -32,16 +30,10 @@ export function Switch({ checked, onChange, label, disabled = false, ...aria }: 
         disabled={disabled}
         onChange={(event) => onChange(event.target.checked)}
       />
-      <span
-        className={`flex h-acme-switch-height w-acme-switch-width shrink-0 rounded-full bg-acme-switch-track p-0.5 transition-colors duration-(--acme-motion-duration-fast) peer-checked:bg-acme-switch-track-on peer-checked:*:translate-x-[calc(var(--acme-size-switch-width)-var(--acme-size-switch-height))] peer-disabled:bg-acme-switch-disabled-track peer-disabled:*:bg-acme-switch-disabled-thumb ${PEER_FOCUS}`}
-      >
-        <span className="aspect-square h-full rounded-full bg-acme-switch-thumb transition-transform duration-(--acme-motion-duration-fast) ease-(--acme-motion-easing-standard) motion-reduce:transition-none" />
+      <span className={switchTrackClass}>
+        <span className={switchThumbClass} />
       </span>
-      {label && (
-        <span className="text-acme-body text-acme-text-primary peer-disabled:text-acme-text-secondary">
-          {label}
-        </span>
-      )}
+      {label && <span className={switchLabelClass}>{label}</span>}
     </label>
   );
 }

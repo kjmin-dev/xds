@@ -1,18 +1,11 @@
-import { TextField as HeroTextField, InputGroup } from "@heroui/react";
+import type { SearchFieldBaseProps } from "@acme/ui-core";
 import { useRef } from "react";
 import { Icon } from "./Icon.tsx";
 
-export type SearchFieldProps = {
-  value: string;
+export type SearchFieldProps = SearchFieldBaseProps & {
   onChange: (value: string) => void;
   /** Called with the query on Enter, or on the search key of a software keyboard. */
   onSubmit?: (value: string) => void;
-  /** The accessible name. It is not shown: the search icon says what the field is for. */
-  label: string;
-  placeholder?: string;
-  disabled?: boolean;
-  /** Names the control that empties the field, for assistive technology. */
-  clearLabel?: string;
 };
 
 /**
@@ -33,35 +26,36 @@ export function SearchField({
 }: SearchFieldProps) {
   const input = useRef<HTMLInputElement>(null);
   return (
-    <HeroTextField
-      fullWidth
-      aria-label={label}
-      value={value}
-      onChange={onChange}
-      isDisabled={disabled}
-    >
-      <InputGroup fullWidth className="input-group--pill">
-        <InputGroup.Prefix>
+    <div className="text-field">
+      <div className="text-field__control text-field__control--pill text-field__group">
+        <span className="text-field__slot text-field__slot--leading">
           <Icon name="search" size="sm" />
-        </InputGroup.Prefix>
-        <InputGroup.Input
+        </span>
+        <input
           ref={input}
+          type="text"
+          className="text-field__input"
+          aria-label={label}
           enterKeyHint="search"
-          {...(placeholder ? { placeholder } : {})}
+          placeholder={placeholder}
+          value={value}
+          disabled={disabled}
+          // Escape clears only while there is something to clear; an empty field lets Escape
+          // through to whatever it sits in, such as a dialog.
+          data-uses-escape={value !== "" ? "" : undefined}
+          onChange={(event) => onChange(event.currentTarget.value)}
           onKeyDown={(event) => {
             // While a composition is open, Enter and Escape belong to the input method.
             if (event.nativeEvent.isComposing) return;
             if (event.key === "Enter") onSubmit?.(value);
             if (event.key === "Escape" && value !== "") {
-              // Only the clearing uses the key up: an empty field lets Escape through to
-              // whatever it sits in, such as a dialog.
               event.stopPropagation();
               onChange("");
             }
           }}
         />
         {value !== "" && !disabled && (
-          <InputGroup.Suffix>
+          <span className="text-field__slot text-field__slot--trailing">
             <button
               type="button"
               aria-label={clearLabel}
@@ -74,9 +68,9 @@ export function SearchField({
             >
               <Icon name="circle-x" size="sm" />
             </button>
-          </InputGroup.Suffix>
+          </span>
         )}
-      </InputGroup>
-    </HeroTextField>
+      </div>
+    </div>
   );
 }

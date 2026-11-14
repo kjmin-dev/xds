@@ -1,4 +1,4 @@
-// What the web component libraries on Zag.js share, whatever their framework: the props that
+// What the web component libraries share, whatever their framework: the props that
 // hold no framework nodes, the class recipes of the components, pure helpers, and the steps
 // on the DOM that Zag leaves to each library, such as waiting for an overlay's exit animation.
 // Its stylesheet, @acme/ui-core/styles.css, draws every component the recipes name.
@@ -11,6 +11,7 @@ export {
   ACCORDION_PARTS,
   type AccordionBaseProps,
   type AccordionItemBase,
+  focusTitleOnClick,
   setPanelOpen,
 } from "./accordion.ts";
 export { afterAnimations } from "./animation.ts";
@@ -70,6 +71,7 @@ export type { DialogBaseProps } from "./dialog.ts";
 export { dividerClass } from "./divider.ts";
 export { EMPTY_STATE_PARTS, type EmptyStateBaseProps } from "./empty-state.ts";
 export { leaveEscapeToFields } from "./escape.ts";
+export { focusWithoutRing } from "./focus.ts";
 export { type IconBaseProps, type IconName, type IconSize, iconClass } from "./icon.ts";
 export { initials } from "./initials.ts";
 export {
@@ -88,8 +90,15 @@ export {
   mediaCardIds,
   mediaCardThumbnailClass,
 } from "./media-card.ts";
-export { layoutRect, type MenuBaseProps, type MenuItem, menuItemClass } from "./menu.ts";
-export { pageTarget } from "./page-keys.ts";
+export {
+  firstMenuValue,
+  layoutRect,
+  type MenuBaseProps,
+  type MenuItem,
+  menuItemClass,
+  opensOnPress,
+} from "./menu.ts";
+export { keepListKeys, pageTarget } from "./page-keys.ts";
 export {
   type ProgressBarBaseProps,
   progressBarClass,
@@ -104,7 +113,7 @@ export {
   segmentedControlOptionClass,
   segmentedControlSegmentClass,
 } from "./segmented-control.ts";
-export type { SelectBaseProps, SelectOption } from "./select.ts";
+export { type SelectBaseProps, type SelectOption, selectOptionIds } from "./select.ts";
 export {
   SIDEBAR_PARTS,
   type SidebarBaseProps,
@@ -123,7 +132,13 @@ export {
   skeletonClass,
   skeletonSize,
 } from "./skeleton.ts";
-export { type SliderBaseProps, sliderPageSize, sliderValueText } from "./slider.ts";
+export {
+  focusThumbOnPress,
+  type SliderBaseProps,
+  sliderArrowValue,
+  sliderPageSize,
+  sliderValueText,
+} from "./slider.ts";
 export { type SpinnerBaseProps, type SpinnerSize, spinnerClass } from "./spinner.ts";
 export {
   PEER_FOCUS,
@@ -133,7 +148,7 @@ export {
   switchThumbClass,
   switchTrackClass,
 } from "./switch.ts";
-export { type TabsBaseProps, tabsClass } from "./tabs.ts";
+export { type TabsBaseProps, tabStopIndex, tabsClass } from "./tabs.ts";
 export { type TextBaseProps, type TextTone, type TextVariant, textClass } from "./text.ts";
 export type { SearchFieldBaseProps, TextFieldBaseProps, TextFieldType } from "./text-field.ts";
 export {
@@ -145,4 +160,4 @@ export {
   thumbnailWatched,
 } from "./thumbnail.ts";
 export { TOAST_PARTS, type ToastAction, type ToastBaseProps } from "./toast.ts";
-export type { TooltipBaseProps } from "./tooltip.ts";
+export { type TooltipBaseProps, tooltipEndSide } from "./tooltip.ts";

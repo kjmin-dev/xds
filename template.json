@@ -63,7 +63,7 @@
       "id": "web-react",
       "default": true,
       "title": "Web",
-      "stack": "React 19, Vite, Tailwind v4, HeroUI v3",
+      "stack": "React 19, Vite, Tailwind v4, Zag.js",
       "platforms": ["Web"],
       "paths": ["apps/web", "packages/ui"],
       "requires": ["js-workspace", "js-tokens", "ui-core"],

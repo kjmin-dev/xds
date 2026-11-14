@@ -11,7 +11,7 @@ This repository is the xds template: a single set of design tokens, component li
 | `design/components.json` | Component contract: variants, sizes, tones, and the source file for each client |
 | `tools/design-build` | Token compiler and WCAG contrast checker |
 | `packages/ui`, `packages/ui-solid`, `packages/ui-native`, `crates/acme-ui`, `kotlin/ui` | Component libraries for the web (React and Solid), React Native, GPUI, and Compose |
-| `packages/ui-core` | What the web libraries share: the behavior tests that each of them runs, and the prop types, class recipes, and stylesheet of the libraries built on Zag.js. It imports no framework |
+| `packages/ui-core` | What the web libraries share: the prop types, class recipes, and stylesheet of their components, the DOM helpers their behavior needs, and the behavior tests that each of them runs. It imports no framework |
 | `apps/*`, `kotlin/*App` | Client apps, each with a design preview screen |
 | `cli`, `template.json` | The `xds` CLI and the manifest mapping repository paths to client targets |
 
@@ -21,7 +21,7 @@ This repository is the xds template: a single set of design tokens, component li
 - Components must take all colors, sizes, and spacing from tokens. Do not hardcode hex colors in components, and prefer tokens over raw pixel values. Component-specific colors belong in that component's group in both `color.light.json` and `color.dark.json`.
 - Every foreground and background color pair rendered together by a component must have an entry in `tools/design-build/src/contrast.ts`. The token build fails if any pairing falls below its required contrast ratio.
 - Every component, variant, size, and tone must exist across all clients under the same name and appear in each client's design preview. TopBar, TabBar, and BottomSheet are touch-only exceptions and exist only on React Native and Compose. Tooltip and Sidebar are pointer-only exceptions and exist only on the web targets (React and Solid) and GPUI. Update `design/components.json` in the same change.
-- On the web, the React library is the reference. A Solid component takes its classes and its CSS from `packages/ui-core`; the overlays and the composite controls take their behavior from Zag.js, and the selection controls and fields are native inputs, as in the React library. It must look and behave like the React component in both color modes. `packages/ui-core` keeps one copy of what the Zag.js libraries share, including the DOM helpers their behavior needs, so it never imports a framework, and its CSS selects on its own part classes, native pseudo-classes, `aria-*` attributes, and Zag's state attributes.
+- On the web, the libraries share `packages/ui-core` and must look and behave the same. A component in any of them takes its classes and its CSS from `packages/ui-core`; the overlays and the composite controls take their behavior from Zag.js, and the selection controls and fields are native inputs. Change a component's look or a behavior that does not depend on the framework in `packages/ui-core`, then check every web library against it in both color modes. `packages/ui-core` keeps one copy of what the web libraries share, including the DOM helpers their behavior needs, so it never imports a framework, and its CSS selects on its own part classes, native pseudo-classes, `aria-*` attributes, and Zag's state attributes.
 - Do not edit theme color ramps by hand. `design/themes/indigo.json` is the reference theme; generate new themes with `node tools/design-build/src/make-theme.ts <name> --hue <0-360>`.
 - Every top-level path in the repository must be accounted for in `template.json` (under a target, a shared group, `common`, or `exclude`). Target-specific lines in shared files must be wrapped in `@if <names>` and `@endif` comments. A name is a target id or a shared unit from `template.json`; use the unit (`@if js-workspace`) when the lines serve every target that requires it, so that a new target gets them too. Use `@if template` for lines needed only in this template repository.
 - Machine-written JSON files under `design/` must be formatted with `JSON.stringify(value, null, 2)` followed by a trailing newline.
@@ -54,7 +54,7 @@ How the interactive web components behave (keyboard, focus, and ARIA state) is t
 | Client | How to open a specific section directly |
 | --- | --- |
 | Web (React) | Run `mise run //web:dev`, then open `http://localhost:5173/design#buttons` (each section has an anchor; `?theme=light` or `?theme=dark` pins the color mode; `?open=menu`, `select`, `dialog`, `toast`, or `tooltip` opens that overlay) |
-| Web (Solid) | Run `mise run //web-solid:dev`, then open `http://localhost:5174/design#buttons` (the same anchors and parameters as the React preview; compare the two side by side) |
+| Web (Solid) | Run `mise run //web-solid:dev`, then open `http://localhost:5174/design#buttons` (the same anchors and parameters as the React preview; the two must look the same) |
 | GPUI desktop | `cargo run --package acme-desktop -- --design --dark --scroll 800` (`--open menu`, `select`, `dialog`, `toast`, or `tooltip` opens that overlay) |
 | React Native | Pass `?from=<section number>`, `?sheet=1`, `?menu=1`, `?select=1`, `?dialog=1`, or `?toast=1` to the design screen route |
 | Compose | `mise run //kotlin:render` renders PNG screenshots to `kotlin/build/preview` |

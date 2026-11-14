@@ -1,5 +1,5 @@
-import { type TabsBaseProps, tabsClass } from "@acme/ui-core";
-import { normalizeProps, useMachine } from "@zag-js/solid";
+import { type TabsBaseProps, tabStopIndex, tabsClass } from "@acme/ui-core";
+import { mergeProps, normalizeProps, useMachine } from "@zag-js/solid";
 import * as tabs from "@zag-js/tabs";
 import { createMemo, createUniqueId, For, Show } from "solid-js";
 import { Icon } from "./Icon.tsx";
@@ -28,18 +28,28 @@ export function Tabs<Value extends string>(props: TabsProps<Value>) {
     <div {...api().getRootProps()} class={tabsClass(props.fullWidth)}>
       <div {...api().getListProps()} aria-label={props.label} class="tabs__list">
         <For each={props.items}>
-          {(item) => (
-            <button
-              {...api().getTriggerProps({ value: item.value })}
-              // Zag points the selected tab at its panel, which this row never renders: the app
-              // shows the view. A reference to an element that does not exist is invalid.
-              aria-controls={undefined}
-              class="tabs__tab"
-            >
-              <Show when={item.icon}>{(name) => <Icon name={name()} size="sm" />}</Show>
-              {item.label}
-            </button>
-          )}
+          {(item) => {
+            const trigger = () => api().getTriggerProps({ value: item.value });
+            // Zag's props carry it as `tabIndex`, which Solid's types do not list.
+            const tabIndex = () =>
+              tabStopIndex(
+                api().focusedValue,
+                item.value,
+                (trigger() as { tabIndex?: number }).tabIndex,
+              );
+            return (
+              <button
+                {...mergeProps(trigger, () => ({ tabIndex: tabIndex() }))}
+                // Zag points the selected tab at its panel, which this row never renders: the
+                // app shows the view. A reference to an element that does not exist is invalid.
+                aria-controls={undefined}
+                class="tabs__tab"
+              >
+                <Show when={item.icon}>{(name) => <Icon name={name()} size="sm" />}</Show>
+                {item.label}
+              </button>
+            );
+          }}
         </For>
         <div {...api().getIndicatorProps()} class="tabs__indicator" />
       </div>

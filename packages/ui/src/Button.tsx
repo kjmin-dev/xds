@@ -1,51 +1,21 @@
-import { Button as HeroButton } from "@heroui/react";
+import { BUTTON_ICON, type ButtonBaseProps, buttonClass, isHeld } from "@acme/ui-core";
 import type { ReactNode } from "react";
-import { Icon, type IconName } from "./Icon.tsx";
+import { Icon } from "./Icon.tsx";
 import { Spinner } from "./Spinner.tsx";
+import { useTrigger } from "./trigger.ts";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
-export type ControlSize = "sm" | "md" | "lg";
+export type { ButtonVariant, ControlSize } from "@acme/ui-core";
 
-export type ButtonProps = {
-  /**
-   * `primary` is the one action a view is for; use it once per view. `secondary` is any other
-   * action, `ghost` an action that should stay out of the way, `danger` one that destroys.
-   */
-  variant?: ButtonVariant;
-  size?: ControlSize;
-  /** An icon in front of the label. */
-  iconStart?: IconName;
-  /** An icon after the label. */
-  iconEnd?: IconName;
-  /**
-   * Makes the button a toggle: given at all, its state is reported to assistive technology.
-   * While `true`, a `secondary` or a `ghost` button is drawn held down and its `iconStart` is
-   * filled. `primary` and `danger` keep their look and only report the state.
-   */
-  selected?: boolean;
-  disabled?: boolean;
-  /**
-   * Shows a spinner and ignores presses. The label stays, and the spinner stands where
-   * `iconStart` was, so the button keeps its width.
-   */
-  loading?: boolean;
-  fullWidth?: boolean;
-  type?: "button" | "submit" | "reset";
+export type ButtonProps = ButtonBaseProps & {
   onPress?: () => void;
-  /** Names the button for assistive technology when it has no text, such as an icon button. */
-  "aria-label"?: string;
   /** Leave it out for a button that holds only an icon, and name that one with `aria-label`. */
   children?: ReactNode;
 };
 
-// A large button has larger text, so its icons are a step larger too. The box is what a
-// spinner is centered in while it stands in for an icon.
-const ICON = {
-  sm: { size: "sm", box: "size-acme-icon-sm" },
-  md: { size: "sm", box: "size-acme-icon-sm" },
-  lg: { size: "md", box: "size-acme-icon-md" },
-} as const;
-
+/**
+ * A native button. It also opens a Menu or a Tooltip it is the trigger of: their props reach
+ * it through context.
+ */
 export function Button({
   variant = "secondary",
   size = "md",
@@ -57,38 +27,48 @@ export function Button({
   fullWidth = false,
   type = "button",
   onPress,
+  "aria-label": label,
   children,
-  ...aria
 }: ButtonProps) {
-  const icon = ICON[size];
-  // Only the two quiet variants change their look when selected, and a disabled button looks
-  // disabled whatever its state, so the filled icon follows the same conditions.
-  const held = selected === true && !disabled && (variant === "secondary" || variant === "ghost");
-  const iconOnly = children == null && (iconStart !== undefined || iconEnd !== undefined);
+  const icon = BUTTON_ICON[size];
+  const attributes = useTrigger(
+    {
+      className: buttonClass({
+        variant,
+        size,
+        iconOnly: children == null && (iconStart !== undefined || iconEnd !== undefined),
+        fullWidth,
+      }),
+      disabled,
+      // Loading keeps the button focusable, so focus is not lost while it waits.
+      "aria-disabled": loading || undefined,
+      "data-pending": loading ? "" : undefined,
+      "aria-pressed": selected,
+      "aria-label": label,
+      onClick: () => {
+        // The press was taken already.
+        if (!loading) onPress?.();
+      },
+    },
+    loading,
+  );
   return (
-    <HeroButton
-      {...aria}
-      variant={variant}
-      size={size}
-      type={type}
-      isDisabled={disabled}
-      isPending={loading}
-      isIconOnly={iconOnly}
-      fullWidth={fullWidth}
-      {...(selected === undefined ? {} : { "aria-pressed": selected })}
-      {...(onPress ? { onPress } : {})}
-    >
+    // oxlint-disable-next-line react/button-has-type -- one of the three types, from the props
+    <button {...attributes} type={type}>
       {loading &&
         (iconStart ? (
-          <span className={`inline-flex shrink-0 items-center justify-center ${icon.box}`}>
+          // Where the icon was, so the button keeps its width.
+          <span className={icon.box}>
             <Spinner size="sm" />
           </span>
         ) : (
           <Spinner size="sm" />
         ))}
-      {iconStart && !loading && <Icon name={iconStart} size={icon.size} filled={held} />}
+      {iconStart && !loading && (
+        <Icon name={iconStart} size={icon.size} filled={isHeld({ variant, selected, disabled })} />
+      )}
       {children}
       {iconEnd && <Icon name={iconEnd} size={icon.size} />}
-    </HeroButton>
+    </button>
   );
 }

@@ -8,7 +8,7 @@
  * animation it cuts short counts as finished.
  */
 export function afterAnimations(
-  elements: readonly (Element | undefined)[],
+  elements: readonly (Element | null | undefined)[],
   done: () => void,
 ): () => void {
   let waiting = true;

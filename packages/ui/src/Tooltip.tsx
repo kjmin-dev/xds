@@ -1,14 +1,13 @@
 import { motion, space } from "@acme/tokens";
-import { Tooltip as HeroTooltip } from "@heroui/react";
-import type { ReactNode } from "react";
+import { type TooltipBaseProps, tooltipEndSide } from "@acme/ui-core";
+import { normalizeProps, useMachine } from "@zag-js/react";
+import * as tooltip from "@zag-js/tooltip";
+import { type ReactNode, useId, useRef } from "react";
+import { Portal } from "./portal.tsx";
+import { usePresence } from "./presence.ts";
+import { TriggerContext, useProvideTrigger } from "./trigger.ts";
 
-export type TooltipProps = {
-  /** What the control is or does, in a word or two. */
-  label: string;
-  /** A key hint shown after the label, such as `⌘K`. */
-  shortcut?: string;
-  /** The side of the control the tooltip appears on. It flips when there is no room. */
-  placement?: "top" | "bottom";
+export type TooltipProps = TooltipBaseProps & {
   /** The control it describes: a Button or an IconButton. */
   children: ReactNode;
 };
@@ -23,13 +22,9 @@ export type TooltipProps = {
  */
 export function Tooltip({ label, shortcut, placement = "top", children }: TooltipProps) {
   return (
-    <HeroTooltip delay={motion.duration.tooltipDelay} closeDelay={0}>
+    <Overlay label={label} shortcut={shortcut} placement={placement}>
       {children}
-      <HeroTooltip.Content placement={placement} offset={space[1]}>
-        {label}
-        {shortcut && <kbd className="tooltip__shortcut">{shortcut}</kbd>}
-      </HeroTooltip.Content>
-    </HeroTooltip>
+    </Overlay>
   );
 }
 
@@ -40,11 +35,53 @@ export function Tooltip({ label, shortcut, placement = "top", children }: Toolti
  */
 export function TooltipBeside({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <HeroTooltip delay={motion.duration.tooltipDelay} closeDelay={0}>
+    <Overlay label={label} placement={tooltipEndSide()}>
       {children}
-      <HeroTooltip.Content placement="end" offset={space[1]}>
-        {label}
-      </HeroTooltip.Content>
-    </HeroTooltip>
+    </Overlay>
+  );
+}
+
+function Overlay({
+  label,
+  shortcut,
+  placement,
+  children,
+}: {
+  label: string;
+  shortcut?: string | undefined;
+  placement: tooltip.Placement;
+  children: ReactNode;
+}) {
+  const service = useMachine(tooltip.machine, {
+    id: useId(),
+    openDelay: motion.duration.tooltipDelay,
+    closeDelay: 0,
+    // It stays and follows its control when the page scrolls, for as long as the control keeps
+    // focus or the pointer. Tabbing to a control out of view scrolls the page, and a tooltip
+    // closed by that scroll would never show for it.
+    closeOnScroll: false,
+    positioning: { placement, gutter: space[1] },
+  });
+  const api = tooltip.connect(service, normalizeProps);
+  const trigger = useProvideTrigger(api.getTriggerProps());
+  const content = useRef<HTMLDivElement>(null);
+  const present = usePresence(api.open, () => [content.current]);
+  return (
+    <>
+      <TriggerContext value={trigger}>{children}</TriggerContext>
+      {present && (
+        <Portal>
+          <TriggerContext value={null}>
+            <div {...api.getPositionerProps()} className="tooltip__positioner">
+              {/* Shown until its exit animation ends; Zag would hide it as it closes. */}
+              <div {...api.getContentProps()} ref={content} hidden={false} className="tooltip">
+                {label}
+                {shortcut && <kbd className="tooltip__shortcut">{shortcut}</kbd>}
+              </div>
+            </div>
+          </TriggerContext>
+        </Portal>
+      )}
+    </>
   );
 }

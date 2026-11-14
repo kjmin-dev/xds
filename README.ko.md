@@ -10,13 +10,13 @@
 
 | 클라이언트 | 실행 환경 | 스택 | 컴포넌트 | 앱 |
 | --- | --- | --- | --- | --- |
-| `web-react` | 브라우저 | React 19, Vite, Tailwind v4, HeroUI v3 | `packages/ui` | `apps/web` |
+| `web-react` | 브라우저 | React 19, Vite, Tailwind v4, Zag.js | `packages/ui`, `packages/ui-core` | `apps/web` |
 | `web-solid` | 브라우저 | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js | `packages/ui-solid`, `packages/ui-core` | `apps/web-solid` |
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component | `crates/acme-ui` | `apps/desktop` |
 | `mobile-react-native` | iOS, Android | React Native, Expo | `packages/ui-native` | `apps/mobile` |
 | `kotlin-compose` | Android, iOS, 데스크톱 | Kotlin Multiplatform, Compose Multiplatform | `kotlin/ui` | `kotlin/androidApp`, `kotlin/iosApp`, `kotlin/desktopApp` |
 
-두 웹 클라이언트는 한 프로젝트에 함께 넣을 수 있습니다. 각각 디렉터리, 포트, `mise` 별칭이 따로 있습니다. `packages/ui-core`에는 Zag.js 기반 웹 라이브러리들이 함께 쓰는 것(prop 타입, 클래스 레시피, 스타일시트)이 있어서, 프레임워크별 라이브러리는 컴포넌트만 더합니다.
+두 웹 클라이언트는 한 프로젝트에 함께 넣을 수 있습니다. 각각 디렉터리, 포트, `mise` 별칭이 따로 있습니다. `packages/ui-core`에는 웹 라이브러리들이 함께 쓰는 것(prop 타입, 클래스 레시피, 스타일시트)이 있어서, 프레임워크별 라이브러리는 컴포넌트만 더하고 웹 클라이언트들은 같은 모습과 동작을 가집니다.
 
 `acme`는 플레이스홀더 이름이며, `xds create` 실행 시 입력한 프로젝트 이름으로 치환됩니다.
 
@@ -129,7 +129,7 @@ design/icons/           아이콘 (SVG 파일)
 tools/design-build/     토큰을 플랫폼 파일로 변환하고 대비를 검사
 packages/tokens/        생성된 CSS와 TypeScript
 packages/ui/            React 웹 컴포넌트
-packages/ui-core/       Zag.js 기반 웹 컴포넌트가 함께 쓰는 prop 타입, 클래스, CSS
+packages/ui-core/       웹 컴포넌트가 함께 쓰는 prop 타입, 클래스, CSS
 packages/ui-solid/      Solid 웹 컴포넌트
 packages/ui-native/     React Native 컴포넌트
 crates/acme-tokens/     생성된 Rust
@@ -150,8 +150,7 @@ template.json           어떤 경로가 어느 클라이언트에 속하는지
 
 | | 상태 |
 | --- | --- |
-| 웹 | 헤드리스 Chrome에서 라이트·다크 모드 디자인 프리뷰 확인 |
-| 웹 (Solid) | 헤드리스 Chrome에서 라이트·다크 모드 모두 React 디자인 프리뷰와 비교: 모든 섹션과 열린 오버레이의 스크린샷, 계산된 스타일, 접근성 트리, 키보드와 포인터 동작. 알려진 차이: 열린 Menu와 Select는 포커스를 목록에 둔 채 `aria-activedescendant`로 강조된 항목을 가리킴(React는 항목으로 포커스를 옮김). Tooltip은 컨트롤에 포커스나 포인터가 있는 동안 페이지가 스크롤돼도 열려 있음(React는 닫음). Menu와 Select 목록에서 글자를 입력하면 강조된 항목을 지나 그 글자로 시작하는 다음 항목으로 가고, 아무것도 고르지 않은 RadioGroup에 Shift+Tab으로 들어가면 첫 옵션에 포커스가 감. 둘 다 ARIA Authoring Practices를 따른 것으로, React는 강조된 항목에 머물 수 있고 마지막 옵션에 포커스를 둠 |
+| 웹 | 헤드리스 Chrome에서 라이트·다크 모드로 React와 Solid 디자인 프리뷰를 확인하고, 모든 섹션과 열린 오버레이 각각의 스크린샷을 서로 비교. 두 라이브러리는 같은 스타일시트로 그리고 같은 Zag.js 상태 머신에서 동작을 가져옴 |
 | GPUI 데스크톱 | macOS에서 앱 실행 및 라이트·다크 모드 프리뷰 확인 |
 | React Native | iOS 시뮬레이터에서 라이트·다크 모드 및 바텀 시트 동작 확인. Android와 실제 기기는 아직 확인하지 않음 |
 | Compose | 데스크톱, Android 에뮬레이터, iOS 시뮬레이터에서 확인. 자세한 내용은 [kotlin/README.md](kotlin/README.md) 참고 |

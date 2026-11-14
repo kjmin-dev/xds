@@ -19,7 +19,7 @@ mise run //web:dev        # serves http://localhost:5173
 mise run //web-solid:dev  # serves http://localhost:5174
 ```
 
-The Solid preview at `/design` has the same sections, anchors, `?theme=` and `?open=` parameters as the React one. The React preview is the reference: when both clients are in the project, capture the same section from both and compare them.
+The Solid preview at `/design` has the same sections, anchors, `?theme=` and `?open=` parameters as the React one. The web libraries share `packages/ui-core` and must look and behave the same: when both clients are in the project, capture the same section from both and compare them.
 
 ## Web behavior tests
 

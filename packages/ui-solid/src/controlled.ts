@@ -1,7 +1,7 @@
 // A native input shows what was typed whether or not the parent took it: Solid writes `value`
-// and `checked` only when the prop changes. The React library's fields are controlled, so a
-// field whose parent keeps the old value puts it back. These do the same, once the parent's
-// update has run.
+// and `checked` only when the prop changes. The web libraries' fields are controlled, as
+// React's are, so a field whose parent keeps the old value puts it back. These do that, once
+// the parent's update has run.
 
 import { flush } from "solid-js";
 

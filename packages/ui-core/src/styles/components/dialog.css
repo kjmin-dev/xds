@@ -37,11 +37,13 @@
   /* After the rules above, which they replace. The positioner follows the dialog's state, as
      Zag gives the positioner none; a closing dialog takes no more presses. */
   .dialog__backdrop[data-state="closed"] {
-    animation: acme-fade-out var(--acme-motion-duration-fast) var(--acme-motion-easing-exit);
+    animation: acme-fade-out var(--acme-motion-duration-fast) var(--acme-motion-easing-exit)
+      forwards;
   }
 
   .dialog__positioner:has(> .dialog[data-state="closed"]) {
-    animation: acme-overlay-exit var(--acme-motion-duration-fast) var(--acme-motion-easing-exit);
+    animation: acme-overlay-exit var(--acme-motion-duration-fast) var(--acme-motion-easing-exit)
+      forwards;
   }
 
   .dialog[data-state="closed"] {

@@ -1,5 +1,5 @@
 import { motion, space } from "@acme/tokens";
-import type { TooltipBaseProps } from "@acme/ui-core";
+import { type TooltipBaseProps, tooltipEndSide } from "@acme/ui-core";
 import { Portal } from "@solidjs/web";
 import { normalizeProps, useMachine } from "@zag-js/solid";
 import * as tooltip from "@zag-js/tooltip";
@@ -38,10 +38,8 @@ export function Tooltip(props: TooltipProps) {
  * for this package's own components: the index does not export it.
  */
 export function TooltipBeside(props: { label: string; children: Element }) {
-  // Zag places by physical side, so the end edge is read from the page's direction.
-  const end = () => (document.documentElement.dir === "rtl" ? "left" : "right");
   return (
-    <Overlay label={props.label} placement={end}>
+    <Overlay label={props.label} placement={tooltipEndSide}>
       {props.children}
     </Overlay>
   );
@@ -60,7 +58,7 @@ function Overlay(props: {
     closeDelay: 0,
     // It stays and follows its control when the page scrolls, for as long as the control keeps
     // focus or the pointer. Tabbing to a control out of view scrolls the page, and a tooltip
-    // closed by that scroll would never show for it. The React library closes it on any scroll.
+    // closed by that scroll would never show for it.
     closeOnScroll: false,
     positioning: { placement: props.placement(), gutter: space[1] },
   }));

@@ -7,9 +7,12 @@ export function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
     let current = true;
-    AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
-      if (current) setReduced(enabled);
-    });
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then((enabled) => {
+        if (current) setReduced(enabled);
+      })
+      // Without an answer motion stays on, until the listener below reports a change.
+      .catch(() => {});
     const subscription = AccessibilityInfo.addEventListener("reduceMotionChanged", setReduced);
     return () => {
       current = false;

@@ -5,7 +5,6 @@
   "plugins": ["eslint", "typescript", "unicorn", "oxc"],
   "categories": { "correctness": "error" },
   "ignorePatterns": ["**/generated/**"],
-  "options": { "reportUnusedDisableDirectives": "error" },
   // Rules outside the correctness category that the code already keeps to: suspicious code,
   // and the shorter or safer form where there are two.
   "rules": {
@@ -77,6 +76,24 @@
     "oxc/misrefactored-assign-op": "error",
     "oxc/no-accumulating-spread": "error",
     "oxc/no-const-enum": "error",
+    // These need type information, so only check:js, which runs `oxlint --type-aware`, applies
+    // them. The correctness category brings more, such as no-misused-spread.
+    "typescript/consistent-type-exports": "error",
+    "typescript/dot-notation": "error",
+    // node:test registers a test when test() is called, and runs it whether or not the
+    // returned promise is awaited.
+    "typescript/no-floating-promises": [
+      "error",
+      {
+        "allowForKnownSafeCalls": [
+          {
+            "from": "package",
+            "package": "node:test",
+            "name": ["test", "describe", "it", "suite"],
+          },
+        ],
+      },
+    ],
   },
   "overrides": [
     // @if web-react

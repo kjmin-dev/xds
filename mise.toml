@@ -124,7 +124,10 @@ description = "Lint, type-check, and test the TypeScript workspace"
 depends = ["install"]
 run = [
   "pnpm exec oxfmt --check",
-  "pnpm exec oxlint",
+  # Type information adds rules such as no-floating-promises, and makes the run slower, so it is
+  # only here. So is the check for unused disable directives: to a run without the type-aware
+  # rules, a directive for one of them looks unused, and `oxlint --fix` in fmt would delete it.
+  "pnpm exec oxlint --type-aware --report-unused-disable-directives-severity=error",
   "pnpm --recursive --if-present run typecheck",
   "pnpm --recursive --if-present run test",
   # @if web-react

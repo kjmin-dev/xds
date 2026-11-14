@@ -1,16 +1,15 @@
-import assert from "node:assert/strict";
-import { test } from "node:test";
+import { expect, test } from "vitest";
 import { initials } from "./initials.ts";
 
 test("initials take the first letter of the first two words", () => {
-  assert.equal(initials("Ada Lovelace"), "AL");
-  assert.equal(initials("  grace   brewster hopper "), "GB");
-  assert.equal(initials("Plato"), "P");
-  assert.equal(initials(""), "");
+  expect(initials("Ada Lovelace")).toBe("AL");
+  expect(initials("  grace   brewster hopper ")).toBe("GB");
+  expect(initials("Plato")).toBe("P");
+  expect(initials("")).toBe("");
 });
 
 test("initials keep whole characters", () => {
-  assert.equal(initials("김 민준"), "김민");
-  assert.equal(initials("𝒜da"), "𝒜");
-  assert.equal(initials("Ada Lovelace", 1), "A");
+  expect(initials("김 민준")).toBe("김민");
+  expect(initials("𝒜da")).toBe("𝒜");
+  expect(initials("Ada Lovelace", 1)).toBe("A");
 });

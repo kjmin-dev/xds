@@ -60,6 +60,9 @@ The first run resolves dependencies and generates the lockfiles. Commit them to 
 <!-- @endif -->
 | List all tasks | `mise tasks --all` |
 
+<!-- @if web-react -->
+The tests of the web components run in Google Chrome, which `mise run check` needs installed.
+<!-- @endif -->
 <!-- @if desktop-gpui -->
 The desktop app requires macOS.
 <!-- @endif -->

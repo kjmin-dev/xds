@@ -49,7 +49,7 @@ mise run fmt
 mise run check
 ```
 
-프로젝트 이름이 반영되면서 줄 길이와 import 순서가 달라질 수 있으므로, 첫 `mise run check`를 실행하기 전에 `mise run fmt`를 한 번 먼저 실행하세요. 선택한 각 클라이언트를 시작하는 명령(예: `mise run //web:dev`)도 `xds`가 함께 출력합니다.
+프로젝트 이름이 반영되면서 줄 길이와 import 순서가 달라질 수 있으므로, 첫 `mise run check`를 실행하기 전에 `mise run fmt`를 한 번 먼저 실행하세요. 웹 클라이언트가 있으면 `mise run check`가 웹 컴포넌트를 Google Chrome에서 테스트하므로 Chrome이 설치되어 있어야 합니다. 선택한 각 클라이언트를 시작하는 명령(예: `mise run //web:dev`)도 `xds`가 함께 출력합니다.
 
 각 앱에는 모든 토큰과 컴포넌트를 한 화면에서 확인할 수 있는 디자인 프리뷰가 포함되어 있습니다.
 

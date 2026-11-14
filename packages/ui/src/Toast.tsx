@@ -84,7 +84,7 @@ export function Toast({
               }}
               // Pulled into the toast's padding, so a pressable area of the minimum size does
               // not make a one-line toast taller.
-              className="-my-2 min-h-acme-target-min min-w-acme-target-min shrink-0 cursor-pointer rounded-acme-sm text-acme-label text-acme-toast-action hover:underline focus-visible:outline-solid focus-visible:outline-(length:--acme-focus-width) focus-visible:outline-offset-(--acme-focus-offset) focus-visible:outline-current"
+              className="-my-2 min-h-acme-target-min min-w-acme-target-min shrink-0 cursor-pointer rounded-acme-sm text-acme-label text-acme-toast-action hover:underline focus-visible:outline-(length:--acme-focus-width) focus-visible:outline-offset-(--acme-focus-offset) focus-visible:outline-current focus-visible:outline-solid"
             >
               {action.label}
             </button>

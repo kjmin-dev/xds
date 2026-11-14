@@ -20,4 +20,25 @@
   // The documentation site's pages; Astro brings the compiler that formats them.
   "astro": true,
   // @endif
+  // @if web-react
+  // Tailwind classes are sorted in the order of the stylesheet they come from. It has to bring
+  // the tokens' @theme: with Tailwind's own theme, the acme-* utilities are unknown and sort
+  // first. A path that does not exist sorts nothing, without an error.
+  "overrides": [
+    // @if web-react
+    {
+      "files": ["apps/web/**", "packages/ui/**"],
+      "options": { "sortTailwindcss": { "stylesheet": "./packages/ui/src/styles/index.css" } },
+    },
+    // @endif
+    // @if template
+    {
+      "files": ["apps/docs/**"],
+      "options": { "sortTailwindcss": { "stylesheet": "./apps/docs/src/styles/demo.css" } },
+    },
+    // web-solid, web-vue and web-svelte each add an override here, with the stylesheet
+    // ./packages/ui-core/src/styles/index.css, and their ids to the marker around "overrides".
+    // @endif
+  ],
+  // @endif
 }

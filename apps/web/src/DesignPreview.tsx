@@ -455,13 +455,13 @@ export function DesignPreview() {
       {/* Stays in view while the page scrolls, so any section is one press away. */}
       <nav
         aria-label="Sections"
-        className="sticky top-0 z-10 -mx-6 flex gap-1 overflow-x-auto border-acme-border-default border-b bg-acme-background-base px-6 py-2"
+        className="sticky top-0 z-10 -mx-6 flex gap-1 overflow-x-auto border-b border-acme-border-default bg-acme-background-base px-6 py-2"
       >
         {SECTIONS.map((title) => (
           <a
             key={title}
             href={`#${anchor(title)}`}
-            className="whitespace-nowrap rounded-full px-3 py-1 text-acme-label text-acme-text-secondary transition-colors hover:bg-acme-control-default hover:text-acme-text-primary"
+            className="rounded-full px-3 py-1 text-acme-label whitespace-nowrap text-acme-text-secondary transition-colors hover:bg-acme-control-default hover:text-acme-text-primary"
           >
             {title}
           </a>
@@ -868,7 +868,7 @@ export function DesignPreview() {
         </Row>
         <Row label="bar">
           {/* Narrower than its chips, so the row has to scroll. */}
-          <div className="min-w-0 max-w-md flex-1">
+          <div className="max-w-md min-w-0 flex-1">
             <ChipBar label="Filter the tasks">
               {FILTERS.map((filter) => (
                 <Chip

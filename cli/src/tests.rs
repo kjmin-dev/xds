@@ -502,8 +502,8 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
             }
 
             // The formatter and linter configurations parse, and each override names files
-            // that the project has: a glob that matches nothing is silently ignored, and oxlint
-            // fails on a missing plugin.
+            // that the project has: a glob that matches nothing is silently ignored, oxlint
+            // fails on a missing plugin, and oxfmt sorts nothing with a missing stylesheet.
             for config in [".oxfmtrc.jsonc", ".oxlintrc.jsonc"] {
                 let config = jsonc(&read(config), &format!("{selected:?}: {config}"));
                 for entry in config["overrides"].as_array().into_iter().flatten() {
@@ -516,6 +516,11 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
                     }
                     for plugin in entry["jsPlugins"].as_array().into_iter().flatten() {
                         let path = plugin.as_str().expect("a path").trim_start_matches("./");
+                        assert!(files.contains_key(path), "{selected:?}: {path}");
+                    }
+                    let tailwind = &entry["options"]["sortTailwindcss"];
+                    if let Some(stylesheet) = tailwind["stylesheet"].as_str() {
+                        let path = stylesheet.trim_start_matches("./");
                         assert!(files.contains_key(path), "{selected:?}: {path}");
                     }
                 }
@@ -698,6 +703,10 @@ fn creates_a_web_project() {
         ],
     );
     assert!(!text(&tree, ".oxlintrc.jsonc").contains("react-native"));
+    let format = text(&tree, ".oxfmtrc.jsonc");
+    assert!(
+        format.contains("\"./packages/ui/src/styles/index.css\"") && !format.contains("apps/docs")
+    );
     assert_eq!(json(&tree, "package.json")["name"], "orbit");
     assert_eq!(json(&tree, "packages/ui/package.json")["name"], "@orbit/ui");
     assert!(text(&tree, "packages/tokens/src/generated/theme.css").contains("--orbit-color-"));
@@ -767,6 +776,8 @@ fn creates_a_mobile_project() {
     );
     let lint = text(&tree, ".oxlintrc.jsonc");
     assert!(lint.contains("react-native/no-raw-text") && !lint.contains("apps/web"));
+    // React Native styles have no Tailwind classes to sort.
+    assert!(!text(&tree, ".oxfmtrc.jsonc").contains("sortTailwindcss"));
 }
 
 #[test]

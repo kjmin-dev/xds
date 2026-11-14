@@ -49,7 +49,7 @@ export function AvatarStack({ people, max = 4, size = "md", label }: AvatarStack
       {rest > 0 && (
         <span
           aria-hidden="true"
-          className={`inline-flex select-none items-center justify-center bg-acme-avatar-overflow-background text-acme-avatar-overflow-text ${AVATAR_SIZE[size]} ${RING} ${OVERLAP[size]}`}
+          className={`inline-flex items-center justify-center bg-acme-avatar-overflow-background text-acme-avatar-overflow-text select-none ${AVATAR_SIZE[size]} ${RING} ${OVERLAP[size]}`}
         >
           +{rest}
         </span>

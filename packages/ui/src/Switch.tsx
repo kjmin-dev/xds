@@ -33,7 +33,7 @@ export function Switch({ checked, onChange, label, disabled = false, ...aria }: 
         onChange={(event) => onChange(event.target.checked)}
       />
       <span
-        className={`flex h-acme-switch-height w-acme-switch-width shrink-0 rounded-full bg-acme-switch-track p-0.5 transition-colors duration-(--acme-motion-duration-fast) peer-checked:bg-acme-switch-track-on peer-disabled:bg-acme-switch-disabled-track peer-checked:*:translate-x-[calc(var(--acme-size-switch-width)-var(--acme-size-switch-height))] peer-disabled:*:bg-acme-switch-disabled-thumb ${PEER_FOCUS}`}
+        className={`flex h-acme-switch-height w-acme-switch-width shrink-0 rounded-full bg-acme-switch-track p-0.5 transition-colors duration-(--acme-motion-duration-fast) peer-checked:bg-acme-switch-track-on peer-checked:*:translate-x-[calc(var(--acme-size-switch-width)-var(--acme-size-switch-height))] peer-disabled:bg-acme-switch-disabled-track peer-disabled:*:bg-acme-switch-disabled-thumb ${PEER_FOCUS}`}
       >
         <span className="aspect-square h-full rounded-full bg-acme-switch-thumb transition-transform duration-(--acme-motion-duration-fast) ease-(--acme-motion-easing-standard) motion-reduce:transition-none" />
       </span>

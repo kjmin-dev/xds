@@ -46,7 +46,7 @@ export function SegmentedControl<Value extends string>({
           {/* The border is there on every segment, transparent until selected, so selecting
               does not move the text. */}
           <span
-            className={`flex w-full items-center justify-center whitespace-nowrap rounded-[calc(var(--acme-radius-md)-2px)] border border-transparent px-4 text-acme-label text-acme-segmented-text peer-checked:border-acme-segmented-selected-border peer-checked:bg-acme-segmented-selected-background peer-checked:text-acme-segmented-selected-text peer-checked:shadow-acme-subtle ${PEER_FOCUS}`}
+            className={`flex w-full items-center justify-center rounded-[calc(var(--acme-radius-md)-2px)] border border-transparent px-4 text-acme-label whitespace-nowrap text-acme-segmented-text peer-checked:border-acme-segmented-selected-border peer-checked:bg-acme-segmented-selected-background peer-checked:text-acme-segmented-selected-text peer-checked:shadow-acme-subtle ${PEER_FOCUS}`}
           >
             {option.label}
           </span>

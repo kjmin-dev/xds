@@ -113,7 +113,7 @@ export function MediaCard({
         type="button"
         onClick={onPress}
         aria-labelledby={names}
-        className="absolute inset-0 cursor-pointer rounded-acme-lg transition-colors duration-(--acme-motion-duration-fast) hover:bg-acme-card-background-hover focus-visible:outline-solid focus-visible:outline-(length:--acme-focus-width) focus-visible:outline-offset-(--acme-focus-offset) focus-visible:outline-acme-border-focus active:bg-acme-card-background-pressed"
+        className="absolute inset-0 cursor-pointer rounded-acme-lg transition-colors duration-(--acme-motion-duration-fast) hover:bg-acme-card-background-hover focus-visible:outline-(length:--acme-focus-width) focus-visible:outline-offset-(--acme-focus-offset) focus-visible:outline-acme-border-focus focus-visible:outline-solid active:bg-acme-card-background-pressed"
       />
       {content}
     </div>

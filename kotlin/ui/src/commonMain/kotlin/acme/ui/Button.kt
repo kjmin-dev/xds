@@ -33,7 +33,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.collapse
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.expand
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.max
@@ -157,44 +159,14 @@ fun Button(
 }
 
 /**
- * A button that holds only an icon, for the controls components draw themselves, such as the
- * one that dismisses a banner. It is never smaller than the minimum target, in either direction.
+ * The fill, outline, shape and press handling every button shares, [IconButton] included.
  *
- * @param label Names the button for a screen reader: the icon is a drawing.
- */
-@Composable
-internal fun IconOnlyButton(
-    icon: IconName,
-    label: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    variant: ButtonVariant = ButtonVariant.Ghost,
-    size: ControlSize = ControlSize.Sm,
-) {
-    ButtonFrame(
-        onClick = onClick,
-        modifier = modifier,
-        variant = variant,
-        size = size,
-        enabled = true,
-        loading = false,
-        fullWidth = false,
-        selected = null,
-        name = label,
-    ) { text, _ ->
-        Icon(icon, size = if (size == ControlSize.Lg) IconSize.Md else IconSize.Sm, color = text)
-    }
-}
-
-/**
- * The fill, outline, shape and press handling every button shares.
- *
- * @param name Set for a button without a label: it is then as wide as it is tall, and this is
- *   what a screen reader says.
+ * @param name Set for a button without a label: it is then a square as wide as it is tall, and
+ *   this is what a screen reader says.
  * @param content Given the color of the label, and whether the selected look is drawn.
  */
 @Composable
-private fun ButtonFrame(
+internal fun ButtonFrame(
     onClick: () -> Unit,
     modifier: Modifier,
     variant: ButtonVariant,
@@ -257,14 +229,14 @@ private fun ButtonFrame(
     val reacts = enabled && !loading
     // A minimum, not a height: the label may grow with the system's text size. A small button
     // still reacts to a touch anywhere in the minimum target around it, which the theme's view
-    // configuration takes care of. One without a label is drawn at that size as well: there is
-    // no label to say where it ends.
+    // configuration takes care of, for one without a label as well.
     val least = max(height, sizes.targetMin)
+    val menu = LocalMenuTrigger.current
 
     Row(
         modifier = modifier
             .then(if (fullWidth) Modifier.fillMaxWidth() else Modifier)
-            .defaultMinSize(minWidth = least, minHeight = if (name != null) least else height)
+            .then(if (name != null) Modifier.size(height) else Modifier.defaultMinSize(minWidth = least, minHeight = height))
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
@@ -293,6 +265,17 @@ private fun ButtonFrame(
                         role = Role.Button,
                         onClick = onClick,
                     )
+                },
+            )
+            .then(
+                // The button that opens a menu says so, and whether the menu is open: a screen
+                // reader calls it collapsed or expanded.
+                if (menu != null) {
+                    Modifier.semantics {
+                        if (menu.open) collapse { menu.setOpen(false); true } else expand { menu.setOpen(true); true }
+                    }
+                } else {
+                    Modifier
                 },
             )
             .then(if (name != null) Modifier.semantics { contentDescription = name } else Modifier.padding(horizontal = padding)),

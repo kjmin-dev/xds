@@ -137,6 +137,46 @@ const PAIRS: Pair[] = [
     ),
   ),
   ...on("card.border-selected", SURFACES, PART),
+  ...on("chip.text", ["chip.background", "chip.background-hover", "chip.background-pressed"], TEXT),
+  ...on(
+    "chip.selected-text",
+    [
+      "chip.selected-background",
+      "chip.selected-background-hover",
+      "chip.selected-background-pressed",
+    ],
+    TEXT,
+  ),
+  ...on("chip.selected-border", ["chip.selected-background", ...SURFACES], PART),
+  ...["tabs.text", "tabs.text-hover", "tabs.text-selected"].flatMap((text) =>
+    on(text, SURFACES, TEXT),
+  ),
+  ...on("tabs.indicator", SURFACES, PART),
+  ...on(
+    "menu.text",
+    ["menu.background", "menu.item-background-hover", "menu.item-background-pressed"],
+    TEXT,
+  ),
+  ...on(
+    "menu.icon",
+    ["menu.background", "menu.item-background-hover", "menu.item-background-pressed"],
+    PART,
+  ),
+  ...on("menu.danger-text", ["menu.background", "menu.danger-background-hover"], TEXT),
+  // On touch a menu is a bottom sheet, so its rows sit on the sheet's surface.
+  ...on("menu.text", ["sheet.background"], TEXT),
+  ...on("menu.danger-text", ["sheet.background"], TEXT),
+  ...on("menu.icon", ["sheet.background"], PART),
+  // The clear control of a search field is a ghost button inside the field.
+  ...on("button.ghost.text", ["field.background"], TEXT),
+  ...on("dialog.title", ["dialog.background"], TEXT),
+  ...on("dialog.text", ["dialog.background"], TEXT),
+  // A dialog's actions are buttons on its surface; the ghost one has no fill of its own.
+  ...on("button.ghost.text", ["dialog.background"], TEXT),
+  ...on("field.border", ["dialog.background"], PART),
+  ...on("toast.text", ["toast.background"], TEXT),
+  ...on("toast.action", ["toast.background"], TEXT),
+  ...on("tooltip.text", ["tooltip.background"], TEXT),
   // A banner's dismiss control is a ghost button, and its action a secondary one, on the tint.
   ...on(
     "button.ghost.text",

@@ -41,6 +41,8 @@ interface Colors {
     val textOnDanger: Color
     /** Text on an inverse surface. */
     val textOnInverse: Color
+    /** Accent-colored text on an inverse surface, such as the action of a toast. */
+    val textAccentOnInverse: Color
     /** Dividers and card outlines. Decorative, so low contrast is fine. */
     val borderDefault: Color
     /** Outline of a control that its label already identifies, such as a secondary button. Decorative, so it does not have to hold 3:1. */
@@ -162,6 +164,51 @@ interface Colors {
     /** A hairline around the selected segment. Together with a faint shadow and the darker label it sets the segment apart from the track. */
     val segmentedSelectedBorder: Color
     val segmentedSelectedText: Color
+    /** A choice that filters what is shown. Unlike a badge, it is pressed. */
+    val chipBackground: Color
+    val chipBackgroundHover: Color
+    val chipBackgroundPressed: Color
+    val chipText: Color
+    /** A chip that is on: tinted, outlined and marked with a check, so the state does not depend on color alone. */
+    val chipSelectedBackground: Color
+    val chipSelectedBackgroundHover: Color
+    val chipSelectedBackgroundPressed: Color
+    val chipSelectedBorder: Color
+    val chipSelectedText: Color
+    val chipDisabledBackground: Color
+    val chipDisabledText: Color
+    /** The hairline the tabs stand on. */
+    val tabsBorder: Color
+    val tabsText: Color
+    val tabsTextHover: Color
+    val tabsTextSelected: Color
+    /** The bar under the selected tab. Its shape marks the selection, so color is not the only signal. */
+    val tabsIndicator: Color
+    val menuBackground: Color
+    val menuBorder: Color
+    val menuText: Color
+    val menuIcon: Color
+    val menuTextDisabled: Color
+    /** Under the pointer, and under the keyboard's highlight. */
+    val menuItemBackgroundHover: Color
+    val menuItemBackgroundPressed: Color
+    /** An item that destroys something. */
+    val menuDangerText: Color
+    /** Also while pressed. A neutral fill would not carry the danger text in dark mode. */
+    val menuDangerBackgroundHover: Color
+    val dialogBackground: Color
+    val dialogBorder: Color
+    val dialogTitle: Color
+    val dialogText: Color
+    val toastBackground: Color
+    val toastText: Color
+    val toastAction: Color
+    val tooltipBackground: Color
+    val tooltipText: Color
+    /** The place of content that is still loading. */
+    val skeletonBackground: Color
+    /** What the placeholder pulses toward. */
+    val skeletonHighlight: Color
     val avatarBackground: Color
     val avatarText: Color
     /** The gap between the avatars of a stack. The color of the surface the stack sits on. */
@@ -210,6 +257,7 @@ interface Colors {
         "text-on-accent" to textOnAccent,
         "text-on-danger" to textOnDanger,
         "text-on-inverse" to textOnInverse,
+        "text-accent-on-inverse" to textAccentOnInverse,
         "border-default" to borderDefault,
         "border-control" to borderControl,
         "border-strong" to borderStrong,
@@ -306,6 +354,42 @@ interface Colors {
         "segmented-selected-background" to segmentedSelectedBackground,
         "segmented-selected-border" to segmentedSelectedBorder,
         "segmented-selected-text" to segmentedSelectedText,
+        "chip-background" to chipBackground,
+        "chip-background-hover" to chipBackgroundHover,
+        "chip-background-pressed" to chipBackgroundPressed,
+        "chip-text" to chipText,
+        "chip-selected-background" to chipSelectedBackground,
+        "chip-selected-background-hover" to chipSelectedBackgroundHover,
+        "chip-selected-background-pressed" to chipSelectedBackgroundPressed,
+        "chip-selected-border" to chipSelectedBorder,
+        "chip-selected-text" to chipSelectedText,
+        "chip-disabled-background" to chipDisabledBackground,
+        "chip-disabled-text" to chipDisabledText,
+        "tabs-border" to tabsBorder,
+        "tabs-text" to tabsText,
+        "tabs-text-hover" to tabsTextHover,
+        "tabs-text-selected" to tabsTextSelected,
+        "tabs-indicator" to tabsIndicator,
+        "menu-background" to menuBackground,
+        "menu-border" to menuBorder,
+        "menu-text" to menuText,
+        "menu-icon" to menuIcon,
+        "menu-text-disabled" to menuTextDisabled,
+        "menu-item-background-hover" to menuItemBackgroundHover,
+        "menu-item-background-pressed" to menuItemBackgroundPressed,
+        "menu-danger-text" to menuDangerText,
+        "menu-danger-background-hover" to menuDangerBackgroundHover,
+        "dialog-background" to dialogBackground,
+        "dialog-border" to dialogBorder,
+        "dialog-title" to dialogTitle,
+        "dialog-text" to dialogText,
+        "toast-background" to toastBackground,
+        "toast-text" to toastText,
+        "toast-action" to toastAction,
+        "tooltip-background" to tooltipBackground,
+        "tooltip-text" to tooltipText,
+        "skeleton-background" to skeletonBackground,
+        "skeleton-highlight" to skeletonHighlight,
         "avatar-background" to avatarBackground,
         "avatar-text" to avatarText,
         "avatar-ring" to avatarRing,
@@ -346,6 +430,7 @@ object LightColors : Colors {
     override val textOnAccent = Color(0xFFFFFFFF)
     override val textOnDanger = Color(0xFFFFFFFF)
     override val textOnInverse = Color(0xFFF5F5F7)
+    override val textAccentOnInverse = Color(0xFFA5B4FC)
     override val borderDefault = Color(0xFFE2E2E8)
     override val borderControl = Color(0xFFC9C9D1)
     override val borderStrong = Color(0xFF84848F)
@@ -442,6 +527,42 @@ object LightColors : Colors {
     override val segmentedSelectedBackground = Color(0xFFFFFFFF)
     override val segmentedSelectedBorder = Color(0xFFC9C9D1)
     override val segmentedSelectedText = Color(0xFF18181C)
+    override val chipBackground = Color(0xFFECECF0)
+    override val chipBackgroundHover = Color(0xFFE2E2E8)
+    override val chipBackgroundPressed = Color(0xFFC9C9D1)
+    override val chipText = Color(0xFF18181C)
+    override val chipSelectedBackground = Color(0xFFEEF2FF)
+    override val chipSelectedBackgroundHover = Color(0xFFE0E7FF)
+    override val chipSelectedBackgroundPressed = Color(0xFFC7D2FE)
+    override val chipSelectedBorder = Color(0xFF4F46E5)
+    override val chipSelectedText = Color(0xFF18181C)
+    override val chipDisabledBackground = Color(0xFFECECF0)
+    override val chipDisabledText = Color(0xFFA9A9B4)
+    override val tabsBorder = Color(0xFFE2E2E8)
+    override val tabsText = Color(0xFF5C5C66)
+    override val tabsTextHover = Color(0xFF18181C)
+    override val tabsTextSelected = Color(0xFF18181C)
+    override val tabsIndicator = Color(0xFF4F46E5)
+    override val menuBackground = Color(0xFFFFFFFF)
+    override val menuBorder = Color(0xFFE2E2E8)
+    override val menuText = Color(0xFF18181C)
+    override val menuIcon = Color(0xFF5C5C66)
+    override val menuTextDisabled = Color(0xFFA9A9B4)
+    override val menuItemBackgroundHover = Color(0xFFECECF0)
+    override val menuItemBackgroundPressed = Color(0xFFE2E2E8)
+    override val menuDangerText = Color(0xFFB42318)
+    override val menuDangerBackgroundHover = Color(0xFFFEF3F2)
+    override val dialogBackground = Color(0xFFFFFFFF)
+    override val dialogBorder = Color(0xFFE2E2E8)
+    override val dialogTitle = Color(0xFF18181C)
+    override val dialogText = Color(0xFF5C5C66)
+    override val toastBackground = Color(0xFF18181C)
+    override val toastText = Color(0xFFF5F5F7)
+    override val toastAction = Color(0xFFA5B4FC)
+    override val tooltipBackground = Color(0xFF18181C)
+    override val tooltipText = Color(0xFFF5F5F7)
+    override val skeletonBackground = Color(0xFFECECF0)
+    override val skeletonHighlight = Color(0xFFE2E2E8)
     override val avatarBackground = Color(0xFFEEF2FF)
     override val avatarText = Color(0xFF4F46E5)
     override val avatarRing = Color(0xFFFFFFFF)
@@ -481,6 +602,7 @@ object DarkColors : Colors {
     override val textOnAccent = Color(0xFFFFFFFF)
     override val textOnDanger = Color(0xFFFFFFFF)
     override val textOnInverse = Color(0xFF18181C)
+    override val textAccentOnInverse = Color(0xFF4F46E5)
     override val borderDefault = Color(0xFF2C2C33)
     override val borderControl = Color(0xFF44444C)
     override val borderStrong = Color(0xFF84848F)
@@ -577,6 +699,42 @@ object DarkColors : Colors {
     override val segmentedSelectedBackground = Color(0xFF222228)
     override val segmentedSelectedBorder = Color(0xFF44444C)
     override val segmentedSelectedText = Color(0xFFF5F5F7)
+    override val chipBackground = Color(0xFF2C2C33)
+    override val chipBackgroundHover = Color(0xFF44444C)
+    override val chipBackgroundPressed = Color(0xFF5C5C66)
+    override val chipText = Color(0xFFF5F5F7)
+    override val chipSelectedBackground = Color(0xFF1E1B4B)
+    override val chipSelectedBackgroundHover = Color(0xFF312E81)
+    override val chipSelectedBackgroundPressed = Color(0xFF3730A3)
+    override val chipSelectedBorder = Color(0xFF5B5EF0)
+    override val chipSelectedText = Color(0xFFF5F5F7)
+    override val chipDisabledBackground = Color(0xFF2C2C33)
+    override val chipDisabledText = Color(0xFF5C5C66)
+    override val tabsBorder = Color(0xFF2C2C33)
+    override val tabsText = Color(0xFFA9A9B4)
+    override val tabsTextHover = Color(0xFFF5F5F7)
+    override val tabsTextSelected = Color(0xFFF5F5F7)
+    override val tabsIndicator = Color(0xFF5B5EF0)
+    override val menuBackground = Color(0xFF222228)
+    override val menuBorder = Color(0xFF2C2C33)
+    override val menuText = Color(0xFFF5F5F7)
+    override val menuIcon = Color(0xFFA9A9B4)
+    override val menuTextDisabled = Color(0xFF5C5C66)
+    override val menuItemBackgroundHover = Color(0xFF2C2C33)
+    override val menuItemBackgroundPressed = Color(0xFF44444C)
+    override val menuDangerText = Color(0xFFF97066)
+    override val menuDangerBackgroundHover = Color(0xFF55160C)
+    override val dialogBackground = Color(0xFF222228)
+    override val dialogBorder = Color(0xFF2C2C33)
+    override val dialogTitle = Color(0xFFF5F5F7)
+    override val dialogText = Color(0xFFA9A9B4)
+    override val toastBackground = Color(0xFFF5F5F7)
+    override val toastText = Color(0xFF18181C)
+    override val toastAction = Color(0xFF4F46E5)
+    override val tooltipBackground = Color(0xFFF5F5F7)
+    override val tooltipText = Color(0xFF18181C)
+    override val skeletonBackground = Color(0xFF2C2C33)
+    override val skeletonHighlight = Color(0xFF44444C)
     override val avatarBackground = Color(0xFF1E1B4B)
     override val avatarText = Color(0xFFA5B4FC)
     override val avatarRing = Color(0xFF18181C)
@@ -693,6 +851,12 @@ object Motion {
     val durationNormal: Int = 200
     /** Large surfaces: sheets, full panels. */
     val durationSlow: Int = 320
+    /** One beat of a loading placeholder: slow enough not to nag. */
+    val durationPulse: Int = 1200
+    /** How long the pointer rests on a control before its tooltip shows. */
+    val durationTooltipDelay: Int = 500
+    /** How long a toast stays before it leaves on its own. */
+    val durationToast: Int = 5000
     /** Moving between two places on screen. */
     val easingStandard: Easing = CubicBezierEasing(0.2f, 0.0f, 0.0f, 1.0f)
     /** Arriving: starts fast, settles. */
@@ -751,6 +915,10 @@ class Sizes(
     val avatarXl: Dp,
     /** The height of a badge. */
     val badge: Dp,
+    /** The height of a chip. */
+    val chip: Dp,
+    /** The height of a tab. */
+    val tab: Dp,
     /** The height, and the least width, of a count badge. */
     val countBadge: Dp,
     /** The thickness of a progress bar. */
@@ -758,6 +926,10 @@ class Sizes(
     val spinnerSm: Dp,
     val spinnerMd: Dp,
     val spinnerLg: Dp,
+    /** The most a dialog is wide. A narrower screen leaves a margin on both sides. */
+    val dialog: Dp,
+    /** The most a toast is wide. */
+    val toast: Dp,
 )
 
 val PointerSizes = Sizes(
@@ -782,11 +954,15 @@ val PointerSizes = Sizes(
     avatarLg = 40.dp,
     avatarXl = 56.dp,
     badge = 24.dp,
+    chip = 32.dp,
+    tab = 40.dp,
     countBadge = 18.dp,
     progress = 8.dp,
     spinnerSm = 16.dp,
     spinnerMd = 24.dp,
     spinnerLg = 32.dp,
+    dialog = 480.dp,
+    toast = 480.dp,
 )
 
 val TouchSizes = Sizes(
@@ -811,11 +987,15 @@ val TouchSizes = Sizes(
     avatarLg = 40.dp,
     avatarXl = 56.dp,
     badge = 24.dp,
+    chip = 40.dp,
+    tab = 48.dp,
     countBadge = 20.dp,
     progress = 8.dp,
     spinnerSm = 16.dp,
     spinnerMd = 24.dp,
     spinnerLg = 32.dp,
+    dialog = 480.dp,
+    toast = 480.dp,
 )
 
 /** Icons as SVG path data on a 24 by 24 grid, stroked 2 wide with round caps and joins. */

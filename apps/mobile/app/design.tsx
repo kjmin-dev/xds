@@ -2,12 +2,14 @@
 // screen links here; the web app has the same page at `/design`, and the desktop app opens it
 // with `acme --design`.
 //
-// `/design?from=3` starts at the third section and `/design?sheet=1` opens the bottom sheet,
-// for taking screenshots from a script, which can neither scroll nor tap.
+// `/design?from=3` starts at the third section, for taking screenshots from a script, which
+// can neither scroll nor tap. For the same reason `/design?sheet=1` opens the bottom sheet,
+// `?menu=1` the menu, `?dialog=1` the dialog and `?toast=1` the toast, which then stays.
 
 import {
   border,
   icons,
+  motion,
   radius,
   size,
   space,
@@ -26,21 +28,30 @@ import {
   type ButtonVariant,
   Card,
   Checkbox,
+  Chip,
+  ChipBar,
   type ControlSize,
   CountBadge,
+  Dialog,
   Divider,
   Icon,
+  IconButton,
   type IconName,
   type IconSize,
   ListRow,
+  Menu,
   ProgressBar,
+  SearchField,
   SegmentedControl,
+  Skeleton,
   Spinner,
   Switch,
   TabBar,
+  Tabs,
   Text,
   TextField,
   type TextVariant,
+  Toast,
   TopBar,
   useColors,
 } from "@acme/ui-native";
@@ -83,7 +94,7 @@ const kebab = (name: string) => name.replace(/[A-Z0-9]+/g, (match) => `-${match.
 
 /** Semantic colors by group. Component colors are shown by the components that use them. */
 const COMPONENT_COLORS =
-  /^(button|field|badge|banner|card|switch|checkbox|segmented|avatar|progress|listRow|topBar|tabBar|sheet)/;
+  /^(button|field|badge|banner|card|switch|checkbox|segmented|avatar|progress|listRow|topBar|tabBar|sheet|chip|tabs|menu|dialog|toast|tooltip|skeleton)/;
 
 // The preview works offline, so its picture ships with it: a 16 by 16 gradient, scaled up.
 const PICTURE =
@@ -129,6 +140,31 @@ const TABS = [
     icon: (color: string) => <Icon name="user" size="lg" color={color} />,
   },
 ] as const;
+/** More kinds than fit across a phone, so the bar has something to scroll. */
+const KINDS: { key: string; label: string; icon?: IconName }[] = [
+  { key: "all", label: "All" },
+  { key: "photos", label: "Photos", icon: "image" },
+  { key: "videos", label: "Videos", icon: "video" },
+  { key: "documents", label: "Documents", icon: "file-text" },
+  { key: "music", label: "Music", icon: "music" },
+  { key: "links", label: "Links", icon: "link" },
+  { key: "places", label: "Places", icon: "map-pin" },
+];
+
+const PAGES = [
+  { value: "overview", label: "Overview" },
+  { value: "activity", label: "Activity" },
+  { value: "members", label: "Members" },
+  { value: "settings", label: "Settings" },
+] as const;
+
+const PAGES_WITH_ICONS = [
+  { value: "overview", label: "Overview", icon: "layout-grid" },
+  { value: "activity", label: "Activity", icon: "list" },
+  { value: "members", label: "Members", icon: "users" },
+  { value: "settings", label: "Settings", icon: "settings" },
+] as const;
+
 const COLOR_NAMES = (Object.keys(tokenColors.light) as (keyof typeof tokenColors.light)[]).filter(
   (name) => !COMPONENT_COLORS.test(name),
 );
@@ -148,9 +184,23 @@ export default function Design() {
   const [bannerShown, setBannerShown] = useState(true);
   const [folder, setFolder] = useState("inbox");
   const [picked, setPicked] = useState(false);
-  const params = useLocalSearchParams<{ from?: string; sheet?: string }>();
+  const [muted, setMuted] = useState(true);
+  const [search, setSearch] = useState("");
+  const [found, setFound] = useState("quarterly report");
+  const [kinds, setKinds] = useState<readonly string[]>(["photos"]);
+  const [page, setPage] = useState<(typeof PAGES)[number]["value"]>("overview");
+  const [pinned, setPinned] = useState(true);
+  const params = useLocalSearchParams<{
+    from?: string;
+    sheet?: string;
+    menu?: string;
+    dialog?: string;
+    toast?: string;
+  }>();
   const from = Number(params.from ?? 1);
   const [sheet, setSheet] = useState(params.sheet === "1");
+  const [dialog, setDialog] = useState(params.dialog === "1");
+  const [toast, setToast] = useState(params.toast === "1");
 
   const sections = [
     <Section key="colors" title="Colors">
@@ -269,6 +319,38 @@ export default function Design() {
         />
         <Button iconStart="bookmark" label="Saved" selected disabled />
       </View>
+      {/* The same variants and sizes, holding only an icon. */}
+      {VARIANTS.map((variant) => (
+        <View key={variant} style={styles.row}>
+          {SIZES.map((buttonSize) => (
+            <IconButton
+              key={buttonSize}
+              variant={variant}
+              size={buttonSize}
+              icon="pencil"
+              label={`Edit, ${buttonSize}`}
+            />
+          ))}
+          <IconButton variant={variant} icon="pencil" label="Edit, disabled" disabled />
+          <IconButton variant={variant} icon="pencil" label="Saving" loading />
+        </View>
+      ))}
+      <View style={styles.row}>
+        <IconButton
+          icon="bell"
+          label="Mute notifications"
+          selected={muted}
+          onPress={() => setMuted(!muted)}
+        />
+        <IconButton
+          variant="secondary"
+          icon="star"
+          label="Star"
+          selected={starred}
+          onPress={() => setStarred(!starred)}
+        />
+        <IconButton icon="bookmark" label="Saved" selected disabled />
+      </View>
     </Section>,
 
     <Section key="fields" title="Text fields">
@@ -319,6 +401,20 @@ export default function Design() {
         maxLength={80}
         leading={<Icon name="pencil" />}
       />
+      <SearchField
+        label="Search people"
+        placeholder="Search people"
+        value={search}
+        onChange={setSearch}
+      />
+      <SearchField label="Search files" value={found} onChange={setFound} onSubmit={() => {}} />
+      <SearchField
+        label="Search the archive"
+        placeholder="Unavailable offline"
+        value=""
+        onChange={() => {}}
+        disabled
+      />
     </Section>,
 
     <Section key="selection" title="Selection">
@@ -343,6 +439,46 @@ export default function Design() {
         value={view}
         onChange={setView}
         accessibilityLabel="Calendar view"
+        fullWidth
+      />
+    </Section>,
+
+    <Section key="chips" title="Chips">
+      <View style={styles.row}>
+        <Chip label="Unselected" />
+        <Chip label="Selected" selected />
+        <Chip label="With icon" iconStart="flag" />
+        <Chip label="Selected" iconStart="flag" selected />
+        <Chip label="Off" disabled />
+        <Chip label="Off" selected disabled />
+      </View>
+      {/* Press them: the bar holds no state, the screen does. */}
+      <ChipBar label="Kind of file">
+        {KINDS.map((kind) => {
+          const on = kinds.includes(kind.key);
+          return (
+            <Chip
+              key={kind.key}
+              label={kind.label}
+              {...(kind.icon ? { iconStart: kind.icon } : {})}
+              selected={on}
+              onPress={() =>
+                setKinds(on ? kinds.filter((key) => key !== kind.key) : [...kinds, kind.key])
+              }
+            />
+          );
+        })}
+      </ChipBar>
+    </Section>,
+
+    <Section key="tabs" title="Tabs">
+      <Tabs items={PAGES} value={page} onChange={setPage} label="Project pages" />
+      <Tabs items={PAGES_WITH_ICONS} value={page} onChange={setPage} label="Project pages" />
+      <Tabs
+        items={PAGES.slice(0, 3)}
+        value={page}
+        onChange={setPage}
+        label="Project pages"
         fullWidth
       />
     </Section>,
@@ -552,35 +688,132 @@ export default function Design() {
         </View>
       </View>
     </Section>,
+
+    <Section key="menu" title="Menu">
+      <View style={styles.row}>
+        <Menu
+          label="Report"
+          defaultOpen={params.menu === "1"}
+          trigger={<Button iconEnd="chevron-down" label="Actions" />}
+          items={[
+            { label: "Rename", icon: "pencil", onSelect: () => {} },
+            { label: "Duplicate", icon: "copy", onSelect: () => {} },
+            { label: "Pinned", icon: "pin", selected: pinned, onSelect: () => setPinned(!pinned) },
+            { type: "separator" },
+            { label: "Share", icon: "share-2", disabled: true, onSelect: () => {} },
+            { label: "Delete", icon: "trash", danger: true, onSelect: () => {} },
+          ]}
+        />
+        <Menu
+          label="Sort by"
+          align="end"
+          trigger={<IconButton icon="ellipsis" label="Sort by" />}
+          items={[
+            { label: "Name", selected: true, onSelect: () => {} },
+            { label: "Date", onSelect: () => {} },
+            { label: "Size", onSelect: () => {} },
+          ]}
+        />
+      </View>
+    </Section>,
+
+    <Section key="dialog" title="Dialog">
+      <View style={styles.row}>
+        <Button variant="danger" label="Delete the report" onPress={() => setDialog(true)} />
+      </View>
+    </Section>,
+
+    <Section key="toast" title="Toast">
+      <View style={styles.row}>
+        <Button label="Archive the report" onPress={() => setToast(true)} />
+      </View>
+    </Section>,
+
+    <Section key="skeleton" title="Skeleton">
+      {/* The card says that it is loading; the shapes are hidden from a screen reader. */}
+      <Card>
+        <View accessible accessibilityLabel="Loading" style={styles.loading}>
+          <View style={styles.loadingHeader}>
+            <Skeleton shape="circle" height={size.touch.avatarLg} />
+            <View style={styles.loadingLines}>
+              <Skeleton width="60%" />
+              <Skeleton width="40%" />
+            </View>
+          </View>
+          <Skeleton shape="rect" height={space[16] * 2} />
+          <Skeleton />
+          <Skeleton />
+          <Skeleton width="70%" />
+        </View>
+      </Card>
+    </Section>,
   ];
 
   return (
-    <SafeAreaView
-      edges={["bottom", "left", "right"]}
-      style={{ flex: 1, backgroundColor: colors.backgroundBase }}
-    >
-      {/* The one screen with a navigation bar: it gives the way back to the app. */}
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          title: "Design system",
-          headerBackTitle: "App",
-          headerStyle: { backgroundColor: colors.backgroundBase },
-          headerTintColor: colors.textPrimary,
-          headerShadowVisible: false,
-        }}
+    <View style={{ flex: 1, backgroundColor: colors.backgroundBase }}>
+      <SafeAreaView edges={["bottom", "left", "right"]} style={styles.screen}>
+        {/* The one screen with a navigation bar: it gives the way back to the app. */}
+        <Stack.Screen
+          options={{
+            headerShown: true,
+            title: "Design system",
+            headerBackTitle: "App",
+            headerStyle: { backgroundColor: colors.backgroundBase },
+            headerTintColor: colors.textPrimary,
+            headerShadowVisible: false,
+          }}
+        />
+        {/* A tap on a button while the keyboard is up is that button's, not only the keyboard's. */}
+        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.page}>
+          {sections.slice(from - 1)}
+        </ScrollView>
+        <BottomSheet open={sheet} onClose={() => setSheet(false)} title="Share report">
+          <Text tone="secondary">A sheet holds a short task and leaves the screen behind it.</Text>
+          <Button variant="primary" label="Copy link" fullWidth onPress={() => setSheet(false)} />
+          <Button label="Cancel" fullWidth onPress={() => setSheet(false)} />
+        </BottomSheet>
+        <Dialog
+          open={dialog}
+          onClose={() => setDialog(false)}
+          title="Delete the report?"
+          description="The report and its comments are removed for everyone. This cannot be undone."
+          actions={
+            <>
+              <Button label="Cancel" onPress={() => setDialog(false)} />
+              <Button variant="danger" label="Delete" onPress={() => setDialog(false)} />
+            </>
+          }
+        />
+      </SafeAreaView>
+      {/* Outside the safe area view: the toast keeps clear of the screen's edges by itself. */}
+      <Toast
+        open={toast}
+        onClose={() => setToast(false)}
+        message="The report was archived."
+        action={{ label: "Undo", onPress: () => {} }}
+        // Opened by a script, it stays until the picture is taken.
+        duration={params.toast === "1" ? 0 : motion.duration.toast}
       />
-      <ScrollView contentContainerStyle={styles.page}>{sections.slice(from - 1)}</ScrollView>
-      <BottomSheet open={sheet} onClose={() => setSheet(false)} title="Share report">
-        <Text tone="secondary">A sheet holds a short task and leaves the screen behind it.</Text>
-        <Button variant="primary" label="Copy link" fullWidth onPress={() => setSheet(false)} />
-        <Button label="Cancel" fullWidth onPress={() => setSheet(false)} />
-      </BottomSheet>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
+  loading: {
+    gap: space[3],
+  },
+  loadingHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: space[3],
+  },
+  loadingLines: {
+    flex: 1,
+    gap: space[2],
+  },
   page: {
     padding: space[4],
     gap: space[8],

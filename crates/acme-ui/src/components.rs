@@ -11,16 +11,18 @@ use acme_tokens as tokens;
 use gpui_kit::component::{
     Disableable, Sizable, Size, ThemeStyled,
     button::{Button as KitButton, ButtonCustomVariant, ButtonVariants},
-    input::{Input, InputState, Textarea, TextareaState},
+    input::{Input, InputEvent, InputState, Textarea, TextareaState},
 };
 use gpui_kit::prelude::FluentBuilder;
 use gpui_kit::{
     AnyElement, App, BoxShadow, ClickEvent, Div, ElementId, Entity, Focusable, InteractiveElement,
     IntoElement, MouseButton, ParentElement, Pixels, Refineable, RenderOnce, Role, SharedString,
-    StatefulInteractiveElement, StyleRefinement, Styled, Window, div, point, px,
+    StatefulInteractiveElement, StyleRefinement, Styled, Subscription, Window, div, point, px,
 };
 
-use crate::controls::{ClickHandler, IconSize, SpinnerSize, icon, icon_filled, spinner};
+use crate::controls::{
+    ClickHandler, IconSize, SpinnerSize, focus_handle, icon, icon_filled, spinner,
+};
 use crate::theme::{TypographyExt, color, palette};
 
 // ---------------------------------------------------------------- button
@@ -82,28 +84,12 @@ pub fn button(
     label: impl Into<SharedString>,
     variant: ButtonVariant,
     size: ControlSize,
-    cx: &App,
+    _cx: &App,
 ) -> Button {
-    let base = KitButton::new(id);
-    let base = match variant {
-        // Filled buttons carry the same trace of shadow, so none looks flatter than the
-        // outlined one.
-        ButtonVariant::Primary => base.primary().shadow(shadow(tokens::SHADOW_SUBTLE)),
-        // Outlined, so it sits quietly beside a primary button.
-        ButtonVariant::Secondary => base
-            .secondary()
-            .border_1()
-            .border_color(color(palette(cx).button_secondary_border))
-            .shadow(shadow(tokens::SHADOW_SUBTLE)),
-        ButtonVariant::Ghost => base.ghost(),
-        ButtonVariant::Danger => base.danger().shadow(shadow(tokens::SHADOW_SUBTLE)),
-    };
     Button {
-        base: base
-            .h(size.height())
-            .min_w(size.height())
-            .px(size.padding())
-            .rounded(px(tokens::POINTER.button_radius)),
+        id: id.into(),
+        style: StyleRefinement::default(),
+        on_click: None,
         label: label.into(),
         variant,
         size,
@@ -116,12 +102,30 @@ pub fn button(
     }
 }
 
-/// What [`button`] returns. GPUI Component's button draws it and supplies focus and keyboard
-/// handling; this holds the options that decide what goes inside it, because the icons, the
-/// spinner and the selected look depend on each other.
+/// A button that holds only an icon. The label is not drawn: it names the button for assistive
+/// technology. It is a ghost button of the middle size unless `.variant` and `.control_size`
+/// say otherwise, and takes `.selected`, `.disabled`, `.loading` and `.on_click` as a button
+/// does.
+pub fn icon_button(
+    id: impl Into<ElementId>,
+    icon: tokens::Icon,
+    label: impl Into<SharedString>,
+    cx: &App,
+) -> Button {
+    let mut button = button(id, label, ButtonVariant::Ghost, ControlSize::Md, cx);
+    button.icon_start = Some(icon);
+    button.icon_only = true;
+    button
+}
+
+/// What [`button`] and [`icon_button`] return. GPUI Component's button draws it and supplies
+/// focus and keyboard handling; this holds the options that decide what goes inside it,
+/// because the icons, the spinner and the selected look depend on each other.
 #[derive(IntoElement)]
 pub struct Button {
-    base: KitButton,
+    id: ElementId,
+    style: StyleRefinement,
+    on_click: Option<ClickHandler>,
     label: SharedString,
     variant: ButtonVariant,
     size: ControlSize,
@@ -134,6 +138,17 @@ pub struct Button {
 }
 
 impl Button {
+    pub fn variant(mut self, variant: ButtonVariant) -> Self {
+        self.variant = variant;
+        self
+    }
+
+    /// Named apart from `Styled::size`, which sets a width and a height.
+    pub fn control_size(mut self, size: ControlSize) -> Self {
+        self.size = size;
+        self
+    }
+
     /// An icon in front of the label, in the label's color.
     pub fn icon_start(mut self, icon: tokens::Icon) -> Self {
         self.icon_start = Some(icon);
@@ -170,23 +185,14 @@ impl Button {
         mut self,
         handler: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static,
     ) -> Self {
-        self.base = self.base.on_click(handler);
-        self
-    }
-
-    /// Draws the start icon alone, in a square. The label still names the button for
-    /// assistive technology.
-    pub(crate) fn icon_only(mut self) -> Self {
-        let side = self.size.height().max(px(tokens::POINTER.target_min));
-        self.base = self.base.px(px(0.0)).size(side);
-        self.icon_only = true;
+        self.on_click = Some(Rc::new(handler));
         self
     }
 }
 
 impl Styled for Button {
     fn style(&mut self) -> &mut StyleRefinement {
-        self.base.style()
+        &mut self.style
     }
 }
 
@@ -203,6 +209,44 @@ impl RenderOnce for Button {
         let (icon_size, label_style) = match self.size {
             ControlSize::Lg => (IconSize::Md, tokens::TYPOGRAPHY_BODY_STRONG),
             _ => (IconSize::Sm, tokens::TYPOGRAPHY_LABEL),
+        };
+        // Alone in its square the icon has the room to follow the size of the control.
+        let icon_size = match (self.icon_only, self.size) {
+            (false, _) => icon_size,
+            (true, ControlSize::Sm) => IconSize::Sm,
+            (true, ControlSize::Md) => IconSize::Md,
+            (true, ControlSize::Lg) => IconSize::Lg,
+        };
+
+        let base = KitButton::new(self.id);
+        let base = match self.variant {
+            // Filled buttons carry the same trace of shadow, so none looks flatter than the
+            // outlined one.
+            ButtonVariant::Primary => base.primary().shadow(shadow(tokens::SHADOW_SUBTLE)),
+            // Outlined, so it sits quietly beside a primary button.
+            ButtonVariant::Secondary => base
+                .secondary()
+                .border_1()
+                .border_color(color(c.button_secondary_border))
+                .shadow(shadow(tokens::SHADOW_SUBTLE)),
+            ButtonVariant::Ghost => base.ghost(),
+            ButtonVariant::Danger => base.danger().shadow(shadow(tokens::SHADOW_SUBTLE)),
+        };
+        let height = self.size.height();
+        let mut base = base
+            .h(height)
+            .min_w(height)
+            .px(self.size.padding())
+            .rounded(px(tokens::POINTER.button_radius));
+        if self.icon_only {
+            // A square, and never smaller than the least a pointer can be asked to hit.
+            let side = height.max(px(tokens::POINTER.target_min));
+            base = base.px(px(0.0)).size(side);
+        }
+        base.style().refine(&self.style);
+        let base = match self.on_click {
+            Some(handler) => base.on_click(move |event, window, cx| handler(event, window, cx)),
+            None => base,
         };
         let start = if self.loading {
             // In a box the size of the icon it replaces, so the label does not move.
@@ -243,19 +287,17 @@ impl RenderOnce for Button {
                 .foreground(color(c.button_selected_text))
                 .hover(color(c.button_selected_background_hover))
                 .active(color(c.button_selected_background_pressed));
-            self.base
-                .custom(selected)
+            base.custom(selected)
                 .bg(color(c.button_selected_background))
                 .border(px(tokens::BORDER_WIDTH_THIN))
                 .border_color(color(c.button_selected_border))
         } else if self.selected.is_some() && self.variant == ButtonVariant::Ghost {
             // The outline a selected ghost button gets, already there and transparent, so
             // toggling does not change the width.
-            self.base
-                .border(px(tokens::BORDER_WIDTH_THIN))
+            base.border(px(tokens::BORDER_WIDTH_THIN))
                 .border_color(gpui_kit::transparent_black())
         } else {
-            self.base
+            base
         };
         base
             // The label is drawn here as a child, so GPUI Component does not know it.
@@ -291,6 +333,8 @@ pub struct TextField {
     trailing: Option<AnyElement>,
     rows: usize,
     max_length: Option<usize>,
+    label_hidden: bool,
+    pill: bool,
 }
 
 impl TextField {
@@ -314,7 +358,17 @@ impl TextField {
             trailing: None,
             rows: 3,
             max_length: None,
+            label_hidden: false,
+            pill: false,
         }
+    }
+
+    /// Leaves the label to assistive technology and draws the box as a pill: what a search
+    /// field is, whose icon says what the label would.
+    fn search(mut self) -> Self {
+        self.label_hidden = true;
+        self.pill = true;
+        self
     }
 
     pub fn description(mut self, description: impl Into<SharedString>) -> Self {
@@ -365,6 +419,11 @@ impl RenderOnce for TextField {
         let invalid = self.error.is_some();
         let multiline = matches!(self.state, FieldState::Area(_));
         let line = px(tokens::TYPOGRAPHY_BODY.line_height_px());
+        let radius = px(if self.pill {
+            tokens::RADIUS_FULL
+        } else {
+            tokens::RADIUS_MD
+        });
 
         if let Some(max) = self.max_length {
             match &self.state {
@@ -462,7 +521,7 @@ impl RenderOnce for TextField {
             .flex()
             .w_full()
             .px(px(tokens::SPACE_1))
-            .rounded(px(tokens::RADIUS_MD))
+            .rounded(radius)
             .border(px(tokens::BORDER_WIDTH_THIN))
             .border_color(color(if invalid {
                 colors.field_border_invalid
@@ -538,21 +597,23 @@ impl RenderOnce for TextField {
             .flex()
             .flex_col()
             .gap(px(tokens::SPACE_1))
-            .child(
-                div()
-                    .typography(tokens::TYPOGRAPHY_LABEL)
-                    .text_color(color(if self.disabled {
-                        colors.text_secondary
-                    } else {
-                        colors.text_primary
-                    }))
-                    .child(self.label),
-            )
+            .when(!self.label_hidden, |field| {
+                field.child(
+                    div()
+                        .typography(tokens::TYPOGRAPHY_LABEL)
+                        .text_color(color(if self.disabled {
+                            colors.text_secondary
+                        } else {
+                            colors.text_primary
+                        }))
+                        .child(self.label),
+                )
+            })
             .child(
                 // An outline of its own when invalid, thicker than the field's, so the state
                 // does not depend on telling red from grey.
                 div()
-                    .rounded(px(tokens::RADIUS_MD))
+                    .rounded(radius)
                     .when(invalid, |outline| {
                         outline
                             .border(px(tokens::BORDER_WIDTH_THIN))
@@ -561,6 +622,134 @@ impl RenderOnce for TextField {
                     .child(frame),
             )
             .children(footer)
+    }
+}
+
+// ---------------------------------------------------------------- search field
+
+type SubmitHandler = Rc<dyn Fn(&SharedString, &mut Window, &mut App)>;
+
+/// Listens to the input for Enter on behalf of a search field, which is rebuilt every frame
+/// and so cannot hold a subscription itself.
+struct SubmitWatch {
+    handler: Option<SubmitHandler>,
+    _subscription: Subscription,
+}
+
+/// A text field for a query: a pill with a search icon and, while there is a value, a control
+/// that clears it. The label is not drawn; it names the field for assistive technology.
+///
+/// As with [`TextField`], the value and the placeholder live in the input state: read the
+/// value from it, and subscribe to it to hear of changes.
+#[derive(IntoElement)]
+pub struct SearchField {
+    id: ElementId,
+    label: SharedString,
+    state: Entity<InputState>,
+    disabled: bool,
+    clear_label: SharedString,
+    on_submit: Option<SubmitHandler>,
+}
+
+impl SearchField {
+    pub fn new(
+        id: impl Into<ElementId>,
+        label: impl Into<SharedString>,
+        state: &Entity<InputState>,
+    ) -> Self {
+        Self {
+            id: id.into(),
+            label: label.into(),
+            state: state.clone(),
+            disabled: false,
+            clear_label: "Clear".into(),
+            on_submit: None,
+        }
+    }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+
+    /// Names the clear control for assistive technology. "Clear" unless set.
+    pub fn clear_label(mut self, label: impl Into<SharedString>) -> Self {
+        self.clear_label = label.into();
+        self
+    }
+
+    /// Called with the query when Enter is pressed in the field.
+    pub fn on_submit(
+        mut self,
+        handler: impl Fn(&SharedString, &mut Window, &mut App) + 'static,
+    ) -> Self {
+        self.on_submit = Some(Rc::new(handler));
+        self
+    }
+}
+
+impl RenderOnce for SearchField {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let c = palette(cx);
+        let input = self.state.clone();
+        let watch = window.use_keyed_state((self.id.clone(), "submit"), cx, |window, cx| {
+            let subscription = cx.subscribe_in(
+                &input,
+                window,
+                |watch: &mut SubmitWatch, input, event: &InputEvent, window, cx| {
+                    if let InputEvent::PressEnter { .. } = event
+                        && let Some(handler) = watch.handler.clone()
+                    {
+                        let query = input.read(cx).value();
+                        handler(&query, window, cx);
+                    }
+                },
+            );
+            SubmitWatch {
+                handler: None,
+                _subscription: subscription,
+            }
+        });
+        // The handler is new every frame; the subscription keeps the latest.
+        watch.update(cx, |watch, _| watch.handler = self.on_submit);
+
+        let has_value = !self.state.read(cx).value().is_empty();
+        let clear = (has_value && !self.disabled).then(|| {
+            let id: ElementId = (self.id.clone(), "clear").into();
+            let focus = focus_handle(&id, window, cx);
+            let focused = focus.is_focused(window);
+            let state = self.state.clone();
+            div()
+                .id(id)
+                .role(Role::Button)
+                .aria_label(self.clear_label)
+                .track_focus(&focus.tab_index(0).tab_stop(true))
+                .flex()
+                .items_center()
+                .justify_center()
+                .size(px(tokens::POINTER.target_min))
+                .rounded_full()
+                .hover(|clear| clear.text_color(color(c.field_text)))
+                // Keeps the press from the box around it, which would take it for its own.
+                .on_mouse_down(MouseButton::Left, |_, window, _| window.prevent_default())
+                .on_click(move |_, window, cx| {
+                    state.update(cx, |state, cx| {
+                        // An edit, so the field reports the change and Undo brings the query back.
+                        state.replace_all("", window, cx);
+                        state.focus(window, cx);
+                    });
+                })
+                .when(focused, |clear| clear.focus_ring_style(window, cx))
+                .child(icon(tokens::Icon::CircleX, IconSize::Sm))
+        });
+        let field = TextField::new(self.label, &self.state)
+            .search()
+            .disabled(self.disabled)
+            .leading(icon(tokens::Icon::Search, IconSize::Sm));
+        match clear {
+            Some(clear) => field.trailing(clear),
+            None => field,
+        }
     }
 }
 
@@ -844,15 +1033,13 @@ impl RenderOnce for Banner {
             )
         });
         let dismiss = self.on_dismiss.map(|handler| {
-            button(
+            icon_button(
                 (self.id.clone(), "dismiss"),
+                tokens::Icon::X,
                 self.dismiss_label,
-                ButtonVariant::Ghost,
-                ControlSize::Sm,
                 cx,
             )
-            .icon_start(tokens::Icon::X)
-            .icon_only()
+            .control_size(ControlSize::Sm)
             .on_click(move |event, window, cx| handler(event, window, cx))
         });
         div()

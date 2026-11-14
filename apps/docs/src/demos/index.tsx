@@ -8,18 +8,30 @@ import {
   Badge,
   Banner,
   Button,
+  type ButtonVariant,
   Card,
   Checkbox,
+  Chip,
+  ChipBar,
   CountBadge,
+  Dialog,
   Divider,
   Icon,
+  IconButton,
+  type IconName,
   ListRow,
+  Menu,
   ProgressBar,
+  SearchField,
   SegmentedControl,
+  Skeleton,
   Spinner,
   Switch,
+  Tabs,
   Text,
   TextField,
+  Toast,
+  Tooltip,
 } from "@acme/ui";
 import { type ReactNode, useEffect, useState } from "react";
 
@@ -465,6 +477,307 @@ function IconDemo() {
   );
 }
 
+const VARIANTS: ButtonVariant[] = ["primary", "secondary", "ghost", "danger"];
+
+function IconButtonDemo() {
+  const [pinned, setPinned] = useState(true);
+  return (
+    <div className="flex flex-col gap-3">
+      <Row>
+        {VARIANTS.map((variant) => (
+          <IconButton
+            key={variant}
+            icon="settings"
+            label={`Settings, ${variant}`}
+            variant={variant}
+          />
+        ))}
+      </Row>
+      <Row>
+        <IconButton icon="download" label="Download, small" size="sm" />
+        <IconButton icon="download" label="Download" />
+        <IconButton icon="download" label="Download, large" size="lg" />
+        <IconButton icon="download" label="Download, unavailable" disabled />
+        <IconButton icon="download" label="Downloading" variant="secondary" loading />
+      </Row>
+      <Row>
+        <IconButton icon="pin" label="Pin" selected={pinned} onPress={() => setPinned(!pinned)} />
+        <IconButton icon="star" label="Star" variant="secondary" selected />
+        <IconButton icon="star" label="Star" variant="secondary" selected={false} />
+      </Row>
+    </div>
+  );
+}
+
+const FILTERS = [
+  { value: "open", label: "Open", icon: "flag" },
+  { value: "mine", label: "Assigned to me", icon: "user" },
+  { value: "mentions", label: "Mentions", icon: "message-square" },
+  { value: "review", label: "Needs review", icon: "eye" },
+  { value: "blocked", label: "Blocked", icon: "ban" },
+  { value: "done", label: "Done this week", icon: "check-check" },
+] as const satisfies readonly { value: string; label: string; icon: IconName }[];
+
+/** The filters that are on, and a way to turn one on or off. The chips themselves hold none. */
+function useFilters(initial: readonly string[]) {
+  const [on, setOn] = useState(initial);
+  const toggle = (name: string) =>
+    setOn(on.includes(name) ? on.filter((other) => other !== name) : [...on, name]);
+  return [on, toggle] as const;
+}
+
+function ChipDemo() {
+  const [on, toggle] = useFilters(["review"]);
+  return (
+    <Row>
+      <Chip label="Open" selected={on.includes("open")} onPress={() => toggle("open")} />
+      <Chip
+        label="Needs review"
+        iconStart="eye"
+        selected={on.includes("review")}
+        onPress={() => toggle("review")}
+      />
+      <Chip
+        label="Mentions"
+        iconStart="message-square"
+        selected={on.includes("mentions")}
+        onPress={() => toggle("mentions")}
+      />
+      <Chip label="Archived" disabled />
+    </Row>
+  );
+}
+
+function ChipBarDemo() {
+  const [on, toggle] = useFilters(["open", "review"]);
+  return (
+    // Narrower than its chips, so the row scrolls.
+    <div className="max-w-sm">
+      <ChipBar label="Filter the tasks">
+        {FILTERS.map((filter) => (
+          <Chip
+            key={filter.value}
+            label={filter.label}
+            iconStart={filter.icon}
+            selected={on.includes(filter.value)}
+            onPress={() => toggle(filter.value)}
+          />
+        ))}
+      </ChipBar>
+    </div>
+  );
+}
+
+const PAGES = [
+  { value: "overview", label: "Overview", icon: "house" },
+  { value: "activity", label: "Activity", icon: "bell" },
+  { value: "members", label: "Members", icon: "users" },
+  { value: "billing", label: "Billing", icon: "credit-card" },
+] as const satisfies readonly { value: string; label: string; icon: IconName }[];
+
+const DETAILS = [
+  { value: "comments", label: "Comments" },
+  { value: "history", label: "Change history" },
+  { value: "linked", label: "Linked issues" },
+] as const;
+
+function TabsDemo() {
+  const [page, setPage] = useState<(typeof PAGES)[number]["value"]>("overview");
+  const [detail, setDetail] = useState<(typeof DETAILS)[number]["value"]>("comments");
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-3">
+        <Tabs items={PAGES} value={page} onChange={setPage} label="Workspace pages" />
+        {/* The tabs are only the row: the page shows the view that matches the value. */}
+        <Text variant="detail" tone="secondary">
+          The {PAGES.find((item) => item.value === page)?.label} view goes here.
+        </Text>
+      </div>
+      <Tabs items={DETAILS} value={detail} onChange={setDetail} label="Issue details" fullWidth />
+    </div>
+  );
+}
+
+function MenuDemo() {
+  const [chosen, setChosen] = useState("Nothing chosen yet.");
+  const [density, setDensity] = useState<"comfortable" | "compact">("comfortable");
+  return (
+    // Tall enough for the open menu, which would otherwise be cut off by the frame.
+    <div className="flex min-h-80 flex-col gap-3">
+      <Row>
+        <Menu
+          label="Report actions"
+          trigger={<Button iconEnd="chevron-down">Actions</Button>}
+          items={[
+            { label: "Rename", icon: "pencil", onSelect: () => setChosen("Rename.") },
+            { label: "Duplicate", icon: "copy", onSelect: () => setChosen("Duplicate.") },
+            { label: "Share", icon: "share-2", onSelect: () => {}, disabled: true },
+            "separator",
+            {
+              label: "Comfortable",
+              icon: "list",
+              selected: density === "comfortable",
+              onSelect: () => setDensity("comfortable"),
+            },
+            {
+              label: "Compact",
+              icon: "layout-grid",
+              selected: density === "compact",
+              onSelect: () => setDensity("compact"),
+            },
+            "separator",
+            { label: "Delete", icon: "trash", danger: true, onSelect: () => setChosen("Delete.") },
+          ]}
+        />
+        <Menu
+          label="More actions"
+          align="end"
+          trigger={<IconButton icon="ellipsis" label="More actions" variant="secondary" />}
+          items={[
+            { label: "Copy the link", onSelect: () => setChosen("Copy the link.") },
+            { label: "Open in a new window", onSelect: () => setChosen("Open in a new window.") },
+          ]}
+        />
+      </Row>
+      <Text variant="detail" tone="secondary">
+        {chosen} Density: {density}.
+      </Text>
+    </div>
+  );
+}
+
+function DialogDemo() {
+  const [open, setOpen] = useState(false);
+  const [deleted, setDeleted] = useState(false);
+  return (
+    // The dialog is centered in the frame, so the frame has to be tall enough to hold it.
+    <div className="flex min-h-72 flex-col items-start gap-3">
+      <Button variant="danger" onPress={() => setOpen(true)}>
+        Delete the report
+      </Button>
+      <Text variant="detail" tone="secondary">
+        {deleted ? "The report is deleted." : "The report is still there."}
+      </Text>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Delete the weekly report?"
+        description="The report and its 12 comments are removed for everyone. This cannot be undone."
+        actions={
+          <>
+            <Button onPress={() => setOpen(false)}>Cancel</Button>
+            <Button
+              variant="danger"
+              onPress={() => {
+                setDeleted(true);
+                setOpen(false);
+              }}
+            >
+              Delete
+            </Button>
+          </>
+        }
+      />
+    </div>
+  );
+}
+
+function ToastDemo() {
+  const [open, setOpen] = useState(false);
+  const [deleted, setDeleted] = useState(false);
+  return (
+    // The toast sits at the bottom of the frame, clear of the button above it.
+    <div className="flex min-h-40 flex-col items-start gap-3">
+      <Button
+        onPress={() => {
+          setDeleted(true);
+          setOpen(true);
+        }}
+      >
+        Delete a draft
+      </Button>
+      <Text variant="detail" tone="secondary">
+        {deleted ? "The draft is deleted." : "The draft is there."}
+      </Text>
+      <Toast
+        open={open}
+        onClose={() => setOpen(false)}
+        message="The draft was deleted."
+        action={{ label: "Undo", onPress: () => setDeleted(false) }}
+      />
+    </div>
+  );
+}
+
+function TooltipDemo() {
+  return (
+    // Room above the controls, where the tooltips appear.
+    <div className="flex flex-col gap-3 pt-10">
+      <Row>
+        <Tooltip label="Search" shortcut="⌘K">
+          <IconButton icon="search" label="Search" />
+        </Tooltip>
+        <Tooltip label="Share">
+          <IconButton icon="share-2" label="Share" variant="secondary" />
+        </Tooltip>
+        <Tooltip label="Export as a spreadsheet" placement="bottom">
+          <Button iconStart="download">Export</Button>
+        </Tooltip>
+      </Row>
+      <Text variant="detail" tone="secondary">
+        Rest the pointer on a control, or focus it with the keyboard.
+      </Text>
+    </div>
+  );
+}
+
+function SkeletonDemo() {
+  return (
+    <Column>
+      {/* The screen says that it is loading, once, since the placeholders say nothing. */}
+      <Card flush>
+        <div role="status" aria-label="Loading the report" className="flex flex-col">
+          <Skeleton shape="rect" height={128} />
+          <div className="flex items-center gap-3 p-4">
+            <Skeleton shape="circle" width={40} />
+            <div className="flex flex-1 flex-col gap-2">
+              <Skeleton width="70%" />
+              <Skeleton width="40%" />
+            </div>
+          </div>
+        </div>
+      </Card>
+    </Column>
+  );
+}
+
+function SearchFieldDemo() {
+  const [query, setQuery] = useState("");
+  const [submitted, setSubmitted] = useState("");
+  return (
+    <Column>
+      <SearchField
+        label="Search projects"
+        placeholder="Search projects"
+        value={query}
+        onChange={setQuery}
+        onSubmit={setSubmitted}
+      />
+      <SearchField label="Search people" value="Ada Lovelace" onChange={() => {}} />
+      <SearchField
+        label="Search files"
+        placeholder="Unavailable offline"
+        value=""
+        onChange={() => {}}
+        disabled
+      />
+      <Text variant="detail" tone="secondary">
+        {submitted ? `Searched for “${submitted}”.` : "Enter searches, Escape clears."}
+      </Text>
+    </Column>
+  );
+}
+
 const DEMOS = {
   button: ButtonDemo,
   "text-field": TextFieldDemo,
@@ -483,6 +796,16 @@ const DEMOS = {
   "progress-bar": ProgressBarDemo,
   icon: IconDemo,
   "list-row": ListRowDemo,
+  "icon-button": IconButtonDemo,
+  chip: ChipDemo,
+  "chip-bar": ChipBarDemo,
+  tabs: TabsDemo,
+  menu: MenuDemo,
+  dialog: DialogDemo,
+  toast: ToastDemo,
+  tooltip: TooltipDemo,
+  skeleton: SkeletonDemo,
+  "search-field": SearchFieldDemo,
 } as const;
 
 export type DemoName = keyof typeof DEMOS;

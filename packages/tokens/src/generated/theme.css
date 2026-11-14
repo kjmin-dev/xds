@@ -17,6 +17,7 @@
   --acme-color-text-on-accent: #ffffff;
   --acme-color-text-on-danger: #ffffff;
   --acme-color-text-on-inverse: light-dark(#f5f5f7, #18181c);
+  --acme-color-text-accent-on-inverse: light-dark(#a5b4fc, #4f46e5);
   --acme-color-border-default: light-dark(#e2e2e8, #2c2c33);
   --acme-color-border-control: light-dark(#c9c9d1, #44444c);
   --acme-color-border-strong: #84848f;
@@ -113,6 +114,42 @@
   --acme-color-segmented-selected-background: light-dark(#ffffff, #222228);
   --acme-color-segmented-selected-border: light-dark(#c9c9d1, #44444c);
   --acme-color-segmented-selected-text: light-dark(#18181c, #f5f5f7);
+  --acme-color-chip-background: light-dark(#ececf0, #2c2c33);
+  --acme-color-chip-background-hover: light-dark(#e2e2e8, #44444c);
+  --acme-color-chip-background-pressed: light-dark(#c9c9d1, #5c5c66);
+  --acme-color-chip-text: light-dark(#18181c, #f5f5f7);
+  --acme-color-chip-selected-background: light-dark(#eef2ff, #1e1b4b);
+  --acme-color-chip-selected-background-hover: light-dark(#e0e7ff, #312e81);
+  --acme-color-chip-selected-background-pressed: light-dark(#c7d2fe, #3730a3);
+  --acme-color-chip-selected-border: light-dark(#4f46e5, #5b5ef0);
+  --acme-color-chip-selected-text: light-dark(#18181c, #f5f5f7);
+  --acme-color-chip-disabled-background: light-dark(#ececf0, #2c2c33);
+  --acme-color-chip-disabled-text: light-dark(#a9a9b4, #5c5c66);
+  --acme-color-tabs-border: light-dark(#e2e2e8, #2c2c33);
+  --acme-color-tabs-text: light-dark(#5c5c66, #a9a9b4);
+  --acme-color-tabs-text-hover: light-dark(#18181c, #f5f5f7);
+  --acme-color-tabs-text-selected: light-dark(#18181c, #f5f5f7);
+  --acme-color-tabs-indicator: light-dark(#4f46e5, #5b5ef0);
+  --acme-color-menu-background: light-dark(#ffffff, #222228);
+  --acme-color-menu-border: light-dark(#e2e2e8, #2c2c33);
+  --acme-color-menu-text: light-dark(#18181c, #f5f5f7);
+  --acme-color-menu-icon: light-dark(#5c5c66, #a9a9b4);
+  --acme-color-menu-text-disabled: light-dark(#a9a9b4, #5c5c66);
+  --acme-color-menu-item-background-hover: light-dark(#ececf0, #2c2c33);
+  --acme-color-menu-item-background-pressed: light-dark(#e2e2e8, #44444c);
+  --acme-color-menu-danger-text: light-dark(#b42318, #f97066);
+  --acme-color-menu-danger-background-hover: light-dark(#fef3f2, #55160c);
+  --acme-color-dialog-background: light-dark(#ffffff, #222228);
+  --acme-color-dialog-border: light-dark(#e2e2e8, #2c2c33);
+  --acme-color-dialog-title: light-dark(#18181c, #f5f5f7);
+  --acme-color-dialog-text: light-dark(#5c5c66, #a9a9b4);
+  --acme-color-toast-background: light-dark(#18181c, #f5f5f7);
+  --acme-color-toast-text: light-dark(#f5f5f7, #18181c);
+  --acme-color-toast-action: light-dark(#a5b4fc, #4f46e5);
+  --acme-color-tooltip-background: light-dark(#18181c, #f5f5f7);
+  --acme-color-tooltip-text: light-dark(#f5f5f7, #18181c);
+  --acme-color-skeleton-background: light-dark(#ececf0, #2c2c33);
+  --acme-color-skeleton-highlight: light-dark(#e2e2e8, #44444c);
   --acme-color-avatar-background: light-dark(#eef2ff, #1e1b4b);
   --acme-color-avatar-text: light-dark(#4f46e5, #a5b4fc);
   --acme-color-avatar-ring: light-dark(#ffffff, #18181c);
@@ -207,6 +244,9 @@
   --acme-motion-duration-fast: 120ms;
   --acme-motion-duration-normal: 200ms;
   --acme-motion-duration-slow: 320ms;
+  --acme-motion-duration-pulse: 1200ms;
+  --acme-motion-duration-tooltip-delay: 500ms;
+  --acme-motion-duration-toast: 5000ms;
   --acme-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
   --acme-motion-easing-enter: cubic-bezier(0, 0, 0, 1);
   --acme-motion-easing-exit: cubic-bezier(0.3, 0, 1, 1);
@@ -240,11 +280,15 @@
   --acme-size-avatar-lg: 40px;
   --acme-size-avatar-xl: 56px;
   --acme-size-badge: 24px;
+  --acme-size-chip: 32px;
+  --acme-size-tab: 40px;
   --acme-size-count-badge: 18px;
   --acme-size-progress: 8px;
   --acme-size-spinner-sm: 16px;
   --acme-size-spinner-md: 24px;
   --acme-size-spinner-lg: 32px;
+  --acme-size-dialog: 480px;
+  --acme-size-toast: 480px;
 }
 
 /* Fingers need larger controls than a mouse. This asks about the primary input, not the
@@ -272,11 +316,15 @@
     --acme-size-avatar-lg: 40px;
     --acme-size-avatar-xl: 56px;
     --acme-size-badge: 24px;
+    --acme-size-chip: 40px;
+    --acme-size-tab: 48px;
     --acme-size-count-badge: 20px;
     --acme-size-progress: 8px;
     --acme-size-spinner-sm: 16px;
     --acme-size-spinner-md: 24px;
     --acme-size-spinner-lg: 32px;
+    --acme-size-dialog: 480px;
+    --acme-size-toast: 480px;
   }
 }
 

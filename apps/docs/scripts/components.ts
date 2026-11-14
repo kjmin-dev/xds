@@ -15,8 +15,11 @@ export type Component = {
   example: string;
   exampleLanguage: "tsx";
   props: Prop[];
-  /** Source file per platform. Touch-only components have no web or GPUI entry. */
-  sources: { web?: string; gpui?: string; reactNative: string; compose: string };
+  /**
+   * Source file per platform. Touch-only components have no web or GPUI entry, and
+   * pointer-only ones no React Native or Compose entry.
+   */
+  sources: { web?: string; gpui?: string; reactNative?: string; compose?: string };
   /** The live example at /demo/<slug>/. Touch-only components have none. */
   demo: boolean;
   /**
@@ -31,6 +34,7 @@ const native = (file: string) => `packages/ui-native/src/${file}.tsx`;
 const compose = (file: string) => `kotlin/ui/src/commonMain/kotlin/acme/ui/${file}.kt`;
 const GPUI_COMPONENTS = "crates/acme-ui/src/components.rs";
 const GPUI_CONTROLS = "crates/acme-ui/src/controls.rs";
+const GPUI_OVERLAYS = "crates/acme-ui/src/overlays.rs";
 
 const everywhere = (file: string, gpui: string) => ({
   web: web(file),
@@ -693,6 +697,401 @@ export const COMPONENTS: Component[] = [
     sources: everywhere("ListRow", GPUI_CONTROLS),
     demo: true,
     preview: "List",
+  },
+  {
+    slug: "icon-button",
+    name: "IconButton",
+    summary: "A button that holds only an icon.",
+    guidance: [
+      "Use it where the icon is familiar and room is short: a toolbar, the end of a row, the corner of a card. Where there is room, a Button with a label is clearer.",
+      "`label` is required. It is the accessible name, since there is no visible text. Add a Tooltip on pointer clients so that people who see the icon can read the name too.",
+      "It takes Button's variants, sizes and states. The default variant is `ghost`.",
+      "It is a square as tall as a Button of its size. Its pressable area is never smaller than the minimum target, even when the square is.",
+      "Giving `selected` makes it a toggle. A selected `secondary` or `ghost` icon button is tinted and outlined and its icon is filled.",
+    ],
+    example: `import { IconButton } from "@acme/ui";
+
+<IconButton icon="settings" label="Settings" onPress={openSettings} />
+<IconButton icon="pin" label="Pin" selected={pinned} onPress={() => setPinned(!pinned)} />
+<IconButton icon="trash" label="Delete" variant="danger" size="sm" onPress={remove} />`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "icon", type: "IconName", description: "Required." },
+      { name: "label", type: "string", description: "Required. The accessible name." },
+      {
+        name: "variant",
+        type: '"primary" | "secondary" | "ghost" | "danger"',
+        description: "Defaults to `ghost`.",
+      },
+      {
+        name: "size",
+        type: '"sm" | "md" | "lg"',
+        description: "Defaults to `md`. The icon is 16, 20 or 24 pixels.",
+      },
+      {
+        name: "selected",
+        type: "boolean",
+        description: "Given at all, the button is a toggle and sets `aria-pressed`.",
+      },
+      { name: "disabled", type: "boolean", description: "" },
+      {
+        name: "loading",
+        type: "boolean",
+        description: "Shows a spinner in the icon's place and ignores presses.",
+      },
+      { name: "onPress", type: "() => void", description: "" },
+    ],
+    sources: everywhere("IconButton", GPUI_COMPONENTS),
+    demo: true,
+    preview: "Buttons",
+  },
+  {
+    slug: "chip",
+    name: "Chip",
+    summary: "A choice that filters what is shown.",
+    guidance: [
+      "Use chips for filters that can be combined. Unlike a Badge, a chip is pressed.",
+      "A selected chip is tinted, outlined and marked with a check, which takes the place of `iconStart`. The state does not depend on color, and selecting does not change the chip's height.",
+      "The chip holds no state: pass `selected` and change it in `onPress`.",
+      "It is a toggle button, so assistive technology hears whether it is pressed.",
+    ],
+    example: `import { Chip } from "@acme/ui";
+
+<Chip label="Open" selected={open} onPress={() => setOpen(!open)} />
+<Chip label="Tagged" iconStart="tag" selected={tagged} onPress={() => setTagged(!tagged)} />`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "label", type: "string", description: "Required." },
+      { name: "selected", type: "boolean", description: "Defaults to `false`." },
+      { name: "onPress", type: "() => void", description: "" },
+      {
+        name: "iconStart",
+        type: "IconName",
+        description: "An icon in front of the label. A selected chip shows a check instead.",
+      },
+      { name: "disabled", type: "boolean", description: "" },
+    ],
+    sources: everywhere("Chip", GPUI_CONTROLS),
+    demo: true,
+    preview: "Chips",
+  },
+  {
+    slug: "chip-bar",
+    name: "ChipBar",
+    summary: "One row of chips that scrolls sideways.",
+    guidance: [
+      "Put the filters of a list in it, above the list.",
+      "The row never wraps. When the chips do not fit it scrolls sideways, without a visible scroll bar, so the content under it stays where it is.",
+      "The bar holds no state: which chips are selected is the app's business.",
+      "`label` names the group for assistive technology.",
+    ],
+    example: `import { Chip, ChipBar } from "@acme/ui";
+
+<ChipBar label="Filter the tasks">
+  <Chip label="Open" selected={open} onPress={() => setOpen(!open)} />
+  <Chip label="Assigned to me" selected={mine} onPress={() => setMine(!mine)} />
+</ChipBar>`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "label", type: "string", description: "Required. Says what the chips filter." },
+      { name: "children", type: "ReactNode", description: "Required. The chips." },
+    ],
+    sources: everywhere("ChipBar", GPUI_CONTROLS),
+    demo: true,
+    preview: "Chips",
+  },
+  {
+    slug: "tabs",
+    name: "Tabs",
+    summary: "Switches between views inside one screen.",
+    guidance: [
+      "For two to four short modes a SegmentedControl is lighter. Tabs are for more items, longer labels, or a row that may have to scroll.",
+      "The selected tab is underlined as well as darker, so the choice does not depend on color.",
+      "The row scrolls sideways when the tabs do not fit, without a visible scroll bar.",
+      "The component is only the row. The app shows the view that matches `value`.",
+      "On the web the arrow keys move between tabs.",
+    ],
+    example: `import { Tabs } from "@acme/ui";
+
+<Tabs
+  label="Workspace pages"
+  items={[
+    { value: "overview", label: "Overview", icon: "house" },
+    { value: "members", label: "Members", icon: "users" },
+    { value: "billing", label: "Billing" },
+  ]}
+  value={page}
+  onChange={setPage}
+/>`,
+    exampleLanguage: "tsx",
+    props: [
+      {
+        name: "items",
+        type: "readonly { value: Value; label: string; icon?: IconName }[]",
+        description: "Required.",
+      },
+      { name: "value", type: "Value", description: "Required. The selected tab." },
+      { name: "onChange", type: "(value: Value) => void", description: "Required." },
+      { name: "label", type: "string", description: "Required. Names the tab list." },
+      { name: "fullWidth", type: "boolean", description: "The tabs share the width equally." },
+    ],
+    sources: everywhere("Tabs", GPUI_CONTROLS),
+    demo: true,
+    preview: "Tabs",
+  },
+  {
+    slug: "menu",
+    name: "Menu",
+    summary: "A list of actions that opens from a control.",
+    guidance: [
+      "Use it for actions that do not deserve a button of their own. Keep the most used action outside the menu.",
+      "With a pointer it is a popup under its trigger. With touch the same items open in a BottomSheet titled with `label`.",
+      "Choosing an item calls its `onSelect` and closes the menu. A press outside, Escape or Back closes it too.",
+      "Mark an action that destroys something with `danger` and put it last, after a separator.",
+      "A `selected` item shows a check at its end, so the state does not depend on color.",
+      "On the web the trigger has to be a Button or an IconButton. It reports that it opens a menu and whether the menu is open; the arrow keys move the highlight, Enter chooses, and focus returns to the trigger on close.",
+    ],
+    example: `import { IconButton, Menu } from "@acme/ui";
+
+<Menu
+  label="Report actions"
+  align="end"
+  trigger={<IconButton icon="ellipsis" label="Report actions" />}
+  items={[
+    { label: "Rename", icon: "pencil", onSelect: rename },
+    { label: "Duplicate", icon: "copy", onSelect: duplicate },
+    "separator",
+    { label: "Delete", icon: "trash", danger: true, onSelect: remove },
+  ]}
+/>`,
+    exampleLanguage: "tsx",
+    props: [
+      {
+        name: "trigger",
+        type: "ReactNode",
+        description: "Required. The control that opens the menu: a Button or an IconButton.",
+      },
+      { name: "label", type: "string", description: "Required. Names the menu." },
+      {
+        name: "items",
+        type: 'readonly ("separator" | { label: string; icon?: IconName; onSelect: () => void; danger?: boolean; disabled?: boolean; selected?: boolean })[]',
+        description: "Required.",
+      },
+      {
+        name: "align",
+        type: '"start" | "end"',
+        description: "The edge of the trigger the menu lines up with. Defaults to `start`.",
+      },
+    ],
+    sources: everywhere("Menu", GPUI_OVERLAYS),
+    demo: true,
+    preview: "Menu",
+  },
+  {
+    slug: "dialog",
+    name: "Dialog",
+    summary: "A window that interrupts the screen for a confirmation or a short task.",
+    guidance: [
+      "Use it when the person has to decide before going on. For a message that needs no answer, use a Banner or a Toast.",
+      "Word the title as the question and the actions as its answers: `Delete the report?`, `Cancel`, `Delete`. Put the main action last.",
+      "It does not close itself: `open` decides. Escape, Back and a press outside call `onClose`.",
+      "Set `dismissible` to false only for a question that must be answered. Then only an action closes the dialog.",
+      "It is a modal dialog named by its title and described by its description. Focus moves into it, stays inside it, and returns to where it was on close.",
+    ],
+    example: `import { Button, Dialog } from "@acme/ui";
+
+<Dialog
+  open={open}
+  onClose={() => setOpen(false)}
+  title="Delete the weekly report?"
+  description="This cannot be undone."
+  actions={
+    <>
+      <Button onPress={() => setOpen(false)}>Cancel</Button>
+      <Button variant="danger" onPress={remove}>Delete</Button>
+    </>
+  }
+/>`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "open", type: "boolean", description: "Required." },
+      {
+        name: "onClose",
+        type: "() => void",
+        description: "Required. Called on Escape and on a press outside the dialog.",
+      },
+      { name: "title", type: "string", description: "Required. Names the dialog." },
+      { name: "description", type: "string", description: "Describes the dialog." },
+      {
+        name: "children",
+        type: "ReactNode",
+        description: "The body. It scrolls when the dialog would be taller than the window.",
+      },
+      {
+        name: "actions",
+        type: "ReactNode",
+        description: "Buttons, in a row at the end edge.",
+      },
+      {
+        name: "dismissible",
+        type: "boolean",
+        description: "Defaults to `true`. When false, Escape and a press outside do nothing.",
+      },
+    ],
+    sources: everywhere("Dialog", GPUI_OVERLAYS),
+    demo: true,
+    preview: "Dialog",
+  },
+  {
+    slug: "toast",
+    name: "Toast",
+    summary: "A short message about what just happened, which leaves on its own.",
+    guidance: [
+      "Use it to confirm something the person just did, optionally with one action such as undoing it.",
+      "Do not put the only way to do something in a toast: it is gone in a few seconds. For a message that has to stay, use a Banner.",
+      "It does not close itself: `open` decides, and `onClose` is called when the time is up and after the action.",
+      "On the web the time does not run while the pointer is over the toast or focus is inside it.",
+      "It is announced politely and never takes focus.",
+    ],
+    example: `import { Toast } from "@acme/ui";
+
+<Toast
+  open={open}
+  onClose={() => setOpen(false)}
+  message="The draft was deleted."
+  action={{ label: "Undo", onPress: restore }}
+/>`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "open", type: "boolean", description: "Required." },
+      {
+        name: "onClose",
+        type: "() => void",
+        description: "Required. Called when the time is up and after the action.",
+      },
+      { name: "message", type: "string", description: "Required." },
+      {
+        name: "action",
+        type: "{ label: string; onPress: () => void }",
+        description: "Choosing it calls `onPress` and then `onClose`.",
+      },
+      {
+        name: "duration",
+        type: "number",
+        description: "In milliseconds. Defaults to 5000. `0` keeps the toast until it is closed.",
+      },
+    ],
+    sources: everywhere("Toast", GPUI_OVERLAYS),
+    demo: true,
+    preview: "Toast",
+  },
+  {
+    slug: "tooltip",
+    name: "Tooltip",
+    summary: "Names a control when the pointer rests on it or the keyboard focuses it.",
+    guidance: [
+      "Pointer clients only: web and GPUI. Touch input has no hover, so nothing may depend on a tooltip.",
+      "Use it on a control that has no visible text, such as an IconButton, and say what the control does in a word or two.",
+      "It describes the control and is not its name: an IconButton still needs its `label`.",
+      "It appears after half a second under a pointer and at once on keyboard focus, and goes when the pointer leaves, focus leaves, or Escape is pressed.",
+      "It never holds anything pressable.",
+    ],
+    example: `import { IconButton, Tooltip } from "@acme/ui";
+
+<Tooltip label="Search" shortcut="⌘K">
+  <IconButton icon="search" label="Search" onPress={search} />
+</Tooltip>`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "label", type: "string", description: "Required. The text." },
+      { name: "shortcut", type: "string", description: "A key hint shown after the label." },
+      {
+        name: "placement",
+        type: '"top" | "bottom"',
+        description: "Defaults to `top`. It flips when there is no room.",
+      },
+      {
+        name: "children",
+        type: "ReactNode",
+        description: "Required. The control it describes: a Button or an IconButton.",
+      },
+    ],
+    sources: { web: web("Tooltip"), gpui: GPUI_OVERLAYS },
+    demo: true,
+    preview: "Buttons",
+  },
+  {
+    slug: "skeleton",
+    name: "Skeleton",
+    summary: "Holds the place of content that is loading.",
+    guidance: [
+      "Use skeletons in the shape of the content that is coming, so the screen does not jump when it arrives. For an action in progress, use a Spinner.",
+      "`text` is one line of body text, `rect` a block such as a picture, and `circle` an avatar.",
+      "It pulses, and stands still for people who ask for less motion.",
+      "It is hidden from assistive technology. The screen that shows skeletons says that it is loading, once.",
+    ],
+    example: `import { Skeleton } from "@acme/ui";
+
+<div role="status" aria-label="Loading the report">
+  <Skeleton shape="rect" height={128} />
+  <Skeleton shape="circle" width={40} />
+  <Skeleton />
+  <Skeleton width="60%" />
+</div>`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "shape", type: '"text" | "rect" | "circle"', description: "Defaults to `text`." },
+      {
+        name: "width",
+        type: "number | string",
+        description: "A number is in pixels. A `text` line fills its row without it.",
+      },
+      {
+        name: "height",
+        type: "number | string",
+        description: "A `rect` needs one. A `circle` is as tall as it is wide.",
+      },
+    ],
+    sources: everywhere("Skeleton", GPUI_CONTROLS),
+    demo: true,
+    preview: "Skeleton",
+  },
+  {
+    slug: "search-field",
+    name: "SearchField",
+    summary: "A text field for a query.",
+    guidance: [
+      "Use it to search or filter what is on the screen. For a value that is saved with a form, use a TextField, which has a visible label.",
+      "`label` is required and is not shown: it is the accessible name. The search icon says what the field is for.",
+      "While there is a value, a control at the end clears it and keeps focus in the field. On the web Escape clears too.",
+      "`onSubmit` is called on Enter, or on the search key of a software keyboard.",
+    ],
+    example: `import { SearchField } from "@acme/ui";
+
+<SearchField
+  label="Search projects"
+  placeholder="Search projects"
+  value={query}
+  onChange={setQuery}
+  onSubmit={search}
+/>`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "value", type: "string", description: "Required." },
+      { name: "onChange", type: "(value: string) => void", description: "Required." },
+      { name: "onSubmit", type: "(value: string) => void", description: "Called on Enter." },
+      { name: "label", type: "string", description: "Required. The accessible name." },
+      { name: "placeholder", type: "string", description: "" },
+      { name: "disabled", type: "boolean", description: "" },
+      {
+        name: "clearLabel",
+        type: "string",
+        description: "Names the control that empties the field. Defaults to `Clear`.",
+      },
+    ],
+    sources: everywhere("SearchField", GPUI_COMPONENTS),
+    demo: true,
+    preview: "Text fields",
   },
   {
     slug: "top-bar",

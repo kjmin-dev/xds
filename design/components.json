@@ -717,6 +717,420 @@
       }
     },
     {
+      "name": "IconButton",
+      "purpose": "A button that holds only an icon, in Button's variants, sizes and states. Use it where the icon is familiar and room is short.",
+      "options": {
+        "variant": [
+          "primary",
+          "secondary",
+          "ghost",
+          "danger"
+        ],
+        "size": [
+          "sm",
+          "md",
+          "lg"
+        ],
+        "fields": [
+          "icon",
+          "label"
+        ],
+        "flags": [
+          "selected",
+          "disabled",
+          "loading"
+        ]
+      },
+      "states": [
+        "hover",
+        "pressed",
+        "focus",
+        "disabled",
+        "loading",
+        "selected"
+      ],
+      "accessibility": "`label` is required: it is the accessible name, since there is no visible text. The pressable area is at least the minimum target even when the square is smaller.",
+      "tokens": [
+        "color.button",
+        "size.control",
+        "size.button-radius",
+        "size.icon"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/IconButton.tsx",
+          "symbol": "IconButton"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/components.rs",
+          "symbol": "icon_button"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/IconButton.tsx",
+          "symbol": "IconButton"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/IconButton.kt",
+          "symbol": "IconButton"
+        }
+      }
+    },
+    {
+      "name": "Chip",
+      "purpose": "A choice that filters what is shown. Unlike a Badge it is pressed; a selected chip is tinted, outlined and marked with a check.",
+      "options": {
+        "fields": [
+          "label",
+          "iconStart"
+        ],
+        "flags": [
+          "selected",
+          "disabled"
+        ]
+      },
+      "states": [
+        "hover",
+        "pressed",
+        "focus",
+        "disabled",
+        "selected"
+      ],
+      "accessibility": "A toggle button that reports whether it is selected.",
+      "tokens": [
+        "color.chip",
+        "size.chip"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Chip.tsx",
+          "symbol": "Chip"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/controls.rs",
+          "symbol": "Chip"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Chip.tsx",
+          "symbol": "Chip"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Chip.kt",
+          "symbol": "Chip"
+        }
+      }
+    },
+    {
+      "name": "ChipBar",
+      "purpose": "A row of chips that scrolls sideways when it does not fit, and never wraps.",
+      "options": {
+        "fields": [
+          "label",
+          "children"
+        ]
+      },
+      "states": [],
+      "accessibility": "A group named by `label`. It holds no state: the app decides which chips are selected.",
+      "tokens": [
+        "space"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/ChipBar.tsx",
+          "symbol": "ChipBar"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/controls.rs",
+          "symbol": "ChipBar"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/ChipBar.tsx",
+          "symbol": "ChipBar"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/ChipBar.kt",
+          "symbol": "ChipBar"
+        }
+      }
+    },
+    {
+      "name": "Tabs",
+      "purpose": "Switches between views inside one screen. For two to four short modes a SegmentedControl is lighter; Tabs is for more items, longer labels, or a row that may scroll.",
+      "options": {
+        "fields": [
+          "items",
+          "value",
+          "label"
+        ],
+        "flags": [
+          "fullWidth"
+        ]
+      },
+      "states": [
+        "hover",
+        "focus",
+        "selected"
+      ],
+      "accessibility": "A tab list with a selected tab. The component is only the row: the app shows the matching view.",
+      "tokens": [
+        "color.tabs",
+        "size.tab"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Tabs.tsx",
+          "symbol": "Tabs"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/controls.rs",
+          "symbol": "Tabs"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Tabs.tsx",
+          "symbol": "Tabs"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Tabs.kt",
+          "symbol": "Tabs"
+        }
+      }
+    },
+    {
+      "name": "Menu",
+      "purpose": "A list of actions that opens from a control: a popup where a pointer is used, a bottom sheet where fingers are.",
+      "options": {
+        "fields": [
+          "trigger",
+          "items",
+          "label",
+          "align"
+        ]
+      },
+      "states": [
+        "hover",
+        "pressed",
+        "focus",
+        "disabled",
+        "selected"
+      ],
+      "accessibility": "A menu with menu items. The trigger says that it opens a menu and whether it is open; Escape or Back closes it and focus returns to the trigger.",
+      "tokens": [
+        "color.menu",
+        "size.list-row-compact",
+        "shadow.raised"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Menu.tsx",
+          "symbol": "Menu"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/overlays.rs",
+          "symbol": "Menu"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Menu.tsx",
+          "symbol": "Menu"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Menu.kt",
+          "symbol": "Menu"
+        }
+      }
+    },
+    {
+      "name": "Dialog",
+      "purpose": "A window that interrupts the screen for a confirmation or a short task.",
+      "options": {
+        "fields": [
+          "title",
+          "description",
+          "children",
+          "actions",
+          "onClose"
+        ],
+        "flags": [
+          "open",
+          "dismissible"
+        ]
+      },
+      "states": [],
+      "accessibility": "A modal dialog named by its title. Focus moves into it, stays inside it, and returns on close. Escape, Back and the scrim close it unless `dismissible` is off.",
+      "tokens": [
+        "color.dialog",
+        "color.scrim",
+        "size.dialog",
+        "shadow.overlay"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Dialog.tsx",
+          "symbol": "Dialog"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/overlays.rs",
+          "symbol": "Dialog"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Dialog.tsx",
+          "symbol": "Dialog"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Dialog.kt",
+          "symbol": "Dialog"
+        }
+      }
+    },
+    {
+      "name": "Toast",
+      "purpose": "A short message about what just happened, which leaves on its own. It can offer one action, such as Undo.",
+      "options": {
+        "fields": [
+          "message",
+          "action",
+          "duration",
+          "onClose"
+        ],
+        "flags": [
+          "open"
+        ]
+      },
+      "states": [],
+      "accessibility": "Announced politely, without taking focus. Do not put the only way to an action in a toast.",
+      "tokens": [
+        "color.toast",
+        "size.toast",
+        "motion.duration.toast"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Toast.tsx",
+          "symbol": "Toast"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/overlays.rs",
+          "symbol": "Toast"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Toast.tsx",
+          "symbol": "Toast"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Toast.kt",
+          "symbol": "Toast"
+        }
+      }
+    },
+    {
+      "name": "Tooltip",
+      "purpose": "Names a control when the pointer rests on it or the keyboard focuses it. Pointer clients only: there is no hover on a touch screen.",
+      "options": {
+        "fields": [
+          "label",
+          "shortcut",
+          "placement",
+          "children"
+        ]
+      },
+      "states": [],
+      "accessibility": "Describes the control; it is not the control's name, which the control still needs.",
+      "tokens": [
+        "color.tooltip",
+        "motion.duration.tooltip-delay"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Tooltip.tsx",
+          "symbol": "Tooltip"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/overlays.rs",
+          "symbol": "tooltip"
+        }
+      }
+    },
+    {
+      "name": "Skeleton",
+      "purpose": "Holds the place of content that is loading, in the shape of what will come.",
+      "options": {
+        "shape": [
+          "text",
+          "rect",
+          "circle"
+        ],
+        "fields": [
+          "width",
+          "height"
+        ]
+      },
+      "states": [],
+      "accessibility": "Hidden from assistive technology: the screen that shows skeletons says that it is loading.",
+      "tokens": [
+        "color.skeleton",
+        "motion.duration.pulse"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/Skeleton.tsx",
+          "symbol": "Skeleton"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/controls.rs",
+          "symbol": "Skeleton"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/Skeleton.tsx",
+          "symbol": "Skeleton"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Skeleton.kt",
+          "symbol": "Skeleton"
+        }
+      }
+    },
+    {
+      "name": "SearchField",
+      "purpose": "A text field for a query, with a search mark and a control that clears it.",
+      "options": {
+        "fields": [
+          "label",
+          "value",
+          "placeholder",
+          "onSubmit",
+          "clearLabel"
+        ],
+        "flags": [
+          "disabled"
+        ]
+      },
+      "states": [
+        "focus",
+        "disabled"
+      ],
+      "accessibility": "`label` is required and not shown: it names the field. The clear control has a name of its own.",
+      "tokens": [
+        "color.field",
+        "size.control"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/SearchField.tsx",
+          "symbol": "SearchField"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/components.rs",
+          "symbol": "SearchField"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/SearchField.tsx",
+          "symbol": "SearchField"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/SearchField.kt",
+          "symbol": "SearchField"
+        }
+      }
+    },
+    {
       "name": "TopBar",
       "purpose": "The bar at the top of a screen: a title, a back action and a trailing action.",
       "options": {

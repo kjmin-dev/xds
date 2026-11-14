@@ -83,7 +83,7 @@ Semantic color groups:
 | Group | Tokens | Use |
 | --- | --- | --- |
 | background | base, surface, raised, inverse, disabled | Page backgrounds, cards, floating surfaces, disabled controls. `inverse` is a surface that stands against the page instead of sitting on it, such as a toast or a tooltip: dark in light mode and light in dark mode |
-| text | primary, secondary, tertiary, disabled, accent, on-accent, on-danger, on-inverse | Text colors (`on-*` is used for text drawn on a colored fill). `tertiary` is used for placeholders, timestamps, and marks such as chevrons; it maintains 4.5:1 contrast on the page and on surfaces, and is not used on raised surfaces |
+| text | primary, secondary, tertiary, disabled, accent, on-accent, on-danger, on-inverse, accent-on-inverse | Text colors (`on-*` is used for text drawn on a colored fill). `tertiary` is used for placeholders, timestamps, and marks such as chevrons; it maintains 4.5:1 contrast on the page and on surfaces, and is not used on raised surfaces |
 | border | default, control, strong, focus | Decorative dividers; outlines on controls already identified by a label; control boundaries that require 3:1 contrast; focus rings |
 | accent | default, hover, pressed, subtle, subtle-hover, subtle-pressed | Primary view actions and selected states. The subtle steps tint a selected control: primary text reads on all three, secondary text on `subtle` and `subtle-hover` |
 | control | default, hover, pressed | Neutral control fills |
@@ -163,6 +163,9 @@ On the web, the Tailwind configuration generates utility classes for typographic
 | `size.spinner.sm`, `md`, `lg` | 16, 24, 32 | 16, 24, 32 |
 | `size.badge` | 24 | 24 |
 | `size.count-badge` | 18 | 20 |
+| `size.chip` | 32 | 40 |
+| `size.tab` | 40 | 48 |
+| `size.dialog`, `size.toast` | 480 | 480 |
 | `size.progress` | 8 | 8 |
 
 On the web, `@media (pointer: coarse)` switches between the pointer and touch scales. Keying off the input device rather than viewport width avoids common edge cases: a narrow browser window on a laptop is still used with a mouse, and a large tablet is still used with touch. The GPUI desktop app always uses pointer sizes, the React Native app always uses touch sizes, and the Compose client uses touch sizes on Android and iOS and pointer sizes on desktop.
@@ -242,6 +245,16 @@ Every platform exposes the same component names, variants, sizes, and tones.
 | Icon | name, size: xs, sm, md, lg, xl. filled, label | Inherits the surrounding text color. Treated as decorative unless given a label. `filled` marks a selected state on an icon made of closed shapes. Arrows and chevrons can mirror in right-to-left layouts |
 | ListRow | title, description, leading, trailing, chevron, selected, compact, disabled | Interactive when given an action. Separate adjacent rows with a Divider. A selected row is tinted and its title is heavier. `compact` is for menus and sidebars, where many rows share little room |
 
+| IconButton | icon, label. variant and size as Button. selected, disabled, loading | A square with Button's corner, colors, and states. `label` is required, since there is no visible text. Pair it with a Tooltip where a pointer is used |
+| Chip | label, iconStart, selected, disabled | A pill that filters what is shown. A selected chip is tinted, outlined, and marked with a check |
+| ChipBar | label, chips | One row of chips that scrolls sideways and never wraps. It holds no state |
+| Tabs | items (value, label, icon), value, label, fullWidth | Switches between views inside one screen. The selected tab has a bar under it. Use SegmentedControl for two to four short modes |
+| Menu | trigger, items (label, icon, danger, disabled, selected, or a separator), label, align | A popup under the trigger for pointer input, and a bottom sheet of rows for touch. Choosing an item closes it |
+| Dialog | open, title, description, body, actions, dismissible | Centered over a scrim, at most `size.dialog` wide. Escape, Back, and the scrim close it unless `dismissible` is off. It does not close itself: `open` decides |
+| Toast | open, message, action, duration | An inverse surface at the bottom center that leaves after `motion.duration.toast`. Announced politely, without taking focus |
+| Skeleton | shape: text, rect, circle. width, height | Pulses between two neutral fills, and stands still with reduced motion. Hidden from assistive technologies |
+| SearchField | label, value, placeholder, onSubmit, clearLabel, disabled | A pill-shaped field with a search mark and a clear control. `label` is required and not shown |
+
 Three additional navigation components exist only on the touch-oriented platforms (React Native and Compose):
 
 | Component | Options | Rule |
@@ -249,6 +262,12 @@ Three additional navigation components exist only on the touch-oriented platform
 | TopBar | title, back action, trailing | Matches the page background with no bottom border. The back button is a circular control whose press area is as large as the minimum touch target |
 | TabBar | items (label and icon), value | Holds three to five top-level destinations. Floats above the bottom edge as a capsule, with the active tab enclosed in its own pill so selection does not depend on color |
 | BottomSheet | open, title, content | Floats inset from the screen edges. Closes when tapping the scrim, dragging down, or pressing the back button |
+
+One component exists only on the pointer-oriented platforms (web and GPUI), because a touch screen has no hover:
+
+| Component | Options | Rule |
+| --- | --- | --- |
+| Tooltip | label, shortcut, placement | Shows after `motion.duration.tooltip-delay` of hover and at once on keyboard focus. It describes a control and never holds anything pressable; the control still needs a name of its own |
 
 Icons are passed as slots: a TabBar item or a ListRow accepts any element, and `Icon` is the component the design system provides.
 
@@ -302,7 +321,7 @@ Every platform includes a design preview screen that renders all tokens and comp
 | Mobile | The `/design` screen | The button on the home screen | Follows the system |
 | Kotlin | `mise run //kotlin:design` on desktop; the home screen button elsewhere | The button on the home screen | Follows the system. Includes an in-app mode switch |
 
-To support automated screenshot scripts that cannot scroll or tap interactively: web sections expose URL hash anchors (`/design#buttons`), the desktop binary accepts `--scroll <pixels>`, and the mobile preview accepts `?from=<section number>` and `?sheet=1`.
+To support automated screenshot scripts that cannot scroll or tap interactively: web sections expose URL hash anchors (`/design#buttons`) and `?open=<overlay>`, the desktop binary accepts `--scroll <pixels>` and `--open <overlay>`, and the mobile preview accepts `?from=<section number>`, `?sheet=1`, `?menu=1`, `?dialog=1`, and `?toast=1`. The overlays are `menu`, `dialog`, `toast`, and, on the pointer clients, `tooltip`.
 
 On the web, the preview code is lazy-loaded only when navigating to `/design`. Static file hosts must be configured to serve `index.html` for `/design`.
 

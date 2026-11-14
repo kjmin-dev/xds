@@ -2,6 +2,7 @@ import { radius, space, typography } from "@acme/tokens";
 import type { ReactNode } from "react";
 import { Text as NativeText, StyleSheet, View } from "react-native";
 import { Button } from "./Button.tsx";
+import { IconButton } from "./IconButton.tsx";
 import { Text } from "./Text.tsx";
 import { type Colors, control, useColors } from "./theme.ts";
 
@@ -80,11 +81,11 @@ export function Banner({
         )}
       </View>
       {onDismiss && (
-        <Button
+        <IconButton
           variant="ghost"
           size="sm"
-          iconStart="x"
-          accessibilityLabel={dismissLabel}
+          icon="x"
+          label={dismissLabel}
           onPress={onDismiss}
           style={styles.dismiss}
         />

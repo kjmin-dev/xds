@@ -1,5 +1,5 @@
 import { border, motion, shadow, space, typography } from "@acme/tokens";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -12,13 +12,21 @@ import {
 } from "react-native";
 import { Icon, type IconName, type IconSize } from "./Icon.tsx";
 import { useSpring } from "./motion.ts";
-import { CONTROL_HEIGHT, type Colors, type ControlSize, control, useColors } from "./theme.ts";
+import {
+  CONTROL_HEIGHT,
+  type Colors,
+  type ControlSize,
+  control,
+  MenuOpen,
+  useColors,
+} from "./theme.ts";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 type Look = { background: string; pressed: string; text: string };
 
-function look(colors: Colors, variant: ButtonVariant): Look {
+/** The colors of a variant. IconButton draws with the same ones. */
+export function look(colors: Colors, variant: ButtonVariant): Look {
   switch (variant) {
     case "primary":
       return {
@@ -115,6 +123,7 @@ export function Button({
   style,
 }: ButtonProps) {
   const colors = useColors();
+  const menuOpen = useContext(MenuOpen);
   // Only the quiet variants have a look of their own for "on": a filled button already is one.
   const on = selected === true && !disabled && (variant === "secondary" || variant === "ghost");
   const { background, pressed, text } = on
@@ -161,6 +170,7 @@ export function Button({
           disabled: disabled || loading,
           busy: loading,
           ...(selected === undefined ? {} : { selected }),
+          ...(menuOpen === undefined ? {} : { expanded: menuOpen }),
         }}
         disabled={disabled || loading}
         hitSlop={slop}

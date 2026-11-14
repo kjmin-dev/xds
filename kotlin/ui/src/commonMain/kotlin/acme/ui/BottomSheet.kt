@@ -79,7 +79,7 @@ fun BottomSheet(
     if (!present) return
 
     val requestDismiss by rememberUpdatedState(onDismiss)
-    SheetWindow(onDismiss = { requestDismiss() }) {
+    WindowLayer(onDismiss = { requestDismiss() }) {
         val colors = LocalColors.current
         // How far the sheet has to move to be off the screen, and its own height, in pixels.
         var travel by remember { mutableStateOf(0) }

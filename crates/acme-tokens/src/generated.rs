@@ -34,6 +34,8 @@ pub struct Colors {
     pub text_on_danger: Color,
     /// Text on an inverse surface.
     pub text_on_inverse: Color,
+    /// Accent-colored text on an inverse surface, such as the action of a toast.
+    pub text_accent_on_inverse: Color,
     /// Dividers and card outlines. Decorative, so low contrast is fine.
     pub border_default: Color,
     /// Outline of a control that its label already identifies, such as a secondary button. Decorative, so it does not have to hold 3:1.
@@ -155,6 +157,51 @@ pub struct Colors {
     /// A hairline around the selected segment. Together with a faint shadow and the darker label it sets the segment apart from the track.
     pub segmented_selected_border: Color,
     pub segmented_selected_text: Color,
+    /// A choice that filters what is shown. Unlike a badge, it is pressed.
+    pub chip_background: Color,
+    pub chip_background_hover: Color,
+    pub chip_background_pressed: Color,
+    pub chip_text: Color,
+    /// A chip that is on: tinted, outlined and marked with a check, so the state does not depend on color alone.
+    pub chip_selected_background: Color,
+    pub chip_selected_background_hover: Color,
+    pub chip_selected_background_pressed: Color,
+    pub chip_selected_border: Color,
+    pub chip_selected_text: Color,
+    pub chip_disabled_background: Color,
+    pub chip_disabled_text: Color,
+    /// The hairline the tabs stand on.
+    pub tabs_border: Color,
+    pub tabs_text: Color,
+    pub tabs_text_hover: Color,
+    pub tabs_text_selected: Color,
+    /// The bar under the selected tab. Its shape marks the selection, so color is not the only signal.
+    pub tabs_indicator: Color,
+    pub menu_background: Color,
+    pub menu_border: Color,
+    pub menu_text: Color,
+    pub menu_icon: Color,
+    pub menu_text_disabled: Color,
+    /// Under the pointer, and under the keyboard's highlight.
+    pub menu_item_background_hover: Color,
+    pub menu_item_background_pressed: Color,
+    /// An item that destroys something.
+    pub menu_danger_text: Color,
+    /// Also while pressed. A neutral fill would not carry the danger text in dark mode.
+    pub menu_danger_background_hover: Color,
+    pub dialog_background: Color,
+    pub dialog_border: Color,
+    pub dialog_title: Color,
+    pub dialog_text: Color,
+    pub toast_background: Color,
+    pub toast_text: Color,
+    pub toast_action: Color,
+    pub tooltip_background: Color,
+    pub tooltip_text: Color,
+    /// The place of content that is still loading.
+    pub skeleton_background: Color,
+    /// What the placeholder pulses toward.
+    pub skeleton_highlight: Color,
     pub avatar_background: Color,
     pub avatar_text: Color,
     /// The gap between the avatars of a stack. The color of the surface the stack sits on.
@@ -190,7 +237,7 @@ pub struct Colors {
 
 impl Colors {
     /// Every color with its token name, in token order. For screens that list the colors.
-    pub const fn entries(&self) -> [(&'static str, Color); 132] {
+    pub const fn entries(&self) -> [(&'static str, Color); 169] {
         [
             ("scrim", self.scrim),
             ("background-base", self.background_base),
@@ -206,6 +253,7 @@ impl Colors {
             ("text-on-accent", self.text_on_accent),
             ("text-on-danger", self.text_on_danger),
             ("text-on-inverse", self.text_on_inverse),
+            ("text-accent-on-inverse", self.text_accent_on_inverse),
             ("border-default", self.border_default),
             ("border-control", self.border_control),
             ("border-strong", self.border_strong),
@@ -302,6 +350,42 @@ impl Colors {
             ("segmented-selected-background", self.segmented_selected_background),
             ("segmented-selected-border", self.segmented_selected_border),
             ("segmented-selected-text", self.segmented_selected_text),
+            ("chip-background", self.chip_background),
+            ("chip-background-hover", self.chip_background_hover),
+            ("chip-background-pressed", self.chip_background_pressed),
+            ("chip-text", self.chip_text),
+            ("chip-selected-background", self.chip_selected_background),
+            ("chip-selected-background-hover", self.chip_selected_background_hover),
+            ("chip-selected-background-pressed", self.chip_selected_background_pressed),
+            ("chip-selected-border", self.chip_selected_border),
+            ("chip-selected-text", self.chip_selected_text),
+            ("chip-disabled-background", self.chip_disabled_background),
+            ("chip-disabled-text", self.chip_disabled_text),
+            ("tabs-border", self.tabs_border),
+            ("tabs-text", self.tabs_text),
+            ("tabs-text-hover", self.tabs_text_hover),
+            ("tabs-text-selected", self.tabs_text_selected),
+            ("tabs-indicator", self.tabs_indicator),
+            ("menu-background", self.menu_background),
+            ("menu-border", self.menu_border),
+            ("menu-text", self.menu_text),
+            ("menu-icon", self.menu_icon),
+            ("menu-text-disabled", self.menu_text_disabled),
+            ("menu-item-background-hover", self.menu_item_background_hover),
+            ("menu-item-background-pressed", self.menu_item_background_pressed),
+            ("menu-danger-text", self.menu_danger_text),
+            ("menu-danger-background-hover", self.menu_danger_background_hover),
+            ("dialog-background", self.dialog_background),
+            ("dialog-border", self.dialog_border),
+            ("dialog-title", self.dialog_title),
+            ("dialog-text", self.dialog_text),
+            ("toast-background", self.toast_background),
+            ("toast-text", self.toast_text),
+            ("toast-action", self.toast_action),
+            ("tooltip-background", self.tooltip_background),
+            ("tooltip-text", self.tooltip_text),
+            ("skeleton-background", self.skeleton_background),
+            ("skeleton-highlight", self.skeleton_highlight),
             ("avatar-background", self.avatar_background),
             ("avatar-text", self.avatar_text),
             ("avatar-ring", self.avatar_ring),
@@ -343,6 +427,7 @@ pub const LIGHT: Colors = Colors {
     text_on_accent: Color::rgba(255, 255, 255, 1.0),
     text_on_danger: Color::rgba(255, 255, 255, 1.0),
     text_on_inverse: Color::rgba(245, 245, 247, 1.0),
+    text_accent_on_inverse: Color::rgba(165, 180, 252, 1.0),
     border_default: Color::rgba(226, 226, 232, 1.0),
     border_control: Color::rgba(201, 201, 209, 1.0),
     border_strong: Color::rgba(132, 132, 143, 1.0),
@@ -439,6 +524,42 @@ pub const LIGHT: Colors = Colors {
     segmented_selected_background: Color::rgba(255, 255, 255, 1.0),
     segmented_selected_border: Color::rgba(201, 201, 209, 1.0),
     segmented_selected_text: Color::rgba(24, 24, 28, 1.0),
+    chip_background: Color::rgba(236, 236, 240, 1.0),
+    chip_background_hover: Color::rgba(226, 226, 232, 1.0),
+    chip_background_pressed: Color::rgba(201, 201, 209, 1.0),
+    chip_text: Color::rgba(24, 24, 28, 1.0),
+    chip_selected_background: Color::rgba(238, 242, 255, 1.0),
+    chip_selected_background_hover: Color::rgba(224, 231, 255, 1.0),
+    chip_selected_background_pressed: Color::rgba(199, 210, 254, 1.0),
+    chip_selected_border: Color::rgba(79, 70, 229, 1.0),
+    chip_selected_text: Color::rgba(24, 24, 28, 1.0),
+    chip_disabled_background: Color::rgba(236, 236, 240, 1.0),
+    chip_disabled_text: Color::rgba(169, 169, 180, 1.0),
+    tabs_border: Color::rgba(226, 226, 232, 1.0),
+    tabs_text: Color::rgba(92, 92, 102, 1.0),
+    tabs_text_hover: Color::rgba(24, 24, 28, 1.0),
+    tabs_text_selected: Color::rgba(24, 24, 28, 1.0),
+    tabs_indicator: Color::rgba(79, 70, 229, 1.0),
+    menu_background: Color::rgba(255, 255, 255, 1.0),
+    menu_border: Color::rgba(226, 226, 232, 1.0),
+    menu_text: Color::rgba(24, 24, 28, 1.0),
+    menu_icon: Color::rgba(92, 92, 102, 1.0),
+    menu_text_disabled: Color::rgba(169, 169, 180, 1.0),
+    menu_item_background_hover: Color::rgba(236, 236, 240, 1.0),
+    menu_item_background_pressed: Color::rgba(226, 226, 232, 1.0),
+    menu_danger_text: Color::rgba(180, 35, 24, 1.0),
+    menu_danger_background_hover: Color::rgba(254, 243, 242, 1.0),
+    dialog_background: Color::rgba(255, 255, 255, 1.0),
+    dialog_border: Color::rgba(226, 226, 232, 1.0),
+    dialog_title: Color::rgba(24, 24, 28, 1.0),
+    dialog_text: Color::rgba(92, 92, 102, 1.0),
+    toast_background: Color::rgba(24, 24, 28, 1.0),
+    toast_text: Color::rgba(245, 245, 247, 1.0),
+    toast_action: Color::rgba(165, 180, 252, 1.0),
+    tooltip_background: Color::rgba(24, 24, 28, 1.0),
+    tooltip_text: Color::rgba(245, 245, 247, 1.0),
+    skeleton_background: Color::rgba(236, 236, 240, 1.0),
+    skeleton_highlight: Color::rgba(226, 226, 232, 1.0),
     avatar_background: Color::rgba(238, 242, 255, 1.0),
     avatar_text: Color::rgba(79, 70, 229, 1.0),
     avatar_ring: Color::rgba(255, 255, 255, 1.0),
@@ -478,6 +599,7 @@ pub const DARK: Colors = Colors {
     text_on_accent: Color::rgba(255, 255, 255, 1.0),
     text_on_danger: Color::rgba(255, 255, 255, 1.0),
     text_on_inverse: Color::rgba(24, 24, 28, 1.0),
+    text_accent_on_inverse: Color::rgba(79, 70, 229, 1.0),
     border_default: Color::rgba(44, 44, 51, 1.0),
     border_control: Color::rgba(68, 68, 76, 1.0),
     border_strong: Color::rgba(132, 132, 143, 1.0),
@@ -574,6 +696,42 @@ pub const DARK: Colors = Colors {
     segmented_selected_background: Color::rgba(34, 34, 40, 1.0),
     segmented_selected_border: Color::rgba(68, 68, 76, 1.0),
     segmented_selected_text: Color::rgba(245, 245, 247, 1.0),
+    chip_background: Color::rgba(44, 44, 51, 1.0),
+    chip_background_hover: Color::rgba(68, 68, 76, 1.0),
+    chip_background_pressed: Color::rgba(92, 92, 102, 1.0),
+    chip_text: Color::rgba(245, 245, 247, 1.0),
+    chip_selected_background: Color::rgba(30, 27, 75, 1.0),
+    chip_selected_background_hover: Color::rgba(49, 46, 129, 1.0),
+    chip_selected_background_pressed: Color::rgba(55, 48, 163, 1.0),
+    chip_selected_border: Color::rgba(91, 94, 240, 1.0),
+    chip_selected_text: Color::rgba(245, 245, 247, 1.0),
+    chip_disabled_background: Color::rgba(44, 44, 51, 1.0),
+    chip_disabled_text: Color::rgba(92, 92, 102, 1.0),
+    tabs_border: Color::rgba(44, 44, 51, 1.0),
+    tabs_text: Color::rgba(169, 169, 180, 1.0),
+    tabs_text_hover: Color::rgba(245, 245, 247, 1.0),
+    tabs_text_selected: Color::rgba(245, 245, 247, 1.0),
+    tabs_indicator: Color::rgba(91, 94, 240, 1.0),
+    menu_background: Color::rgba(34, 34, 40, 1.0),
+    menu_border: Color::rgba(44, 44, 51, 1.0),
+    menu_text: Color::rgba(245, 245, 247, 1.0),
+    menu_icon: Color::rgba(169, 169, 180, 1.0),
+    menu_text_disabled: Color::rgba(92, 92, 102, 1.0),
+    menu_item_background_hover: Color::rgba(44, 44, 51, 1.0),
+    menu_item_background_pressed: Color::rgba(68, 68, 76, 1.0),
+    menu_danger_text: Color::rgba(249, 112, 102, 1.0),
+    menu_danger_background_hover: Color::rgba(85, 22, 12, 1.0),
+    dialog_background: Color::rgba(34, 34, 40, 1.0),
+    dialog_border: Color::rgba(44, 44, 51, 1.0),
+    dialog_title: Color::rgba(245, 245, 247, 1.0),
+    dialog_text: Color::rgba(169, 169, 180, 1.0),
+    toast_background: Color::rgba(245, 245, 247, 1.0),
+    toast_text: Color::rgba(24, 24, 28, 1.0),
+    toast_action: Color::rgba(79, 70, 229, 1.0),
+    tooltip_background: Color::rgba(245, 245, 247, 1.0),
+    tooltip_text: Color::rgba(24, 24, 28, 1.0),
+    skeleton_background: Color::rgba(44, 44, 51, 1.0),
+    skeleton_highlight: Color::rgba(68, 68, 76, 1.0),
     avatar_background: Color::rgba(30, 27, 75, 1.0),
     avatar_text: Color::rgba(165, 180, 252, 1.0),
     avatar_ring: Color::rgba(24, 24, 28, 1.0),
@@ -680,6 +838,12 @@ pub const MOTION_DURATION_FAST: Duration = Duration::from_millis(120);
 pub const MOTION_DURATION_NORMAL: Duration = Duration::from_millis(200);
 /// Large surfaces: sheets, full panels.
 pub const MOTION_DURATION_SLOW: Duration = Duration::from_millis(320);
+/// One beat of a loading placeholder: slow enough not to nag.
+pub const MOTION_DURATION_PULSE: Duration = Duration::from_millis(1200);
+/// How long the pointer rests on a control before its tooltip shows.
+pub const MOTION_DURATION_TOOLTIP_DELAY: Duration = Duration::from_millis(500);
+/// How long a toast stays before it leaves on its own.
+pub const MOTION_DURATION_TOAST: Duration = Duration::from_millis(5000);
 
 /// Moving between two places on screen.
 pub const MOTION_EASING_STANDARD: CubicBezier = [0.2, 0.0, 0.0, 1.0];
@@ -740,6 +904,10 @@ pub struct Sizes {
     pub avatar_xl: f32,
     /// The height of a badge.
     pub badge: f32,
+    /// The height of a chip.
+    pub chip: f32,
+    /// The height of a tab.
+    pub tab: f32,
     /// The height, and the least width, of a count badge.
     pub count_badge: f32,
     /// The thickness of a progress bar.
@@ -747,6 +915,10 @@ pub struct Sizes {
     pub spinner_sm: f32,
     pub spinner_md: f32,
     pub spinner_lg: f32,
+    /// The most a dialog is wide. A narrower screen leaves a margin on both sides.
+    pub dialog: f32,
+    /// The most a toast is wide.
+    pub toast: f32,
 }
 
 pub const POINTER: Sizes = Sizes {
@@ -771,11 +943,15 @@ pub const POINTER: Sizes = Sizes {
     avatar_lg: 40.0,
     avatar_xl: 56.0,
     badge: 24.0,
+    chip: 32.0,
+    tab: 40.0,
     count_badge: 18.0,
     progress: 8.0,
     spinner_sm: 16.0,
     spinner_md: 24.0,
     spinner_lg: 32.0,
+    dialog: 480.0,
+    toast: 480.0,
 };
 
 pub const TOUCH: Sizes = Sizes {
@@ -800,11 +976,15 @@ pub const TOUCH: Sizes = Sizes {
     avatar_lg: 40.0,
     avatar_xl: 56.0,
     badge: 24.0,
+    chip: 40.0,
+    tab: 48.0,
     count_badge: 20.0,
     progress: 8.0,
     spinner_sm: 16.0,
     spinner_md: 24.0,
     spinner_lg: 32.0,
+    dialog: 480.0,
+    toast: 480.0,
 };
 
 /// The icons of the design system. `name` is the icon's file name in design/icons.

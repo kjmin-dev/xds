@@ -14,22 +14,32 @@ import {
   type ButtonVariant,
   Card,
   Checkbox,
+  Chip,
+  ChipBar,
   type ControlSize,
   CountBadge,
+  Dialog,
   Divider,
   Icon,
+  IconButton,
   type IconName,
   type IconSize,
   ListRow,
+  Menu,
   ProgressBar,
+  SearchField,
   SegmentedControl,
+  Skeleton,
   Spinner,
   Switch,
+  Tabs,
   Text,
   TextField,
   type TextVariant,
+  Toast,
+  Tooltip,
 } from "@acme/ui";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 type Theme = "light" | "dark";
 
@@ -37,7 +47,7 @@ const kebab = (name: string) => name.replace(/[A-Z0-9]+/g, (match) => `-${match.
 
 /** Semantic colors by group. Component colors are shown by the components that use them. */
 const COMPONENT_COLORS =
-  /^(button|field|badge|banner|card|switch|checkbox|segmented|avatar|progress|listRow|topBar|tabBar|sheet)/;
+  /^(button|field|badge|banner|card|switch|checkbox|segmented|avatar|progress|listRow|topBar|tabBar|sheet|chip|tabs|menu|dialog|toast|tooltip|skeleton)/;
 
 const VIEWS = [
   { value: "day", label: "Day" },
@@ -103,10 +113,16 @@ const SECTIONS = [
   "Buttons",
   "Text fields",
   "Selection",
+  "Chips",
+  "Tabs",
   "Badges",
   "Banners",
   "Card",
   "List",
+  "Menu",
+  "Dialog",
+  "Toast",
+  "Skeleton",
 ];
 
 const anchor = (title: string) => title.toLowerCase().replace(/[^a-z]+/g, "-");
@@ -120,8 +136,37 @@ const DOCS_SITE: string | undefined = import.meta.env.VITE_DOCS_SITE;
 if (DOCS_SITE) LINKS.push({ label: "Documentation", href: DOCS_SITE });
 // @endif
 
+const FILTERS = [
+  { value: "open", label: "Open", icon: "flag" },
+  { value: "mine", label: "Assigned to me", icon: "user" },
+  { value: "mentions", label: "Mentions", icon: "message-square" },
+  { value: "review", label: "Needs review", icon: "eye" },
+  { value: "blocked", label: "Blocked", icon: "ban" },
+  { value: "done", label: "Done this week", icon: "check-check" },
+  { value: "archived", label: "Archived", icon: "history" },
+] as const satisfies readonly { value: string; label: string; icon: IconName }[];
+
+const PAGES = [
+  { value: "overview", label: "Overview", icon: "house" },
+  { value: "activity", label: "Activity", icon: "bell" },
+  { value: "members", label: "Members", icon: "users" },
+  { value: "billing", label: "Billing", icon: "credit-card" },
+  { value: "settings", label: "Settings", icon: "settings" },
+] as const satisfies readonly { value: string; label: string; icon: IconName }[];
+
+/**
+ * `?open=menu`, `?open=dialog`, `?open=toast` or `?open=tooltip` shows that overlay as soon as
+ * the page loads, so that it can be captured without a hand on the page. A menu and a tooltip
+ * open beside their control, so for those the page starts at that control's section, and the
+ * tooltip's row moves to the top of it: a capture of the top of the page then has the overlay in
+ * it, and focusing the control does not scroll the page.
+ */
+const OPEN = new URLSearchParams(location.search).get("open");
+const FIRST = OPEN === "menu" ? "Menu" : OPEN === "tooltip" ? "Buttons" : "Colors";
+
 /** Each section can be linked to: `/design#buttons`. */
 function Section({ title, children }: { title: (typeof SECTIONS)[number]; children: ReactNode }) {
+  if (SECTIONS.indexOf(title) < SECTIONS.indexOf(FIRST)) return null;
   return (
     <section id={anchor(title)} className="flex scroll-mt-20 flex-col gap-4">
       <Text variant="title" as="h2">
@@ -160,11 +205,56 @@ export function DesignPreview() {
   const [bio, setBio] = useState("Writes programs for machines that do not exist yet.");
   const [dismissed, setDismissed] = useState(false);
   const [picked, setPicked] = useState(true);
+  const [pinned, setPinned] = useState(true);
+  const [search, setSearch] = useState("");
+  const [submitted, setSubmitted] = useState("");
+  const [filters, setFilters] = useState<readonly string[]>(["open", "review"]);
+  const [page, setPage] = useState<(typeof PAGES)[number]["value"]>("overview");
+  const [density, setDensity] = useState<"comfortable" | "compact">("comfortable");
+  const [chosen, setChosen] = useState("Nothing chosen yet.");
+  const [confirming, setConfirming] = useState(OPEN === "dialog");
+  const [asking, setAsking] = useState(false);
+  const [copyName, setCopyName] = useState("Weekly report, my copy");
+  const [toast, setToast] = useState(OPEN === "toast");
+  const [deleted, setDeleted] = useState(OPEN === "toast");
+  const menu = useRef<HTMLSpanElement>(null);
+  const tooltip = useRef<HTMLSpanElement>(null);
+  // A menu and a tooltip open from their control, so the scripted mode works that control
+  // the way a person would: a press for the menu, keyboard focus for the tooltip.
+  useEffect(() => {
+    const target = OPEN === "menu" ? menu.current : OPEN === "tooltip" ? tooltip.current : null;
+    const control = target?.querySelector("button");
+    if (!control) return;
+    if (OPEN === "menu") control.click();
+    else control.focus();
+  }, []);
+  const toggleFilter = (name: string) =>
+    setFilters(
+      filters.includes(name) ? filters.filter((other) => other !== name) : [...filters, name],
+    );
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
     setTheme(next);
   };
+  const tooltips = (
+    <Row label="tooltip">
+      <span ref={tooltip} className="flex">
+        <Tooltip label="Search" shortcut="⌘K">
+          <IconButton icon="search" label="Search" />
+        </Tooltip>
+      </span>
+      <Tooltip label="Share" placement="bottom">
+        <IconButton icon="share-2" label="Share" variant="secondary" />
+      </Tooltip>
+      <Tooltip label="Export as a spreadsheet">
+        <Button iconStart="download">Export</Button>
+      </Tooltip>
+      <Text variant="detail" tone="secondary" as="span">
+        Rest the pointer on a control, or focus it with the keyboard.
+      </Text>
+    </Row>
+  );
 
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-12 p-6">
@@ -299,6 +389,7 @@ export function DesignPreview() {
       </Section>
 
       <Section title="Buttons">
+        {OPEN === "tooltip" && tooltips}
         {VARIANTS.map((variant) => (
           <Row key={variant} label={variant}>
             {SIZES.map((buttonSize) => (
@@ -366,6 +457,32 @@ export function DesignPreview() {
             Primary
           </Button>
         </Row>
+        {VARIANTS.map((variant) => (
+          <Row key={variant} label={`icon, ${variant}`}>
+            {SIZES.map((buttonSize) => (
+              <IconButton
+                key={buttonSize}
+                icon="settings"
+                label={`Settings, ${buttonSize}`}
+                variant={variant}
+                size={buttonSize}
+              />
+            ))}
+            <IconButton icon="settings" label="Disabled" variant={variant} disabled />
+            <IconButton icon="settings" label="Loading" variant={variant} loading />
+          </Row>
+        ))}
+        <Row label="icon, selected">
+          <IconButton icon="pin" label="Pin" selected={pinned} onPress={() => setPinned(!pinned)} />
+          <IconButton icon="pin" label="Pin" selected={false} />
+          <IconButton icon="star" label="Star" variant="secondary" selected />
+          <IconButton icon="star" label="Star" variant="secondary" selected={false} />
+          <IconButton icon="heart" label="Like" size="sm" selected />
+          <IconButton icon="heart" label="Like" size="lg" selected />
+          <IconButton icon="bookmark" label="Save" selected disabled />
+          <IconButton icon="bell" label="Notify" variant="primary" selected />
+        </Row>
+        {OPEN !== "tooltip" && tooltips}
       </Section>
 
       <Section title="Text fields">
@@ -452,6 +569,26 @@ export function DesignPreview() {
             error="Use 12 characters or fewer, without spaces."
           />
         </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <SearchField
+            label="Search projects"
+            placeholder="Search projects"
+            value={search}
+            onChange={setSearch}
+            onSubmit={setSubmitted}
+          />
+          <SearchField label="Search people" value="Ada Lovelace" onChange={() => {}} />
+          <SearchField
+            label="Search files"
+            placeholder="Unavailable offline"
+            value=""
+            onChange={() => {}}
+            disabled
+          />
+          <Text variant="detail" tone="secondary" as="span" className="self-center">
+            {submitted ? `Searched for “${submitted}”.` : "Enter searches, Escape clears."}
+          </Text>
+        </div>
       </Section>
 
       <Section title="Selection">
@@ -473,6 +610,54 @@ export function DesignPreview() {
             aria-label="Calendar view"
           />
         </Row>
+      </Section>
+
+      <Section title="Chips">
+        <Row label="state">
+          <Chip label="Unselected" />
+          <Chip label="Selected" selected />
+          <Chip label="Icon" iconStart="tag" />
+          <Chip label="Icon, selected" iconStart="tag" selected />
+          <Chip label="Disabled" disabled />
+          <Chip label="Disabled, selected" selected disabled />
+        </Row>
+        <Row label="bar">
+          {/* Narrower than its chips, so the row has to scroll. */}
+          <div className="min-w-0 max-w-md flex-1">
+            <ChipBar label="Filter the tasks">
+              {FILTERS.map((filter) => (
+                <Chip
+                  key={filter.value}
+                  label={filter.label}
+                  iconStart={filter.icon}
+                  selected={filters.includes(filter.value)}
+                  onPress={() => toggleFilter(filter.value)}
+                />
+              ))}
+            </ChipBar>
+          </div>
+        </Row>
+      </Section>
+
+      <Section title="Tabs">
+        <Tabs items={PAGES} value={page} onChange={setPage} label="Workspace pages" />
+        <Tabs
+          items={PAGES.map(({ value, label }) => ({ value, label }))}
+          value={page}
+          onChange={setPage}
+          label="Workspace pages, without icons"
+        />
+        <Tabs
+          items={PAGES.slice(0, 3)}
+          value={page === "billing" || page === "settings" ? "overview" : page}
+          onChange={setPage}
+          label="Workspace pages, full width"
+          fullWidth
+        />
+        {/* Narrower than its tabs, so the row has to scroll. */}
+        <div className="max-w-xs">
+          <Tabs items={PAGES} value={page} onChange={setPage} label="Workspace pages, scrolling" />
+        </div>
       </Section>
 
       <Section title="Badges">
@@ -746,6 +931,142 @@ export function DesignPreview() {
             onPress={() => {}}
             disabled
           />
+        </Card>
+      </Section>
+
+      <Section title="Menu">
+        <Row label="menu">
+          <span ref={menu} className="flex">
+            <Menu
+              label="Report actions"
+              trigger={<Button iconEnd="chevron-down">Actions</Button>}
+              items={[
+                { label: "Rename", icon: "pencil", onSelect: () => setChosen("Rename") },
+                { label: "Duplicate", icon: "copy", onSelect: () => setChosen("Duplicate") },
+                { label: "Share", icon: "share-2", onSelect: () => {}, disabled: true },
+                "separator",
+                {
+                  label: "Comfortable",
+                  icon: "list",
+                  selected: density === "comfortable",
+                  onSelect: () => setDensity("comfortable"),
+                },
+                {
+                  label: "Compact",
+                  icon: "layout-grid",
+                  selected: density === "compact",
+                  onSelect: () => setDensity("compact"),
+                },
+                "separator",
+                {
+                  label: "Delete",
+                  icon: "trash",
+                  danger: true,
+                  onSelect: () => setChosen("Delete"),
+                },
+              ]}
+            />
+          </span>
+          <Menu
+            label="More actions"
+            align="end"
+            trigger={<IconButton icon="ellipsis" label="More actions" variant="secondary" />}
+            items={[
+              { label: "Copy the link", onSelect: () => setChosen("Copy the link") },
+              { label: "Open in a new window", onSelect: () => setChosen("Open in a new window") },
+            ]}
+          />
+          <Text variant="detail" tone="secondary" as="span">
+            {chosen} Density: {density}.
+          </Text>
+        </Row>
+      </Section>
+
+      <Section title="Dialog">
+        <Row label="dialog">
+          <Button variant="danger" onPress={() => setConfirming(true)}>
+            Delete the report
+          </Button>
+          <Button onPress={() => setAsking(true)}>A question that must be answered</Button>
+        </Row>
+        <Dialog
+          open={confirming}
+          onClose={() => setConfirming(false)}
+          title="Delete the weekly report?"
+          description="The report and its 12 comments are removed for everyone. This cannot be undone."
+          actions={
+            <>
+              <Button onPress={() => setConfirming(false)}>Cancel</Button>
+              <Button variant="danger" onPress={() => setConfirming(false)}>
+                Delete
+              </Button>
+            </>
+          }
+        />
+        <Dialog
+          open={asking}
+          onClose={() => setAsking(false)}
+          dismissible={false}
+          title="Keep the changes?"
+          description="You edited the report in another window."
+          actions={
+            <>
+              <Button onPress={() => setAsking(false)}>Discard</Button>
+              <Button variant="primary" onPress={() => setAsking(false)}>
+                Keep
+              </Button>
+            </>
+          }
+        >
+          <TextField label="Name of the copy" value={copyName} onChange={setCopyName} />
+        </Dialog>
+      </Section>
+
+      <Section title="Toast">
+        <Row label="toast">
+          <Button
+            onPress={() => {
+              setDeleted(true);
+              setToast(true);
+            }}
+          >
+            Delete a draft
+          </Button>
+          <Text variant="detail" tone="secondary" as="span">
+            {deleted ? "The draft is deleted." : "The draft is there."}
+          </Text>
+        </Row>
+        <Toast
+          open={toast}
+          onClose={() => setToast(false)}
+          message="The draft was deleted."
+          action={{ label: "Undo", onPress: () => setDeleted(false) }}
+          // The scripted mode keeps it, so a capture does not race the timer.
+          {...(OPEN === "toast" ? { duration: 0 } : {})}
+        />
+      </Section>
+
+      <Section title="Skeleton">
+        <Row label="shape">
+          <div className="flex w-48 flex-col gap-2">
+            <Skeleton />
+            <Skeleton width="60%" />
+          </div>
+          <Skeleton shape="rect" width={96} height={64} />
+          <Skeleton shape="circle" width={40} />
+        </Row>
+        {/* The screen says that it is loading, once, since the placeholders say nothing. */}
+        <Card className="max-w-sm" flush>
+          <div role="status" aria-label="Loading the report" className="flex flex-col">
+            <Skeleton shape="rect" height={128} />
+            <div className="flex items-center gap-3 p-4">
+              <Skeleton shape="circle" width={40} />
+              <div className="flex flex-1 flex-col gap-2">
+                <Skeleton width="70%" />
+                <Skeleton width="40%" />
+              </div>
+            </div>
+          </div>
         </Card>
       </Section>
     </main>

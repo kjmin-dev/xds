@@ -32,5 +32,5 @@ These commands read the component contract in `design/components.json`.
    - Provide appropriate accessibility roles and labels. On the web, components wrapping a native form input must render the real input element (visually hidden if necessary) so keyboard and screen-reader behavior stays intact.
 4. Export the component from each library's entry point, and add a section or row to each client's design preview demonstrating all variants, tones, sizes, and states.
 5. Register the component in `design/components.json` with the implementing source file and symbol name for each client. Automated tests verify that every listed file exists and defines the symbol, and that every export from the TypeScript libraries is documented in the contract.
-6. TopBar, TabBar, and BottomSheet are implemented only on the two touch clients. If a new component is similarly touch-specific, implement it on those clients and note why in its `purpose` field.
+6. TopBar, TabBar, and BottomSheet are implemented only on the two touch clients (React Native and Compose), and Tooltip only on the two pointer clients (web and GPUI). If a new component is similarly specific to one kind of input, implement it on those clients and note why in its `purpose` field.
 7. Run `mise run check`, then visually inspect the design previews on each client; see [verifying.md](verifying.md).

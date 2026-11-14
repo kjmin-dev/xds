@@ -13,8 +13,9 @@ expect val platformSizes: Sizes
 internal expect fun systemReducedMotion(): Boolean
 
 /**
- * A layer over the whole window, above everything else in it, for a sheet and its scrim. Back
+ * A layer over the whole window, above everything else in it, for what interrupts the screen: a
+ * sheet or a dialog, with its scrim. It takes the focus and every press while it is there. Back
  * and Escape call [onDismiss]. The layer draws nothing itself: the content fills it.
  */
 @Composable
-internal expect fun SheetWindow(onDismiss: () -> Unit, content: @Composable () -> Unit)
+internal expect fun WindowLayer(onDismiss: () -> Unit, content: @Composable () -> Unit)

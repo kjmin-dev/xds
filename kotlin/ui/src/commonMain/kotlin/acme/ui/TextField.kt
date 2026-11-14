@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -78,6 +79,61 @@ fun TextField(
     rows: Int = 3,
     maxLength: Int? = null,
 ) {
+    FieldFrame(
+        label = label,
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier,
+        labelShown = true,
+        shape = RoundedCornerShape(Radius.md),
+        description = description,
+        error = error,
+        placeholder = placeholder,
+        enabled = enabled,
+        secure = secure,
+        keyboardOptions = keyboardOptions,
+        onSubmit = onSubmit,
+        leading = leading,
+        trailing = trailing,
+        multiline = multiline,
+        rows = rows,
+        maxLength = maxLength,
+    )
+}
+
+/**
+ * The field itself, which [TextField] and [SearchField] both are: the box, its slots, and the
+ * lines above and below it.
+ *
+ * @param labelShown False leaves the label to the screen reader, for a field whose purpose its
+ *   look already tells.
+ * @param inputModifier Goes on the part that takes the text, where focus is.
+ * @param endPadding Between the trailing slot and the box's edge, for a slot that holds a
+ *   control with a margin of its own.
+ */
+@Composable
+internal fun FieldFrame(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier,
+    labelShown: Boolean,
+    shape: Shape,
+    description: String?,
+    error: String?,
+    placeholder: String?,
+    enabled: Boolean,
+    secure: Boolean,
+    keyboardOptions: KeyboardOptions,
+    onSubmit: (() -> Unit)?,
+    leading: (@Composable () -> Unit)?,
+    trailing: (@Composable () -> Unit)?,
+    multiline: Boolean,
+    rows: Int,
+    maxLength: Int?,
+    inputModifier: Modifier = Modifier,
+    endPadding: Dp = Space.s3,
+) {
     val colors = LocalColors.current
     val sizes = LocalSizes.current
     val interactions = remember { MutableInteractionSource() }
@@ -91,7 +147,6 @@ fun TextField(
         focused -> colors.fieldBorderFocus
         else -> colors.fieldBorder
     }
-    val shape = RoundedCornerShape(Radius.md)
     val lines = if (multiline) rows.coerceAtLeast(1) else 1
     // One line of text, which grows with the system's text size.
     val line = with(LocalDensity.current) { Typography.body.lineHeight.toDp() }
@@ -100,7 +155,9 @@ fun TextField(
     val inset = ((sizes.controlMd - line) / 2).coerceAtLeast(0.dp)
 
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.s1)) {
-        Text(label, style = Typography.label, tone = if (enabled) TextTone.Primary else TextTone.Secondary)
+        if (labelShown) {
+            Text(label, style = Typography.label, tone = if (enabled) TextTone.Primary else TextTone.Secondary)
+        }
         BasicTextField(
             value = value,
             onValueChange = { next ->
@@ -112,7 +169,7 @@ fun TextField(
                     else -> Unit
                 }
             },
-            modifier = Modifier.fillMaxWidth().semantics {
+            modifier = inputModifier.fillMaxWidth().semantics {
                 contentDescription = label
                 if (error != null) error(error)
             },
@@ -135,7 +192,8 @@ fun TextField(
                         .heightIn(min = sizes.controlMd)
                         .background(if (enabled) colors.fieldBackground else colors.backgroundDisabled, shape)
                         .border(outline, outlineColor, shape)
-                        .padding(horizontal = Space.s3, vertical = if (multiline) inset else 0.dp),
+                        .padding(start = Space.s3, end = endPadding)
+                        .padding(vertical = if (multiline) inset else 0.dp),
                     horizontalArrangement = Arrangement.spacedBy(Space.s2),
                     verticalAlignment = if (multiline) Alignment.Top else Alignment.CenterVertically,
                 ) {

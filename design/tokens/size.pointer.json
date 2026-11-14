@@ -148,6 +148,20 @@
       },
       "$description": "The height of a badge."
     },
+    "chip": {
+      "$value": {
+        "value": 32,
+        "unit": "px"
+      },
+      "$description": "The height of a chip."
+    },
+    "tab": {
+      "$value": {
+        "value": 40,
+        "unit": "px"
+      },
+      "$description": "The height of a tab."
+    },
     "count-badge": {
       "$value": {
         "value": 18,
@@ -181,6 +195,20 @@
           "unit": "px"
         }
       }
+    },
+    "dialog": {
+      "$value": {
+        "value": 480,
+        "unit": "px"
+      },
+      "$description": "The most a dialog is wide. A narrower screen leaves a margin on both sides."
+    },
+    "toast": {
+      "$value": {
+        "value": 480,
+        "unit": "px"
+      },
+      "$description": "The most a toast is wide."
     }
   }
 }

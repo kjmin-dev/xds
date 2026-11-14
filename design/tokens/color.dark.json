@@ -54,6 +54,10 @@
       "on-inverse": {
         "$value": "{palette.neutral.900}",
         "$description": "Text on an inverse surface."
+      },
+      "accent-on-inverse": {
+        "$value": "{palette.accent.600}",
+        "$description": "Accent-colored text on an inverse surface, such as the action of a toast."
       }
     },
     "border": {
@@ -445,6 +449,137 @@
       },
       "selected-text": {
         "$value": "{color.text.primary}"
+      }
+    },
+    "chip": {
+      "background": {
+        "$value": "{color.control.default}",
+        "$description": "A choice that filters what is shown. Unlike a badge, it is pressed."
+      },
+      "background-hover": {
+        "$value": "{color.control.hover}"
+      },
+      "background-pressed": {
+        "$value": "{color.control.pressed}"
+      },
+      "text": {
+        "$value": "{color.text.primary}"
+      },
+      "selected-background": {
+        "$value": "{color.accent.subtle}",
+        "$description": "A chip that is on: tinted, outlined and marked with a check, so the state does not depend on color alone."
+      },
+      "selected-background-hover": {
+        "$value": "{color.accent.subtle-hover}"
+      },
+      "selected-background-pressed": {
+        "$value": "{color.accent.subtle-pressed}"
+      },
+      "selected-border": {
+        "$value": "{color.accent.default}"
+      },
+      "selected-text": {
+        "$value": "{color.text.primary}"
+      },
+      "disabled-background": {
+        "$value": "{color.background.disabled}"
+      },
+      "disabled-text": {
+        "$value": "{color.text.disabled}"
+      }
+    },
+    "tabs": {
+      "border": {
+        "$value": "{color.border.default}",
+        "$description": "The hairline the tabs stand on."
+      },
+      "text": {
+        "$value": "{color.text.secondary}"
+      },
+      "text-hover": {
+        "$value": "{color.text.primary}"
+      },
+      "text-selected": {
+        "$value": "{color.text.primary}"
+      },
+      "indicator": {
+        "$value": "{color.accent.default}",
+        "$description": "The bar under the selected tab. Its shape marks the selection, so color is not the only signal."
+      }
+    },
+    "menu": {
+      "background": {
+        "$value": "{color.background.raised}"
+      },
+      "border": {
+        "$value": "{color.border.default}"
+      },
+      "text": {
+        "$value": "{color.text.primary}"
+      },
+      "icon": {
+        "$value": "{color.text.secondary}"
+      },
+      "text-disabled": {
+        "$value": "{color.text.disabled}"
+      },
+      "item-background-hover": {
+        "$value": "{color.control.default}",
+        "$description": "Under the pointer, and under the keyboard's highlight."
+      },
+      "item-background-pressed": {
+        "$value": "{color.control.hover}"
+      },
+      "danger-text": {
+        "$value": "{color.status.danger}",
+        "$description": "An item that destroys something."
+      },
+      "danger-background-hover": {
+        "$value": "{color.status.danger-subtle}",
+        "$description": "Also while pressed. A neutral fill would not carry the danger text in dark mode."
+      }
+    },
+    "dialog": {
+      "background": {
+        "$value": "{color.background.raised}"
+      },
+      "border": {
+        "$value": "{color.border.default}"
+      },
+      "title": {
+        "$value": "{color.text.primary}"
+      },
+      "text": {
+        "$value": "{color.text.secondary}"
+      }
+    },
+    "toast": {
+      "background": {
+        "$value": "{color.background.inverse}"
+      },
+      "text": {
+        "$value": "{color.text.on-inverse}"
+      },
+      "action": {
+        "$value": "{color.text.accent-on-inverse}"
+      }
+    },
+    "tooltip": {
+      "background": {
+        "$value": "{color.background.inverse}"
+      },
+      "text": {
+        "$value": "{color.text.on-inverse}"
+      }
+    },
+    "skeleton": {
+      "background": {
+        "$value": "{color.control.default}",
+        "$description": "The place of content that is still loading."
+      },
+      "highlight": {
+        "$value": "{color.control.hover}",
+        "$description": "What the placeholder pulses toward."
       }
     },
     "avatar": {

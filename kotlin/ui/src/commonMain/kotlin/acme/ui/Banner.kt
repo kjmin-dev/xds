@@ -29,7 +29,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 
 enum class BannerTone { Info, Success, Warning, Danger }
 
@@ -93,17 +92,18 @@ fun Banner(
         }
         if (onDismiss != null) {
             val sizes = LocalSizes.current
-            // The control is as large as the minimum target, which on touch is more than the
+            // The control is taller than the line of text beside it, and on touch than the
             // banner's padding leaves room for. So it reaches into the padding, at the top, the
             // bottom and the end, until its cross is level with the mark at the start or it
             // meets the banner's edge. A one-line banner then stays as low as it was.
-            val control = max(sizes.controlSm, sizes.targetMin)
+            val control = sizes.controlSm
             val margin = (Space.s3 + sizes.iconMd / 2 - control / 2).coerceAtLeast(0.dp)
             val reach = Space.s3 - margin
-            IconOnlyButton(
+            IconButton(
                 icon = IconName.X,
                 label = dismissLabel,
                 onClick = onDismiss,
+                size = ControlSize.Sm,
                 modifier = Modifier.layout { measurable, constraints ->
                     val button = measurable.measure(constraints)
                     val by = reach.roundToPx()

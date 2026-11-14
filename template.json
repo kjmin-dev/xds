@@ -40,7 +40,13 @@
   ],
   "shared": {
     "js-workspace": {
-      "paths": ["package.json", "pnpm-workspace.yaml", "biome.json", "tsconfig.base.json"]
+      "paths": [
+        "package.json",
+        "pnpm-workspace.yaml",
+        ".oxfmtrc.jsonc",
+        ".oxlintrc.jsonc",
+        "tsconfig.base.json"
+      ]
     },
     "js-tokens": {
       "paths": ["packages/tokens"]
@@ -88,7 +94,7 @@
       "title": "Mobile",
       "stack": "React Native, Expo",
       "platforms": ["iOS", "Android"],
-      "paths": ["apps/mobile", "packages/ui-native"],
+      "paths": ["apps/mobile", "packages/ui-native", "tools/lint/react-native.ts"],
       "requires": ["js-workspace", "js-tokens"],
       "outputs": ["typescript"],
       "format": "mise run fmt",

@@ -30,7 +30,7 @@ export function Avatar({ name, src, size = "md" }: AvatarProps) {
     <span
       role="img"
       aria-label={name}
-      className={`relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-acme-avatar-background text-acme-avatar-text ${AVATAR_SIZE[size]}`}
+      className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-acme-avatar-background text-acme-avatar-text select-none ${AVATAR_SIZE[size]}`}
     >
       {initials(name, size === "sm" ? 1 : 2)}
       {src && state?.loaded !== false && (

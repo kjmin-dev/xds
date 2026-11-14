@@ -66,7 +66,7 @@ export function Toast({
       className="pointer-events-none fixed inset-x-0 top-auto bottom-0 m-0 w-full max-w-none justify-center overflow-visible border-0 bg-transparent p-4 pb-[calc(var(--acme-space-4)+env(safe-area-inset-bottom))] [&:popover-open]:flex"
     >
       {open && (
-        // biome-ignore lint/a11y/noStaticElementInteractions: hover and focus only pause the timer; the action inside is a real button
+        // No role: hover and focus only pause the timer, and the action inside is a real button.
         <div
           onPointerEnter={() => setHovered(true)}
           onPointerLeave={() => setHovered(false)}
@@ -84,7 +84,7 @@ export function Toast({
               }}
               // Pulled into the toast's padding, so a pressable area of the minimum size does
               // not make a one-line toast taller.
-              className="-my-2 min-h-acme-target-min min-w-acme-target-min shrink-0 cursor-pointer rounded-acme-sm text-acme-label text-acme-toast-action hover:underline focus-visible:outline-solid focus-visible:outline-(length:--acme-focus-width) focus-visible:outline-offset-(--acme-focus-offset) focus-visible:outline-current"
+              className="-my-2 min-h-acme-target-min min-w-acme-target-min shrink-0 cursor-pointer rounded-acme-sm text-acme-label text-acme-toast-action hover:underline focus-visible:outline-(length:--acme-focus-width) focus-visible:outline-offset-(--acme-focus-offset) focus-visible:outline-current focus-visible:outline-solid"
             >
               {action.label}
             </button>

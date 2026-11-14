@@ -179,12 +179,10 @@
        row is exactly as tall as a one-line field. */
     --textfield-inset-block: calc(
       (
-        var(--acme-size-control-md) -
-        var(--acme-typography-body-size) *
-        var(--acme-typography-body-line-height)
-      ) /
-      2 -
-      var(--acme-border-width-thin)
+          var(--acme-size-control-md) - var(--acme-typography-body-size) *
+            var(--acme-typography-body-line-height)
+        ) /
+        2 - var(--acme-border-width-thin)
     );
   }
 

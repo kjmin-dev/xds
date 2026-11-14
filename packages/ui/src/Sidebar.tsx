@@ -59,7 +59,7 @@ export function Sidebar<Value extends string = string>({
   return (
     <nav
       aria-label={label}
-      className={`flex h-full shrink-0 flex-col gap-2 border-acme-sidebar-border border-e bg-acme-sidebar-background p-2 ${collapsed ? "w-acme-sidebar-rail" : "w-acme-sidebar"}`}
+      className={`flex h-full shrink-0 flex-col gap-2 border-e border-acme-sidebar-border bg-acme-sidebar-background p-2 ${collapsed ? "w-acme-sidebar-rail" : "w-acme-sidebar"}`}
     >
       {header != null && <div className="shrink-0">{header}</div>}
       {/* The places scroll when there are more than fit; the header and footer stay. */}

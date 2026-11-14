@@ -70,7 +70,7 @@ export function SearchField({
                 // The control is about to disappear, and focus would be lost with it.
                 input.current?.focus();
               }}
-              className="-me-1 flex size-acme-target-min cursor-pointer items-center justify-center rounded-acme-full hover:text-acme-field-text focus-visible:outline-solid focus-visible:outline-(length:--acme-focus-width) focus-visible:outline-acme-border-focus"
+              className="-me-1 flex size-acme-target-min cursor-pointer items-center justify-center rounded-acme-full hover:text-acme-field-text focus-visible:outline-(length:--acme-focus-width) focus-visible:outline-acme-border-focus focus-visible:outline-solid"
             >
               <Icon name="circle-x" size="sm" />
             </button>

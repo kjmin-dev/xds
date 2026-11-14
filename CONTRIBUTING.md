@@ -22,4 +22,4 @@ mise run check
 
 ## Style
 
-Run `mise run fmt` to format the codebase. Keep code comments focused on why something is done a certain way rather than restating what the code does.
+Run `mise run fmt` to format the codebase: it applies oxlint's fixes, then formats with oxfmt and rustfmt. Keep code comments focused on why something is done a certain way rather than restating what the code does.

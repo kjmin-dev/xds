@@ -34,7 +34,7 @@ export type IconProps = {
  */
 export function Icon({ name, size = "md", filled = false, label, className = "" }: IconProps) {
   return (
-    // biome-ignore lint/a11y/noSvgWithoutTitle: named through aria-label when `label` is given, hidden otherwise
+    // No <title>: the icon is named through aria-label when `label` is given, and hidden otherwise.
     <svg
       viewBox="0 0 24 24"
       fill={filled ? "currentColor" : "none"}

@@ -36,7 +36,7 @@ export function Checkbox({
       />
       {/* The outline is what makes an empty box visible; a filled one does not need it. */}
       <span
-        className={`flex size-acme-checkbox shrink-0 items-center justify-center rounded-acme-sm border-2 border-acme-checkbox-border text-acme-checkbox-mark peer-checked:border-0 peer-checked:bg-acme-checkbox-background-checked peer-disabled:border-0 peer-disabled:bg-acme-checkbox-disabled-background peer-disabled:text-acme-checkbox-disabled-mark *:opacity-0 peer-checked:*:opacity-100 ${PEER_FOCUS}`}
+        className={`flex size-acme-checkbox shrink-0 items-center justify-center rounded-acme-sm border-2 border-acme-checkbox-border text-acme-checkbox-mark *:opacity-0 peer-checked:border-0 peer-checked:bg-acme-checkbox-background-checked peer-checked:*:opacity-100 peer-disabled:border-0 peer-disabled:bg-acme-checkbox-disabled-background peer-disabled:text-acme-checkbox-disabled-mark ${PEER_FOCUS}`}
       >
         <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" className="size-3/4">
           <path

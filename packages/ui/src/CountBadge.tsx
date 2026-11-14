@@ -24,7 +24,7 @@ export function CountBadge({ count, max = 99, label, children }: CountBadgeProps
       {...(label ? { role: "img", "aria-label": label } : {})}
       // Pushed out from the corner by a quarter of its own height, so it overlaps the corner
       // instead of covering the child. `end` follows the layout direction.
-      className={`inline-flex h-acme-count-badge min-w-acme-count-badge shrink-0 select-none items-center justify-center whitespace-nowrap rounded-full bg-acme-badge-count-background px-1 text-acme-badge-count-text text-acme-footnote ${children === undefined ? "" : "absolute end-[calc(var(--acme-size-count-badge)/-4)] top-[calc(var(--acme-size-count-badge)/-4)]"}`}
+      className={`inline-flex h-acme-count-badge min-w-acme-count-badge shrink-0 items-center justify-center rounded-full bg-acme-badge-count-background px-1 text-acme-footnote whitespace-nowrap text-acme-badge-count-text select-none ${children === undefined ? "" : "absolute end-[calc(var(--acme-size-count-badge)/-4)] top-[calc(var(--acme-size-count-badge)/-4)]"}`}
     >
       {count > max ? `${max}+` : count}
     </span>

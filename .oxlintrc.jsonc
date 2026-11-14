@@ -1,0 +1,158 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  // React and jsx-a11y are enabled per client below: an override can add a plugin to some
+  // files, but cannot take one away, and their rules do not apply to Solid, Vue or Svelte.
+  "plugins": ["eslint", "typescript", "unicorn", "oxc"],
+  "categories": { "correctness": "error" },
+  "ignorePatterns": ["**/generated/**"],
+  // Rules outside the correctness category that the code already keeps to: suspicious code,
+  // and the shorter or safer form where there are two.
+  "rules": {
+    "eslint/array-callback-return": "error",
+    "eslint/default-case-last": "error",
+    "eslint/eqeqeq": ["error", "always", { "null": "ignore" }],
+    "eslint/no-array-constructor": "error",
+    "eslint/no-case-declarations": "error",
+    "eslint/no-constructor-return": "error",
+    "eslint/no-extra-label": "error",
+    "eslint/no-fallthrough": "error",
+    "eslint/no-inner-declarations": "error",
+    "eslint/no-label-var": "error",
+    "eslint/no-labels": ["error", { "allowLoop": true, "allowSwitch": true }],
+    "eslint/no-lone-blocks": "error",
+    "eslint/no-proto": "error",
+    "eslint/no-prototype-builtins": "error",
+    "eslint/no-redeclare": "error",
+    "eslint/no-regex-spaces": "error",
+    "eslint/no-script-url": "error",
+    "eslint/no-self-compare": "error",
+    "eslint/no-sequences": "error",
+    "eslint/no-template-curly-in-string": "error",
+    "eslint/no-unneeded-ternary": "error",
+    // Only a use that runs before the declaration: a function body may name a constant that is
+    // declared further down the module.
+    "eslint/no-use-before-define": [
+      "error",
+      {
+        "functions": false,
+        "classes": false,
+        "variables": false,
+        "typedefs": false,
+        "ignoreTypeReferences": true,
+      },
+    ],
+    "eslint/no-useless-constructor": "error",
+    "eslint/prefer-arrow-callback": "error",
+    "eslint/prefer-const": "error",
+    "eslint/prefer-exponentiation-operator": "error",
+    "eslint/prefer-numeric-literals": "error",
+    "eslint/prefer-regex-literals": "error",
+    "eslint/prefer-rest-params": "error",
+    "eslint/prefer-template": "error",
+    "eslint/radix": "error",
+    "typescript/adjacent-overload-signatures": "error",
+    "typescript/ban-ts-comment": "error",
+    "typescript/consistent-type-imports": ["error", { "fixStyle": "inline-type-imports" }],
+    "typescript/no-empty-interface": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-extraneous-class": "error",
+    "typescript/no-invalid-void-type": "error",
+    "typescript/no-non-null-assertion": "error",
+    "typescript/no-unnecessary-type-constraint": "error",
+    "typescript/prefer-function-type": "error",
+    "typescript/prefer-literal-enum-member": "error",
+    "unicorn/no-document-cookie": "error",
+    "unicorn/no-instanceof-array": "error",
+    "unicorn/no-static-only-class": "error",
+    "unicorn/no-useless-switch-case": "error",
+    "unicorn/prefer-array-flat-map": "error",
+    "unicorn/prefer-array-index-of": "error",
+    "unicorn/prefer-date-now": "error",
+    "unicorn/prefer-dom-node-text-content": "error",
+    "unicorn/prefer-math-min-max": "error",
+    "unicorn/prefer-node-protocol": "error",
+    "unicorn/prefer-number-properties": ["error", { "checkInfinity": false, "checkNaN": false }],
+    "oxc/approx-constant": "error",
+    "oxc/misrefactored-assign-op": "error",
+    "oxc/no-accumulating-spread": "error",
+    "oxc/no-const-enum": "error",
+    // These need type information, so only check:js, which runs `oxlint --type-aware`, applies
+    // them. The correctness category brings more, such as no-misused-spread.
+    "typescript/consistent-type-exports": "error",
+    "typescript/dot-notation": "error",
+    // node:test registers a test when test() is called, and runs it whether or not the
+    // returned promise is awaited.
+    "typescript/no-floating-promises": [
+      "error",
+      {
+        "allowForKnownSafeCalls": [
+          {
+            "from": "package",
+            "package": "node:test",
+            "name": ["test", "describe", "it", "suite"],
+          },
+        ],
+      },
+    ],
+  },
+  "overrides": [
+    // @if web-react
+    {
+      "files": ["apps/web/**", "packages/ui/**"],
+      "plugins": ["react", "jsx-a11y"],
+      "rules": {
+        "react/button-has-type": "error",
+        "react/jsx-no-comment-textnodes": "error",
+        "react/jsx-no-script-url": "error",
+        "react/jsx-no-target-blank": "error",
+        "react/jsx-no-useless-fragment": "error",
+        "react/rules-of-hooks": "error",
+        // React Compiler checks that the components do not pass yet.
+        "react/refs": "off",
+        "react/set-state-in-effect": "off",
+        "jsx-a11y/anchor-ambiguous-text": "error",
+        "jsx-a11y/no-autofocus": ["error", { "ignoreNonDOM": true }],
+        // It asks for <fieldset>, <img>, <progress> and <output> in place of roles the components
+        // use deliberately: a fieldset, for one, cannot be a scrolling flex row.
+        "jsx-a11y/prefer-tag-over-role": "off",
+      },
+    },
+    // @endif
+    // @if mobile-react-native
+    {
+      "files": ["apps/mobile/**", "packages/ui-native/**"],
+      "plugins": ["react"],
+      "jsPlugins": ["./tools/lint/react-native.ts"],
+      "rules": {
+        "react/jsx-no-comment-textnodes": "error",
+        "react/jsx-no-useless-fragment": "error",
+        "react/rules-of-hooks": "error",
+        "react/refs": "off",
+        "react/set-state-in-effect": "off",
+        // Banner and NativeText render their string children inside a <Text>.
+        "react-native/no-raw-text": ["error", { "skip": ["Banner", "NativeText"] }],
+      },
+    },
+    // @endif
+    // @if template
+    {
+      "files": ["apps/docs/**"],
+      "plugins": ["react", "jsx-a11y"],
+      "rules": {
+        "react/button-has-type": "error",
+        "react/jsx-no-comment-textnodes": "error",
+        "react/jsx-no-script-url": "error",
+        "react/jsx-no-target-blank": "error",
+        "react/jsx-no-useless-fragment": "error",
+        "react/rules-of-hooks": "error",
+        // As for apps/web: the demos are written like the components.
+        "react/refs": "off",
+        "react/set-state-in-effect": "off",
+        "jsx-a11y/anchor-ambiguous-text": "error",
+        "jsx-a11y/no-autofocus": ["error", { "ignoreNonDOM": true }],
+        "jsx-a11y/prefer-tag-over-role": "off",
+      },
+    },
+    // @endif
+  ],
+}

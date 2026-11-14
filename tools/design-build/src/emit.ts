@@ -227,7 +227,7 @@ function jsValue(value: Value): unknown {
   }
 }
 
-type Tree = { [key: string]: Tree | unknown };
+type Tree = { [key: string]: unknown };
 
 /** Lengths are in logical pixels and durations in milliseconds. */
 export function emitTypeScript(model: Model): string {

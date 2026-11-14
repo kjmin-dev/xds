@@ -111,7 +111,9 @@ run = [
   "cargo fmt --all",
   # @endif
   # @if js-workspace
-  "pnpm exec biome check --write",
+  # Lint fixes first: the formatter then lays out whatever they changed.
+  "pnpm exec oxlint --fix",
+  "pnpm exec oxfmt",
   # @endif
 ]
 
@@ -121,7 +123,11 @@ run = [
 description = "Lint, type-check, and test the TypeScript workspace"
 depends = ["install"]
 run = [
-  "pnpm exec biome ci",
+  "pnpm exec oxfmt --check",
+  # Type information adds rules such as no-floating-promises, and makes the run slower, so it is
+  # only here. So is the check for unused disable directives: to a run without the type-aware
+  # rules, a directive for one of them looks unused, and `oxlint --fix` in fmt would delete it.
+  "pnpm exec oxlint --type-aware --report-unused-disable-directives-severity=error",
   "pnpm --recursive --if-present run typecheck",
   "pnpm --recursive --if-present run test",
   # @if web-react

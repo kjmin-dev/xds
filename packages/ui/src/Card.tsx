@@ -89,7 +89,7 @@ export function Card({
       onClick={onPress}
       {...(selected === undefined ? {} : { "aria-pressed": selected })}
       // A button is only as wide as its content unless told otherwise; a card fills its place.
-      className={`w-full cursor-pointer text-start transition-colors duration-(--acme-motion-duration-fast) hover:bg-acme-card-background-hover active:bg-acme-card-background-pressed focus-visible:outline-solid focus-visible:outline-(length:--acme-focus-width) focus-visible:outline-offset-(--acme-focus-offset) focus-visible:outline-acme-border-focus ${surface}`}
+      className={`w-full cursor-pointer text-start transition-colors duration-(--acme-motion-duration-fast) hover:bg-acme-card-background-hover focus-visible:outline-(length:--acme-focus-width) focus-visible:outline-offset-(--acme-focus-offset) focus-visible:outline-acme-border-focus focus-visible:outline-solid active:bg-acme-card-background-pressed ${surface}`}
     >
       {content}
     </button>

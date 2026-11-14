@@ -7,7 +7,9 @@
     "node": ">=26"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.7",
+    "oxfmt": "0.78.0",
+    "oxlint": "1.93.0",
+    "oxlint-tsgolint": "7.0.2007",
     "typescript": "catalog:"
   }
 }

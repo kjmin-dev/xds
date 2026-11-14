@@ -2,8 +2,8 @@
 // site around it: the page's address with `.md` in place of the last slash, so
 // `/components/button/` is also at `/components/button.md`.
 
-import { getCollection } from "astro:content";
 import type { APIRoute, GetStaticPaths } from "astro";
+import { getCollection } from "astro:content";
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const pages = await getCollection("docs", (entry) => !entry.id.startsWith("ko/"));

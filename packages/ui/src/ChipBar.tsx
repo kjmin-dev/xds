@@ -13,14 +13,14 @@ export type ChipBarProps = {
  */
 export function ChipBar({ label, children }: ChipBarProps) {
   return (
-    // biome-ignore lint/a11y/useSemanticElements: a fieldset cannot be a scrolling flex row in every browser
+    // A group, not a fieldset: a fieldset cannot be a scrolling flex row in every browser.
     <div
       role="group"
       aria-label={label}
       // As tall as the chips' pressable area, which would otherwise be cut off by the scrolling
       // box. The padding leaves room for a focus ring for the same reason, and the margin
       // takes that room back so the first chip lines up with the content around the bar.
-      className="-m-1 flex min-h-[calc(var(--acme-size-target-min)+var(--acme-space-2))] items-center gap-2 overflow-x-auto p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="-m-1 flex min-h-[calc(var(--acme-size-target-min)+var(--acme-space-2))] [scrollbar-width:none] items-center gap-2 overflow-x-auto p-1 [&::-webkit-scrollbar]:hidden"
     >
       {children}
     </div>

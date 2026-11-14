@@ -20,19 +20,6 @@ catalog:
   # Exact pin while 7.1 is in beta: a range such as ~7.1.0-beta also matches the nightly
   # 7.1.0-dev.* builds, which sort above "beta". Move to ~7.1.0 when 7.1.0 is released.
   typescript: 7.1.0-beta
-
-minimumReleaseAgeExclude:
-  - "@biomejs/biome@2.6.7"
-  - "@biomejs/cli-android-arm64@2.6.7"
-  - "@biomejs/cli-android-x64@2.6.7"
-  - "@biomejs/cli-darwin-arm64@2.6.7"
-  - "@biomejs/cli-darwin-x64@2.6.7"
-  - "@biomejs/cli-linux-arm64-musl@2.6.7"
-  - "@biomejs/cli-linux-arm64@2.6.7"
-  - "@biomejs/cli-linux-x64-musl@2.6.7"
-  - "@biomejs/cli-linux-x64@2.6.7"
-  - "@biomejs/cli-win32-arm64@2.6.7"
-  - "@biomejs/cli-win32-x64@2.6.7"
 # @if template
 
 # Wrangler (tools/deploy) deploys the two sites as static assets, which needs neither package's

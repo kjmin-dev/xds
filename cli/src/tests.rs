@@ -54,6 +54,8 @@ const MARKER_FILES: &[&str] = &[
     ".github/workflows/ci.yml",
     "README.md",
     "AGENTS.md",
+    ".oxfmtrc.jsonc",
+    ".oxlintrc.jsonc",
 ];
 
 type Tree = BTreeMap<String, Vec<u8>>;
@@ -113,6 +115,26 @@ fn text(tree: &Tree, path: &str) -> String {
 
 fn json(tree: &Tree, path: &str) -> Value {
     serde_json::from_str(&text(tree, path)).unwrap_or_else(|error| panic!("{path}: {error}"))
+}
+
+/// Parses the JSONC that the oxfmt and oxlint configurations are written in: comments on lines
+/// of their own, and a comma after the last member, which is what lets an `@if` block end a
+/// list. Commas inside strings are not expected there.
+fn jsonc(text: &str, what: &str) -> Value {
+    let code: Vec<char> = text
+        .lines()
+        .filter(|line| !line.trim_start().starts_with("//"))
+        .flat_map(|line| line.chars().chain(['\n']))
+        .collect();
+    let mut plain = String::with_capacity(code.len());
+    for (index, &character) in code.iter().enumerate() {
+        let next = code[index + 1..].iter().find(|next| !next.is_whitespace());
+        if character == ',' && matches!(next, Some('}' | ']')) {
+            continue;
+        }
+        plain.push(character);
+    }
+    serde_json::from_str(&plain).unwrap_or_else(|error| panic!("{what}: {error}"))
 }
 
 fn build_outputs(tree: &Tree) -> BTreeMap<String, String> {
@@ -478,6 +500,31 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
                     );
                 }
             }
+
+            // The formatter and linter configurations parse, and each override names files
+            // that the project has: a glob that matches nothing is silently ignored, oxlint
+            // fails on a missing plugin, and oxfmt sorts nothing with a missing stylesheet.
+            for config in [".oxfmtrc.jsonc", ".oxlintrc.jsonc"] {
+                let config = jsonc(&read(config), &format!("{selected:?}: {config}"));
+                for entry in config["overrides"].as_array().into_iter().flatten() {
+                    for pattern in entry["files"].as_array().expect("files") {
+                        let directory = pattern.as_str().expect("a glob").trim_end_matches("/**");
+                        assert!(
+                            files.keys().any(|path| is_under(path, directory)),
+                            "{selected:?}: the override for {directory}"
+                        );
+                    }
+                    for plugin in entry["jsPlugins"].as_array().into_iter().flatten() {
+                        let path = plugin.as_str().expect("a path").trim_start_matches("./");
+                        assert!(files.contains_key(path), "{selected:?}: {path}");
+                    }
+                    let tailwind = &entry["options"]["sortTailwindcss"];
+                    if let Some(stylesheet) = tailwind["stylesheet"].as_str() {
+                        let path = stylesheet.trim_start_matches("./");
+                        assert!(files.contains_key(path), "{selected:?}: {path}");
+                    }
+                }
+            }
         }
 
         // One CI job per check, and none for the CLI.
@@ -639,7 +686,8 @@ fn creates_a_web_project() {
             "packages/tokens/src/generated/tokens.ts",
             "package.json",
             "pnpm-workspace.yaml",
-            "biome.json",
+            ".oxfmtrc.jsonc",
+            ".oxlintrc.jsonc",
             "tsconfig.base.json",
             "tools/design-build/src/build.ts",
             "design/themes",
@@ -648,10 +696,16 @@ fn creates_a_web_project() {
             "apps/desktop",
             "apps/mobile",
             "packages/ui-native",
+            "tools/lint",
             "crates",
             "kotlin",
             "Cargo.toml",
         ],
+    );
+    assert!(!text(&tree, ".oxlintrc.jsonc").contains("react-native"));
+    let format = text(&tree, ".oxfmtrc.jsonc");
+    assert!(
+        format.contains("\"./packages/ui/src/styles/index.css\"") && !format.contains("apps/docs")
     );
     assert_eq!(json(&tree, "package.json")["name"], "orbit");
     assert_eq!(json(&tree, "packages/ui/package.json")["name"], "@orbit/ui");
@@ -680,7 +734,8 @@ fn creates_a_desktop_project() {
             "kotlin",
             "package.json",
             "pnpm-workspace.yaml",
-            "biome.json",
+            ".oxfmtrc.jsonc",
+            ".oxlintrc.jsonc",
         ],
     );
     assert!(text(&tree, "Cargo.toml").contains("orbit-ui = { path = \"crates/orbit-ui\" }"));
@@ -704,7 +759,9 @@ fn creates_a_mobile_project() {
             "packages/tokens/src/index.ts",
             "packages/tokens/src/generated/tokens.ts",
             "package.json",
-            "biome.json",
+            ".oxfmtrc.jsonc",
+            ".oxlintrc.jsonc",
+            "tools/lint/react-native.ts",
         ],
         &[
             "apps/web",
@@ -717,6 +774,10 @@ fn creates_a_mobile_project() {
             "Cargo.toml",
         ],
     );
+    let lint = text(&tree, ".oxlintrc.jsonc");
+    assert!(lint.contains("react-native/no-raw-text") && !lint.contains("apps/web"));
+    // React Native styles have no Tailwind classes to sort.
+    assert!(!text(&tree, ".oxfmtrc.jsonc").contains("sortTailwindcss"));
 }
 
 #[test]
@@ -738,7 +799,8 @@ fn creates_a_kotlin_project() {
             "Cargo.toml",
             "package.json",
             "pnpm-workspace.yaml",
-            "biome.json",
+            ".oxfmtrc.jsonc",
+            ".oxlintrc.jsonc",
         ],
     );
     // The Kotlin package follows the name, in the path and in the generator's configuration.

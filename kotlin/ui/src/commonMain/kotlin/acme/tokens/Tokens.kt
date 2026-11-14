@@ -22,6 +22,8 @@ interface Colors {
     val backgroundSurface: Color
     /** Surfaces that float above the page: menus, dialogs. Lighter than the page in dark mode, where shadows barely show. */
     val backgroundRaised: Color
+    /** A surface that stands against the page instead of sitting on it: toasts, tooltips. Dark where the page is light, and light where it is dark. */
+    val backgroundInverse: Color
     /** Fill of a disabled control. */
     val backgroundDisabled: Color
     val textPrimary: Color
@@ -37,6 +39,8 @@ interface Colors {
     val textOnAccent: Color
     /** Text on a danger-colored surface. */
     val textOnDanger: Color
+    /** Text on an inverse surface. */
+    val textOnInverse: Color
     /** Dividers and card outlines. Decorative, so low contrast is fine. */
     val borderDefault: Color
     /** Outline of a control that its label already identifies, such as a secondary button. Decorative, so it does not have to hold 3:1. */
@@ -68,6 +72,10 @@ interface Colors {
     val statusWarningSubtle: Color
     val statusInfo: Color
     val statusInfoSubtle: Color
+    /** Behind text that is drawn over a picture, such as a badge on an image. Dark enough to carry white text whatever the picture shows, so it is the same in both modes. */
+    val overlayBackground: Color
+    /** Text and icons on the overlay background. */
+    val overlayText: Color
     val buttonPrimaryBackground: Color
     val buttonPrimaryBackgroundHover: Color
     val buttonPrimaryBackgroundPressed: Color
@@ -161,6 +169,7 @@ interface Colors {
         "background-base" to backgroundBase,
         "background-surface" to backgroundSurface,
         "background-raised" to backgroundRaised,
+        "background-inverse" to backgroundInverse,
         "background-disabled" to backgroundDisabled,
         "text-primary" to textPrimary,
         "text-secondary" to textSecondary,
@@ -169,6 +178,7 @@ interface Colors {
         "text-accent" to textAccent,
         "text-on-accent" to textOnAccent,
         "text-on-danger" to textOnDanger,
+        "text-on-inverse" to textOnInverse,
         "border-default" to borderDefault,
         "border-control" to borderControl,
         "border-strong" to borderStrong,
@@ -191,6 +201,8 @@ interface Colors {
         "status-warning-subtle" to statusWarningSubtle,
         "status-info" to statusInfo,
         "status-info-subtle" to statusInfoSubtle,
+        "overlay-background" to overlayBackground,
+        "overlay-text" to overlayText,
         "button-primary-background" to buttonPrimaryBackground,
         "button-primary-background-hover" to buttonPrimaryBackgroundHover,
         "button-primary-background-pressed" to buttonPrimaryBackgroundPressed,
@@ -274,6 +286,7 @@ object LightColors : Colors {
     override val backgroundBase = Color(0xFFF5F5F7)
     override val backgroundSurface = Color(0xFFFFFFFF)
     override val backgroundRaised = Color(0xFFFFFFFF)
+    override val backgroundInverse = Color(0xFF18181C)
     override val backgroundDisabled = Color(0xFFECECF0)
     override val textPrimary = Color(0xFF18181C)
     override val textSecondary = Color(0xFF5C5C66)
@@ -282,6 +295,7 @@ object LightColors : Colors {
     override val textAccent = Color(0xFF4F46E5)
     override val textOnAccent = Color(0xFFFFFFFF)
     override val textOnDanger = Color(0xFFFFFFFF)
+    override val textOnInverse = Color(0xFFF5F5F7)
     override val borderDefault = Color(0xFFE2E2E8)
     override val borderControl = Color(0xFFC9C9D1)
     override val borderStrong = Color(0xFF84848F)
@@ -304,6 +318,8 @@ object LightColors : Colors {
     override val statusWarningSubtle = Color(0xFFFFFAEB)
     override val statusInfo = Color(0xFF175CD3)
     override val statusInfoSubtle = Color(0xFFEFF8FF)
+    override val overlayBackground = Color(0xB8000000)
+    override val overlayText = Color(0xFFFFFFFF)
     override val buttonPrimaryBackground = Color(0xFF4F46E5)
     override val buttonPrimaryBackgroundHover = Color(0xFF4338CA)
     override val buttonPrimaryBackgroundPressed = Color(0xFF3730A3)
@@ -386,6 +402,7 @@ object DarkColors : Colors {
     override val backgroundBase = Color(0xFF0E0E11)
     override val backgroundSurface = Color(0xFF18181C)
     override val backgroundRaised = Color(0xFF222228)
+    override val backgroundInverse = Color(0xFFF5F5F7)
     override val backgroundDisabled = Color(0xFF2C2C33)
     override val textPrimary = Color(0xFFF5F5F7)
     override val textSecondary = Color(0xFFA9A9B4)
@@ -394,6 +411,7 @@ object DarkColors : Colors {
     override val textAccent = Color(0xFFA5B4FC)
     override val textOnAccent = Color(0xFFFFFFFF)
     override val textOnDanger = Color(0xFFFFFFFF)
+    override val textOnInverse = Color(0xFF18181C)
     override val borderDefault = Color(0xFF2C2C33)
     override val borderControl = Color(0xFF44444C)
     override val borderStrong = Color(0xFF84848F)
@@ -416,6 +434,8 @@ object DarkColors : Colors {
     override val statusWarningSubtle = Color(0xFF4E1D09)
     override val statusInfo = Color(0xFF53B1FD)
     override val statusInfoSubtle = Color(0xFF102A56)
+    override val overlayBackground = Color(0xB8000000)
+    override val overlayText = Color(0xFFFFFFFF)
     override val buttonPrimaryBackground = Color(0xFF5B5EF0)
     override val buttonPrimaryBackgroundHover = Color(0xFF4F46E5)
     override val buttonPrimaryBackgroundPressed = Color(0xFF4338CA)
@@ -625,11 +645,15 @@ class Sizes(
     val bar: Dp,
     /** Buttons are rounded rectangles where a pointer is used. */
     val buttonRadius: Dp,
+    /** Icons inside a badge. */
+    val iconXs: Dp,
     val iconSm: Dp,
     /** Icons beside text. */
     val iconMd: Dp,
     /** Icons that stand alone: tab bars, top bars. */
     val iconLg: Dp,
+    /** Icons that illustrate rather than label: empty states. */
+    val iconXl: Dp,
     val avatarSm: Dp,
     val avatarMd: Dp,
     val avatarLg: Dp,
@@ -653,9 +677,11 @@ val PointerSizes = Sizes(
     listRow = 40.dp,
     bar = 48.dp,
     buttonRadius = 10.dp,
+    iconXs = 12.dp,
     iconSm = 16.dp,
     iconMd = 20.dp,
     iconLg = 24.dp,
+    iconXl = 32.dp,
     avatarSm = 24.dp,
     avatarMd = 32.dp,
     avatarLg = 40.dp,
@@ -677,9 +703,11 @@ val TouchSizes = Sizes(
     listRow = 56.dp,
     bar = 56.dp,
     buttonRadius = 9999.dp,
+    iconXs = 12.dp,
     iconSm = 16.dp,
     iconMd = 20.dp,
     iconLg = 24.dp,
+    iconXl = 32.dp,
     avatarSm = 24.dp,
     avatarMd = 32.dp,
     avatarLg = 40.dp,
@@ -692,30 +720,134 @@ val TouchSizes = Sizes(
 
 /** Icons as SVG path data on a 24 by 24 grid, stroked 2 wide with round caps and joins. */
 enum class IconName(val paths: List<String>) {
+    ArrowDown(listOf("M12 5v14", "m19 12-7 7-7-7")),
     ArrowLeft(listOf("m12 19-7-7 7-7", "M19 12H5")),
     ArrowRight(listOf("M5 12h14", "m12 5 7 7-7 7")),
+    ArrowUpDown(listOf("m21 16-4 4-4-4", "M17 20V4", "m3 8 4-4 4 4", "M7 4v16")),
+    ArrowUp(listOf("m5 12 7-7 7 7", "M12 19V5")),
+    Ban(listOf("M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0", "M4.929 4.929 19.07 19.071")),
+    BellOff(listOf("M10.268 21a2 2 0 0 0 3.464 0", "M17 17H4a1 1 0 0 1-.74-1.673C4.59 13.956 6 12.499 6 8a6 6 0 0 1 .258-1.742", "m2 2 20 20", "M8.668 3.01A6 6 0 0 1 18 8c0 2.687.77 4.653 1.707 6.05")),
+    BellRing(listOf("M10.268 21a2 2 0 0 0 3.464 0", "M22 8c0-2.3-.8-4.3-2-6", "M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326", "M4 2C2.8 3.7 2 5.7 2 8")),
     Bell(listOf("M10.268 21a2 2 0 0 0 3.464 0", "M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326")),
+    Bookmark(listOf("M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z")),
+    Bug(listOf("M12 20v-9", "M14 7a4 4 0 0 1 4 4v3a6 6 0 0 1-12 0v-3a4 4 0 0 1 4-4z", "M14.12 3.88 16 2", "M21 21a4 4 0 0 0-3.81-4", "M21 5a4 4 0 0 1-3.55 3.97", "M22 13h-4", "M3 21a4 4 0 0 1 3.81-4", "M3 5a4 4 0 0 0 3.55 3.97", "M6 13H2", "m8 2 1.88 1.88", "M9 7.13V6a3 3 0 1 1 6 0v1.13")),
+    Camera(listOf("M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z", "M9 13a3 3 0 1 0 6 0a3 3 0 1 0 -6 0")),
+    Captions(listOf("M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2z", "M7 15h4M15 15h2M7 11h2M13 11h4")),
+    Cast(listOf("M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6", "M2 12a9 9 0 0 1 8 8", "M2 16a5 5 0 0 1 4 4", "M2 20L2.01 20")),
+    ChartColumn(listOf("M3 3v16a2 2 0 0 0 2 2h16", "M18 17V9", "M13 17V5", "M8 17v-3")),
+    CheckCheck(listOf("M18 6 7 17l-5-5", "m22 10-7.5 7.5L13 16")),
     Check(listOf("M20 6 9 17l-5-5")),
     ChevronDown(listOf("m6 9 6 6 6-6")),
+    ChevronFirst(listOf("m17 18-6-6 6-6", "M7 6v12")),
+    ChevronLast(listOf("m7 18 6-6-6-6", "M17 6v12")),
     ChevronLeft(listOf("m15 18-6-6 6-6")),
     ChevronRight(listOf("m9 18 6-6-6-6")),
     ChevronUp(listOf("m18 15-6-6-6 6")),
+    ChevronsUpDown(listOf("m7 15 5 5 5-5", "m7 9 5-5 5 5")),
     CircleAlert(listOf("M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0", "M12 8L12 12", "M12 16L12.01 16")),
     CircleCheck(listOf("M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0", "m16 9-5.5 5.5L8 12")),
+    CircleHelp(listOf("M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0", "M9 9.5a3 2.5 0 016 0c0 2-2 2-3 3.5", "M12 17h.01")),
+    CircleMinus(listOf("M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0", "M8 12h8")),
+    CirclePlus(listOf("M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0", "M8 12h8", "M12 8v8")),
+    CircleUser(listOf("M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0", "M9 10a3 3 0 1 0 6 0a3 3 0 1 0 -6 0", "M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662")),
+    CircleX(listOf("M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0", "m15 9-6 6", "m9 9 6 6")),
+    Clapperboard(listOf("m12.296 3.464 3.02 3.956", "M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3z", "M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z", "m6.18 5.276 3.1 3.899")),
+    Clock(listOf("M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0", "M12 6v6l4 2")),
+    CloudUpload(listOf("M12 13v8", "M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242", "m8 17 4-4 4 4")),
+    Compass(listOf("M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0", "m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z")),
     Copy(listOf("M10 8h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2z", "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2")),
+    CreditCard(listOf("M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2z", "M2 10L22 10", "M6 14h2")),
+    Download(listOf("M12 15V3", "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", "m7 10 5 5 5-5")),
+    EllipsisVertical(listOf("M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0", "M11 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0", "M11 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0")),
     Ellipsis(listOf("M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0", "M18 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0", "M4 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0")),
     ExternalLink(listOf("M15 3h6v6", "M10 14 21 3", "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6")),
     EyeOff(listOf("M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49", "M14.084 14.158a3 3 0 0 1-4.242-4.242", "M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143", "m2 2 20 20")),
     Eye(listOf("M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0", "M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0")),
+    FileText(listOf("M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z", "M14 2v5a1 1 0 0 0 1 1h5", "M10 9H8", "M16 13H8", "M16 17H8")),
+    Flag(listOf("M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528")),
+    Gamepad2(listOf("M6 11L10 11", "M8 9L8 13", "M15 12L15.01 12", "M18 10L18.01 10", "M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z")),
+    Globe(listOf("M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0", "M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20", "M2 12h20")),
+    GraduationCap(listOf("M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z", "M22 10v6", "M6 12.5V16a6 3 0 0 0 12 0v-3.5")),
+    GripVertical(listOf("M8 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0", "M8 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0", "M8 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0", "M14 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0", "M14 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0", "M14 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0")),
+    Heart(listOf("M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5")),
+    History(listOf("M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8", "M3 3v5h5", "M12 7v5l4 2")),
     House(listOf("M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8", "M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z")),
+    Image(listOf("M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2z", "M7 9a2 2 0 1 0 4 0a2 2 0 1 0 -4 0", "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21")),
     Info(listOf("M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0", "M12 16v-4", "M12 8h.01")),
+    Keyboard(listOf("M10 8h.01", "M12 12h.01", "M14 8h.01", "M16 12h.01", "M18 8h.01", "M6 8h.01", "M7 16h10", "M8 12h.01", "M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2z")),
+    Laptop(listOf("M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z", "M20.054 15.987H3.946")),
+    LayoutGrid(listOf("M4 3h5a1 1 0 0 1 1 1v5a1 1 0 0 1 -1 1h-5a1 1 0 0 1 -1 -1v-5a1 1 0 0 1 1 -1z", "M15 3h5a1 1 0 0 1 1 1v5a1 1 0 0 1 -1 1h-5a1 1 0 0 1 -1 -1v-5a1 1 0 0 1 1 -1z", "M15 14h5a1 1 0 0 1 1 1v5a1 1 0 0 1 -1 1h-5a1 1 0 0 1 -1 -1v-5a1 1 0 0 1 1 -1z", "M4 14h5a1 1 0 0 1 1 1v5a1 1 0 0 1 -1 1h-5a1 1 0 0 1 -1 -1v-5a1 1 0 0 1 1 -1z")),
+    Lightbulb(listOf("M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5", "M9 18h6", "M10 22h4")),
+    Link(listOf("M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71", "M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71")),
+    ListFilter(listOf("M2 5h20", "M6 12h12", "M9 19h6")),
+    ListPlus(listOf("M16 5H3", "M11 12H3", "M16 19H3", "M18 9v6", "M21 12h-6")),
+    ListVideo(listOf("M21 5H3", "M10 12H3", "M10 19H3", "M15 12.003a1 1 0 0 1 1.517-.859l4.997 2.997a1 1 0 0 1 0 1.718l-4.997 2.997a1 1 0 0 1-1.517-.86z")),
+    ListX(listOf("M16 5H3", "M11 12H3", "M16 19H3", "m15.5 9.5 5 5", "m20.5 9.5-5 5")),
+    List(listOf("M3 5h.01", "M3 12h.01", "M3 19h.01", "M8 5h13", "M8 12h13", "M8 19h13")),
+    Lock(listOf("M5 11h14a2 2 0 0 1 2 2v7a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-7a2 2 0 0 1 2 -2z", "M7 11V7a5 5 0 0 1 10 0v4")),
+    LogOut(listOf("m16 17 5-5-5-5", "M21 12H9", "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4")),
+    Mail(listOf("m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7", "M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2z")),
+    MapPin(listOf("M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0", "M9 10a3 3 0 1 0 6 0a3 3 0 1 0 -6 0")),
+    Maximize(listOf("M8 3H5a2 2 0 0 0-2 2v3", "M21 8V5a2 2 0 0 0-2-2h-3", "M3 16v3a2 2 0 0 0 2 2h3", "M16 21h3a2 2 0 0 0 2-2v-3")),
+    Megaphone(listOf("M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z", "M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14", "M8 6v8")),
+    Menu(listOf("M4 5h16", "M4 12h16", "M4 19h16")),
+    MessageSquare(listOf("M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z")),
+    Mic(listOf("M12 19v3", "M19 10v2a7 7 0 0 1-14 0v-2", "M12 2h0a3 3 0 0 1 3 3v7a3 3 0 0 1 -3 3h0a3 3 0 0 1 -3 -3v-7a3 3 0 0 1 3 -3z")),
     Minus(listOf("M5 12h14")),
+    Music(listOf("M21 16V3a1 1 0 0 0-1.28-.96l-10 2.917a1 1 0 0 0-.72.96V19", "M15 16a3 3 0 1 0 6 0a3 3 0 1 0 -6 0", "M3 19a3 3 0 1 0 6 0a3 3 0 1 0 -6 0")),
+    Newspaper(listOf("M15 18h-5", "M18 14h-8", "M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2", "M11 6h6a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1z")),
+    Palette(listOf("M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z", "M13 6.5a0.5 0.5 0 1 0 1 0a0.5 0.5 0 1 0 -1 0", "M17 10.5a0.5 0.5 0 1 0 1 0a0.5 0.5 0 1 0 -1 0", "M6 12.5a0.5 0.5 0 1 0 1 0a0.5 0.5 0 1 0 -1 0", "M8 7.5a0.5 0.5 0 1 0 1 0a0.5 0.5 0 1 0 -1 0")),
+    Pause(listOf("M15 3h3a1 1 0 0 1 1 1v16a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1v-16a1 1 0 0 1 1 -1z", "M6 3h3a1 1 0 0 1 1 1v16a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1v-16a1 1 0 0 1 1 -1z")),
     Pencil(listOf("M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z", "m15 5 4 4")),
+    PictureInPicture2(listOf("M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h4", "M14 13h6a2 2 0 0 1 2 2v3a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2v-3a2 2 0 0 1 2 -2z")),
+    Pin(listOf("M12 17v5", "M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z")),
+    Play(listOf("M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z")),
     Plus(listOf("M5 12h14", "M12 5v14")),
+    Podcast(listOf("M12 17v4", "M18 11a6 6 0 00-3-5.197", "M2 11a10 10 0 015-8.662", "M22 11a10 10 0 00-5-8.662", "M6 11a6 6 0 013-5.197", "M9 21h6", "M12 9h0a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h0a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2z")),
+    QrCode(listOf("M4 3h3a1 1 0 0 1 1 1v3a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1z", "M17 3h3a1 1 0 0 1 1 1v3a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1z", "M4 16h3a1 1 0 0 1 1 1v3a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1z", "M21 16h-3a2 2 0 0 0-2 2v3", "M21 21v.01", "M12 7v3a2 2 0 0 1-2 2H7", "M3 12h.01", "M12 3h.01", "M12 16v.01", "M16 12h1", "M21 12v.01", "M12 21v-1")),
+    Radio(listOf("M16.247 7.761a6 6 0 0 1 0 8.478", "M19.075 4.933a10 10 0 0 1 0 14.134", "M4.925 19.067a10 10 0 0 1 0-14.134", "M7.753 16.239a6 6 0 0 1 0-8.478", "M10 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0")),
+    Repeat1(listOf("m17 2 4 4-4 4", "M3 11v-1a4 4 0 0 1 4-4h14", "m7 22-4-4 4-4", "M21 13v1a4 4 0 0 1-4 4H3", "M11 10h1v4")),
+    Repeat(listOf("m17 2 4 4-4 4", "M3 11v-1a4 4 0 0 1 4-4h14", "m7 22-4-4 4-4", "M21 13v1a4 4 0 0 1-4 4H3")),
+    RotateCcw(listOf("M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8", "M3 3v5h5")),
+    RotateCw(listOf("M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8", "M21 3v5h-5")),
+    Scissors(listOf("M3 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0", "M8.12 8.12 12 12", "M20 4 8.12 15.88", "M3 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0", "M14.8 14.8 20 20")),
     Search(listOf("m21 21-4.34-4.34", "M3 11a8 8 0 1 0 16 0a8 8 0 1 0 -16 0")),
     Settings(listOf("M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915", "M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0")),
+    Share2(listOf("M15 5a3 3 0 1 0 6 0a3 3 0 1 0 -6 0", "M3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0", "M15 19a3 3 0 1 0 6 0a3 3 0 1 0 -6 0", "M8.59 13.51L15.42 17.49", "M15.41 6.51L8.59 10.49")),
+    Shield(listOf("M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z")),
+    Shirt(listOf("M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z")),
+    ShoppingBag(listOf("M16 10a4 4 0 0 1-8 0", "M3.103 6.034h17.794", "M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z")),
+    ShoppingCart(listOf("m2.05 2.05 1.099-.028a1 1 0 0 1 1.008.815l2.69 14.347A1 1 0 0 0 7.83 18H18", "M4.563 5h16.435a1 1 0 0 1 .981 1.204l-1.026 6.226A2 2 0 0 1 18.962 14H6.25", "M16 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0", "M6 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0")),
+    Shuffle(listOf("m18 14 4 4-4 4", "m18 2 4 4-4 4", "M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22", "M2 6h1.972a4 4 0 0 1 3.6 2.2", "M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45")),
+    SkipBack(listOf("M17.971 4.285A2 2 0 0 1 21 6v12a2 2 0 0 1-3.029 1.715l-9.997-5.998a2 2 0 0 1-.003-3.432z", "M3 20V4")),
+    SkipForward(listOf("M21 4v16", "M6.029 4.285A2 2 0 0 0 3 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432z")),
+    SlidersHorizontal(listOf("M10 5H3", "M12 19H3", "M14 3v4", "M16 17v4", "M21 12h-9", "M21 19h-5", "M21 5h-7", "M8 10v4", "M8 12H3")),
+    Smartphone(listOf("M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-16a2 2 0 0 1 2 -2z", "M12 18h.01")),
+    Smile(listOf("M15 10V9", "M16.472 15a6 6 0 01-8.943 0", "M9 10V9", "M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0")),
+    Sparkles(listOf("M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z", "M20 2v4", "M22 4h-4", "M2 20a2 2 0 1 0 4 0a2 2 0 1 0 -4 0")),
+    SquareCheck(listOf("M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2z", "m16 9-5.5 5.5L8 12")),
+    Square(listOf("M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2z")),
+    Star(listOf("M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z")),
+    SunMoon(listOf("M12 2v2", "M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715", "M16 12a4 4 0 0 0-4-4", "m19 5-1.256 1.256", "M20 12h2")),
+    Tag(listOf("M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z", "M7 7.5a0.5 0.5 0 1 0 1 0a0.5 0.5 0 1 0 -1 0")),
+    ThumbsDown(listOf("M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z", "M17 14V2")),
+    ThumbsUp(listOf("M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z", "M7 10v12")),
+    Timer(listOf("M10 2L14 2", "M12 14L15 11", "M4 14a8 8 0 1 0 16 0a8 8 0 1 0 -16 0")),
     Trash(listOf("M10 11v6", "M14 11v6", "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", "M3 6h18", "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2")),
+    TrendingUp(listOf("M16 7h6v6", "m22 7-8.5 8.5-5-5L2 17")),
     TriangleAlert(listOf("m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3", "M12 9v4", "M12 17h.01")),
+    Trophy(listOf("M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2", "M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2", "M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3", "M4 22h16", "M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z", "M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3")),
+    Tv(listOf("m17 2-5 5-5-5", "M4 7h16a2 2 0 0 1 2 2v11a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2z")),
+    Undo2(listOf("M9 14 4 9l5-5", "M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11")),
+    Upload(listOf("M12 3v12", "m17 8-5-5-5 5", "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4")),
+    UserCheck(listOf("m16 11 2 2 4-4", "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0")),
+    UserPlus(listOf("M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0", "M19 8L19 14", "M22 11L16 11")),
+    UserX(listOf("M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0", "M17 8L22 13", "M22 8L17 13")),
     User(listOf("M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2", "M8 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0")),
+    Users(listOf("M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "M16 3.128a4 4 0 0 1 0 7.744", "M22 21v-2a4 4 0 0 0-3-3.87", "M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0")),
+    Video(listOf("m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5", "M4 6h10a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-8a2 2 0 0 1 2 -2z")),
+    Volume1(listOf("M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z", "M16 9a5 5 0 0 1 0 6")),
+    Volume2(listOf("M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z", "M16 9a5 5 0 0 1 0 6", "M19.364 18.364a9 9 0 0 0 0-12.728")),
+    VolumeX(listOf("M11 4.702a.7.7 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.7.7 0 0 0 11 19.298z", "m16.5 14.5 5-5", "m16.5 9.5 5 5")),
     X(listOf("M18 6 6 18", "m6 6 12 12")),
 }

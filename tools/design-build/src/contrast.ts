@@ -15,6 +15,7 @@ type Pair = {
 };
 
 const WHITE: Rgba = { r: 255, g: 255, b: 255, a: 1 };
+const BLACK: Rgba = { r: 0, g: 0, b: 0, a: 1 };
 
 /** Body text needs 4.5:1 (WCAG 1.4.3); interface parts and focus rings need 3:1 (1.4.11). */
 const TEXT = 4.5;
@@ -47,6 +48,14 @@ const PAIRS: Pair[] = [
   // Tertiary text is for the page and for surfaces on it, not for raised surfaces.
   ...on("text.tertiary", ["background.base", "background.surface"], TEXT),
   ...on("text.accent", ["accent.subtle"], TEXT),
+  ...on("text.on-inverse", ["background.inverse"], TEXT),
+  // The overlay sits on pictures, so it has to carry its text over the lightest and the darkest.
+  {
+    foreground: "overlay.text",
+    background: "overlay.background",
+    minimum: TEXT,
+    over: [WHITE, BLACK],
+  },
   ...STATUSES.flatMap((status) =>
     on(`status.${status}`, [...SURFACES, `status.${status}-subtle`], TEXT),
   ),

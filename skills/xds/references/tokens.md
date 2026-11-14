@@ -5,7 +5,7 @@
 | File | Contents |
 | --- | --- |
 | `design/tokens/palette.json` | Raw color ramps. Referenced only by semantic color tokens and never emitted into generated platform code |
-| `design/tokens/color.light.json`, `color.dark.json` | Semantic color groups (`text`, `background`, `border`, `accent`, `control`, `danger`, `status`) and per-component color groups (`button`, `field`, `badge`, and so on). Both files must define the exact same set of token paths |
+| `design/tokens/color.light.json`, `color.dark.json` | Semantic color groups (`text`, `background`, `border`, `accent`, `control`, `danger`, `status`, `overlay`) and per-component color groups (`button`, `field`, `badge`, and so on). Both files must define the exact same set of token paths |
 | `design/tokens/base.json` | Spacing, border radius, border widths, focus ring, font families, typographic roles, motion, and shadows |
 | `design/tokens/size.pointer.json`, `size.touch.json` | Control dimensions for pointer (mouse/trackpad) and touch input. Both files must define the exact same set of token paths |
 

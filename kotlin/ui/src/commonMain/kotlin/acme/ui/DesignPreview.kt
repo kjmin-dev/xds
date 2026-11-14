@@ -265,8 +265,26 @@ private fun IconsSection() {
         Samples(gap = Space.s4) {
             for (name in IconName.entries) Icon(name, label = name.name)
         }
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(Space.s3),
+            itemVerticalAlignment = Alignment.Bottom,
+        ) {
+            for (size in IconSize.entries) Icon(IconName.House, size = size, label = "House, ${size.name}")
+        }
+        Samples(gap = Space.s3) {
+            // Icons made of closed shapes, which is what `filled` is for.
+            for (name in FillableIcons) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Space.s1)) {
+                    Icon(name)
+                    Icon(name, filled = true, label = "${name.name}, filled")
+                }
+            }
+        }
     }
 }
+
+private val FillableIcons =
+    listOf(IconName.Heart, IconName.Star, IconName.Bookmark, IconName.ThumbsUp, IconName.Bell)
 
 @Composable
 private fun ButtonsSection() {

@@ -21,6 +21,7 @@ import {
   Divider,
   Icon,
   type IconName,
+  type IconSize,
   ListRow,
   ProgressBar,
   SegmentedControl,
@@ -42,6 +43,9 @@ const VARIANTS: ButtonVariant[] = ["primary", "secondary", "ghost", "danger"];
 const SIZES: ControlSize[] = ["sm", "md", "lg"];
 const BADGE_TONES: BadgeTone[] = ["neutral", "accent", "success", "warning", "danger"];
 const BANNER_TONES: BannerTone[] = ["info", "success", "warning", "danger"];
+const ICON_SIZES: IconSize[] = ["xs", "sm", "md", "lg", "xl"];
+/** Icons made of closed shapes, which is what `filled` is for. */
+const FILLABLE_ICONS: IconName[] = ["heart", "star", "bookmark", "thumbs-up", "bell"];
 const TEXT_VARIANTS: TextVariant[] = [
   "display",
   "title",
@@ -174,6 +178,19 @@ export default function Design() {
       <View style={styles.row}>
         {(Object.keys(icons) as IconName[]).map((name) => (
           <Icon key={name} name={name} label={name} />
+        ))}
+      </View>
+      <View style={[styles.row, styles.end]}>
+        {ICON_SIZES.map((iconSize) => (
+          <Icon key={iconSize} name="house" size={iconSize} label={`house, ${iconSize}`} />
+        ))}
+      </View>
+      <View style={styles.row}>
+        {FILLABLE_ICONS.map((name) => (
+          <View key={name} style={styles.pair}>
+            <Icon name={name} />
+            <Icon name={name} filled label={`${name}, filled`} />
+          </View>
         ))}
       </View>
     </Section>,
@@ -368,6 +385,13 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     alignItems: "center",
     gap: space[2],
+  },
+  end: {
+    alignItems: "flex-end",
+  },
+  pair: {
+    flexDirection: "row",
+    gap: space[1],
   },
   swatches: {
     flexDirection: "row",

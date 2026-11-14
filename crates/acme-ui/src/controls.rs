@@ -335,28 +335,47 @@ impl RenderOnce for ListRow {
 
 // ---------------------------------------------------------------- icon
 
-/// `Sm` and `Md` sit beside text; `Lg` stands alone.
+/// `Xs` fits inside a badge, `Sm` and `Md` sit beside text, `Lg` stands alone, and `Xl`
+/// illustrates, as in an empty state.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum IconSize {
+    Xs,
     Sm,
     #[default]
     Md,
     Lg,
+    Xl,
+}
+
+impl IconSize {
+    fn side(self) -> f32 {
+        match self {
+            IconSize::Xs => tokens::POINTER.icon_xs,
+            IconSize::Sm => tokens::POINTER.icon_sm,
+            IconSize::Md => tokens::POINTER.icon_md,
+            IconSize::Lg => tokens::POINTER.icon_lg,
+            IconSize::Xl => tokens::POINTER.icon_xl,
+        }
+    }
 }
 
 /// An icon of the design system. It takes the color of the text around it; set another with
 /// `.text_color`.
-///
 pub fn icon(icon: tokens::Icon, size: IconSize) -> Icon {
-    let side = match size {
-        IconSize::Sm => tokens::POINTER.icon_sm,
-        IconSize::Md => tokens::POINTER.icon_md,
-        IconSize::Lg => tokens::POINTER.icon_lg,
-    };
     // The drawing is generated from design/icons, so no asset has to be registered for it.
     Icon::default()
         .data(icon.svg().as_bytes())
-        .size(px(side))
+        .size(px(size.side()))
+        .flex_none()
+}
+
+/// The icon with its shapes filled, so that a selected state shows in the form and not in the
+/// color alone: a heart that was pressed, a bookmark that is saved. Only for icons made of
+/// closed shapes.
+pub fn icon_filled(icon: tokens::Icon, size: IconSize) -> Icon {
+    Icon::default()
+        .data(icon.filled_svg().as_bytes())
+        .size(px(size.side()))
         .flex_none()
 }
 

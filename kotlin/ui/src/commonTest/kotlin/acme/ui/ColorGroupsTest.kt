@@ -24,7 +24,7 @@ class ColorGroupsTest {
     @Test
     fun theTokensHaveOnlyTheSemanticGroupsTheDocsName() {
         assertEquals(
-            listOf("background", "text", "border", "accent", "control", "danger", "status"),
+            listOf("background", "text", "border", "accent", "control", "danger", "status", "overlay"),
             semanticColorGroups(LightColors.entries()).keys.toList(),
         )
     }

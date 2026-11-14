@@ -424,6 +424,49 @@ export const COMPONENTS: Component[] = [
     preview: "Card",
   },
   {
+    slug: "icon",
+    name: "Icon",
+    summary: "A drawing from the icon set, in the color of the text around it.",
+    guidance: [
+      "An icon beside a label is decoration: leave `label` out and assistive technology skips it. An icon that stands alone needs a `label`.",
+      "`xs` fits inside a badge, `sm` and `md` sit beside text, `lg` stands alone, as in a tab bar, and `xl` illustrates, as in an empty state.",
+      "`filled` marks a selected state by form, so the state does not depend on color alone: a heart that was pressed, a bookmark that is saved. Use it only on icons made of closed shapes.",
+      "The icons are the SVG files in `design/icons`. Add one there and run `mise run tokens`.",
+    ],
+    example: `import { Icon } from "@acme/ui";
+
+<Icon name="search" />
+<Icon name="bell" size="lg" label="Notifications" />
+<Icon name="heart" filled label="Liked" />`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "name", type: "IconName", description: "Required. A file name in `design/icons`." },
+      {
+        name: "size",
+        type: '"xs" | "sm" | "md" | "lg" | "xl"',
+        description: "Defaults to `md`. 12, 16, 20, 24 and 32 pixels.",
+      },
+      {
+        name: "filled",
+        type: "boolean",
+        description: "Fills the shapes. For icons made of closed shapes.",
+      },
+      {
+        name: "label",
+        type: "string",
+        description: "Names the icon for assistive technology. Without it the icon is hidden.",
+      },
+      {
+        name: "className",
+        type: "string",
+        description: "`rtl:-scale-x-100` mirrors an arrow or a chevron in a right-to-left layout.",
+      },
+    ],
+    sources: everywhere("Icon", GPUI_CONTROLS),
+    demo: true,
+    preview: "Icons",
+  },
+  {
     slug: "list-row",
     name: "ListRow",
     summary: "One line of a list or a settings screen.",

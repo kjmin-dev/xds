@@ -116,7 +116,7 @@ fun Card(
             if (title != null || shownActions != null) {
                 Row(horizontalArrangement = Arrangement.spacedBy(Space.s3)) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Space.s0_5)) {
-                        if (title != null) Text(title, style = Typography.heading, heading = true)
+                        if (title != null) Text(title, style = Typography.heading, tone = TextTone.Primary, heading = true)
                         if (description != null) Text(description, style = Typography.detail, tone = TextTone.Secondary)
                     }
                     shownActions?.invoke()

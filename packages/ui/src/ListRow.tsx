@@ -25,8 +25,30 @@ const TITLE = {
   compact: { rest: "text-acme-detail", selected: "text-acme-label" },
 } as const;
 
+/**
+ * The fills and the focus ring of a pressable row, at rest and selected. A collapsed Sidebar
+ * draws its icon-only rows with them too. The ring is inside the row, where a list that clips
+ * its rows still shows it.
+ */
+export const PRESSABLE_ROW = {
+  rest: "hover:bg-acme-list-row-background-hover active:bg-acme-list-row-background-pressed disabled:hover:bg-transparent",
+  selected:
+    "hover:bg-acme-list-row-background-selected-hover active:bg-acme-list-row-background-selected-hover disabled:hover:bg-acme-list-row-background-selected",
+  focus:
+    "focus-visible:outline-solid focus-visible:outline-(length:--acme-focus-width) focus-visible:-outline-offset-(--acme-focus-offset) focus-visible:outline-acme-border-focus",
+} as const;
+
 /** One line of a list or a settings screen. Separate rows with a Divider. */
-export function ListRow({
+export function ListRow(props: ListRowProps) {
+  return <PlaceRow {...props} current="true" />;
+}
+
+/**
+ * A ListRow that says what kind of current item its selected state is. A Sidebar's rows are the
+ * places of an app, so its selected row is the current page. Only for this package's own
+ * components: the index does not export it.
+ */
+export function PlaceRow({
   title,
   description,
   leading,
@@ -36,9 +58,10 @@ export function ListRow({
   compact = false,
   onPress,
   disabled = false,
-}: ListRowProps) {
+  current,
+}: ListRowProps & { current: "true" | "page" }) {
   const row = `flex w-full items-center gap-3 px-4 text-start ${compact ? "min-h-acme-list-row-compact py-1" : "min-h-acme-list-row py-2"} ${selected ? "bg-acme-list-row-background-selected" : ""}`;
-  const current = selected ? ({ "aria-current": "true" } as const) : {};
+  const currentProps = selected ? ({ "aria-current": current } as const) : {};
   const content = (
     <>
       {leading}
@@ -64,18 +87,18 @@ export function ListRow({
   );
   if (!onPress) {
     return (
-      <div {...current} className={row}>
+      <div {...currentProps} className={row}>
         {content}
       </div>
     );
   }
   return (
     <button
-      {...current}
+      {...currentProps}
       type="button"
       disabled={disabled}
       onClick={onPress}
-      className={`${row} cursor-pointer transition-colors duration-(--acme-motion-duration-fast) ${selected ? "hover:bg-acme-list-row-background-selected-hover active:bg-acme-list-row-background-selected-hover disabled:hover:bg-acme-list-row-background-selected" : "hover:bg-acme-list-row-background-hover active:bg-acme-list-row-background-pressed disabled:hover:bg-transparent"} focus-visible:outline-solid focus-visible:outline-(length:--acme-focus-width) focus-visible:-outline-offset-(--acme-focus-offset) focus-visible:outline-acme-border-focus disabled:cursor-not-allowed`}
+      className={`${row} cursor-pointer transition-colors duration-(--acme-motion-duration-fast) ${selected ? PRESSABLE_ROW.selected : PRESSABLE_ROW.rest} ${PRESSABLE_ROW.focus} disabled:cursor-not-allowed`}
     >
       {content}
     </button>

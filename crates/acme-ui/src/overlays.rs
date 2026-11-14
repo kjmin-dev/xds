@@ -31,13 +31,14 @@ use gpui_kit::component::{
 use gpui_kit::prelude::FluentBuilder;
 use gpui_kit::{
     Anchor, Animation, AnimationExt, AnyElement, App, Bounds, BoxShadow, ClickEvent, DispatchPhase,
-    ElementId, Entity, FocusHandle, InteractiveElement, IntoElement, KeyDownEvent, MouseButton,
-    ParentElement, Pixels, RenderOnce, Role, SharedString, StatefulInteractiveElement, Styled,
-    Task, WeakFocusHandle, Window, anchored, canvas, deferred, div, point, px,
+    Div, ElementId, Entity, FocusHandle, InteractiveElement, IntoElement, KeyDownEvent,
+    MouseButton, ParentElement, Pixels, RenderOnce, Role, ScrollHandle, SharedString, Stateful,
+    StatefulInteractiveElement, StyleRefinement, Styled, Task, WeakFocusHandle, Window, anchored,
+    canvas, deferred, div, point, px,
 };
 
-use crate::components::shadow;
-use crate::controls::{ClickHandler, IconSize, focus_handle, icon};
+use crate::components::{ControlSize, field_frame, field_label, field_note, field_outline, shadow};
+use crate::controls::{ClickHandler, IconSize, Step, ValueHandler, focus_handle, icon, move_index};
 use crate::theme::{TypographyExt, color, palette};
 
 /// Called when an overlay asks to be closed. Takes a reference, like the handlers of GPUI
@@ -86,6 +87,7 @@ pub enum MenuAlign {
 /// One action of a [`Menu`].
 pub struct MenuItem {
     label: SharedString,
+    description: Option<SharedString>,
     icon: Option<tokens::Icon>,
     on_select: Option<ClickHandler>,
     danger: bool,
@@ -97,12 +99,19 @@ impl MenuItem {
     pub fn new(label: impl Into<SharedString>) -> Self {
         Self {
             label: label.into(),
+            description: None,
             icon: None,
             on_select: None,
             danger: false,
             disabled: false,
             selected: false,
         }
+    }
+
+    /// A second line under the label, for an option of a select.
+    fn description(mut self, description: Option<SharedString>) -> Self {
+        self.description = description;
+        self
     }
 
     /// An icon in front of the label.
@@ -232,9 +241,14 @@ impl RenderOnce for MenuTrigger {
     }
 }
 
+/// One row of a menu, or of a select's list, which is a listbox to assistive technology and
+/// says which `role` its rows have. `focus` is the row's own; the select makes its rows'
+/// handles itself, so the list can open with the focus on the chosen one.
 fn menu_row(
     id: ElementId,
     item: &MenuItem,
+    role: Role,
+    focus: FocusHandle,
     popover: Entity<PopoverState>,
     window: &mut Window,
     cx: &mut App,
@@ -262,19 +276,22 @@ fn menu_row(
             c.menu_item_background_pressed,
         )
     };
-    let focus = focus_handle(&id, window, cx);
     let focused = !item.disabled && focus.is_focused(window);
     let on_select = item.on_select.clone();
+    let row_height = px(tokens::POINTER.list_row_compact);
+    let label = div().min_w_0().truncate().child(item.label.clone());
     div()
         .id(id)
-        .role(Role::MenuItem)
+        .role(role)
         .aria_label(item.label.clone())
+        .when_some(item.description.clone(), |row, description| {
+            row.aria_description(description)
+        })
         .when(item.selected, |row| row.aria_selected(true))
         .flex()
         .flex_none()
         .items_center()
         .gap(px(tokens::SPACE_2))
-        .h(px(tokens::POINTER.list_row_compact))
         .px(px(tokens::SPACE_2))
         .rounded(px(tokens::RADIUS_SM))
         .typography(tokens::TYPOGRAPHY_DETAIL)
@@ -284,7 +301,30 @@ fn menu_row(
             item.icon
                 .map(|name| icon(name, IconSize::Sm).text_color(color(mark))),
         )
-        .child(div().flex_1().child(item.label.clone()))
+        .map(|row| match &item.description {
+            None => row.h(row_height).child(label.flex_1()),
+            // Two lines: the row grows past the compact height to hold them.
+            Some(description) => row.min_h(row_height).py(px(tokens::SPACE_1)).child(
+                div()
+                    .flex_1()
+                    .min_w_0()
+                    .flex()
+                    .flex_col()
+                    .child(label)
+                    .child(
+                        div()
+                            .min_w_0()
+                            .truncate()
+                            .typography(tokens::TYPOGRAPHY_FOOTNOTE)
+                            .text_color(color(if item.disabled {
+                                c.menu_text_disabled
+                            } else {
+                                c.text_secondary
+                            }))
+                            .child(description.clone()),
+                    ),
+            ),
+        })
         // A mark as well as a state for assistive technology, so the choice can be seen.
         .when(item.selected, |row| {
             row.child(icon(tokens::Icon::Check, IconSize::Sm))
@@ -331,17 +371,27 @@ impl RenderOnce for Menu {
             .content(move |_, window, cx| {
                 let c = palette(cx);
                 let popover = cx.entity();
+                let mut stops = Vec::new();
                 let rows = entries
                     .iter()
                     .enumerate()
                     .map(|(index, entry)| match entry {
-                        MenuEntry::Item(item) => menu_row(
-                            (id.clone(), index.to_string()).into(),
-                            item,
-                            popover.clone(),
-                            window,
-                            cx,
-                        ),
+                        MenuEntry::Item(item) => {
+                            let row_id: ElementId = (id.clone(), index.to_string()).into();
+                            let focus = focus_handle(&row_id, window, cx);
+                            if !item.disabled {
+                                stops.push((index, focus.clone()));
+                            }
+                            menu_row(
+                                row_id,
+                                item,
+                                Role::MenuItem,
+                                focus,
+                                popover.clone(),
+                                window,
+                                cx,
+                            )
+                        }
                         MenuEntry::Separator => div()
                             .flex_none()
                             .my(px(tokens::SPACE_1))
@@ -350,23 +400,394 @@ impl RenderOnce for Menu {
                             .into_any_element(),
                     })
                     .collect::<Vec<_>>();
-                div()
-                    .id("menu")
-                    .role(Role::Menu)
-                    .aria_label(label.clone())
-                    .flex()
-                    .flex_col()
-                    // Four times `space.12`: the least a menu is wide. Beyond that it is as
-                    // wide as its longest row.
-                    .min_w(px(tokens::SPACE_12 * 4.0))
-                    .p(px(tokens::SPACE_1))
-                    .rounded(px(tokens::RADIUS_MD))
-                    .border(px(tokens::BORDER_WIDTH_THIN))
-                    .border_color(color(c.menu_border))
-                    .bg(color(c.menu_background))
-                    .shadow(shadow(tokens::SHADOW_RAISED))
-                    .children(rows)
+                menu_surface(Role::Menu, label.clone(), rows, stops, None, cx)
             })
+    }
+}
+
+/// The surface of a menu and of a select's list. The arrow keys move between the rows that
+/// can be chosen, and Home and End go to the first and the last. `stops` are those rows, each
+/// with its place among the children, which is where `scroll` scrolls to bring it into view.
+fn menu_surface(
+    role: Role,
+    label: SharedString,
+    rows: Vec<AnyElement>,
+    stops: Vec<(usize, FocusHandle)>,
+    scroll: Option<ScrollHandle>,
+    cx: &App,
+) -> Stateful<Div> {
+    let c = palette(cx);
+    let surface = div()
+        .id("menu")
+        .role(role)
+        .aria_label(label)
+        .flex()
+        .flex_col()
+        // Four times `space.12`: the least a menu is wide. Beyond that it is as wide as its
+        // longest row.
+        .min_w(px(tokens::SPACE_12 * 4.0))
+        .p(px(tokens::SPACE_1))
+        .rounded(px(tokens::RADIUS_MD))
+        .border(px(tokens::BORDER_WIDTH_THIN))
+        .border_color(color(c.menu_border))
+        .bg(color(c.menu_background))
+        .shadow(shadow(tokens::SHADOW_RAISED))
+        .children(rows);
+    let surface = match &scroll {
+        Some(scroll) => surface.overflow_y_scroll().track_scroll(scroll),
+        None => surface,
+    };
+    surface.on_key_down(move |event: &KeyDownEvent, window, cx| {
+        if event.keystroke.modifiers.modified() {
+            return;
+        }
+        let step = match event.keystroke.key.as_str() {
+            "down" => Step::Next,
+            "up" => Step::Previous,
+            "home" => Step::First,
+            "end" => Step::Last,
+            _ => return,
+        };
+        let current = stops.iter().position(|(_, focus)| focus.is_focused(window));
+        let Some(next) = move_index(current, stops.len(), step) else {
+            return;
+        };
+        cx.stop_propagation();
+        let (child, focus) = &stops[next];
+        if let Some(scroll) = &scroll {
+            scroll.scroll_to_item(*child);
+        }
+        focus.focus(window, cx);
+    })
+}
+
+// ---------------------------------------------------------------- select
+
+/// One choice of a [`Select`]: the value it stands for, and what it shows.
+pub struct SelectOption {
+    value: SharedString,
+    label: SharedString,
+    description: Option<SharedString>,
+}
+
+impl SelectOption {
+    pub fn new(value: impl Into<SharedString>, label: impl Into<SharedString>) -> Self {
+        Self {
+            value: value.into(),
+            label: label.into(),
+            description: None,
+        }
+    }
+
+    /// A line under the label, in the list.
+    pub fn description(mut self, description: impl Into<SharedString>) -> Self {
+        self.description = Some(description.into());
+        self
+    }
+}
+
+/// How many rows a select's list shows before it scrolls.
+const SELECT_ROWS: f32 = 8.0;
+
+/// A field for choosing one option from a list too long to show at once. Closed, it looks like
+/// a text field: the same label, box, description and error. Pressed, it opens the options
+/// under it, as wide as the field, on the surface and with the rows of a menu; the chosen one
+/// has a check mark. Choosing one calls `on_change` and closes the list; Escape or a press
+/// outside closes it too.
+///
+/// GPUI Component's popover holds the list, as it holds a menu: it places it, moves the focus
+/// into it, closes it and gives the focus back.
+#[derive(IntoElement)]
+pub struct Select {
+    id: ElementId,
+    label: SharedString,
+    options: Vec<SelectOption>,
+    value: Option<SharedString>,
+    placeholder: Option<SharedString>,
+    description: Option<SharedString>,
+    error: Option<SharedString>,
+    disabled: bool,
+    on_change: Option<ValueHandler>,
+    default_open: bool,
+}
+
+impl Select {
+    /// The label is drawn above the field and names it for assistive technology.
+    pub fn new(
+        id: impl Into<ElementId>,
+        label: impl Into<SharedString>,
+        options: impl IntoIterator<Item = SelectOption>,
+    ) -> Self {
+        Self {
+            id: id.into(),
+            label: label.into(),
+            options: options.into_iter().collect(),
+            value: None,
+            placeholder: None,
+            description: None,
+            error: None,
+            disabled: false,
+            on_change: None,
+            default_open: false,
+        }
+    }
+
+    /// The value of the chosen option. Nothing is chosen unless this is set.
+    pub fn value(mut self, value: impl Into<SharedString>) -> Self {
+        self.value = Some(value.into());
+        self
+    }
+
+    /// Shown in the field while nothing is chosen.
+    pub fn placeholder(mut self, placeholder: impl Into<SharedString>) -> Self {
+        self.placeholder = Some(placeholder.into());
+        self
+    }
+
+    pub fn description(mut self, description: impl Into<SharedString>) -> Self {
+        self.description = Some(description.into());
+        self
+    }
+
+    /// Replaces the description while there is one.
+    pub fn error(mut self, error: Option<impl Into<SharedString>>) -> Self {
+        self.error = error.map(Into::into);
+        self
+    }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+
+    /// Called with the value of the option that was chosen. The select does not choose by
+    /// itself: the handler decides. Takes a reference, like the handlers of GPUI Component, so
+    /// `cx.listener` fits.
+    pub fn on_change(
+        mut self,
+        handler: impl Fn(&SharedString, &mut Window, &mut App) + 'static,
+    ) -> Self {
+        self.on_change = Some(Rc::new(handler));
+        self
+    }
+
+    /// Whether the list is open when the select first appears, for a screenshot of the
+    /// design preview. After that it opens and closes itself.
+    pub(crate) fn default_open(mut self, open: bool) -> Self {
+        self.default_open = open;
+        self
+    }
+}
+
+/// The box of a select, which opens its list. The popover tells it through `Selectable` whether
+/// the list is open, which it tells assistive technology.
+#[derive(IntoElement)]
+struct SelectField {
+    id: ElementId,
+    label: SharedString,
+    shown: Option<SharedString>,
+    placeholder: Option<SharedString>,
+    invalid: bool,
+    disabled: bool,
+    open: bool,
+    /// Where the box was last drawn as wide, which is how wide the list is.
+    width: Rc<Cell<Pixels>>,
+}
+
+impl Selectable for SelectField {
+    fn selected(mut self, selected: bool) -> Self {
+        self.open = selected;
+        self
+    }
+
+    fn is_selected(&self) -> bool {
+        self.open
+    }
+}
+
+impl RenderOnce for SelectField {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let c = palette(cx);
+        let radius = px(tokens::RADIUS_MD);
+        let focus = focus_handle(&self.id, window, cx);
+        let focused = !self.disabled && focus.is_focused(window);
+        let (text, text_color) = match self.shown.clone() {
+            Some(shown) => (shown, c.field_text),
+            None => (self.placeholder.unwrap_or_default(), c.field_placeholder),
+        };
+        let frame = field_frame(self.invalid, self.disabled, focused, radius, window, cx)
+            .id(self.id)
+            // A combo box that opens a list, and says whether it is open.
+            .role(Role::ComboBox)
+            .aria_label(self.label)
+            .aria_expanded(self.open)
+            .when_some(self.shown, |frame, shown| frame.aria_value(shown))
+            .when(!self.disabled, |frame| {
+                frame
+                    .track_focus(&focus.tab_index(0).tab_stop(true))
+                    // A click opens the list, which takes the focus, so the box does not take
+                    // it first and show a ring when the list closes.
+                    .on_mouse_down(MouseButton::Left, |_, window, _| window.prevent_default())
+            })
+            .items_center()
+            .gap(px(tokens::SPACE_2))
+            .h(ControlSize::Md.height())
+            // As far from the edge as the text of a text field is.
+            .px(px(tokens::SPACE_3))
+            .child(
+                div()
+                    .flex_1()
+                    .min_w_0()
+                    .truncate()
+                    .typography(tokens::TYPOGRAPHY_BODY)
+                    .text_color(color(text_color))
+                    .child(text),
+            )
+            .child(
+                icon(tokens::Icon::ChevronsUpDown, IconSize::Sm)
+                    .text_color(color(c.field_placeholder)),
+            );
+        let (width, open) = (self.width, self.open);
+        field_outline(self.invalid, radius, c, frame)
+            .w_full()
+            .on_prepaint(move |bounds, window, _| {
+                // The list was built before the box was laid out. When the box has changed
+                // width since, as on the first frame, build it again.
+                if width.replace(bounds.size.width) != bounds.size.width && open {
+                    window.request_animation_frame();
+                }
+            })
+    }
+}
+
+/// Where a select's list is scrolled to, kept while it is open.
+struct ListScroll {
+    handle: ScrollHandle,
+    /// Whether the list has been scrolled to the chosen option since it opened.
+    placed: bool,
+}
+
+impl RenderOnce for Select {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let c = palette(cx);
+        let chosen = self.value.as_ref().and_then(|value| {
+            self.options
+                .iter()
+                .position(|option| &option.value == value)
+        });
+        let width = window
+            .use_keyed_state((self.id.clone(), "width"), cx, |_, _| {
+                Rc::new(Cell::new(Pixels::ZERO))
+            })
+            .read(cx)
+            .clone();
+        let field = SelectField {
+            id: (self.id.clone(), "field").into(),
+            label: self.label.clone(),
+            shown: chosen.map(|index| self.options[index].label.clone()),
+            placeholder: self.placeholder,
+            invalid: self.error.is_some(),
+            disabled: self.disabled,
+            open: false,
+            width: width.clone(),
+        };
+        let control = if self.disabled {
+            field.into_any_element()
+        } else {
+            // The rows' focus handles are made here, outside the list, so the popover can
+            // give the focus to the chosen row as the list opens.
+            let rows: Vec<(ElementId, FocusHandle)> = (0..self.options.len())
+                .map(|index| {
+                    let id: ElementId = (self.id.clone(), index.to_string()).into();
+                    let focus = focus_handle(&id, window, cx);
+                    (id, focus)
+                })
+                .collect();
+            let opening = rows
+                .get(chosen.unwrap_or(0))
+                .map(|(_, focus)| focus.clone());
+            let (id, label, on_change) = (self.id.clone(), self.label.clone(), self.on_change);
+            let options = Rc::new(self.options);
+            Popover::new(self.id.clone())
+                // The surface is the menu's, drawn below.
+                .appearance(false)
+                .anchor(Anchor::TopLeft)
+                .offset(px(tokens::SPACE_1))
+                .default_open(self.default_open)
+                // The box fills the width of the field, and the list is anchored to it.
+                .trigger_style(StyleRefinement::default().w_full())
+                .when_some(opening, |popover, focus| popover.track_focus(&focus))
+                .trigger(field)
+                .content(move |_, window, cx| {
+                    let popover = cx.entity();
+                    let scroll =
+                        window.use_keyed_state((id.clone(), "scroll"), cx, |_, _| ListScroll {
+                            handle: ScrollHandle::new(),
+                            placed: false,
+                        });
+                    let scroll = scroll.update(cx, |scroll, _| {
+                        if !scroll.placed {
+                            // GPUI scrolls to a row against the list's bounds, which it only
+                            // knows once the list has been laid out; until then, wait a frame.
+                            if scroll.handle.bounds().size.height > Pixels::ZERO {
+                                scroll.placed = true;
+                                if let Some(chosen) = chosen {
+                                    scroll.handle.scroll_to_item(chosen);
+                                }
+                            } else {
+                                window.request_animation_frame();
+                            }
+                        }
+                        scroll.handle.clone()
+                    });
+                    let items = options.iter().enumerate().map(|(index, option)| {
+                        let on_change = on_change.clone();
+                        let value = option.value.clone();
+                        MenuItem::new(option.label.clone())
+                            .description(option.description.clone())
+                            .selected(chosen == Some(index))
+                            .on_select(move |_, window, cx| {
+                                if let Some(on_change) = &on_change {
+                                    on_change(&value, window, cx);
+                                }
+                            })
+                    });
+                    let mut stops = Vec::new();
+                    let list = items
+                        .zip(&rows)
+                        .enumerate()
+                        .map(|(index, (item, (row_id, focus)))| {
+                            stops.push((index, focus.clone()));
+                            menu_row(
+                                row_id.clone(),
+                                &item,
+                                Role::ListBoxOption,
+                                focus.clone(),
+                                popover.clone(),
+                                window,
+                                cx,
+                            )
+                        })
+                        .collect::<Vec<_>>();
+                    let inset = tokens::SPACE_1 + tokens::BORDER_WIDTH_THIN;
+                    let width = width.get();
+                    menu_surface(Role::ListBox, label.clone(), list, stops, Some(scroll), cx)
+                        .max_h(px(
+                            tokens::POINTER.list_row_compact * SELECT_ROWS + inset * 2.0
+                        ))
+                        // As wide as the field, once the field has been laid out.
+                        .when(width > Pixels::ZERO, |list| list.min_w(width).w(width))
+                })
+                .into_any_element()
+        };
+        div()
+            .flex()
+            .flex_col()
+            .gap(px(tokens::SPACE_1))
+            .w_full()
+            .child(field_label(self.label, self.disabled, c))
+            .child(control)
+            .children(field_note(self.error, self.description, c))
     }
 }
 

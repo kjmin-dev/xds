@@ -32,3 +32,19 @@ export function Tooltip({ label, shortcut, placement = "top", children }: Toolti
     </HeroTooltip>
   );
 }
+
+/**
+ * A Tooltip at the end edge of its control instead of above or below it: a collapsed Sidebar
+ * names its icons on the side of the content, where they do not cover their neighbours. Only
+ * for this package's own components: the index does not export it.
+ */
+export function TooltipBeside({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <HeroTooltip delay={motion.duration.tooltipDelay} closeDelay={0}>
+      {children}
+      <HeroTooltip.Content placement="end" offset={space[1]}>
+        {label}
+      </HeroTooltip.Content>
+    </HeroTooltip>
+  );
+}

@@ -4,6 +4,7 @@
 
 import { colors, icons, radius, size, space, typography } from "@acme/tokens";
 import {
+  Accordion,
   Avatar,
   AvatarStack,
   Badge,
@@ -20,22 +21,32 @@ import {
   CountBadge,
   Dialog,
   Divider,
+  EmptyState,
   Icon,
   IconButton,
   type IconName,
   type IconSize,
   ListRow,
+  MediaCard,
   Menu,
   ProgressBar,
+  RadioGroup,
   SearchField,
+  SectionHeader,
   SegmentedControl,
+  Select,
+  Sidebar,
+  type SidebarSection,
   Skeleton,
+  Slider,
   Spinner,
   Switch,
   Tabs,
   Text,
   TextField,
   type TextVariant,
+  Thumbnail,
+  type ThumbnailRatio,
   Toast,
   Tooltip,
 } from "@acme/ui";
@@ -47,7 +58,7 @@ const kebab = (name: string) => name.replace(/[A-Z0-9]+/g, (match) => `-${match.
 
 /** Semantic colors by group. Component colors are shown by the components that use them. */
 const COMPONENT_COLORS =
-  /^(button|field|badge|banner|card|switch|checkbox|segmented|avatar|progress|listRow|topBar|tabBar|sheet|chip|tabs|menu|dialog|toast|tooltip|skeleton)/;
+  /^(button|field|badge|banner|card|switch|checkbox|radio|segmented|avatar|progress|slider|listRow|topBar|tabBar|sheet|chip|tabs|menu|dialog|toast|tooltip|skeleton|thumbnail|sidebar|emptyState|accordion)/;
 
 const VIEWS = [
   { value: "day", label: "Day" },
@@ -113,16 +124,129 @@ const SECTIONS = [
   "Buttons",
   "Text fields",
   "Selection",
+  "Controls",
   "Chips",
   "Tabs",
   "Badges",
   "Banners",
   "Card",
+  "Media",
   "List",
+  "Sidebar",
+  "Accordion",
   "Menu",
   "Dialog",
   "Toast",
   "Skeleton",
+  "Empty state",
+];
+
+const DELIVERY = [
+  { value: "standard", label: "Standard", description: "Three to five working days. Free." },
+  { value: "express", label: "Express", description: "The next working day. 9 euros." },
+  { value: "pickup", label: "Pick up in a store" },
+] as const;
+const SIZES_OF_SHIRT = [
+  { value: "s", label: "Small" },
+  { value: "m", label: "Medium" },
+  { value: "l", label: "Large" },
+] as const;
+
+const PLANS = [
+  { value: "free", label: "Free", description: "Up to 3 projects" },
+  { value: "team", label: "Team", description: "Up to 20 people" },
+  { value: "business", label: "Business", description: "Single sign-on and audit logs" },
+  { value: "enterprise", label: "Enterprise", description: "A contract of your own" },
+] as const;
+const COUNTRIES = [
+  "Argentina",
+  "Australia",
+  "Brazil",
+  "Canada",
+  "France",
+  "Germany",
+  "Japan",
+  "Korea",
+  "Mexico",
+  "Spain",
+  "United Kingdom",
+  "United States",
+].map((name) => ({ value: name.toLowerCase().replace(/ /g, "-"), label: name }));
+const TIME_ZONES = [
+  { value: "utc", label: "Coordinated Universal Time" },
+  { value: "seoul", label: "Seoul" },
+  { value: "berlin", label: "Berlin" },
+];
+
+const RATIOS: { ratio: ThumbnailRatio; width: string }[] = [
+  // Each about as tall as the others, so the row lines up.
+  { ratio: "16:9", width: "w-48" },
+  { ratio: "4:3", width: "w-36" },
+  { ratio: "1:1", width: "w-28" },
+  { ratio: "9:16", width: "w-16" },
+];
+
+// Icons made of closed shapes, since the current place's icon is filled.
+const PLACES: SidebarSection[] = [
+  {
+    items: [
+      { value: "home", label: "Home", icon: "house" },
+      { value: "messages", label: "Messages", icon: "message-square", count: 12 },
+      { value: "activity", label: "Activity", icon: "bell", count: 3 },
+    ],
+  },
+  {
+    title: "Library",
+    items: [
+      { value: "saved", label: "Saved", icon: "bookmark", count: 128 },
+      { value: "starred", label: "Starred", icon: "star" },
+      { value: "liked", label: "Liked", icon: "heart" },
+    ],
+  },
+  {
+    title: "Workspace",
+    items: [
+      { value: "members", label: "Members", icon: "users" },
+      { value: "settings", label: "Settings", icon: "settings" },
+    ],
+  },
+];
+
+const QUESTIONS = [
+  {
+    value: "cancel",
+    title: "Can I cancel at any time?",
+    content: "Yes. The plan stays active until the end of the period you paid for.",
+  },
+  {
+    value: "seats",
+    title: "How are seats counted?",
+    description: "Guests are free",
+    content: "Each person with an account in the workspace takes a seat. Guests do not.",
+  },
+  {
+    value: "invoice",
+    title: "Where do I find my invoices?",
+    content: "Under Settings, then Billing. Each invoice can be downloaded as a PDF.",
+  },
+];
+const PREFERENCES = [
+  {
+    value: "notifications",
+    title: "Notifications",
+    description: "Mentions, replies and reminders",
+    content: "Choose what you hear about, and whether by email or in the app.",
+  },
+  {
+    value: "privacy",
+    title: "Privacy",
+    content: "Choose who can see your profile and your activity.",
+  },
+  {
+    value: "language",
+    title: "Language and region",
+    content: "The language of the app, and how dates and numbers are written.",
+  },
 ];
 
 const anchor = (title: string) => title.toLowerCase().replace(/[^a-z]+/g, "-");
@@ -155,14 +279,21 @@ const PAGES = [
 ] as const satisfies readonly { value: string; label: string; icon: IconName }[];
 
 /**
- * `?open=menu`, `?open=dialog`, `?open=toast` or `?open=tooltip` shows that overlay as soon as
- * the page loads, so that it can be captured without a hand on the page. A menu and a tooltip
- * open beside their control, so for those the page starts at that control's section, and the
- * tooltip's row moves to the top of it: a capture of the top of the page then has the overlay in
- * it, and focusing the control does not scroll the page.
+ * `?open=menu`, `?open=select`, `?open=dialog`, `?open=toast` or `?open=tooltip` shows that
+ * overlay as soon as the page loads, so that it can be captured without a hand on the page. A
+ * menu, a select's list and a tooltip open beside their control, so for those the page starts
+ * at that control's section, and the tooltip's row moves to the top of it: a capture of the top
+ * of the page then has the overlay in it, and focusing the control does not scroll the page.
  */
 const OPEN = new URLSearchParams(location.search).get("open");
-const FIRST = OPEN === "menu" ? "Menu" : OPEN === "tooltip" ? "Buttons" : "Colors";
+const FIRST =
+  OPEN === "menu"
+    ? "Menu"
+    : OPEN === "select"
+      ? "Controls"
+      : OPEN === "tooltip"
+        ? "Buttons"
+        : "Colors";
 
 /** Each section can be linked to: `/design#buttons`. */
 function Section({ title, children }: { title: (typeof SECTIONS)[number]; children: ReactNode }) {
@@ -217,17 +348,58 @@ export function DesignPreview() {
   const [copyName, setCopyName] = useState("Weekly report, my copy");
   const [toast, setToast] = useState(OPEN === "toast");
   const [deleted, setDeleted] = useState(OPEN === "toast");
+  const [delivery, setDelivery] = useState<(typeof DELIVERY)[number]["value"]>("standard");
+  const [shirt, setShirt] = useState<(typeof SIZES_OF_SHIRT)[number]["value"]>();
+  const [plan, setPlan] = useState<(typeof PLANS)[number]["value"]>("team");
+  const [country, setCountry] = useState<string>();
+  const [timeZone, setTimeZone] = useState<string>();
+  const [volume, setVolume] = useState(60);
+  const [fontSize, setFontSize] = useState(16);
+  const [opened, setOpened] = useState("Nothing opened yet.");
+  const [place, setPlace] = useState("messages");
+  const [question, setQuestion] = useState<string[]>(["seats"]);
+  const [preferences, setPreferences] = useState<string[]>(["notifications", "language"]);
   const menu = useRef<HTMLSpanElement>(null);
+  const select = useRef<HTMLDivElement>(null);
   const tooltip = useRef<HTMLSpanElement>(null);
-  // A menu and a tooltip open from their control, so the scripted mode works that control
-  // the way a person would: a press for the menu, keyboard focus for the tooltip.
+  // A menu, a select's list and a tooltip open from their control, so the scripted mode works
+  // that control the way a person would: a press for the menu and the list, keyboard focus for
+  // the tooltip.
   useEffect(() => {
-    const target = OPEN === "menu" ? menu.current : OPEN === "tooltip" ? tooltip.current : null;
+    const target =
+      OPEN === "menu"
+        ? menu.current
+        : OPEN === "select"
+          ? select.current
+          : OPEN === "tooltip"
+            ? tooltip.current
+            : null;
     const control = target?.querySelector("button");
     if (!control) return;
-    if (OPEN === "menu") control.click();
-    else control.focus();
+    if (OPEN === "tooltip") {
+      control.focus();
+      return;
+    }
+    // A select collects its options in a render after its first one, and does not open while
+    // it has none, so its press waits a frame.
+    const frame = requestAnimationFrame(() => control.click());
+    return () => cancelAnimationFrame(frame);
   }, []);
+  const videoActions = (title: string) => (
+    <Menu
+      label={`Actions for ${title}`}
+      align="end"
+      trigger={<IconButton icon="ellipsis-vertical" label="More actions" />}
+      items={[
+        {
+          label: "Save to watch later",
+          icon: "clock",
+          onSelect: () => setOpened(`Saved ${title}.`),
+        },
+        { label: "Share", icon: "share-2", onSelect: () => setOpened(`Shared ${title}.`) },
+      ]}
+    />
+  );
   const toggleFilter = (name: string) =>
     setFilters(
       filters.includes(name) ? filters.filter((other) => other !== name) : [...filters, name],
@@ -610,6 +782,73 @@ export function DesignPreview() {
             aria-label="Calendar view"
           />
         </Row>
+        <div className="grid gap-6 sm:grid-cols-3">
+          <RadioGroup label="Delivery" options={DELIVERY} value={delivery} onChange={setDelivery} />
+          <RadioGroup
+            label="Size"
+            options={SIZES_OF_SHIRT}
+            value={shirt}
+            onChange={setShirt}
+            {...(shirt === undefined ? { error: "Choose a size to continue." } : {})}
+          />
+          <RadioGroup
+            label="Region, locked"
+            options={DELIVERY}
+            value="express"
+            onChange={() => {}}
+            disabled
+          />
+        </div>
+      </Section>
+
+      <Section title="Controls">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div ref={select}>
+            <Select
+              label="Plan"
+              options={PLANS}
+              value={plan}
+              onChange={setPlan}
+              description="Change it at any time."
+            />
+          </div>
+          <Select
+            label="Country"
+            placeholder="Choose a country"
+            options={COUNTRIES}
+            value={country}
+            onChange={setCountry}
+          />
+          <Select
+            label="Time zone"
+            placeholder="Choose a time zone"
+            options={TIME_ZONES}
+            value={timeZone}
+            onChange={setTimeZone}
+            {...(timeZone === undefined ? { error: "Choose a time zone for the reminders." } : {})}
+          />
+          <Select
+            label="Currency"
+            options={[{ value: "eur", label: "Euro" }]}
+            value="eur"
+            onChange={() => {}}
+            disabled
+          />
+        </div>
+        <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+          <Slider label="Volume" value={volume} onChange={setVolume} showValue />
+          <Slider
+            label="Font size"
+            min={12}
+            max={24}
+            step={2}
+            value={fontSize}
+            onChange={setFontSize}
+            showValue
+          />
+          <Slider label="Brightness" value={volume} onChange={setVolume} />
+          <Slider label="Balance, locked" value={30} onChange={() => {}} disabled showValue />
+        </div>
       </Section>
 
       <Section title="Chips">
@@ -851,6 +1090,105 @@ export function DesignPreview() {
         </div>
       </Section>
 
+      <Section title="Media">
+        <SectionHeader
+          title="Continue watching"
+          description="Pick up where you left off."
+          action={{ label: "See all", onPress: () => setOpened("See all.") }}
+        />
+        <div className="flex flex-wrap items-end gap-3">
+          {RATIOS.map(({ ratio, width }) => (
+            <div key={ratio} className={`flex flex-col gap-1 ${width}`}>
+              <Thumbnail src={ratio === "1:1" ? PORTRAIT : NIGHT} alt="" ratio={ratio} />
+              <Text variant="footnote" tone="secondary" as="span">
+                {ratio}
+              </Text>
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {[
+            {
+              caption: "Fails to load",
+              thumbnail: <Thumbnail src={BROKEN} alt="A picture that fails to load" />,
+            },
+            { caption: "No picture, badge", thumbnail: <Thumbnail alt="" badge="Live" /> },
+            { caption: "Badge", thumbnail: <Thumbnail src={DAY} alt="" badge="12:04" /> },
+            {
+              caption: "Progress",
+              thumbnail: <Thumbnail src={NIGHT} alt="" progress={0.35} />,
+            },
+            {
+              caption: "Badge and progress",
+              thumbnail: <Thumbnail src={DAY} alt="" badge="3:27" progress={0.8} />,
+            },
+          ].map(({ caption, thumbnail }) => (
+            <div key={caption} className="flex flex-col gap-1">
+              {thumbnail}
+              <Text variant="footnote" tone="secondary" as="span">
+                {caption}
+              </Text>
+            </div>
+          ))}
+        </div>
+        <div className="grid items-start gap-2 sm:grid-cols-3">
+          <MediaCard
+            src={NIGHT}
+            title="Night hike above the city: four hours, twelve kilometres and one long staircase"
+            meta={["Ada Lovelace", "12K views · 3 days ago"]}
+            badge="12:04"
+            progress={0.35}
+            leading={<Avatar name="Ada Lovelace" src={PORTRAIT} />}
+            action={videoActions("Night hike")}
+            onPress={() => setOpened("Opened Night hike.")}
+          />
+          <MediaCard
+            src={DAY}
+            title="Morning walk"
+            meta={["Grace Hopper", "840 views · 1 week ago"]}
+            badge="3:27"
+            leading={<Avatar name="Grace Hopper" />}
+            action={videoActions("Morning walk")}
+            onPress={() => setOpened("Opened Morning walk.")}
+          />
+          <MediaCard
+            src={BROKEN}
+            title="Not pressable, and its picture fails to load"
+            meta={["Alan Turing"]}
+          />
+        </div>
+        <div className="grid items-start gap-2 sm:grid-cols-2">
+          <MediaCard
+            layout="horizontal"
+            src={DAY}
+            title="Ten small changes that make a report easier to read"
+            meta={["Katherine Johnson", "5 min read"]}
+            badge="5:12"
+            progress={0.6}
+            action={videoActions("Ten small changes")}
+            onPress={() => setOpened("Opened Ten small changes.")}
+          />
+          <MediaCard
+            layout="horizontal"
+            src={NIGHT}
+            ratio="1:1"
+            title="Square, without an action"
+            meta={["Margaret Hamilton", "2 days ago"]}
+            onPress={() => setOpened("Opened Square.")}
+          />
+        </div>
+        <Text variant="detail" tone="secondary">
+          {opened}
+        </Text>
+        <SectionHeader
+          icon="history"
+          title="On its own"
+          description="An icon, a description and an action, at heading level 3."
+          action={{ label: "Clear history", onPress: () => setOpened("Cleared the history.") }}
+          level={3}
+        />
+      </Section>
+
       <Section title="List">
         <Card flush>
           <ListRow
@@ -932,6 +1270,86 @@ export function DesignPreview() {
             disabled
           />
         </Card>
+      </Section>
+
+      <Section title="Sidebar">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {[false, true].map((collapsed) => (
+            // A fixed height, as a window would give it, so the footer sits at the bottom, and
+            // a page beside the sidebar, as an app has.
+            <div
+              key={String(collapsed)}
+              className="flex h-[28rem] overflow-hidden rounded-acme-md border border-acme-border-default"
+            >
+              <Sidebar
+                label={collapsed ? "Workspace, collapsed" : "Workspace"}
+                sections={PLACES}
+                value={place}
+                onChange={setPlace}
+                collapsed={collapsed}
+                header={
+                  <div
+                    className={`flex h-acme-control-md items-center gap-2 ${collapsed ? "justify-center" : "px-2"}`}
+                  >
+                    <span className="flex size-acme-avatar-md items-center justify-center rounded-acme-md bg-acme-accent-default text-acme-text-on-accent">
+                      <Icon name="sparkles" size="sm" />
+                    </span>
+                    {!collapsed && (
+                      <Text variant="label" as="span">
+                        Acme
+                      </Text>
+                    )}
+                  </div>
+                }
+                footer={
+                  <div
+                    className={`flex items-center gap-2 py-1 ${collapsed ? "justify-center" : "px-2"}`}
+                  >
+                    <Avatar name="Ada Lovelace" src={PORTRAIT} size="sm" />
+                    {!collapsed && (
+                      <Text variant="detail" as="span">
+                        Ada Lovelace
+                      </Text>
+                    )}
+                  </div>
+                }
+              />
+              <div className="flex min-w-0 flex-1 flex-col gap-1 p-4">
+                <Text variant="heading" as="span">
+                  {PLACES.flatMap((section) => section.items).find((item) => item.value === place)
+                    ?.label ?? place}
+                </Text>
+                <Text variant="detail" tone="secondary" as="span">
+                  {collapsed
+                    ? "Rest the pointer on an icon, or focus it, for its name."
+                    : "The page of the current place."}
+                </Text>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Accordion">
+        <div className="grid items-start gap-8 sm:grid-cols-2">
+          <div className="flex flex-col gap-2">
+            <Text variant="label" tone="secondary">
+              One at a time
+            </Text>
+            <Accordion items={QUESTIONS} expanded={question} onChange={setQuestion} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Text variant="label" tone="secondary">
+              Several at once
+            </Text>
+            <Accordion
+              items={PREFERENCES}
+              expanded={preferences}
+              onChange={setPreferences}
+              multiple
+            />
+          </div>
+        </div>
       </Section>
 
       <Section title="Menu">
@@ -1068,6 +1486,30 @@ export function DesignPreview() {
             </div>
           </div>
         </Card>
+      </Section>
+
+      <Section title="Empty state">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Card>
+            <EmptyState
+              icon="mail"
+              title="No messages yet"
+              description="When someone writes to you, the conversation shows up here."
+              action={
+                <Button variant="primary" iconStart="plus">
+                  New message
+                </Button>
+              }
+            />
+          </Card>
+          <Card>
+            <EmptyState
+              icon="search"
+              title="No results"
+              description="Try fewer words, or check the spelling."
+            />
+          </Card>
+        </div>
       </Section>
     </main>
   );

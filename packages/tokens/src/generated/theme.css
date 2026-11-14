@@ -44,6 +44,7 @@
   --acme-color-status-info-subtle: light-dark(#eff8ff, #102a56);
   --acme-color-overlay-background: rgb(0 0 0 / 0.72);
   --acme-color-overlay-text: #ffffff;
+  --acme-color-overlay-accent: #a5b4fc;
   --acme-color-button-primary-background: light-dark(#4f46e5, #5b5ef0);
   --acme-color-button-primary-background-hover: light-dark(#4338ca, #4f46e5);
   --acme-color-button-primary-background-pressed: light-dark(#3730a3, #4338ca);
@@ -109,6 +110,11 @@
   --acme-color-checkbox-mark: #ffffff;
   --acme-color-checkbox-disabled-background: light-dark(#ececf0, #2c2c33);
   --acme-color-checkbox-disabled-mark: light-dark(#a9a9b4, #5c5c66);
+  --acme-color-radio-border: #84848f;
+  --acme-color-radio-border-checked: light-dark(#4f46e5, #5b5ef0);
+  --acme-color-radio-dot: light-dark(#4f46e5, #5b5ef0);
+  --acme-color-radio-disabled-background: light-dark(#ececf0, #2c2c33);
+  --acme-color-radio-disabled-dot: light-dark(#a9a9b4, #5c5c66);
   --acme-color-segmented-track: light-dark(#ececf0, #2c2c33);
   --acme-color-segmented-text: light-dark(#5c5c66, #a9a9b4);
   --acme-color-segmented-selected-background: light-dark(#ffffff, #222228);
@@ -136,7 +142,7 @@
   --acme-color-menu-icon: light-dark(#5c5c66, #a9a9b4);
   --acme-color-menu-text-disabled: light-dark(#a9a9b4, #5c5c66);
   --acme-color-menu-item-background-hover: light-dark(#ececf0, #2c2c33);
-  --acme-color-menu-item-background-pressed: light-dark(#e2e2e8, #44444c);
+  --acme-color-menu-item-background-pressed: light-dark(#e2e2e8, #2c2c33);
   --acme-color-menu-danger-text: light-dark(#b42318, #f97066);
   --acme-color-menu-danger-background-hover: light-dark(#fef3f2, #55160c);
   --acme-color-dialog-background: light-dark(#ffffff, #222228);
@@ -150,6 +156,16 @@
   --acme-color-tooltip-text: light-dark(#f5f5f7, #18181c);
   --acme-color-skeleton-background: light-dark(#ececf0, #2c2c33);
   --acme-color-skeleton-highlight: light-dark(#e2e2e8, #44444c);
+  --acme-color-thumbnail-background: light-dark(#ececf0, #2c2c33);
+  --acme-color-thumbnail-icon: light-dark(#6e6e79, #84848f);
+  --acme-color-sidebar-background: light-dark(#f5f5f7, #0e0e11);
+  --acme-color-sidebar-border: light-dark(#e2e2e8, #2c2c33);
+  --acme-color-sidebar-section-title: light-dark(#6e6e79, #84848f);
+  --acme-color-empty-state-icon: light-dark(#6e6e79, #84848f);
+  --acme-color-accordion-border: light-dark(#e2e2e8, #2c2c33);
+  --acme-color-accordion-header-background-hover: light-dark(#ececf0, #222228);
+  --acme-color-accordion-header-background-pressed: light-dark(#e2e2e8, #2c2c33);
+  --acme-color-accordion-icon: light-dark(#5c5c66, #a9a9b4);
   --acme-color-avatar-background: light-dark(#eef2ff, #1e1b4b);
   --acme-color-avatar-text: light-dark(#4f46e5, #a5b4fc);
   --acme-color-avatar-ring: light-dark(#ffffff, #18181c);
@@ -157,6 +173,11 @@
   --acme-color-avatar-overflow-text: light-dark(#5c5c66, #a9a9b4);
   --acme-color-progress-track: light-dark(#ececf0, #2c2c33);
   --acme-color-progress-fill: light-dark(#4f46e5, #a5b4fc);
+  --acme-color-slider-track: light-dark(#ececf0, #2c2c33);
+  --acme-color-slider-fill: light-dark(#4f46e5, #a5b4fc);
+  --acme-color-slider-thumb: light-dark(#ffffff, #222228);
+  --acme-color-slider-thumb-border: light-dark(#4f46e5, #a5b4fc);
+  --acme-color-slider-disabled-fill: light-dark(#a9a9b4, #5c5c66);
   --acme-color-list-row-background-hover: light-dark(#ececf0, #222228);
   --acme-color-list-row-background-pressed: light-dark(#e2e2e8, #2c2c33);
   --acme-color-list-row-background-selected: light-dark(#eef2ff, #1e1b4b);
@@ -266,6 +287,7 @@
   --acme-size-switch-width: 36px;
   --acme-size-switch-height: 20px;
   --acme-size-checkbox: 18px;
+  --acme-size-radio: 18px;
   --acme-size-list-row: 40px;
   --acme-size-list-row-compact: 32px;
   --acme-size-bar: 48px;
@@ -284,11 +306,15 @@
   --acme-size-tab: 40px;
   --acme-size-count-badge: 18px;
   --acme-size-progress: 8px;
+  --acme-size-slider-track: 4px;
+  --acme-size-slider-thumb: 16px;
   --acme-size-spinner-sm: 16px;
   --acme-size-spinner-md: 24px;
   --acme-size-spinner-lg: 32px;
   --acme-size-dialog: 480px;
   --acme-size-toast: 480px;
+  --acme-size-sidebar: 240px;
+  --acme-size-sidebar-rail: 72px;
 }
 
 /* Fingers need larger controls than a mouse. This asks about the primary input, not the
@@ -302,6 +328,7 @@
     --acme-size-switch-width: 52px;
     --acme-size-switch-height: 32px;
     --acme-size-checkbox: 24px;
+    --acme-size-radio: 24px;
     --acme-size-list-row: 56px;
     --acme-size-list-row-compact: 44px;
     --acme-size-bar: 56px;
@@ -320,11 +347,15 @@
     --acme-size-tab: 48px;
     --acme-size-count-badge: 20px;
     --acme-size-progress: 8px;
+    --acme-size-slider-track: 4px;
+    --acme-size-slider-thumb: 24px;
     --acme-size-spinner-sm: 16px;
     --acme-size-spinner-md: 24px;
     --acme-size-spinner-lg: 32px;
     --acme-size-dialog: 480px;
     --acme-size-toast: 480px;
+    --acme-size-sidebar: 240px;
+    --acme-size-sidebar-rail: 72px;
   }
 }
 

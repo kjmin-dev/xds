@@ -15,9 +15,11 @@ use gpui_kit::component::{
 };
 use gpui_kit::prelude::FluentBuilder;
 use gpui_kit::{
-    AnyElement, App, BoxShadow, ClickEvent, Div, ElementId, Entity, Focusable, InteractiveElement,
-    IntoElement, MouseButton, ParentElement, Pixels, Refineable, RenderOnce, Role, SharedString,
-    StatefulInteractiveElement, StyleRefinement, Styled, Subscription, Window, div, point, px,
+    AnyElement, App, Bounds, BoxShadow, ClickEvent, ContentMask, Corners, Div, ElementId, Entity,
+    Focusable, Hsla, ImageSource, InteractiveElement, IntoElement, MouseButton, ObjectFit,
+    ParentElement, Pixels, Refineable, RenderOnce, Role, SharedString, StatefulInteractiveElement,
+    StyleRefinement, Styled, StyledImage, Subscription, Window, canvas, div, fill, img, point, px,
+    relative, size,
 };
 
 use crate::controls::{
@@ -313,6 +315,92 @@ impl RenderOnce for Button {
 
 // ---------------------------------------------------------------- text field
 
+/// The label above a field. A text field and a select share it, so they line up in a form.
+pub(crate) fn field_label(label: SharedString, disabled: bool, c: &tokens::Colors) -> Div {
+    div()
+        .typography(tokens::TYPOGRAPHY_LABEL)
+        .text_color(color(if disabled {
+            c.text_secondary
+        } else {
+            c.text_primary
+        }))
+        .child(label)
+}
+
+/// The box of a field, without its contents or its height.
+pub(crate) fn field_frame(
+    invalid: bool,
+    disabled: bool,
+    focused: bool,
+    radius: Pixels,
+    window: &Window,
+    cx: &App,
+) -> Div {
+    let c = palette(cx);
+    div()
+        .flex()
+        .w_full()
+        .rounded(radius)
+        .border(px(tokens::BORDER_WIDTH_THIN))
+        .border_color(color(if invalid {
+            c.field_border_invalid
+        } else {
+            c.field_border
+        }))
+        .bg(color(if disabled {
+            c.background_disabled
+        } else {
+            c.field_background
+        }))
+        .text_color(color(c.field_text))
+        .when(focused, |frame| {
+            let frame = frame.focus_ring_style(window, cx);
+            if invalid {
+                frame.border_color(color(c.field_border_invalid))
+            } else {
+                frame.border_color(color(c.field_border_focus))
+            }
+        })
+}
+
+/// What goes around the box of a field: an outline of its own when invalid, thicker than the
+/// field's, so the state does not depend on telling red from grey.
+pub(crate) fn field_outline(
+    invalid: bool,
+    radius: Pixels,
+    c: &tokens::Colors,
+    frame: impl IntoElement,
+) -> Div {
+    div()
+        .rounded(radius)
+        .when(invalid, |outline| {
+            outline
+                .border(px(tokens::BORDER_WIDTH_THIN))
+                .border_color(color(c.field_border_invalid))
+        })
+        .child(frame)
+}
+
+/// The line under a field: the error while there is one, the description otherwise.
+pub(crate) fn field_note(
+    error: Option<SharedString>,
+    description: Option<SharedString>,
+    c: &tokens::Colors,
+) -> Option<Div> {
+    let invalid = error.is_some();
+    error.or(description).map(|text| {
+        div()
+            .flex_1()
+            .typography(tokens::TYPOGRAPHY_DETAIL)
+            .text_color(color(if invalid {
+                c.status_danger
+            } else {
+                c.text_secondary
+            }))
+            .child(text)
+    })
+}
+
 #[derive(Clone)]
 enum FieldState {
     Line(Entity<InputState>),
@@ -517,36 +605,13 @@ impl RenderOnce for TextField {
                 window.prevent_default();
             }
         };
-        let frame = div()
-            .flex()
-            .w_full()
+        let frame = field_frame(invalid, self.disabled, focused, radius, window, cx)
             .px(px(tokens::SPACE_1))
-            .rounded(radius)
-            .border(px(tokens::BORDER_WIDTH_THIN))
-            .border_color(color(if invalid {
-                colors.field_border_invalid
-            } else {
-                colors.field_border
-            }))
-            .bg(color(if self.disabled {
-                colors.background_disabled
-            } else {
-                colors.field_background
-            }))
-            .text_color(color(colors.field_text))
             .map(|frame| {
                 if multiline {
                     frame.items_start().py(px(tokens::SPACE_1))
                 } else {
                     frame.items_center().h(ControlSize::Md.height())
-                }
-            })
-            .when(focused, |frame| {
-                let frame = frame.focus_ring_style(window, cx);
-                if invalid {
-                    frame.border_color(color(colors.field_border_invalid))
-                } else {
-                    frame.border_color(color(colors.field_border_focus))
                 }
             })
             .when(!self.disabled, |frame| {
@@ -563,18 +628,7 @@ impl RenderOnce for TextField {
                     .map(|element| slot(element).mr(px(tokens::SPACE_2))),
             );
 
-        let note = self.error.or(self.description).map(|text| {
-            let tone = if invalid {
-                colors.status_danger
-            } else {
-                colors.text_secondary
-            };
-            div()
-                .flex_1()
-                .typography(tokens::TYPOGRAPHY_DETAIL)
-                .text_color(color(tone))
-                .child(text)
-        });
+        let note = field_note(self.error, self.description, colors);
         let counter = self.max_length.map(|max| {
             div()
                 .flex_none()
@@ -598,29 +652,9 @@ impl RenderOnce for TextField {
             .flex_col()
             .gap(px(tokens::SPACE_1))
             .when(!self.label_hidden, |field| {
-                field.child(
-                    div()
-                        .typography(tokens::TYPOGRAPHY_LABEL)
-                        .text_color(color(if self.disabled {
-                            colors.text_secondary
-                        } else {
-                            colors.text_primary
-                        }))
-                        .child(self.label),
-                )
+                field.child(field_label(self.label, self.disabled, colors))
             })
-            .child(
-                // An outline of its own when invalid, thicker than the field's, so the state
-                // does not depend on telling red from grey.
-                div()
-                    .rounded(radius)
-                    .when(invalid, |outline| {
-                        outline
-                            .border(px(tokens::BORDER_WIDTH_THIN))
-                            .border_color(color(colors.field_border_invalid))
-                    })
-                    .child(frame),
-            )
+            .child(field_outline(invalid, radius, colors, frame))
             .children(footer)
     }
 }
@@ -885,7 +919,7 @@ impl CountBadge {
 }
 
 /// What a count badge shows: the count, or `max` and a plus sign when it is larger.
-fn count_text(count: i64, max: i64) -> String {
+pub(crate) fn count_text(count: i64, max: i64) -> String {
     if count > max {
         format!("{max}+")
     } else {
@@ -1227,6 +1261,559 @@ impl RenderOnce for Card {
     }
 }
 
+// ---------------------------------------------------------------- thumbnail
+
+/// The shape of a thumbnail, width to height. Rust names cannot start with a digit, so each
+/// shape is named after its ratio: `Ratio16x9` is 16:9.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ThumbnailRatio {
+    /// 16:9, a video.
+    #[default]
+    Ratio16x9,
+    /// 1:1, a product or an album.
+    Ratio1x1,
+    /// 4:3, a photograph or an article.
+    Ratio4x3,
+    /// 9:16, a short vertical video.
+    Ratio9x16,
+}
+
+impl ThumbnailRatio {
+    /// The width divided by the height.
+    fn value(self) -> f32 {
+        match self {
+            ThumbnailRatio::Ratio16x9 => 16.0 / 9.0,
+            ThumbnailRatio::Ratio1x1 => 1.0,
+            ThumbnailRatio::Ratio4x3 => 4.0 / 3.0,
+            ThumbnailRatio::Ratio9x16 => 9.0 / 16.0,
+        }
+    }
+}
+
+/// How much of a progress bar to draw: none for no progress or for zero, and never more than
+/// the whole width.
+fn watched(progress: Option<f32>) -> Option<f32> {
+    progress
+        .map(|progress| progress.clamp(0.0, 1.0))
+        .filter(|progress| *progress > 0.0)
+}
+
+/// A picture in a fixed shape, for a video, an article or a product. It fills the width it is
+/// given and takes its height from the ratio.
+#[derive(IntoElement)]
+pub struct Thumbnail {
+    id: ElementId,
+    src: Option<ImageSource>,
+    alt: SharedString,
+    ratio: ThumbnailRatio,
+    badge: Option<SharedString>,
+    progress: Option<f32>,
+}
+
+impl Thumbnail {
+    /// GPUI reports an element to assistive technology only when it has an id, so the
+    /// thumbnail takes one.
+    pub fn new(id: impl Into<ElementId>) -> Self {
+        Self {
+            id: id.into(),
+            src: None,
+            alt: SharedString::default(),
+            ratio: ThumbnailRatio::default(),
+            badge: None,
+            progress: None,
+        }
+    }
+
+    /// The picture: a URL, a file path or an image in memory, loaded as for [`Avatar::src`].
+    /// It is cropped to cover the shape. While it loads, when it fails and without one, the
+    /// place shows a picture mark instead.
+    ///
+    /// [`Avatar::src`]: crate::Avatar::src
+    pub fn src(mut self, src: impl Into<ImageSource>) -> Self {
+        self.src = Some(src.into());
+        self
+    }
+
+    /// What the picture shows, for assistive technology. Without it, or empty, the picture is
+    /// decoration and is not announced.
+    pub fn alt(mut self, alt: impl Into<SharedString>) -> Self {
+        self.alt = alt.into();
+        self
+    }
+
+    pub fn ratio(mut self, ratio: ThumbnailRatio) -> Self {
+        self.ratio = ratio;
+        self
+    }
+
+    /// Short text on the bottom end corner, such as a duration.
+    pub fn badge(mut self, badge: impl Into<SharedString>) -> Self {
+        self.badge = Some(badge.into());
+        self
+    }
+
+    /// How much was watched, from 0 to 1, as a bar along the bottom edge. Zero draws nothing.
+    pub fn progress(mut self, progress: f32) -> Self {
+        self.progress = Some(progress);
+        self
+    }
+}
+
+impl RenderOnce for Thumbnail {
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let c = palette(cx);
+        let radius = px(tokens::RADIUS_MD);
+        let watched = watched(self.progress);
+        let inset = px(tokens::SPACE_2);
+        let bar = px(tokens::SPACE_1);
+        let (track, accent) = (color(c.overlay_background), color(c.overlay_accent));
+        let progress = watched.map(|watched| {
+            // GPUI clips to rectangles only, so the bar is the whole rounded shape painted
+            // through a slit along the bottom edge: its ends follow the rounded corners, as a
+            // bar clipped by the picture's corners would.
+            canvas(
+                |_, _, _| {},
+                move |bounds, _, window, _| {
+                    let shape =
+                        |paint: Hsla| fill(bounds, paint).corner_radii(Corners::all(radius));
+                    let slit = Bounds::new(
+                        point(bounds.left(), bounds.bottom() - bar),
+                        size(bounds.size.width, bar),
+                    );
+                    window.with_content_mask(Some(ContentMask { bounds: slit }), |window| {
+                        window.paint_quad(shape(track));
+                    });
+                    let done = Bounds::new(slit.origin, size(slit.size.width * watched, bar));
+                    window.with_content_mask(Some(ContentMask { bounds: done }), |window| {
+                        window.paint_quad(shape(accent));
+                    });
+                },
+            )
+            .absolute()
+            .top_0()
+            .left_0()
+            .size_full()
+        });
+        let badge = self.badge.map(|label| {
+            div()
+                .absolute()
+                .right(inset)
+                // Above the bar when there is one.
+                .bottom(if watched.is_some() {
+                    inset + bar
+                } else {
+                    inset
+                })
+                .child(Badge::new(label).tone(BadgeTone::Overlay))
+        });
+        let alt = self.alt;
+        div()
+            .id(self.id)
+            .when(!alt.is_empty(), |frame| {
+                frame.role(Role::Image).aria_label(alt)
+            })
+            .relative()
+            .flex()
+            .items_center()
+            .justify_center()
+            .w_full()
+            .aspect_ratio(self.ratio.value())
+            .rounded(radius)
+            .bg(color(c.thumbnail_background))
+            .text_color(color(c.thumbnail_icon))
+            .child(icon(tokens::Icon::Image, IconSize::Lg))
+            // Over the mark, and drawn only once it has loaded, so the mark is what shows
+            // until then and when it fails.
+            .children(self.src.map(|src| {
+                img(src)
+                    .absolute()
+                    .inset_0()
+                    .size_full()
+                    .rounded(radius)
+                    .object_fit(ObjectFit::Cover)
+            }))
+            .children(progress)
+            .children(badge)
+    }
+}
+
+// ---------------------------------------------------------------- media card
+
+/// `Vertical` puts the thumbnail on top, `Horizontal` at the start, at 40% of the width.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum MediaCardLayout {
+    #[default]
+    Vertical,
+    Horizontal,
+}
+
+/// A thumbnail with its title and details: a video in a feed, an article in a list.
+#[derive(IntoElement)]
+pub struct MediaCard {
+    id: ElementId,
+    title: SharedString,
+    layout: MediaCardLayout,
+    thumbnail: Thumbnail,
+    meta: Vec<SharedString>,
+    leading: Option<AnyElement>,
+    action: Option<AnyElement>,
+    on_press: Option<ClickHandler>,
+}
+
+impl MediaCard {
+    pub fn new(id: impl Into<ElementId>, title: impl Into<SharedString>) -> Self {
+        let id = id.into();
+        Self {
+            thumbnail: Thumbnail::new((id.clone(), "thumbnail")),
+            id,
+            title: title.into(),
+            layout: MediaCardLayout::default(),
+            meta: Vec::new(),
+            leading: None,
+            action: None,
+            on_press: None,
+        }
+    }
+
+    pub fn layout(mut self, layout: MediaCardLayout) -> Self {
+        self.layout = layout;
+        self
+    }
+
+    /// The picture, as for [`Thumbnail::src`].
+    pub fn src(mut self, src: impl Into<ImageSource>) -> Self {
+        self.thumbnail = self.thumbnail.src(src);
+        self
+    }
+
+    /// What the picture shows, as for [`Thumbnail::alt`]. The title already names the card,
+    /// so leave it out unless the picture says more.
+    pub fn alt(mut self, alt: impl Into<SharedString>) -> Self {
+        self.thumbnail = self.thumbnail.alt(alt);
+        self
+    }
+
+    pub fn ratio(mut self, ratio: ThumbnailRatio) -> Self {
+        self.thumbnail = self.thumbnail.ratio(ratio);
+        self
+    }
+
+    /// Short text on the picture, as for [`Thumbnail::badge`].
+    pub fn badge(mut self, badge: impl Into<SharedString>) -> Self {
+        self.thumbnail = self.thumbnail.badge(badge);
+        self
+    }
+
+    /// How much was watched, as for [`Thumbnail::progress`].
+    pub fn progress(mut self, progress: f32) -> Self {
+        self.thumbnail = self.thumbnail.progress(progress);
+        self
+    }
+
+    /// Short lines under the title, such as a channel name and "3 days ago". Each stays on
+    /// one line.
+    pub fn meta(mut self, lines: impl IntoIterator<Item = impl Into<SharedString>>) -> Self {
+        self.meta = lines.into_iter().map(Into::into).collect();
+        self
+    }
+
+    /// Before the text, in the vertical layout: an avatar. The horizontal layout leaves it
+    /// out, since the picture is already there.
+    pub fn leading(mut self, element: impl IntoElement) -> Self {
+        self.leading = Some(element.into_any_element());
+        self
+    }
+
+    /// At the end of the text: an icon button, or the trigger of a menu. It stays a control
+    /// of its own: pressing it does not press the card.
+    pub fn action(mut self, element: impl IntoElement) -> Self {
+        self.action = Some(element.into_any_element());
+        self
+    }
+
+    /// Makes the whole card one button, named by its title and its details.
+    pub fn on_press(
+        mut self,
+        handler: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static,
+    ) -> Self {
+        self.on_press = Some(Rc::new(handler));
+        self
+    }
+}
+
+/// What a pressable media card is called: its title, then its details.
+fn media_name(title: &str, meta: &[SharedString]) -> String {
+    std::iter::once(title)
+        .chain(meta.iter().map(AsRef::as_ref))
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
+impl RenderOnce for MediaCard {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let c = palette(cx);
+        let gap = px(tokens::SPACE_3);
+        let name = media_name(&self.title, &self.meta);
+        let text = div()
+            .flex_1()
+            .min_w_0()
+            .flex()
+            .flex_col()
+            .gap(px(tokens::SPACE_0_5))
+            .child(
+                div()
+                    .typography(tokens::TYPOGRAPHY_BODY_STRONG)
+                    .text_color(color(c.text_primary))
+                    .line_clamp(2)
+                    .text_ellipsis()
+                    .child(self.title),
+            )
+            .children(self.meta.into_iter().map(|line| {
+                div()
+                    .typography(tokens::TYPOGRAPHY_DETAIL)
+                    .text_color(color(c.text_secondary))
+                    .truncate()
+                    .child(line)
+            }));
+        let action = self.action.map(|action| {
+            div()
+                .flex()
+                .flex_none()
+                // The card hears of a press after the controls inside it, so a press that the
+                // action took stops here and does not press the card too.
+                .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
+                .child(action)
+        });
+        let body = match self.layout {
+            MediaCardLayout::Vertical => div()
+                .flex()
+                .flex_col()
+                .gap(gap)
+                .child(self.thumbnail)
+                .child(
+                    div()
+                        .flex()
+                        .items_start()
+                        .gap(gap)
+                        .children(self.leading)
+                        .child(text)
+                        .children(action),
+                ),
+            MediaCardLayout::Horizontal => div()
+                .flex()
+                .items_start()
+                .gap(gap)
+                .child(div().flex_none().w(relative(0.4)).child(self.thumbnail))
+                .child(text)
+                .children(action),
+        };
+        let Some(on_press) = self.on_press else {
+            return body.into_any_element();
+        };
+        let focus = focus_handle(&self.id, window, cx);
+        let focused = focus.is_focused(window);
+        body.id(self.id)
+            .role(Role::Button)
+            .aria_label(name)
+            .track_focus(&focus.tab_index(0).tab_stop(true))
+            .p(px(tokens::SPACE_2))
+            .rounded(px(tokens::RADIUS_LG))
+            .hover(|card| card.bg(color(c.card_background_hover)))
+            .active(|card| card.bg(color(c.card_background_pressed)))
+            // A click does not move the focus here, as on a button, so the ring shows only
+            // when the keyboard got there.
+            .on_mouse_down(MouseButton::Left, |_, window, _| window.prevent_default())
+            .on_click(move |event, window, cx| on_press(event, window, cx))
+            .when(focused, |card| card.focus_ring_style(window, cx))
+            .into_any_element()
+    }
+}
+
+// ---------------------------------------------------------------- section header
+
+/// The title row of a group of content, with an optional description and an action such as
+/// "See all".
+#[derive(IntoElement)]
+pub struct SectionHeader {
+    id: ElementId,
+    title: SharedString,
+    description: Option<SharedString>,
+    icon: Option<tokens::Icon>,
+    action: Option<(SharedString, ClickHandler)>,
+    level: usize,
+}
+
+impl SectionHeader {
+    /// GPUI reports the title as a heading only when it has an id, so the header takes one.
+    pub fn new(id: impl Into<ElementId>, title: impl Into<SharedString>) -> Self {
+        Self {
+            id: id.into(),
+            title: title.into(),
+            description: None,
+            icon: None,
+            action: None,
+            level: 2,
+        }
+    }
+
+    /// A line under the title.
+    pub fn description(mut self, description: impl Into<SharedString>) -> Self {
+        self.description = Some(description.into());
+        self
+    }
+
+    /// An icon in front of the title.
+    pub fn icon(mut self, icon: tokens::Icon) -> Self {
+        self.icon = Some(icon);
+        self
+    }
+
+    /// One thing to do about the group, such as "See all", as a small ghost button with a
+    /// chevron at the end edge.
+    pub fn action(
+        mut self,
+        label: impl Into<SharedString>,
+        handler: impl Fn(&ClickEvent, &mut Window, &mut App) + 'static,
+    ) -> Self {
+        self.action = Some((label.into(), Rc::new(handler)));
+        self
+    }
+
+    /// The level of the title in the outline of the view. 2 unless set.
+    pub fn level(mut self, level: usize) -> Self {
+        self.level = level;
+        self
+    }
+}
+
+impl RenderOnce for SectionHeader {
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let c = palette(cx);
+        // The icon and the action are centered on the title's line, not on the title and the
+        // description together.
+        let line = px(tokens::TYPOGRAPHY_HEADING.line_height_px());
+        let on_title_line = || div().flex().flex_none().items_center().h(line);
+        let action = self.action.map(|(label, handler)| {
+            on_title_line().ml(px(tokens::SPACE_4)).child(
+                button(
+                    (self.id.clone(), "action"),
+                    label,
+                    ButtonVariant::Ghost,
+                    ControlSize::Sm,
+                    cx,
+                )
+                .icon_end(tokens::Icon::ChevronRight)
+                .on_click(move |event, window, cx| handler(event, window, cx)),
+            )
+        });
+        div()
+            .flex()
+            .items_start()
+            .w_full()
+            .children(self.icon.map(|name| {
+                on_title_line()
+                    .mr(px(tokens::SPACE_2))
+                    .text_color(color(c.text_secondary))
+                    .child(icon(name, IconSize::Md))
+            }))
+            .child(
+                div()
+                    .flex_1()
+                    .min_w_0()
+                    .flex()
+                    .flex_col()
+                    .gap(px(tokens::SPACE_0_5))
+                    .child(
+                        div()
+                            .id(self.id)
+                            .role(Role::Heading)
+                            .aria_level(self.level)
+                            .aria_label(self.title.clone())
+                            .typography(tokens::TYPOGRAPHY_HEADING)
+                            .text_color(color(c.text_primary))
+                            .child(self.title),
+                    )
+                    .children(self.description.map(|description| {
+                        div()
+                            .typography(tokens::TYPOGRAPHY_DETAIL)
+                            .text_color(color(c.text_secondary))
+                            .child(description)
+                    })),
+            )
+            .children(action)
+    }
+}
+
+// ---------------------------------------------------------------- empty state
+
+/// What a view says when it has nothing to show, and the one thing to do about it. It centers
+/// itself in the room it is given.
+#[derive(IntoElement)]
+pub struct EmptyState {
+    icon: tokens::Icon,
+    title: SharedString,
+    description: Option<SharedString>,
+    action: Option<AnyElement>,
+}
+
+impl EmptyState {
+    /// The icon is decoration; the title says what is missing.
+    pub fn new(icon: tokens::Icon, title: impl Into<SharedString>) -> Self {
+        Self {
+            icon,
+            title: title.into(),
+            description: None,
+            action: None,
+        }
+    }
+
+    pub fn description(mut self, description: impl Into<SharedString>) -> Self {
+        self.description = Some(description.into());
+        self
+    }
+
+    /// Under the text: usually a button.
+    pub fn action(mut self, element: impl IntoElement) -> Self {
+        self.action = Some(element.into_any_element());
+        self
+    }
+}
+
+impl RenderOnce for EmptyState {
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let c = palette(cx);
+        div().flex().justify_center().w_full().child(
+            div()
+                .flex()
+                .flex_col()
+                .items_center()
+                .w_full()
+                .max_w(px(tokens::POINTER.dialog))
+                .py(px(tokens::SPACE_8))
+                .text_center()
+                .child(icon(self.icon, IconSize::Xl).text_color(color(c.empty_state_icon)))
+                .child(
+                    div()
+                        .mt(px(tokens::SPACE_4))
+                        .typography(tokens::TYPOGRAPHY_HEADING)
+                        .text_color(color(c.text_primary))
+                        .child(self.title),
+                )
+                .children(self.description.map(|description| {
+                    div()
+                        .mt(px(tokens::SPACE_2))
+                        .typography(tokens::TYPOGRAPHY_BODY)
+                        .text_color(color(c.text_secondary))
+                        .child(description)
+                }))
+                .children(
+                    self.action
+                        .map(|action| div().flex().mt(px(tokens::SPACE_6)).child(action)),
+                ),
+        )
+    }
+}
+
 /// A line between groups of content.
 pub fn divider(cx: &App) -> Div {
     div()
@@ -1243,7 +1830,34 @@ pub fn text(content: impl Into<SharedString>, style: tokens::Typography) -> Div 
 
 #[cfg(test)]
 mod tests {
-    use super::count_text;
+    use super::{ThumbnailRatio, count_text, media_name, watched};
+
+    #[test]
+    fn a_thumbnail_ratio_is_its_width_over_its_height() {
+        assert!((ThumbnailRatio::Ratio16x9.value() - 16.0 / 9.0).abs() < 1e-6);
+        assert!((ThumbnailRatio::Ratio1x1.value() - 1.0).abs() < 1e-6);
+        assert!((ThumbnailRatio::Ratio4x3.value() - 4.0 / 3.0).abs() < 1e-6);
+        assert!((ThumbnailRatio::Ratio9x16.value() - 9.0 / 16.0).abs() < 1e-6);
+        assert_eq!(ThumbnailRatio::default(), ThumbnailRatio::Ratio16x9);
+    }
+
+    #[test]
+    fn no_progress_and_zero_draw_no_bar() {
+        assert_eq!(watched(None), None);
+        assert_eq!(watched(Some(0.0)), None);
+        assert_eq!(watched(Some(-0.5)), None);
+        assert_eq!(watched(Some(0.4)), Some(0.4));
+        assert_eq!(watched(Some(1.5)), Some(1.0));
+    }
+
+    #[test]
+    fn a_media_card_is_named_by_its_title_then_its_details() {
+        assert_eq!(media_name("Night hike", &[]), "Night hike");
+        assert_eq!(
+            media_name("Night hike", &["Acme Outdoors".into(), "3 days ago".into()]),
+            "Night hike, Acme Outdoors, 3 days ago"
+        );
+    }
 
     #[test]
     fn a_count_over_the_maximum_shows_the_maximum_and_a_plus() {

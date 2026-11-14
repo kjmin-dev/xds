@@ -8,7 +8,58 @@ import {
   View,
 } from "react-native";
 import { Text } from "./Text.tsx";
-import { CONTROL_HEIGHT, ContentColor, useColors } from "./theme.ts";
+import { CONTROL_HEIGHT, type Colors, ContentColor, useColors } from "./theme.ts";
+
+/**
+ * The outline of a field's box. While the field is in use or wrong the outline thickens as well
+ * as changing color, so neither depends on color alone; `edge` is the padding inside it, which
+ * shrinks by as much, so the content does not move. Select draws its box with it too.
+ */
+export function fieldOutline(
+  colors: Colors,
+  active: boolean,
+  invalid: boolean,
+): { width: number; color: string; edge: number } {
+  const width = active || invalid ? border.width.thick : border.width.thin;
+  const color = invalid
+    ? colors.fieldBorderInvalid
+    : active
+      ? colors.fieldBorderFocus
+      : colors.fieldBorder;
+  return { width, color, edge: space[3] - (width - border.width.thin) };
+}
+
+/**
+ * What a field says under itself: the error while there is one, the description otherwise, and
+ * `counter` at the end edge. Select and RadioGroup put the same words under themselves.
+ */
+export function FieldMessage({
+  error,
+  description,
+  counter,
+}: {
+  error?: string | undefined;
+  description?: string | undefined;
+  counter?: ReactNode;
+}) {
+  if (error === undefined && !description && !counter) return null;
+  return (
+    <View style={styles.below}>
+      {error !== undefined ? (
+        <View accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.message}>
+          <Text variant="detail" tone="danger">
+            {error}
+          </Text>
+        </View>
+      ) : description ? (
+        <Text variant="detail" tone="secondary" style={styles.message}>
+          {description}
+        </Text>
+      ) : null}
+      {counter}
+    </View>
+  );
+}
 
 export type TextFieldProps = {
   /** Always visible. A placeholder is not a label: it disappears as soon as the person types. */
@@ -68,16 +119,7 @@ export function TextField({
   const { fontScale } = useWindowDimensions();
   const [focused, setFocused] = useState(false);
   const invalid = error !== undefined;
-  // Focus and errors thicken the outline as well as recoloring it, so neither depends on color
-  // alone. The padding shrinks by the same amount, so the text does not move.
-  const emphasized = focused || invalid;
-  const outline = emphasized ? border.width.thick : border.width.thin;
-  const outlineColor = invalid
-    ? colors.fieldBorderInvalid
-    : focused
-      ? colors.fieldBorderFocus
-      : colors.fieldBorder;
-  const edge = space[3] - (outline - border.width.thin);
+  const { width: outline, color: outlineColor, edge } = fieldOutline(colors, focused, invalid);
   // The room inside the outline of a one-line field. A slot is that tall whatever it holds, so
   // the box keeps its height.
   const inner = CONTROL_HEIGHT.md - 2 * outline;
@@ -155,28 +197,17 @@ export function TextField({
           </ContentColor>
         )}
       </View>
-      {(invalid || description || maxLength !== undefined) && (
-        <View style={styles.below}>
-          {invalid ? (
-            <View accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.message}>
-              <Text variant="detail" tone="danger">
-                {error}
-              </Text>
-            </View>
-          ) : (
-            description && (
-              <Text variant="detail" tone="secondary" style={styles.message}>
-                {description}
-              </Text>
-            )
-          )}
-          {maxLength !== undefined && (
+      <FieldMessage
+        error={error}
+        description={description}
+        counter={
+          maxLength !== undefined && (
             <Text variant="footnote" tone="secondary" style={styles.counter}>
               {value.length}/{maxLength}
             </Text>
-          )}
-        </View>
-      )}
+          )
+        }
+      />
     </View>
   );
 }

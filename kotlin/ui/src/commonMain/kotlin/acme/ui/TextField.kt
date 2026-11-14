@@ -1,6 +1,7 @@
 package acme.ui
 
 import acme.tokens.Border
+import acme.tokens.Colors
 import acme.tokens.Radius
 import acme.tokens.Space
 import acme.tokens.Typography
@@ -52,9 +53,8 @@ import androidx.compose.ui.unit.dp
  * @param error What is wrong and how to fix it. Clear it when the value changes.
  * @param secure Hides the characters, for passwords.
  * @param onSubmit Called when the person presses the keyboard's return key.
- * @param leading Drawn inside the field before the text: an icon, a unit. It takes the
- *   placeholder's color unless it sets its own: [Icon] does by itself, [Text] with the
- *   `Inherit` tone.
+ * @param leading Drawn inside the field before the text: an icon, a unit. [Icon] and [Text]
+ *   take the placeholder's color unless they are given their own.
  * @param trailing Drawn inside the field after the text: an icon, a unit, a small button.
  * @param multiline Makes the field a text area, `rows` lines tall. More text scrolls inside it.
  * @param maxLength The field takes no more characters than this, and shows how many of them
@@ -138,15 +138,6 @@ internal fun FieldFrame(
     val sizes = LocalSizes.current
     val interactions = remember { MutableInteractionSource() }
     val focused by interactions.collectIsFocusedAsState()
-    val invalid = error != null
-    // Focus and errors thicken the outline as well as recoloring it, so neither depends on color
-    // alone. The outline is drawn inside the field's bounds, so the text does not move.
-    val outline = if (focused || invalid) Border.widthThick else Border.widthThin
-    val outlineColor = when {
-        invalid -> colors.fieldBorderInvalid
-        focused -> colors.fieldBorderFocus
-        else -> colors.fieldBorder
-    }
     val lines = if (multiline) rows.coerceAtLeast(1) else 1
     // One line of text, which grows with the system's text size.
     val line = with(LocalDensity.current) { Typography.body.lineHeight.toDp() }
@@ -155,9 +146,7 @@ internal fun FieldFrame(
     val inset = ((sizes.controlMd - line) / 2).coerceAtLeast(0.dp)
 
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Space.s1)) {
-        if (labelShown) {
-            Text(label, style = Typography.label, tone = if (enabled) TextTone.Primary else TextTone.Secondary)
-        }
+        if (labelShown) FieldLabel(label, enabled)
         BasicTextField(
             value = value,
             onValueChange = { next ->
@@ -190,8 +179,7 @@ internal fun FieldFrame(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = sizes.controlMd)
-                        .background(if (enabled) colors.fieldBackground else colors.backgroundDisabled, shape)
-                        .border(outline, outlineColor, shape)
+                        .fieldBox(colors, shape, enabled, focused, invalid = error != null)
                         .padding(start = Space.s3, end = endPadding)
                         .padding(vertical = if (multiline) inset else 0.dp),
                     horizontalArrangement = Arrangement.spacedBy(Space.s2),
@@ -215,32 +203,61 @@ internal fun FieldFrame(
                 }
             },
         )
-        val counter = maxLength?.let { "${value.length}/$it" }
-        if (error != null || description != null || counter != null) {
-            // The counter keeps to the end edge, on the line the help or the error starts.
-            Row(horizontalArrangement = Arrangement.spacedBy(Space.s3)) {
-                when {
-                    error != null -> Text(
-                        error,
-                        // Announced when it appears, without interrupting what is being read.
-                        modifier = Modifier.weight(1f).alignByBaseline().semantics { liveRegion = LiveRegionMode.Polite },
-                        style = Typography.detail,
-                        tone = TextTone.Danger,
-                    )
-                    description != null -> Text(
-                        description,
-                        modifier = Modifier.weight(1f).alignByBaseline(),
-                        style = Typography.detail,
-                        tone = TextTone.Secondary,
-                    )
-                    else -> Spacer(Modifier.weight(1f))
-                }
-                if (counter != null) {
-                    Text(counter, Modifier.alignByBaseline(), Typography.footnote, TextTone.Secondary)
-                }
-            }
+        FieldHelp(error, description, counter = maxLength?.let { "${value.length}/$it" })
+    }
+}
+
+/** The label above a field, which [Select] and [RadioGroup] put above theirs as well. */
+@Composable
+internal fun FieldLabel(label: String, enabled: Boolean, modifier: Modifier = Modifier) {
+    Text(label, modifier, Typography.label, if (enabled) TextTone.Primary else TextTone.Secondary)
+}
+
+/**
+ * The line under a field: the error, or else the help, and the counter at the end edge. Draws
+ * nothing when there is none of them.
+ */
+@Composable
+internal fun FieldHelp(error: String?, description: String?, counter: String? = null) {
+    if (error == null && description == null && counter == null) return
+    // The counter keeps to the end edge, on the line the help or the error starts.
+    Row(horizontalArrangement = Arrangement.spacedBy(Space.s3)) {
+        when {
+            error != null -> Text(
+                error,
+                // Announced when it appears, without interrupting what is being read.
+                modifier = Modifier.weight(1f).alignByBaseline().semantics { liveRegion = LiveRegionMode.Polite },
+                style = Typography.detail,
+                tone = TextTone.Danger,
+            )
+            description != null -> Text(
+                description,
+                modifier = Modifier.weight(1f).alignByBaseline(),
+                style = Typography.detail,
+                tone = TextTone.Secondary,
+            )
+            else -> Spacer(Modifier.weight(1f))
+        }
+        if (counter != null) {
+            Text(counter, Modifier.alignByBaseline(), Typography.footnote, TextTone.Secondary)
         }
     }
+}
+
+/**
+ * The box of a field: its fill, and an outline that changes with focus and errors. Focus and
+ * errors thicken the outline as well as recoloring it, so neither depends on color alone. The
+ * outline is drawn inside the box's bounds, so what is in it does not move.
+ */
+internal fun Modifier.fieldBox(colors: Colors, shape: Shape, enabled: Boolean, focused: Boolean, invalid: Boolean): Modifier {
+    val outline = when {
+        invalid -> colors.fieldBorderInvalid
+        focused -> colors.fieldBorderFocus
+        else -> colors.fieldBorder
+    }
+    return this
+        .background(if (enabled) colors.fieldBackground else colors.backgroundDisabled, shape)
+        .border(if (focused || invalid) Border.widthThick else Border.widthThin, outline, shape)
 }
 
 /**

@@ -50,6 +50,13 @@
       },
       "$description": "The box, not the pressable area."
     },
+    "radio": {
+      "$value": {
+        "value": 18,
+        "unit": "px"
+      },
+      "$description": "The circle, not the pressable area."
+    },
     "list-row": {
       "$value": {
         "value": 40,
@@ -176,6 +183,20 @@
       },
       "$description": "The thickness of a progress bar."
     },
+    "slider-track": {
+      "$value": {
+        "value": 4,
+        "unit": "px"
+      },
+      "$description": "The thickness of a slider's track."
+    },
+    "slider-thumb": {
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      },
+      "$description": "The thumb, not the pressable area."
+    },
     "spinner": {
       "sm": {
         "$value": {
@@ -209,6 +230,20 @@
         "unit": "px"
       },
       "$description": "The most a toast is wide."
+    },
+    "sidebar": {
+      "$value": {
+        "value": 240,
+        "unit": "px"
+      },
+      "$description": "The width of an open sidebar."
+    },
+    "sidebar-rail": {
+      "$value": {
+        "value": 72,
+        "unit": "px"
+      },
+      "$description": "The width of a collapsed sidebar, which shows icons only."
     }
   }
 }

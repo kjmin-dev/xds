@@ -4,7 +4,8 @@
 //
 // `/design?from=3` starts at the third section, for taking screenshots from a script, which
 // can neither scroll nor tap. For the same reason `/design?sheet=1` opens the bottom sheet,
-// `?menu=1` the menu, `?dialog=1` the dialog and `?toast=1` the toast, which then stays.
+// `?menu=1` the menu, `?select=1` the select's list, `?dialog=1` the dialog and `?toast=1` the
+// toast, which then stays.
 
 import {
   border,
@@ -17,6 +18,8 @@ import {
   typography,
 } from "@acme/tokens";
 import {
+  Accordion,
+  type AccordionItem,
   Avatar,
   AvatarStack,
   Badge,
@@ -34,16 +37,23 @@ import {
   CountBadge,
   Dialog,
   Divider,
+  EmptyState,
   Icon,
   IconButton,
   type IconName,
   type IconSize,
   ListRow,
+  MediaCard,
   Menu,
+  type MenuItem,
   ProgressBar,
+  RadioGroup,
   SearchField,
+  SectionHeader,
   SegmentedControl,
+  Select,
   Skeleton,
+  Slider,
   Spinner,
   Switch,
   TabBar,
@@ -51,6 +61,8 @@ import {
   Text,
   TextField,
   type TextVariant,
+  Thumbnail,
+  type ThumbnailProps,
   Toast,
   TopBar,
   useColors,
@@ -94,7 +106,7 @@ const kebab = (name: string) => name.replace(/[A-Z0-9]+/g, (match) => `-${match.
 
 /** Semantic colors by group. Component colors are shown by the components that use them. */
 const COMPONENT_COLORS =
-  /^(button|field|badge|banner|card|switch|checkbox|segmented|avatar|progress|listRow|topBar|tabBar|sheet|chip|tabs|menu|dialog|toast|tooltip|skeleton)/;
+  /^(button|field|badge|banner|card|switch|checkbox|radio|segmented|avatar|progress|slider|listRow|topBar|tabBar|sheet|chip|tabs|menu|dialog|toast|tooltip|skeleton|thumbnail|sidebar|emptyState|accordion)/;
 
 // The preview works offline, so its picture ships with it: a 16 by 16 gradient, scaled up.
 const PICTURE =
@@ -165,6 +177,90 @@ const PAGES_WITH_ICONS = [
   { value: "settings", label: "Settings", icon: "settings" },
 ] as const;
 
+const DELIVERY = [
+  { value: "standard", label: "Standard", description: "Three to five working days, free." },
+  { value: "express", label: "Express", description: "The next working day." },
+  { value: "pickup", label: "Pick up in store" },
+] as const;
+
+const SHIRT_SIZES = [
+  { value: "s", label: "Small" },
+  { value: "m", label: "Medium" },
+  { value: "l", label: "Large" },
+] as const;
+
+const REGIONS = [
+  { value: "eu", label: "Europe" },
+  { value: "us", label: "United States" },
+] as const;
+
+/** More options than fit in the sheet at once, so its list has something to scroll. */
+const COUNTRIES = [
+  { value: "au", label: "Australia" },
+  { value: "br", label: "Brazil" },
+  { value: "ca", label: "Canada" },
+  { value: "fr", label: "France" },
+  { value: "de", label: "Germany" },
+  { value: "in", label: "India" },
+  { value: "jp", label: "Japan" },
+  { value: "kr", label: "South Korea" },
+  { value: "es", label: "Spain" },
+  { value: "gb", label: "United Kingdom" },
+  { value: "us", label: "United States" },
+] as const;
+
+const TIME_ZONES = [
+  { value: "seoul", label: "Seoul", description: "UTC+9" },
+  { value: "berlin", label: "Berlin", description: "UTC+1" },
+  { value: "london", label: "London", description: "UTC+0" },
+  { value: "new-york", label: "New York", description: "UTC−5" },
+] as const;
+
+const LANGUAGES = [
+  { value: "en", label: "English" },
+  { value: "ko", label: "한국어" },
+  { value: "ja", label: "日本語" },
+] as const;
+
+const CURRENCIES = [
+  { value: "krw", label: "Korean won" },
+  { value: "usd", label: "US dollar" },
+] as const;
+
+/** Every ratio, and between them a picture, one that fails, a badge and progress. */
+const THUMBNAILS: ThumbnailProps[] = [
+  { ratio: "16:9", src: PICTURE, alt: "A gradient from blue to violet" },
+  { ratio: "1:1", src: BROKEN_PICTURE, alt: "A picture that fails to load" },
+  { ratio: "4:3", src: PICTURE, alt: "A gradient, three minutes long", badge: "3:24" },
+  { ratio: "9:16", src: PICTURE, alt: "A gradient, partly watched", progress: 0.6 },
+];
+
+const VIDEO_ACTIONS: MenuItem[] = [
+  { label: "Save to watch later", icon: "bookmark", onSelect: () => {} },
+  { label: "Share", icon: "share-2", onSelect: () => {} },
+  { type: "separator" },
+  { label: "Not interested", icon: "ban", onSelect: () => {} },
+];
+
+const QUESTIONS: AccordionItem<string>[] = [
+  {
+    value: "refund",
+    title: "Can I get a refund?",
+    content: "Yes, within 30 days of buying, for any reason. The money goes back the way it came.",
+  },
+  {
+    value: "cancel",
+    title: "How do I cancel?",
+    description: "Your plan stays until the end of the month",
+    content: "Open Settings, then Plan, and choose Cancel. Nothing is charged after that.",
+  },
+  {
+    value: "devices",
+    title: "On how many devices can I sign in?",
+    content: "As many as you like. Five of them can play at the same time.",
+  },
+];
+
 const COLOR_NAMES = (Object.keys(tokenColors.light) as (keyof typeof tokenColors.light)[]).filter(
   (name) => !COMPONENT_COLORS.test(name),
 );
@@ -190,10 +286,20 @@ export default function Design() {
   const [kinds, setKinds] = useState<readonly string[]>(["photos"]);
   const [page, setPage] = useState<(typeof PAGES)[number]["value"]>("overview");
   const [pinned, setPinned] = useState(true);
+  const [delivery, setDelivery] = useState<(typeof DELIVERY)[number]["value"]>("standard");
+  const [shirt, setShirt] = useState<(typeof SHIRT_SIZES)[number]["value"]>();
+  const [country, setCountry] = useState<(typeof COUNTRIES)[number]["value"]>();
+  const [zone, setZone] = useState<(typeof TIME_ZONES)[number]["value"]>("seoul");
+  const [language, setLanguage] = useState<(typeof LANGUAGES)[number]["value"]>();
+  const [volume, setVolume] = useState(40);
+  const [speed, setSpeed] = useState(1.25);
+  const [question, setQuestion] = useState<readonly string[]>(["refund"]);
+  const [panels, setPanels] = useState<readonly string[]>(["notifications", "privacy"]);
   const params = useLocalSearchParams<{
     from?: string;
     sheet?: string;
     menu?: string;
+    select?: string;
     dialog?: string;
     toast?: string;
   }>();
@@ -441,6 +547,54 @@ export default function Design() {
         accessibilityLabel="Calendar view"
         fullWidth
       />
+      <RadioGroup label="Delivery" options={DELIVERY} value={delivery} onChange={setDelivery} />
+      {/* The error goes once a size is chosen, as an error should. */}
+      <RadioGroup
+        label="Size"
+        options={SHIRT_SIZES}
+        value={shirt}
+        onChange={setShirt}
+        error={shirt === undefined ? "Choose a size to continue." : undefined}
+      />
+      <RadioGroup label="Region" options={REGIONS} value="eu" onChange={() => {}} disabled />
+    </Section>,
+
+    <Section key="controls" title="Controls">
+      <Select
+        label="Country"
+        placeholder="Choose a country"
+        description="Where the invoice is sent."
+        options={COUNTRIES}
+        value={country}
+        onChange={setCountry}
+      />
+      <Select
+        label="Time zone"
+        options={TIME_ZONES}
+        value={zone}
+        onChange={setZone}
+        defaultOpen={params.select === "1"}
+      />
+      <Select
+        label="Language"
+        placeholder="Choose a language"
+        options={LANGUAGES}
+        value={language}
+        onChange={setLanguage}
+        error={language === undefined ? "Choose a language to continue." : undefined}
+      />
+      <Select label="Currency" options={CURRENCIES} value="krw" onChange={() => {}} disabled />
+      <Slider label="Volume" value={volume} onChange={setVolume} showValue />
+      <Slider
+        label="Playback speed"
+        value={speed}
+        onChange={setSpeed}
+        min={0.5}
+        max={2}
+        step={0.25}
+        showValue
+      />
+      <Slider label="Brightness" value={60} onChange={() => {}} showValue disabled />
     </Section>,
 
     <Section key="chips" title="Chips">
@@ -614,6 +768,63 @@ export default function Design() {
       <Card title="Selected" description="A heavier outline, at the same size." selected />
     </Section>,
 
+    <Section key="media" title="Media">
+      <SectionHeader title="Continue watching" action={{ label: "See all", onPress: () => {} }} />
+      <View style={styles.thumbnails}>
+        {THUMBNAILS.map((thumbnail) => (
+          <View key={thumbnail.ratio} style={styles.thumbnail}>
+            <Thumbnail {...thumbnail} />
+          </View>
+        ))}
+      </View>
+      <Thumbnail src={PICTURE} alt="A gradient, a quarter watched" badge="12:04" progress={0.25} />
+      {/* Press a card, or its menu: the menu does not press the card. */}
+      <MediaCard
+        src={PICTURE}
+        badge="12:04"
+        progress={0.25}
+        title="Designing tokens that work on four platforms at once, from color to motion"
+        meta={["Acme Studio", "12K views · 3 days ago"]}
+        leading={<Avatar name="Ada Lovelace" src={PICTURE} />}
+        action={
+          <Menu
+            label="Video"
+            items={VIDEO_ACTIONS}
+            trigger={<IconButton icon="ellipsis-vertical" size="sm" label="More actions" />}
+          />
+        }
+        onPress={() => {}}
+      />
+      <MediaCard
+        layout="horizontal"
+        src={PICTURE}
+        badge="8:15"
+        title="A short history of the color picker"
+        meta={["Grace Hopper", "2.4K views · 1 week ago"]}
+        action={
+          <Menu
+            label="Video"
+            items={VIDEO_ACTIONS}
+            trigger={<IconButton icon="ellipsis-vertical" size="sm" label="More actions" />}
+          />
+        }
+        onPress={() => {}}
+      />
+      <MediaCard
+        layout="horizontal"
+        ratio="1:1"
+        src={BROKEN_PICTURE}
+        title="Not pressable, with a picture that fails"
+        meta={["Article · 6 min read"]}
+      />
+      <SectionHeader
+        icon="sparkles"
+        title="Recommended for you"
+        description="Picked from what you watched this week."
+        action={{ label: "See all", onPress: () => {} }}
+      />
+    </Section>,
+
     <Section key="list" title="List">
       <Card flush>
         <ListRow
@@ -747,6 +958,58 @@ export default function Design() {
         </View>
       </Card>
     </Section>,
+
+    <Section key="empty" title="Empty state">
+      <Card>
+        <EmptyState
+          icon="search"
+          title="No results"
+          description="Nothing matches “quarterly report”. Try another word, or check the spelling."
+          action={<Button label="Clear the search" />}
+        />
+      </Card>
+      <Card>
+        <EmptyState icon="bell-off" title="No notifications" />
+      </Card>
+    </Section>,
+
+    <Section key="accordion" title="Accordion">
+      {/* One open at a time. */}
+      <Accordion items={QUESTIONS} expanded={question} onChange={setQuestion} />
+      {/* Several open at once, and a body that holds more than text. */}
+      <Accordion
+        multiple
+        expanded={panels}
+        onChange={setPanels}
+        items={[
+          {
+            value: "notifications",
+            title: "Notifications",
+            description: "Mentions and replies",
+            content: (
+              <View style={styles.panel}>
+                <Switch
+                  checked={notifications}
+                  onChange={setNotifications}
+                  label="Push notifications"
+                />
+                <Switch checked={false} onChange={() => {}} label="Email digest" />
+              </View>
+            ),
+          },
+          {
+            value: "privacy",
+            title: "Privacy",
+            content: "Who can see your profile, and who can send you messages.",
+          },
+          {
+            value: "storage",
+            title: "Storage",
+            content: "Downloads are kept on this device for 30 days.",
+          },
+        ]}
+      />
+    </Section>,
   ];
 
   return (
@@ -870,6 +1133,19 @@ const styles = StyleSheet.create({
   picture: {
     width: "100%",
     aspectRatio: 16 / 9,
+  },
+  thumbnails: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "flex-start",
+    gap: space[2],
+  },
+  // Two to a row on a phone; a thumbnail takes its height from the width it is given.
+  thumbnail: {
+    width: space[16] * 2,
+  },
+  panel: {
+    gap: space[2],
   },
   onPicture: {
     position: "absolute",

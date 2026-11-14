@@ -3,6 +3,7 @@ package acme.ui
 import acme.tokens.Border
 import acme.tokens.Radius
 import acme.tokens.Space
+import acme.tokens.Typography
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -73,6 +74,6 @@ fun Checkbox(
             }
             drawPath(check, mark, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
         }
-        if (label != null) Text(label, tone = if (enabled) TextTone.Primary else TextTone.Secondary)
+        if (label != null) Text(label, style = Typography.body, tone = if (enabled) TextTone.Primary else TextTone.Secondary)
     }
 }

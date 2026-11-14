@@ -1094,6 +1094,378 @@ export const COMPONENTS: Component[] = [
     preview: "Text fields",
   },
   {
+    slug: "radio-group",
+    name: "RadioGroup",
+    summary: "One choice among a few, applied later with the form it belongs to.",
+    guidance: [
+      "Use it for two to about six options that should all be seen at once. For a choice that takes effect at once among two to four options, a SegmentedControl is the usual pick; for a long list, a Select.",
+      "`label` is the group's visible legend and names it for assistive technology.",
+      "The chosen option has a thicker ring and a dot, so the choice does not depend on color. The whole row of an option is pressable, description included.",
+      "`error` shows under the options and is announced. Clear it when the choice changes.",
+      "On the web the options are native radio buttons: the arrow keys move between them.",
+    ],
+    example: `import { RadioGroup } from "@acme/ui";
+
+<RadioGroup
+  label="Delivery"
+  options={[
+    { value: "standard", label: "Standard", description: "Three to five working days." },
+    { value: "express", label: "Express", description: "The next working day." },
+  ]}
+  value={delivery}
+  onChange={setDelivery}
+/>`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "label", type: "string", description: "Required. The visible legend." },
+      {
+        name: "options",
+        type: "readonly { value: Value; label: string; description?: string }[]",
+        description: "Required.",
+      },
+      {
+        name: "value",
+        type: "Value | undefined",
+        description: "The chosen option. Leave it out while nothing is chosen.",
+      },
+      { name: "onChange", type: "(value: Value) => void", description: "Required." },
+      { name: "disabled", type: "boolean", description: "Disables the whole group." },
+      {
+        name: "error",
+        type: "string | undefined",
+        description: "Shown under the options and announced.",
+      },
+      { name: "name", type: "string", description: "The name the choice is submitted under." },
+    ],
+    sources: everywhere("RadioGroup", GPUI_CONTROLS),
+    demo: true,
+    preview: "Selection",
+  },
+  {
+    slug: "select",
+    name: "Select",
+    summary: "A field for choosing one option from a list too long to show at once.",
+    guidance: [
+      "Closed, it looks like a TextField: a visible label, a description or an error under the box.",
+      "Pressed, the list opens with a Menu's surface: on the web and GPUI under the field and as wide as it, on React Native and Compose in a bottom sheet titled with the label. The chosen option has a check.",
+      "Choosing an option calls `onChange` and closes the list. A press outside or Escape closes it too.",
+      "The field says that it opens a list and whether the list is open; the list is a list box with a selected option. On the web the arrow keys move, typing jumps to an option, and Enter chooses.",
+      "For two to about six options that should all be seen, use a RadioGroup.",
+    ],
+    example: `import { Select } from "@acme/ui";
+
+<Select
+  label="Country"
+  placeholder="Choose a country"
+  options={[
+    { value: "fr", label: "France" },
+    { value: "kr", label: "Korea" },
+  ]}
+  value={country}
+  onChange={setCountry}
+/>`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "label", type: "string", description: "Required. Always visible." },
+      {
+        name: "options",
+        type: "readonly { value: Value; label: string; description?: string }[]",
+        description: "Required. A description shows under the label in the list only.",
+      },
+      {
+        name: "value",
+        type: "Value | undefined",
+        description: "The chosen option. Leave it out while nothing is chosen.",
+      },
+      { name: "onChange", type: "(value: Value) => void", description: "Required." },
+      { name: "placeholder", type: "string", description: "Shown while nothing is chosen." },
+      {
+        name: "description",
+        type: "string",
+        description: "Help under the field, replaced by `error` while there is one.",
+      },
+      { name: "error", type: "string | undefined", description: "" },
+      { name: "name", type: "string", description: "The name the choice is submitted under." },
+      { name: "disabled", type: "boolean", description: "" },
+    ],
+    sources: everywhere("Select", GPUI_OVERLAYS),
+    demo: true,
+    preview: "Controls",
+  },
+  {
+    slug: "slider",
+    name: "Slider",
+    summary: "Picks a number in a range by dragging.",
+    guidance: [
+      "Use it where the exact number matters less than where it sits in the range, such as a volume. For an exact number, use a TextField.",
+      "Pressing the track moves the thumb there. Values snap to `step`.",
+      "`showValue` shows the current value at the end of the label's line.",
+      "It is a slider named by its label, with its value, minimum and maximum. Each arrow key moves it one step.",
+    ],
+    example: `import { Slider } from "@acme/ui";
+
+<Slider label="Volume" value={volume} onChange={setVolume} showValue />
+<Slider label="Font size" min={12} max={24} step={2} value={size} onChange={setSize} />`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "label", type: "string", description: "Required. Shown above the track." },
+      { name: "value", type: "number", description: "Required." },
+      { name: "onChange", type: "(value: number) => void", description: "Required." },
+      { name: "min", type: "number", description: "Defaults to 0." },
+      { name: "max", type: "number", description: "Defaults to 100." },
+      { name: "step", type: "number", description: "Defaults to 1." },
+      { name: "disabled", type: "boolean", description: "" },
+      {
+        name: "showValue",
+        type: "boolean",
+        description: "Shows the current value at the end of the label's line.",
+      },
+    ],
+    sources: everywhere("Slider", GPUI_CONTROLS),
+    demo: true,
+    preview: "Controls",
+  },
+  {
+    slug: "thumbnail",
+    name: "Thumbnail",
+    summary: "A picture in a fixed shape, for a video, an article or a product.",
+    guidance: [
+      "It fills the width it is given and takes its height from `ratio`, cropping the picture to fill it.",
+      "While the picture loads, when it fails and without `src`, a placeholder with a picture mark shows.",
+      "`alt` describes the picture. An empty `alt` makes it decoration, as it is when a title beside it already says what it shows.",
+      "`badge` is short text on the bottom end corner, such as a duration. `progress` draws how much was watched across the bottom edge.",
+    ],
+    example: `import { Thumbnail } from "@acme/ui";
+
+<Thumbnail src={video.poster} alt="" badge="12:04" progress={0.35} />`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "src", type: "string | undefined", description: "The URL of the picture." },
+      {
+        name: "alt",
+        type: "string",
+        description: "Required. Describes the picture; an empty string makes it decoration.",
+      },
+      {
+        name: "ratio",
+        type: '"16:9" | "1:1" | "4:3" | "9:16"',
+        description: "Width to height. Defaults to `16:9`.",
+      },
+      { name: "badge", type: "string", description: "Short text, such as a duration." },
+      {
+        name: "progress",
+        type: "number",
+        description: "From 0 to 1. 0 draws no bar. With a badge, the badge moves above the bar.",
+      },
+    ],
+    sources: everywhere("Thumbnail", GPUI_COMPONENTS),
+    demo: true,
+    preview: "Media",
+  },
+  {
+    slug: "media-card",
+    name: "MediaCard",
+    summary: "A thumbnail with its title and details: a video in a feed, an article in a list.",
+    guidance: [
+      "`vertical` puts the thumbnail on top; `horizontal` puts it at the start, at 40% of the card's width.",
+      "The title takes at most two lines and each detail in `meta` one, then an ellipsis.",
+      "With `onPress` the whole card is one button, with no surface at rest. It is named by its title followed by its details.",
+      "`action` stays a control of its own, such as an IconButton or a Menu: pressing it does not press the card.",
+      "`leading` is shown in the vertical layout only, usually an Avatar.",
+    ],
+    example: `import { Avatar, IconButton, MediaCard } from "@acme/ui";
+
+<MediaCard
+  src={video.poster}
+  title={video.title}
+  meta={[video.channel, "12K views · 3 days ago"]}
+  badge="12:04"
+  leading={<Avatar name={video.channel} src={video.avatar} />}
+  action={<IconButton icon="ellipsis-vertical" label="More actions" onPress={openMenu} />}
+  onPress={play}
+/>`,
+    exampleLanguage: "tsx",
+    props: [
+      {
+        name: "layout",
+        type: '"vertical" | "horizontal"',
+        description: "Defaults to `vertical`.",
+      },
+      { name: "src", type: "string | undefined", description: "As a Thumbnail's." },
+      {
+        name: "alt",
+        type: "string",
+        description: "Defaults to an empty string: the title already says what the picture is.",
+      },
+      {
+        name: "ratio",
+        type: '"16:9" | "1:1" | "4:3" | "9:16"',
+        description: "Defaults to `16:9`.",
+      },
+      { name: "badge", type: "string", description: "As a Thumbnail's." },
+      { name: "progress", type: "number", description: "As a Thumbnail's." },
+      { name: "title", type: "string", description: "Required. Two lines at most." },
+      { name: "meta", type: "readonly string[]", description: "Short details, one line each." },
+      {
+        name: "leading",
+        type: "ReactNode",
+        description: "Before the text in the vertical layout, such as an Avatar.",
+      },
+      {
+        name: "action",
+        type: "ReactNode",
+        description: "At the end of the text: an IconButton or a Menu.",
+      },
+      { name: "onPress", type: "() => void", description: "Makes the whole card one button." },
+    ],
+    sources: everywhere("MediaCard", GPUI_COMPONENTS),
+    demo: true,
+    preview: "Media",
+  },
+  {
+    slug: "section-header",
+    name: "SectionHeader",
+    summary: "The title row of a group of content.",
+    guidance: [
+      "The title is a heading at `level` for the document outline. Pick the level from the outline, not for looks.",
+      "`action` is a quiet small button at the end edge, such as `See all`. Its chevron points the other way in a right-to-left layout.",
+    ],
+    example: `import { SectionHeader } from "@acme/ui";
+
+<SectionHeader
+  title="Continue watching"
+  description="Pick up where you left off."
+  action={{ label: "See all", onPress: openHistory }}
+/>`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "title", type: "string", description: "Required." },
+      { name: "description", type: "string", description: "A line under the title." },
+      { name: "icon", type: "IconName", description: "Before the title." },
+      {
+        name: "action",
+        type: "{ label: string; onPress: () => void }",
+        description: "A `ghost` `sm` Button with a chevron at its end.",
+      },
+      { name: "level", type: "1 | 2 | 3 | 4 | 5 | 6", description: "Defaults to 2." },
+    ],
+    sources: everywhere("SectionHeader", GPUI_COMPONENTS),
+    demo: true,
+    preview: "Media",
+  },
+  {
+    slug: "empty-state",
+    name: "EmptyState",
+    summary: "What a screen says when it has nothing to show.",
+    guidance: [
+      "Say what is missing in the title, and why or what will appear in the description.",
+      "Offer one action at most, the one that fills the screen.",
+      "It centers itself in its container, at most as wide as a dialog. The icon is decoration.",
+    ],
+    example: `import { Button, EmptyState } from "@acme/ui";
+
+<EmptyState
+  icon="mail"
+  title="No messages yet"
+  description="When someone writes to you, the conversation shows up here."
+  action={<Button variant="primary" iconStart="plus" onPress={compose}>New message</Button>}
+/>`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "icon", type: "IconName", description: "Required. Drawn at the `xl` size." },
+      { name: "title", type: "string", description: "Required." },
+      { name: "description", type: "string", description: "" },
+      { name: "action", type: "ReactNode", description: "Usually a Button." },
+    ],
+    sources: everywhere("EmptyState", GPUI_COMPONENTS),
+    demo: true,
+    preview: "Empty state",
+  },
+  {
+    slug: "accordion",
+    name: "Accordion",
+    summary: "Items whose bodies open and close under their titles.",
+    guidance: [
+      "Use it to shorten a page of answers or settings that are read one at a time. Content that everybody needs should not be hidden in one.",
+      "One item is open at a time unless `multiple` is set. `expanded` holds the open items' values; the app keeps it.",
+      "The chevron turns over on an open item, so the state does not depend on color. Opening and closing animate the height, and do not for people who ask for less motion.",
+      "Each title is a button that says whether its body is expanded and which body it controls.",
+    ],
+    example: `import { Accordion } from "@acme/ui";
+
+<Accordion
+  items={[
+    { value: "cancel", title: "Can I cancel at any time?", content: "Yes." },
+    { value: "seats", title: "How are seats counted?", content: "One per person." },
+  ]}
+  expanded={open}
+  onChange={setOpen}
+/>`,
+    exampleLanguage: "tsx",
+    props: [
+      {
+        name: "items",
+        type: "readonly { value: Value; title: string; description?: string; content: ReactNode }[]",
+        description: "Required.",
+      },
+      {
+        name: "expanded",
+        type: "readonly Value[]",
+        description: "Required. The values of the open items.",
+      },
+      { name: "onChange", type: "(expanded: Value[]) => void", description: "Required." },
+      {
+        name: "multiple",
+        type: "boolean",
+        description: "Lets several items be open at once. Defaults to `false`.",
+      },
+    ],
+    sources: everywhere("Accordion", GPUI_CONTROLS),
+    demo: true,
+    preview: "Accordion",
+  },
+  {
+    slug: "sidebar",
+    name: "Sidebar",
+    summary: "The top-level places of an app used with a pointer.",
+    guidance: [
+      "Pointer clients only: web and GPUI. On touch, a TabBar holds the top-level places.",
+      "The current place is selected: tinted, its title heavier and its icon filled, so the place does not depend on color. Give it icons made of closed shapes.",
+      "`count` is how many things a place holds, in quiet text. For things waiting to be seen, put a CountBadge somewhere they are seen.",
+      "`collapsed` turns it into a rail of icons, each named by a Tooltip. The app decides when and keeps the state; `header` and `footer` have to fit the rail themselves.",
+      "It is navigation named by `label`, and the current row says it is the current page.",
+    ],
+    example: `import { Sidebar } from "@acme/ui";
+
+<Sidebar
+  label="Main"
+  sections={[
+    { items: [{ value: "home", label: "Home", icon: "house" }] },
+    { title: "Library", items: [{ value: "saved", label: "Saved", icon: "bookmark", count: 12 }] },
+  ]}
+  value={place}
+  onChange={setPlace}
+  collapsed={narrow}
+/>`,
+    exampleLanguage: "tsx",
+    props: [
+      {
+        name: "sections",
+        type: "readonly { title?: string; items: readonly { value: Value; label: string; icon: IconName; count?: number }[] }[]",
+        description: "Required. A section's title becomes a hairline while collapsed.",
+      },
+      { name: "value", type: "Value", description: "Required. The current place." },
+      { name: "onChange", type: "(value: Value) => void", description: "Required." },
+      { name: "label", type: "string", description: "Required. Names the navigation." },
+      { name: "collapsed", type: "boolean", description: "A rail of icons." },
+      { name: "header", type: "ReactNode", description: "At the top, such as the app's name." },
+      { name: "footer", type: "ReactNode", description: "At the bottom, such as an account row." },
+    ],
+    sources: { web: web("Sidebar"), gpui: "crates/acme-ui/src/navigation.rs" },
+    demo: true,
+    preview: "Sidebar",
+  },
+  {
     slug: "top-bar",
     name: "TopBar",
     summary: "The bar at the top of a screen: where you are, and the way back.",

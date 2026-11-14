@@ -178,6 +178,10 @@
           "hex": "#ffffff"
         },
         "$description": "Text and icons on the overlay background."
+      },
+      "accent": {
+        "$value": "{palette.accent.300}",
+        "$description": "Accent-colored marks on the overlay background, such as how much of a video was watched. Light enough to read over any picture, so the same in both modes."
       }
     },
     "button": {
@@ -433,6 +437,25 @@
         "$value": "{color.text.disabled}"
       }
     },
+    "radio": {
+      "border": {
+        "$value": "{color.border.strong}",
+        "$description": "Off. It holds 3:1 against the page, so the choice is visible before it is made."
+      },
+      "border-checked": {
+        "$value": "{color.accent.default}"
+      },
+      "dot": {
+        "$value": "{color.accent.default}",
+        "$description": "The dot inside the chosen one: its shape marks the choice, so color is not the only signal."
+      },
+      "disabled-background": {
+        "$value": "{color.background.disabled}"
+      },
+      "disabled-dot": {
+        "$value": "{color.text.disabled}"
+      }
+    },
     "segmented": {
       "track": {
         "$value": "{color.control.default}"
@@ -528,7 +551,8 @@
         "$description": "Under the pointer, and under the keyboard's highlight."
       },
       "item-background-pressed": {
-        "$value": "{color.control.hover}"
+        "$value": "{color.control.default}",
+        "$description": "In dark mode the same as the hover fill: the next step up would not carry the secondary text of a row with a description."
       },
       "danger-text": {
         "$value": "{color.status.danger}",
@@ -582,6 +606,50 @@
         "$description": "What the placeholder pulses toward."
       }
     },
+    "thumbnail": {
+      "background": {
+        "$value": "{color.control.default}",
+        "$description": "Where a picture goes, while it loads or when there is none."
+      },
+      "icon": {
+        "$value": "{color.text.tertiary}",
+        "$description": "The picture mark on the empty place."
+      }
+    },
+    "sidebar": {
+      "background": {
+        "$value": "{color.background.base}",
+        "$description": "The same as the page: the sidebar is set apart by a hairline, not a fill."
+      },
+      "border": {
+        "$value": "{color.border.default}"
+      },
+      "section-title": {
+        "$value": "{color.text.tertiary}"
+      }
+    },
+    "empty-state": {
+      "icon": {
+        "$value": "{color.text.tertiary}"
+      }
+    },
+    "accordion": {
+      "border": {
+        "$value": "{color.border.default}",
+        "$description": "The hairlines between the items."
+      },
+      "header-background-hover": {
+        "$value": "{color.background.raised}",
+        "$description": "The title row of an item under a pointer."
+      },
+      "header-background-pressed": {
+        "$value": "{color.control.default}"
+      },
+      "icon": {
+        "$value": "{color.text.secondary}",
+        "$description": "The chevron that turns when an item opens."
+      }
+    },
     "avatar": {
       "background": {
         "$value": "{color.accent.subtle}"
@@ -608,6 +676,26 @@
       "fill": {
         "$value": "{color.text.accent}",
         "$description": "A mark on a neutral track, so it takes the accent text color, which holds 3:1 against the track in both modes."
+      }
+    },
+    "slider": {
+      "track": {
+        "$value": "{color.control.default}",
+        "$description": "The part of the range above the value."
+      },
+      "fill": {
+        "$value": "{color.text.accent}",
+        "$description": "The part of the range up to the value. A mark on a neutral track, so it takes the accent text color, as a progress bar does."
+      },
+      "thumb": {
+        "$value": "{color.background.raised}"
+      },
+      "thumb-border": {
+        "$value": "{color.text.accent}",
+        "$description": "The outline that makes the thumb visible on the page and on the track."
+      },
+      "disabled-fill": {
+        "$value": "{color.text.disabled}"
       }
     },
     "list-row": {

@@ -19,7 +19,7 @@ This repository is the xds template: a single set of design tokens, component li
 - Design tokens are the source of truth. Never edit generated files (`packages/tokens/src/generated`, `crates/acme-tokens/src/generated.rs`, `kotlin/ui/src/commonMain/kotlin/acme/tokens/Tokens.kt`). Edit the JSON files in `design/tokens`, run `mise run tokens`, and commit both the token sources and the generated files.
 - Components must take all colors, sizes, and spacing from tokens. Do not hardcode hex colors in components, and prefer tokens over raw pixel values. Component-specific colors belong in that component's group in both `color.light.json` and `color.dark.json`.
 - Every foreground and background color pair rendered together by a component must have an entry in `tools/design-build/src/contrast.ts`. The token build fails if any pairing falls below its required contrast ratio.
-- Every component, variant, size, and tone must exist across all four clients under the same name and appear in each client's design preview. TopBar, TabBar, and BottomSheet are touch-only exceptions and exist only on React Native and Compose. Tooltip is a pointer-only exception and exists only on web and GPUI. Update `design/components.json` in the same change.
+- Every component, variant, size, and tone must exist across all four clients under the same name and appear in each client's design preview. TopBar, TabBar, and BottomSheet are touch-only exceptions and exist only on React Native and Compose. Tooltip and Sidebar are pointer-only exceptions and exist only on web and GPUI. Update `design/components.json` in the same change.
 - Do not edit theme color ramps by hand. `design/themes/indigo.json` is the reference theme; generate new themes with `node tools/design-build/src/make-theme.ts <name> --hue <0-360>`.
 - Every top-level path in the repository must be accounted for in `template.json` (under a target, a shared group, `common`, or `exclude`). Target-specific lines in shared files must be wrapped in `@if <targets>` and `@endif` comments; use `@if template` for lines needed only in this template repository.
 - Machine-written JSON files under `design/` must be formatted with `JSON.stringify(value, null, 2)` followed by a trailing newline.
@@ -47,9 +47,9 @@ There is no automated visual regression test, so inspect the design preview in b
 
 | Client | How to open a specific section directly |
 | --- | --- |
-| Web | Run `mise run //web:dev`, then open `http://localhost:5173/design#buttons` (each section has an anchor; `?theme=light` or `?theme=dark` pins the color mode; `?open=menu`, `dialog`, `toast`, or `tooltip` opens that overlay) |
-| GPUI desktop | `cargo run --package acme-desktop -- --design --dark --scroll 800` (`--open menu`, `dialog`, `toast`, or `tooltip` opens that overlay) |
-| React Native | Pass `?from=<section number>`, `?sheet=1`, `?menu=1`, `?dialog=1`, or `?toast=1` to the design screen route |
+| Web | Run `mise run //web:dev`, then open `http://localhost:5173/design#buttons` (each section has an anchor; `?theme=light` or `?theme=dark` pins the color mode; `?open=menu`, `select`, `dialog`, `toast`, or `tooltip` opens that overlay) |
+| GPUI desktop | `cargo run --package acme-desktop -- --design --dark --scroll 800` (`--open menu`, `select`, `dialog`, `toast`, or `tooltip` opens that overlay) |
+| React Native | Pass `?from=<section number>`, `?sheet=1`, `?menu=1`, `?select=1`, `?dialog=1`, or `?toast=1` to the design screen route |
 | Compose | `mise run //kotlin:render` renders PNG screenshots to `kotlin/build/preview` |
 
 ## Changing the CLI

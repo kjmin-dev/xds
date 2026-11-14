@@ -75,6 +75,8 @@ pub struct Colors {
     pub overlay_background: Color,
     /// Text and icons on the overlay background.
     pub overlay_text: Color,
+    /// Accent-colored marks on the overlay background, such as how much of a video was watched. Light enough to read over any picture, so the same in both modes.
+    pub overlay_accent: Color,
     pub button_primary_background: Color,
     pub button_primary_background_hover: Color,
     pub button_primary_background_pressed: Color,
@@ -151,6 +153,13 @@ pub struct Colors {
     pub checkbox_mark: Color,
     pub checkbox_disabled_background: Color,
     pub checkbox_disabled_mark: Color,
+    /// Off. It holds 3:1 against the page, so the choice is visible before it is made.
+    pub radio_border: Color,
+    pub radio_border_checked: Color,
+    /// The dot inside the chosen one: its shape marks the choice, so color is not the only signal.
+    pub radio_dot: Color,
+    pub radio_disabled_background: Color,
+    pub radio_disabled_dot: Color,
     pub segmented_track: Color,
     pub segmented_text: Color,
     pub segmented_selected_background: Color,
@@ -184,6 +193,7 @@ pub struct Colors {
     pub menu_text_disabled: Color,
     /// Under the pointer, and under the keyboard's highlight.
     pub menu_item_background_hover: Color,
+    /// In dark mode the same as the hover fill: the next step up would not carry the secondary text of a row with a description.
     pub menu_item_background_pressed: Color,
     /// An item that destroys something.
     pub menu_danger_text: Color,
@@ -202,6 +212,22 @@ pub struct Colors {
     pub skeleton_background: Color,
     /// What the placeholder pulses toward.
     pub skeleton_highlight: Color,
+    /// Where a picture goes, while it loads or when there is none.
+    pub thumbnail_background: Color,
+    /// The picture mark on the empty place.
+    pub thumbnail_icon: Color,
+    /// The same as the page: the sidebar is set apart by a hairline, not a fill.
+    pub sidebar_background: Color,
+    pub sidebar_border: Color,
+    pub sidebar_section_title: Color,
+    pub empty_state_icon: Color,
+    /// The hairlines between the items.
+    pub accordion_border: Color,
+    /// The title row of an item under a pointer.
+    pub accordion_header_background_hover: Color,
+    pub accordion_header_background_pressed: Color,
+    /// The chevron that turns when an item opens.
+    pub accordion_icon: Color,
     pub avatar_background: Color,
     pub avatar_text: Color,
     /// The gap between the avatars of a stack. The color of the surface the stack sits on.
@@ -212,6 +238,14 @@ pub struct Colors {
     pub progress_track: Color,
     /// A mark on a neutral track, so it takes the accent text color, which holds 3:1 against the track in both modes.
     pub progress_fill: Color,
+    /// The part of the range above the value.
+    pub slider_track: Color,
+    /// The part of the range up to the value. A mark on a neutral track, so it takes the accent text color, as a progress bar does.
+    pub slider_fill: Color,
+    pub slider_thumb: Color,
+    /// The outline that makes the thumb visible on the page and on the track.
+    pub slider_thumb_border: Color,
+    pub slider_disabled_fill: Color,
     pub list_row_background_hover: Color,
     /// Secondary text still has to read on it.
     pub list_row_background_pressed: Color,
@@ -237,7 +271,7 @@ pub struct Colors {
 
 impl Colors {
     /// Every color with its token name, in token order. For screens that list the colors.
-    pub const fn entries(&self) -> [(&'static str, Color); 169] {
+    pub const fn entries(&self) -> [(&'static str, Color); 190] {
         [
             ("scrim", self.scrim),
             ("background-base", self.background_base),
@@ -280,6 +314,7 @@ impl Colors {
             ("status-info-subtle", self.status_info_subtle),
             ("overlay-background", self.overlay_background),
             ("overlay-text", self.overlay_text),
+            ("overlay-accent", self.overlay_accent),
             ("button-primary-background", self.button_primary_background),
             ("button-primary-background-hover", self.button_primary_background_hover),
             ("button-primary-background-pressed", self.button_primary_background_pressed),
@@ -345,6 +380,11 @@ impl Colors {
             ("checkbox-mark", self.checkbox_mark),
             ("checkbox-disabled-background", self.checkbox_disabled_background),
             ("checkbox-disabled-mark", self.checkbox_disabled_mark),
+            ("radio-border", self.radio_border),
+            ("radio-border-checked", self.radio_border_checked),
+            ("radio-dot", self.radio_dot),
+            ("radio-disabled-background", self.radio_disabled_background),
+            ("radio-disabled-dot", self.radio_disabled_dot),
             ("segmented-track", self.segmented_track),
             ("segmented-text", self.segmented_text),
             ("segmented-selected-background", self.segmented_selected_background),
@@ -386,6 +426,16 @@ impl Colors {
             ("tooltip-text", self.tooltip_text),
             ("skeleton-background", self.skeleton_background),
             ("skeleton-highlight", self.skeleton_highlight),
+            ("thumbnail-background", self.thumbnail_background),
+            ("thumbnail-icon", self.thumbnail_icon),
+            ("sidebar-background", self.sidebar_background),
+            ("sidebar-border", self.sidebar_border),
+            ("sidebar-section-title", self.sidebar_section_title),
+            ("empty-state-icon", self.empty_state_icon),
+            ("accordion-border", self.accordion_border),
+            ("accordion-header-background-hover", self.accordion_header_background_hover),
+            ("accordion-header-background-pressed", self.accordion_header_background_pressed),
+            ("accordion-icon", self.accordion_icon),
             ("avatar-background", self.avatar_background),
             ("avatar-text", self.avatar_text),
             ("avatar-ring", self.avatar_ring),
@@ -393,6 +443,11 @@ impl Colors {
             ("avatar-overflow-text", self.avatar_overflow_text),
             ("progress-track", self.progress_track),
             ("progress-fill", self.progress_fill),
+            ("slider-track", self.slider_track),
+            ("slider-fill", self.slider_fill),
+            ("slider-thumb", self.slider_thumb),
+            ("slider-thumb-border", self.slider_thumb_border),
+            ("slider-disabled-fill", self.slider_disabled_fill),
             ("list-row-background-hover", self.list_row_background_hover),
             ("list-row-background-pressed", self.list_row_background_pressed),
             ("list-row-background-selected", self.list_row_background_selected),
@@ -454,6 +509,7 @@ pub const LIGHT: Colors = Colors {
     status_info_subtle: Color::rgba(239, 248, 255, 1.0),
     overlay_background: Color::rgba(0, 0, 0, 0.72),
     overlay_text: Color::rgba(255, 255, 255, 1.0),
+    overlay_accent: Color::rgba(165, 180, 252, 1.0),
     button_primary_background: Color::rgba(79, 70, 229, 1.0),
     button_primary_background_hover: Color::rgba(67, 56, 202, 1.0),
     button_primary_background_pressed: Color::rgba(55, 48, 163, 1.0),
@@ -519,6 +575,11 @@ pub const LIGHT: Colors = Colors {
     checkbox_mark: Color::rgba(255, 255, 255, 1.0),
     checkbox_disabled_background: Color::rgba(236, 236, 240, 1.0),
     checkbox_disabled_mark: Color::rgba(169, 169, 180, 1.0),
+    radio_border: Color::rgba(132, 132, 143, 1.0),
+    radio_border_checked: Color::rgba(79, 70, 229, 1.0),
+    radio_dot: Color::rgba(79, 70, 229, 1.0),
+    radio_disabled_background: Color::rgba(236, 236, 240, 1.0),
+    radio_disabled_dot: Color::rgba(169, 169, 180, 1.0),
     segmented_track: Color::rgba(236, 236, 240, 1.0),
     segmented_text: Color::rgba(92, 92, 102, 1.0),
     segmented_selected_background: Color::rgba(255, 255, 255, 1.0),
@@ -560,6 +621,16 @@ pub const LIGHT: Colors = Colors {
     tooltip_text: Color::rgba(245, 245, 247, 1.0),
     skeleton_background: Color::rgba(236, 236, 240, 1.0),
     skeleton_highlight: Color::rgba(226, 226, 232, 1.0),
+    thumbnail_background: Color::rgba(236, 236, 240, 1.0),
+    thumbnail_icon: Color::rgba(110, 110, 121, 1.0),
+    sidebar_background: Color::rgba(245, 245, 247, 1.0),
+    sidebar_border: Color::rgba(226, 226, 232, 1.0),
+    sidebar_section_title: Color::rgba(110, 110, 121, 1.0),
+    empty_state_icon: Color::rgba(110, 110, 121, 1.0),
+    accordion_border: Color::rgba(226, 226, 232, 1.0),
+    accordion_header_background_hover: Color::rgba(236, 236, 240, 1.0),
+    accordion_header_background_pressed: Color::rgba(226, 226, 232, 1.0),
+    accordion_icon: Color::rgba(92, 92, 102, 1.0),
     avatar_background: Color::rgba(238, 242, 255, 1.0),
     avatar_text: Color::rgba(79, 70, 229, 1.0),
     avatar_ring: Color::rgba(255, 255, 255, 1.0),
@@ -567,6 +638,11 @@ pub const LIGHT: Colors = Colors {
     avatar_overflow_text: Color::rgba(92, 92, 102, 1.0),
     progress_track: Color::rgba(236, 236, 240, 1.0),
     progress_fill: Color::rgba(79, 70, 229, 1.0),
+    slider_track: Color::rgba(236, 236, 240, 1.0),
+    slider_fill: Color::rgba(79, 70, 229, 1.0),
+    slider_thumb: Color::rgba(255, 255, 255, 1.0),
+    slider_thumb_border: Color::rgba(79, 70, 229, 1.0),
+    slider_disabled_fill: Color::rgba(169, 169, 180, 1.0),
     list_row_background_hover: Color::rgba(236, 236, 240, 1.0),
     list_row_background_pressed: Color::rgba(226, 226, 232, 1.0),
     list_row_background_selected: Color::rgba(238, 242, 255, 1.0),
@@ -626,6 +702,7 @@ pub const DARK: Colors = Colors {
     status_info_subtle: Color::rgba(16, 42, 86, 1.0),
     overlay_background: Color::rgba(0, 0, 0, 0.72),
     overlay_text: Color::rgba(255, 255, 255, 1.0),
+    overlay_accent: Color::rgba(165, 180, 252, 1.0),
     button_primary_background: Color::rgba(91, 94, 240, 1.0),
     button_primary_background_hover: Color::rgba(79, 70, 229, 1.0),
     button_primary_background_pressed: Color::rgba(67, 56, 202, 1.0),
@@ -691,6 +768,11 @@ pub const DARK: Colors = Colors {
     checkbox_mark: Color::rgba(255, 255, 255, 1.0),
     checkbox_disabled_background: Color::rgba(44, 44, 51, 1.0),
     checkbox_disabled_mark: Color::rgba(92, 92, 102, 1.0),
+    radio_border: Color::rgba(132, 132, 143, 1.0),
+    radio_border_checked: Color::rgba(91, 94, 240, 1.0),
+    radio_dot: Color::rgba(91, 94, 240, 1.0),
+    radio_disabled_background: Color::rgba(44, 44, 51, 1.0),
+    radio_disabled_dot: Color::rgba(92, 92, 102, 1.0),
     segmented_track: Color::rgba(44, 44, 51, 1.0),
     segmented_text: Color::rgba(169, 169, 180, 1.0),
     segmented_selected_background: Color::rgba(34, 34, 40, 1.0),
@@ -718,7 +800,7 @@ pub const DARK: Colors = Colors {
     menu_icon: Color::rgba(169, 169, 180, 1.0),
     menu_text_disabled: Color::rgba(92, 92, 102, 1.0),
     menu_item_background_hover: Color::rgba(44, 44, 51, 1.0),
-    menu_item_background_pressed: Color::rgba(68, 68, 76, 1.0),
+    menu_item_background_pressed: Color::rgba(44, 44, 51, 1.0),
     menu_danger_text: Color::rgba(249, 112, 102, 1.0),
     menu_danger_background_hover: Color::rgba(85, 22, 12, 1.0),
     dialog_background: Color::rgba(34, 34, 40, 1.0),
@@ -732,6 +814,16 @@ pub const DARK: Colors = Colors {
     tooltip_text: Color::rgba(24, 24, 28, 1.0),
     skeleton_background: Color::rgba(44, 44, 51, 1.0),
     skeleton_highlight: Color::rgba(68, 68, 76, 1.0),
+    thumbnail_background: Color::rgba(44, 44, 51, 1.0),
+    thumbnail_icon: Color::rgba(132, 132, 143, 1.0),
+    sidebar_background: Color::rgba(14, 14, 17, 1.0),
+    sidebar_border: Color::rgba(44, 44, 51, 1.0),
+    sidebar_section_title: Color::rgba(132, 132, 143, 1.0),
+    empty_state_icon: Color::rgba(132, 132, 143, 1.0),
+    accordion_border: Color::rgba(44, 44, 51, 1.0),
+    accordion_header_background_hover: Color::rgba(34, 34, 40, 1.0),
+    accordion_header_background_pressed: Color::rgba(44, 44, 51, 1.0),
+    accordion_icon: Color::rgba(169, 169, 180, 1.0),
     avatar_background: Color::rgba(30, 27, 75, 1.0),
     avatar_text: Color::rgba(165, 180, 252, 1.0),
     avatar_ring: Color::rgba(24, 24, 28, 1.0),
@@ -739,6 +831,11 @@ pub const DARK: Colors = Colors {
     avatar_overflow_text: Color::rgba(169, 169, 180, 1.0),
     progress_track: Color::rgba(44, 44, 51, 1.0),
     progress_fill: Color::rgba(165, 180, 252, 1.0),
+    slider_track: Color::rgba(44, 44, 51, 1.0),
+    slider_fill: Color::rgba(165, 180, 252, 1.0),
+    slider_thumb: Color::rgba(34, 34, 40, 1.0),
+    slider_thumb_border: Color::rgba(165, 180, 252, 1.0),
+    slider_disabled_fill: Color::rgba(92, 92, 102, 1.0),
     list_row_background_hover: Color::rgba(34, 34, 40, 1.0),
     list_row_background_pressed: Color::rgba(44, 44, 51, 1.0),
     list_row_background_selected: Color::rgba(30, 27, 75, 1.0),
@@ -880,6 +977,8 @@ pub struct Sizes {
     pub switch_height: f32,
     /// The box, not the pressable area.
     pub checkbox: f32,
+    /// The circle, not the pressable area.
+    pub radio: f32,
     /// The least height of a row in a list.
     pub list_row: f32,
     /// A row of a menu or a sidebar, where many rows share little room.
@@ -912,6 +1011,10 @@ pub struct Sizes {
     pub count_badge: f32,
     /// The thickness of a progress bar.
     pub progress: f32,
+    /// The thickness of a slider's track.
+    pub slider_track: f32,
+    /// The thumb, not the pressable area.
+    pub slider_thumb: f32,
     pub spinner_sm: f32,
     pub spinner_md: f32,
     pub spinner_lg: f32,
@@ -919,6 +1022,10 @@ pub struct Sizes {
     pub dialog: f32,
     /// The most a toast is wide.
     pub toast: f32,
+    /// The width of an open sidebar.
+    pub sidebar: f32,
+    /// The width of a collapsed sidebar, which shows icons only.
+    pub sidebar_rail: f32,
 }
 
 pub const POINTER: Sizes = Sizes {
@@ -929,6 +1036,7 @@ pub const POINTER: Sizes = Sizes {
     switch_width: 36.0,
     switch_height: 20.0,
     checkbox: 18.0,
+    radio: 18.0,
     list_row: 40.0,
     list_row_compact: 32.0,
     bar: 48.0,
@@ -947,11 +1055,15 @@ pub const POINTER: Sizes = Sizes {
     tab: 40.0,
     count_badge: 18.0,
     progress: 8.0,
+    slider_track: 4.0,
+    slider_thumb: 16.0,
     spinner_sm: 16.0,
     spinner_md: 24.0,
     spinner_lg: 32.0,
     dialog: 480.0,
     toast: 480.0,
+    sidebar: 240.0,
+    sidebar_rail: 72.0,
 };
 
 pub const TOUCH: Sizes = Sizes {
@@ -962,6 +1074,7 @@ pub const TOUCH: Sizes = Sizes {
     switch_width: 52.0,
     switch_height: 32.0,
     checkbox: 24.0,
+    radio: 24.0,
     list_row: 56.0,
     list_row_compact: 44.0,
     bar: 56.0,
@@ -980,11 +1093,15 @@ pub const TOUCH: Sizes = Sizes {
     tab: 48.0,
     count_badge: 20.0,
     progress: 8.0,
+    slider_track: 4.0,
+    slider_thumb: 24.0,
     spinner_sm: 16.0,
     spinner_md: 24.0,
     spinner_lg: 32.0,
     dialog: 480.0,
     toast: 480.0,
+    sidebar: 240.0,
+    sidebar_rail: 72.0,
 };
 
 /// The icons of the design system. `name` is the icon's file name in design/icons.

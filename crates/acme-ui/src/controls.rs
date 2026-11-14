@@ -6,20 +6,30 @@
 //! theme and not from the tokens of these components.
 
 use std::rc::Rc;
+use std::sync::Arc;
 
 use acme_tokens as tokens;
+use gpui_kit::base::animation::cubic_bezier;
+use gpui_kit::base::slider::{SliderEvent, SliderState};
+use gpui_kit::base::{
+    Accordion as BaseAccordion, AccordionHeader, AccordionItem as BaseAccordionItem,
+    AccordionPanel, AccordionTrigger, MotionReveal, Radio as BaseRadio,
+    RadioGroup as BaseRadioGroup, Slider as BaseSlider, SliderIndicator, SliderThumb, SliderTrack,
+    Transition, transition,
+};
 use gpui_kit::component::{
     Icon, Sizable, ThemeStyled, checkbox::Checkbox, spinner::Spinner, switch::Switch,
 };
 use gpui_kit::prelude::FluentBuilder;
 use gpui_kit::{
-    Animation, AnimationExt, AnyElement, App, BoxShadow, ClickEvent, Div, ElementId, FocusHandle,
-    Hsla, ImageSource, InteractiveElement, IntoElement, Length, MouseButton, ObjectFit,
-    ParentElement, RenderOnce, Rgba, Role, SharedString, StatefulInteractiveElement, Styled,
-    StyledImage, Toggled, Window, div, img, point, px, relative,
+    Animation, AnimationExt, AnyElement, App, AppContext, BoxShadow, ClickEvent, Div, ElementId,
+    Entity, FocusHandle, FontFeatures, Hsla, ImageSource, InteractiveElement, IntoElement,
+    KeyDownEvent, Length, MouseButton, ObjectFit, ParentElement, Refineable, RenderOnce, Rgba,
+    Role, SharedString, StatefulInteractiveElement, StyleRefinement, Styled, StyledImage,
+    Subscription, Toggled, Window, div, img, percentage, point, px, relative,
 };
 
-use crate::components::{ControlSize, shadow};
+use crate::components::{ControlSize, field_label, shadow};
 use crate::theme::{TypographyExt, color, palette};
 
 /// Turns a setting on or off, and takes effect at once. The result is a GPUI Component switch:
@@ -32,6 +42,296 @@ pub fn switch(id: impl Into<ElementId>, checked: bool) -> Switch {
 /// checkbox: add `.label`, `.on_click` or `.disabled` to it.
 pub fn checkbox(id: impl Into<ElementId>, checked: bool) -> Checkbox {
     Checkbox::new(id).checked(checked)
+}
+
+// ---------------------------------------------------------------- keyboard
+
+/// Where an arrow key, Home or End moves in a set of options.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Step {
+    Next,
+    Previous,
+    First,
+    Last,
+}
+
+/// The place `step` leads to from `current` among `len` places, going round at the ends. With
+/// nothing current, `Next` starts at the first place and `Previous` at the last.
+pub(crate) fn move_index(current: Option<usize>, len: usize, step: Step) -> Option<usize> {
+    if len == 0 {
+        return None;
+    }
+    Some(match (step, current) {
+        (Step::First, _) | (Step::Next, None) => 0,
+        (Step::Last, _) | (Step::Previous, None) => len - 1,
+        (Step::Next, Some(at)) => (at + 1) % len,
+        (Step::Previous, Some(at)) => (at + len - 1) % len,
+    })
+}
+
+// ---------------------------------------------------------------- radio group
+
+/// One choice of a [`RadioGroup`]: the value it stands for, and what it shows.
+pub struct RadioOption {
+    value: SharedString,
+    label: SharedString,
+    description: Option<SharedString>,
+}
+
+impl RadioOption {
+    pub fn new(value: impl Into<SharedString>, label: impl Into<SharedString>) -> Self {
+        Self {
+            value: value.into(),
+            label: label.into(),
+            description: None,
+        }
+    }
+
+    /// A line under the label.
+    pub fn description(mut self, description: impl Into<SharedString>) -> Self {
+        self.description = Some(description.into());
+        self
+    }
+}
+
+/// One choice among a few, applied later with the form it belongs to, like a checkbox. For a
+/// choice that takes effect at once, among two to four, a segmented control is the usual pick.
+///
+/// GPUI Base's unstyled radio and radio group give it its roles, its focus and Enter and Space.
+/// The circle is drawn here, because GPUI Component's radio draws a check in a filled circle,
+/// and the arrow keys move the choice, as they do in a native group.
+#[derive(IntoElement)]
+pub struct RadioGroup {
+    id: ElementId,
+    label: SharedString,
+    options: Vec<RadioOption>,
+    value: Option<SharedString>,
+    disabled: bool,
+    error: Option<SharedString>,
+    on_change: Option<ValueHandler>,
+}
+
+impl RadioGroup {
+    /// The label is the group's visible legend, and names it for assistive technology.
+    pub fn new(
+        id: impl Into<ElementId>,
+        label: impl Into<SharedString>,
+        options: impl IntoIterator<Item = RadioOption>,
+    ) -> Self {
+        Self {
+            id: id.into(),
+            label: label.into(),
+            options: options.into_iter().collect(),
+            value: None,
+            disabled: false,
+            error: None,
+            on_change: None,
+        }
+    }
+
+    /// The value of the chosen option. Nothing is chosen unless this is set.
+    pub fn value(mut self, value: impl Into<SharedString>) -> Self {
+        self.value = Some(value.into());
+        self
+    }
+
+    /// Disables the whole group.
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+
+    /// Shown under the options, and announced.
+    pub fn error(mut self, error: Option<impl Into<SharedString>>) -> Self {
+        self.error = error.map(Into::into);
+        self
+    }
+
+    /// Called with the value of the option that was chosen. The group does not choose by
+    /// itself: the handler decides. Takes a reference, like the handlers of GPUI Component, so
+    /// `cx.listener` fits.
+    pub fn on_change(
+        mut self,
+        handler: impl Fn(&SharedString, &mut Window, &mut App) + 'static,
+    ) -> Self {
+        self.on_change = Some(Rc::new(handler));
+        self
+    }
+}
+
+impl RenderOnce for RadioGroup {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let c = palette(cx);
+        let disabled = self.disabled;
+        let count = self.options.len();
+        let chosen = self.value.as_ref().and_then(|value| {
+            self.options
+                .iter()
+                .position(|option| &option.value == value)
+        });
+        let handles: Rc<Vec<FocusHandle>> = Rc::new(
+            (0..count)
+                .map(|index| focus_handle(&(self.id.clone(), index.to_string()).into(), window, cx))
+                .collect(),
+        );
+        let values: Rc<Vec<SharedString>> = Rc::new(
+            self.options
+                .iter()
+                .map(|option| option.value.clone())
+                .collect(),
+        );
+        // Tab reaches the group once, at its choice, and the arrow keys move inside it.
+        let stop = chosen.unwrap_or(0);
+        let side = px(tokens::POINTER.radio);
+        // The circle sits on the middle of the label's first line.
+        let line = px(tokens::TYPOGRAPHY_BODY.line_height_px());
+        let (label_color, description_color) = if disabled {
+            (c.text_disabled, c.text_disabled)
+        } else {
+            (c.text_primary, c.text_secondary)
+        };
+
+        let radios = self
+            .options
+            .into_iter()
+            .enumerate()
+            .map(|(index, option)| {
+                let checked = chosen == Some(index);
+                let focused = !disabled && handles[index].is_focused(window);
+                let (border_width, border, dot) = if disabled {
+                    // Filled, without an outline, as a disabled checkbox is.
+                    (0.0, gpui_kit::transparent_black(), c.radio_disabled_dot)
+                } else if checked {
+                    (
+                        tokens::BORDER_WIDTH_THICK,
+                        color(c.radio_border_checked),
+                        c.radio_dot,
+                    )
+                } else {
+                    (
+                        tokens::BORDER_WIDTH_THIN,
+                        color(c.radio_border),
+                        c.radio_dot,
+                    )
+                };
+                let circle = div()
+                    .flex()
+                    .flex_none()
+                    .items_center()
+                    .justify_center()
+                    .size(side)
+                    .mt((line - side) / 2.0)
+                    .rounded_full()
+                    .border(px(border_width))
+                    .border_color(border)
+                    .when(disabled, |circle| {
+                        circle.bg(color(c.radio_disabled_background))
+                    })
+                    // The dot is the mark of the choice, so it does not rest on color alone.
+                    .when(checked, |circle| {
+                        circle.child(div().size(side / 2.0).rounded_full().bg(color(dot)))
+                    })
+                    .when(focused, |circle| circle.focus_ring_style(window, cx));
+                let on_change = self.on_change.clone();
+                let value = option.value.clone();
+                BaseRadio::new((self.id.clone(), index.to_string()))
+                    .checked(checked)
+                    .disabled(disabled)
+                    .track_focus(&handles[index])
+                    .tab_stop(index == stop)
+                    .set_position(index + 1, count)
+                    .accessibility_label(option.label.clone())
+                    .when_some(option.description.clone(), |radio, description| {
+                        radio.aria_description(description)
+                    })
+                    .when_some(on_change, |radio, on_change| {
+                        radio.on_change(move |_, _, window, cx| on_change(&value, window, cx))
+                    })
+                    // A click does not move the focus here, as on a checkbox, so the ring
+                    // shows only when the keyboard got there.
+                    .on_mouse_down(MouseButton::Left, |_, window, _| window.prevent_default())
+                    .flex()
+                    .items_start()
+                    .gap(px(tokens::SPACE_2))
+                    .min_h(px(tokens::POINTER.target_min))
+                    .child(circle)
+                    .child(
+                        div()
+                            .flex()
+                            .flex_col()
+                            .child(
+                                div()
+                                    .typography(tokens::TYPOGRAPHY_BODY)
+                                    .text_color(color(label_color))
+                                    .child(option.label),
+                            )
+                            .children(option.description.map(|description| {
+                                div()
+                                    .typography(tokens::TYPOGRAPHY_DETAIL)
+                                    .text_color(color(description_color))
+                                    .child(description)
+                            })),
+                    )
+            })
+            .collect::<Vec<_>>();
+
+        let on_change = self.on_change;
+        let group = BaseRadioGroup::new(self.id.clone())
+            .aria_label(self.label.clone())
+            .flex()
+            .flex_col()
+            .items_start()
+            .gap(px(tokens::SPACE_2))
+            .children(radios)
+            .when(!disabled, |group| {
+                group.on_key_down(move |event: &KeyDownEvent, window, cx| {
+                    if event.keystroke.modifiers.modified() {
+                        return;
+                    }
+                    let step = match event.keystroke.key.as_str() {
+                        "up" | "left" => Step::Previous,
+                        "down" | "right" => Step::Next,
+                        _ => return,
+                    };
+                    let current = handles.iter().position(|handle| handle.is_focused(window));
+                    let Some(next) = move_index(current, handles.len(), step) else {
+                        return;
+                    };
+                    cx.stop_propagation();
+                    handles[next].focus(window, cx);
+                    if let Some(on_change) = &on_change {
+                        on_change(&values[next], window, cx);
+                    }
+                })
+            });
+        let error = self.error.map(|error| {
+            div()
+                .id((self.id.clone(), "error"))
+                // Read out when it appears.
+                .role(Role::Alert)
+                .aria_label(error.clone())
+                .typography(tokens::TYPOGRAPHY_DETAIL)
+                .text_color(color(c.status_danger))
+                .child(error)
+        });
+        div()
+            .flex()
+            .flex_col()
+            .gap(px(tokens::SPACE_1))
+            .child(
+                // In a field's label role; disabled, it fades with the options it names.
+                div()
+                    .typography(tokens::TYPOGRAPHY_LABEL)
+                    .text_color(color(if disabled {
+                        c.text_disabled
+                    } else {
+                        c.text_primary
+                    }))
+                    .child(self.label),
+            )
+            .child(group)
+            .children(error)
+    }
 }
 
 // ---------------------------------------------------------------- segmented control
@@ -308,7 +608,7 @@ impl RenderOnce for ChipBar {
 
 // ---------------------------------------------------------------- tabs
 
-type ValueHandler = Rc<dyn Fn(&SharedString, &mut Window, &mut App)>;
+pub(crate) type ValueHandler = Rc<dyn Fn(&SharedString, &mut Window, &mut App)>;
 
 /// One tab of [`Tabs`]: the value it stands for, and what it shows.
 pub struct TabItem {
@@ -922,14 +1222,319 @@ impl RenderOnce for ProgressBar {
     }
 }
 
+// ---------------------------------------------------------------- slider
+
+type NumberHandler = Rc<dyn Fn(&f32, &mut Window, &mut App)>;
+
+/// `value` on the nearest step counted from `min`, inside the range. A step that is not a
+/// positive number leaves the value where it is.
+fn snap(value: f32, min: f32, max: f32, step: f32) -> f32 {
+    let value = if step > 0.0 && step.is_finite() {
+        min + ((value - min) / step).round() * step
+    } else {
+        value
+    };
+    value.min(max).max(min)
+}
+
+/// How far one press of an arrow key moves: one step, or a hundredth of the range for a
+/// slider without steps.
+fn key_step(min: f32, max: f32, step: f32) -> f32 {
+    if step > 0.0 && step.is_finite() {
+        step
+    } else {
+        (max - min) / 100.0
+    }
+}
+
+/// How many decimals a value needs to show a step: none for whole steps, one for tenths.
+fn decimals(step: f32) -> usize {
+    let mut scaled = step.abs();
+    let mut decimals = 0;
+    while decimals < 4 && (scaled - scaled.round()).abs() > 1e-3 {
+        scaled *= 10.0;
+        decimals += 1;
+    }
+    decimals
+}
+
+/// What a slider keeps from frame to frame: GPUI Base's state, which its track and thumb
+/// move, and the latest handler, which hears of the moves.
+struct SliderWatch {
+    state: Entity<SliderState>,
+    handler: Option<NumberHandler>,
+    _subscription: Subscription,
+}
+
+/// Picks a number in a range by dragging, by pressing the track, or with the arrow keys, Home
+/// and End.
+///
+/// GPUI Base's unstyled slider pieces give it the dragging, the pressing and its role and
+/// value for assistive technology; the track and the thumb are drawn here, because GPUI
+/// Component's slider tints them from one color. GPUI has no arrow keys for a slider, so they
+/// are handled here.
+#[derive(IntoElement)]
+pub struct Slider {
+    id: ElementId,
+    label: SharedString,
+    value: f32,
+    min: f32,
+    max: f32,
+    step: f32,
+    disabled: bool,
+    show_value: bool,
+    on_change: Option<NumberHandler>,
+}
+
+impl Slider {
+    /// The label is drawn above the slider and names it for assistive technology. The range
+    /// is 0 to 100 in steps of 1 unless set.
+    pub fn new(id: impl Into<ElementId>, label: impl Into<SharedString>, value: f32) -> Self {
+        Self {
+            id: id.into(),
+            label: label.into(),
+            value,
+            min: 0.0,
+            max: 100.0,
+            step: 1.0,
+            disabled: false,
+            show_value: false,
+            on_change: None,
+        }
+    }
+
+    pub fn min(mut self, min: f32) -> Self {
+        self.min = min;
+        self
+    }
+
+    pub fn max(mut self, max: f32) -> Self {
+        self.max = max;
+        self
+    }
+
+    /// Values snap to multiples of this, counted from the minimum.
+    pub fn step(mut self, step: f32) -> Self {
+        self.step = step;
+        self
+    }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+
+    /// Shows the value at the end of the label's row.
+    pub fn show_value(mut self, show_value: bool) -> Self {
+        self.show_value = show_value;
+        self
+    }
+
+    /// Called with each new value while the thumb moves. The slider does not move by itself:
+    /// the handler decides. Takes a reference, like the handlers of GPUI Component, so
+    /// `cx.listener` fits.
+    pub fn on_change(mut self, handler: impl Fn(&f32, &mut Window, &mut App) + 'static) -> Self {
+        self.on_change = Some(Rc::new(handler));
+        self
+    }
+}
+
+impl RenderOnce for Slider {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let c = palette(cx);
+        let disabled = self.disabled;
+        let (min, step) = (self.min, self.step);
+        let max = self.max.max(min);
+        let value = self.value.clamp(min, max);
+
+        let watch = window.use_keyed_state((self.id.clone(), "slider"), cx, |window, cx| {
+            let state = cx.new(|_| SliderState::new());
+            let subscription = cx.subscribe_in(
+                &state,
+                window,
+                |watch: &mut SliderWatch, _, event: &SliderEvent, window, cx| {
+                    if let SliderEvent::Change(value) = event
+                        && let Some(handler) = watch.handler.clone()
+                    {
+                        handler(&value.end(), window, cx);
+                    }
+                },
+            );
+            SliderWatch {
+                state,
+                handler: None,
+                _subscription: subscription,
+            }
+        });
+        // The handler is new every frame; the subscription calls the latest.
+        let state = watch.update(cx, |watch, _| {
+            watch.handler = self.on_change.clone();
+            watch.state.clone()
+        });
+        // GPUI Base's state follows the value given here, and is only touched when it differs,
+        // since touching it asks for another frame.
+        state.update(cx, |state, cx| {
+            if state.min_value() != min || state.max_value() != max || state.step_value() != step {
+                *state = SliderState::new()
+                    .min(min)
+                    .max(max)
+                    .step(step)
+                    .default_value(value);
+                cx.notify();
+            } else if state.value().end() != value {
+                state.set_value(value, window, cx);
+            }
+        });
+
+        let fraction = if max > min {
+            (value - min) / (max - min)
+        } else {
+            0.0
+        };
+        let thumb = px(tokens::POINTER.slider_thumb);
+        let track = px(tokens::POINTER.slider_track);
+        // The thumb's center travels from end to end of the track, so the track reaches half
+        // a thumb past the range on each side, and the thumb stays inside the slider.
+        let half = thumb / 2.0;
+        let mark = if disabled {
+            c.slider_disabled_fill
+        } else {
+            c.slider_fill
+        };
+        let thumb_border = if disabled {
+            c.slider_disabled_fill
+        } else {
+            c.slider_thumb_border
+        };
+        let focus = focus_handle(&self.id, window, cx);
+        // A press focuses the slider for the arrow keys; the ring is for the keyboard.
+        let ring = !disabled && focus.is_focused(window) && window.last_input_was_keyboard();
+
+        let indicator = SliderIndicator::new(&state)
+            .relative()
+            .w_full()
+            .h(track)
+            .child(
+                div()
+                    .absolute()
+                    .top_0()
+                    .bottom_0()
+                    .left(-half)
+                    .right(-half)
+                    .rounded_full()
+                    .bg(color(c.slider_track)),
+            )
+            .child(
+                div()
+                    .absolute()
+                    .top_0()
+                    .bottom_0()
+                    .left(-half)
+                    .right(relative(1.0 - fraction))
+                    .rounded_full()
+                    .bg(color(mark)),
+            )
+            .child(
+                SliderThumb::new(&state)
+                    .disabled(disabled)
+                    .absolute()
+                    .top((track - thumb) / 2.0)
+                    .left(relative(fraction))
+                    .ml(-half)
+                    .size(thumb)
+                    .rounded_full()
+                    .border(px(tokens::BORDER_WIDTH_THICK))
+                    .border_color(color(thumb_border))
+                    .bg(color(c.slider_thumb))
+                    .when(ring, |thumb| thumb.focus_ring_style(window, cx)),
+            );
+        let slider = BaseSlider::new(&state)
+            .disabled(disabled)
+            .accessibility_label(self.label.clone())
+            .when(!disabled, |slider| {
+                slider.track_focus(&focus.clone().tab_index(0).tab_stop(true))
+            })
+            .flex()
+            .w_full()
+            .child(
+                // The whole height that takes a press, which a pointer can hit.
+                SliderTrack::new(&state)
+                    .disabled(disabled)
+                    .flex()
+                    .items_center()
+                    .w_full()
+                    .h(px(tokens::POINTER.target_min))
+                    .px(half)
+                    .child(indicator),
+            );
+
+        let shown = self.show_value.then(|| {
+            div()
+                .flex_none()
+                .typography(tokens::TYPOGRAPHY_DETAIL)
+                .text_color(color(c.text_secondary))
+                // Figures of one width, so the label row does not shift as the value changes.
+                .font_features(FontFeatures(Arc::new(vec![("tnum".into(), 1)])))
+                .child(format!("{value:.0$}", decimals(step)))
+        });
+        let on_change = self.on_change;
+        div()
+            .flex()
+            .flex_col()
+            .gap(px(tokens::SPACE_1))
+            .w_full()
+            .child(
+                div()
+                    .flex()
+                    .items_center()
+                    .justify_between()
+                    .gap(px(tokens::SPACE_3))
+                    .child(field_label(self.label, disabled, c))
+                    .children(shown),
+            )
+            .child(slider)
+            .when(!disabled, |root| {
+                root
+                    // The thumb keeps its press from the slider, so the focus is taken
+                    // before either hears of it.
+                    .capture_any_mouse_down(move |_, window, cx| focus.focus(window, cx))
+                    .on_key_down(move |event: &KeyDownEvent, window, cx| {
+                        if event.keystroke.modifiers.modified() {
+                            return;
+                        }
+                        let by = key_step(min, max, step);
+                        let next = match event.keystroke.key.as_str() {
+                            "left" | "down" => value - by,
+                            "right" | "up" => value + by,
+                            "pagedown" => value - by * 10.0,
+                            "pageup" => value + by * 10.0,
+                            "home" => min,
+                            "end" => max,
+                            _ => return,
+                        };
+                        cx.stop_propagation();
+                        let next = snap(next, min, max, step);
+                        if next != value
+                            && let Some(on_change) = &on_change
+                        {
+                            on_change(&next, window, cx);
+                        }
+                    })
+            })
+    }
+}
+
 // ---------------------------------------------------------------- list row
 
 pub(crate) type ClickHandler = Rc<dyn Fn(&ClickEvent, &mut Window, &mut App)>;
 
-/// One line of a list or a settings view. Separate rows with a divider.
+/// One line of a list or a settings view. Separate rows with a divider. A row that can be
+/// clicked can also be reached and pressed with the keyboard. Style it like any element, as a
+/// sidebar rounds its rows.
 #[derive(IntoElement)]
 pub struct ListRow {
     id: ElementId,
+    style: StyleRefinement,
     title: SharedString,
     description: Option<SharedString>,
     leading: Option<AnyElement>,
@@ -938,6 +1543,7 @@ pub struct ListRow {
     disabled: bool,
     selected: bool,
     compact: bool,
+    title_hidden: bool,
     on_click: Option<ClickHandler>,
 }
 
@@ -945,6 +1551,7 @@ impl ListRow {
     pub fn new(id: impl Into<ElementId>, title: impl Into<SharedString>) -> Self {
         Self {
             id: id.into(),
+            style: StyleRefinement::default(),
             title: title.into(),
             description: None,
             leading: None,
@@ -953,8 +1560,16 @@ impl ListRow {
             disabled: false,
             selected: false,
             compact: false,
+            title_hidden: false,
             on_click: None,
         }
+    }
+
+    /// Draws the leading element alone, centered, and leaves the title to assistive
+    /// technology: a row of a collapsed sidebar.
+    pub(crate) fn title_hidden(mut self) -> Self {
+        self.title_hidden = true;
+        self
     }
 
     /// Marks the row as the current choice: the open page of a sidebar, the picked item of a
@@ -1010,8 +1625,14 @@ impl ListRow {
     }
 }
 
+impl Styled for ListRow {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
 impl RenderOnce for ListRow {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
         let c = palette(cx);
         let title_color = if self.disabled {
             c.text_secondary
@@ -1054,7 +1675,11 @@ impl RenderOnce for ListRow {
         } else {
             (c.list_row_background_hover, c.list_row_background_pressed)
         };
-        div()
+        let focus = on_click
+            .is_some()
+            .then(|| focus_handle(&self.id, window, cx));
+        let focused = focus.as_ref().is_some_and(|focus| focus.is_focused(window));
+        let mut row = div()
             .id(self.id)
             // With a role GPUI reports the row, and with it whether it is the selected one.
             .role(Role::ListItem)
@@ -1069,39 +1694,274 @@ impl RenderOnce for ListRow {
             .w_full()
             .min_h(px(min_height))
             .px(px(tokens::SPACE_4))
-            .py(px(padding))
-            .children(self.leading)
-            .child(
-                div()
-                    .flex_1()
+            .py(px(padding));
+        if self.title_hidden {
+            row = row.justify_center().px(px(0.0)).children(self.leading);
+        } else {
+            row = row
+                .children(self.leading)
+                .child(
+                    div()
+                        .flex_1()
+                        .min_w_0()
+                        .flex()
+                        .flex_col()
+                        .gap(px(tokens::SPACE_0_5))
+                        .child(
+                            div()
+                                .typography(title_style)
+                                .text_color(color(title_color))
+                                .child(self.title),
+                        )
+                        .children(self.description.map(|description| {
+                            div()
+                                .typography(description_style)
+                                .text_color(color(c.text_secondary))
+                                .child(description)
+                        })),
+                )
+                .children(self.trailing)
+                .when(self.chevron, |row| {
+                    row.child(
+                        icon(tokens::Icon::ChevronRight, IconSize::Sm)
+                            .text_color(color(c.text_tertiary)),
+                    )
+                });
+        }
+        row.style().refine(&self.style);
+        row.when_some(on_click.zip(focus), |row, (on_click, focus)| {
+            row.track_focus(&focus.tab_index(0).tab_stop(true))
+                .hover(|row| row.bg(color(hover)))
+                .active(|row| row.bg(color(pressed)))
+                // A click does not move the focus here, as on a button, so the ring shows
+                // only when the keyboard got there.
+                .on_mouse_down(MouseButton::Left, |_, window, _| window.prevent_default())
+                .on_click(move |event, window, cx| on_click(event, window, cx))
+        })
+        .when(focused, |row| row.focus_ring_style(window, cx))
+    }
+}
+
+// ---------------------------------------------------------------- accordion
+
+/// One item of an [`Accordion`]: the value it stands for, its title, and the body that opens
+/// under the title.
+pub struct AccordionItem {
+    value: SharedString,
+    title: SharedString,
+    description: Option<SharedString>,
+    content: AnyElement,
+}
+
+impl AccordionItem {
+    /// The body is set in body text, in the secondary color, unless it sets its own.
+    pub fn new(
+        value: impl Into<SharedString>,
+        title: impl Into<SharedString>,
+        content: impl IntoElement,
+    ) -> Self {
+        Self {
+            value: value.into(),
+            title: title.into(),
+            description: None,
+            content: content.into_any_element(),
+        }
+    }
+
+    /// A line under the title.
+    pub fn description(mut self, description: impl Into<SharedString>) -> Self {
+        self.description = Some(description.into());
+        self
+    }
+}
+
+type ValuesHandler = Rc<dyn Fn(&[SharedString], &mut Window, &mut App)>;
+
+/// The values that are open after the item `value` is pressed: it closes if it was open; if
+/// not it opens, alone unless `multiple`.
+fn toggle_expanded(
+    expanded: &[SharedString],
+    value: &SharedString,
+    multiple: bool,
+) -> Vec<SharedString> {
+    if expanded.contains(value) {
+        expanded
+            .iter()
+            .filter(|open| *open != value)
+            .cloned()
+            .collect()
+    } else if multiple {
+        expanded.iter().chain([value]).cloned().collect()
+    } else {
+        vec![value.clone()]
+    }
+}
+
+/// Items whose bodies open and close under their titles: one at a time, or several with
+/// `multiple`. Which are open is the app's business: the accordion holds no state.
+///
+/// GPUI Base's unstyled accordion gives each title row its role and its expanded state, and
+/// its reveal opens the body. The rows are drawn here, with a hairline between items, and the
+/// motion takes the design system's duration and easing, because GPUI Component's accordion is
+/// a bordered card that opens on a spring.
+#[derive(IntoElement)]
+pub struct Accordion {
+    id: ElementId,
+    items: Vec<AccordionItem>,
+    expanded: Vec<SharedString>,
+    multiple: bool,
+    on_change: Option<ValuesHandler>,
+}
+
+impl Accordion {
+    pub fn new(id: impl Into<ElementId>, items: impl IntoIterator<Item = AccordionItem>) -> Self {
+        Self {
+            id: id.into(),
+            items: items.into_iter().collect(),
+            expanded: Vec::new(),
+            multiple: false,
+            on_change: None,
+        }
+    }
+
+    /// The values of the items that are open.
+    pub fn expanded(mut self, values: impl IntoIterator<Item = impl Into<SharedString>>) -> Self {
+        self.expanded = values.into_iter().map(Into::into).collect();
+        self
+    }
+
+    /// Lets several items be open at once. Unless it is set, opening one closes the others.
+    pub fn multiple(mut self, multiple: bool) -> Self {
+        self.multiple = multiple;
+        self
+    }
+
+    /// Called with the values that are open after a title was pressed. Takes a reference,
+    /// like the handlers of GPUI Component, so `cx.listener` fits.
+    pub fn on_change(
+        mut self,
+        handler: impl Fn(&[SharedString], &mut Window, &mut App) + 'static,
+    ) -> Self {
+        self.on_change = Some(Rc::new(handler));
+        self
+    }
+}
+
+impl RenderOnce for Accordion {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let c = palette(cx);
+        let hairline = px(tokens::BORDER_WIDTH_THIN);
+        let [x1, y1, x2, y2] = tokens::MOTION_EASING_STANDARD;
+        let expanded = Rc::new(self.expanded);
+        let items = self
+            .items
+            .into_iter()
+            .map(|item| {
+                let open = expanded.contains(&item.value);
+                let key = |part: &str| -> ElementId {
+                    (self.id.clone(), format!("{part}-{}", item.value)).into()
+                };
+                // Under reduced motion the transition lands at once, so the body does not
+                // animate.
+                let progress = transition(
+                    key("motion"),
+                    if open { 1.0_f32 } else { 0.0 },
+                    Transition::new(tokens::MOTION_DURATION_NORMAL)
+                        .ease(cubic_bezier(x1, y1, x2, y2)),
+                    window,
+                    cx,
+                )
+                .clamp(0.0, 1.0);
+                let trigger_id = key("trigger");
+                let focus = focus_handle(&trigger_id, window, cx);
+                let focused = focus.is_focused(window);
+                let on_change = self.on_change.clone().map(|on_change| {
+                    let (expanded, value, multiple) =
+                        (expanded.clone(), item.value.clone(), self.multiple);
+                    move |_: bool, _: &ClickEvent, window: &mut Window, cx: &mut App| {
+                        on_change(&toggle_expanded(&expanded, &value, multiple), window, cx);
+                    }
+                });
+                let trigger = AccordionTrigger::new(trigger_id)
+                    .open(open)
+                    .track_focus(&focus.tab_index(0).tab_stop(true))
+                    .aria_label(item.title.clone())
                     .flex()
-                    .flex_col()
-                    .gap(px(tokens::SPACE_0_5))
+                    .items_center()
+                    .gap(px(tokens::SPACE_3))
+                    .w_full()
+                    .min_h(px(tokens::POINTER.list_row))
+                    .px(px(tokens::SPACE_4))
+                    .py(px(tokens::SPACE_2))
+                    .hover(|row| row.bg(color(c.accordion_header_background_hover)))
+                    .active(|row| row.bg(color(c.accordion_header_background_pressed)))
+                    // A click does not move the focus here, as on a button, so the ring shows
+                    // only when the keyboard got there.
+                    .on_mouse_down(MouseButton::Left, |_, window, _| window.prevent_default())
+                    .when_some(on_change, |trigger, on_change| trigger.on_change(on_change))
+                    .when(focused, |trigger| trigger.focus_ring_style(window, cx))
                     .child(
                         div()
-                            .typography(title_style)
-                            .text_color(color(title_color))
-                            .child(self.title),
+                            .flex_1()
+                            .min_w_0()
+                            .flex()
+                            .flex_col()
+                            .child(
+                                div()
+                                    .typography(tokens::TYPOGRAPHY_BODY_STRONG)
+                                    .text_color(color(c.text_primary))
+                                    .child(item.title),
+                            )
+                            .children(item.description.map(|description| {
+                                div()
+                                    .typography(tokens::TYPOGRAPHY_DETAIL)
+                                    .text_color(color(c.text_secondary))
+                                    .child(description)
+                            })),
                     )
-                    .children(self.description.map(|description| {
-                        div()
-                            .typography(description_style)
-                            .text_color(color(c.text_secondary))
-                            .child(description)
-                    })),
-            )
-            .children(self.trailing)
-            .when(self.chevron, |row| {
-                row.child(
-                    icon(tokens::Icon::ChevronRight, IconSize::Sm)
-                        .text_color(color(c.text_tertiary)),
-                )
+                    .child(
+                        // Half a turn as the body opens: the chevron points up when open.
+                        icon(tokens::Icon::ChevronDown, IconSize::Sm)
+                            .text_color(color(c.accordion_icon))
+                            .rotate(percentage(progress / 2.0)),
+                    );
+                // Mounted from the frame it starts to open, so the reveal can measure it
+                // before it grows, and until it has closed.
+                let panel = (open || progress > 0.0).then(|| {
+                    AccordionPanel::new()
+                        .id(key("panel"))
+                        .open(true)
+                        .w_full()
+                        .child(MotionReveal::new(
+                            key("reveal"),
+                            progress,
+                            div()
+                                .px(px(tokens::SPACE_4))
+                                .pb(px(tokens::SPACE_4))
+                                .typography(tokens::TYPOGRAPHY_BODY)
+                                .text_color(color(c.text_secondary))
+                                .child(item.content)
+                                .into_any_element(),
+                        ))
+                });
+                BaseAccordionItem::new()
+                    .open(open)
+                    .header(AccordionHeader::new(trigger).id(key("header")).w_full())
+                    .when_some(panel, |item, panel| item.panel(panel))
+                    .flex()
+                    .flex_col()
+                    .w_full()
+                    .border_b(hairline)
+                    .border_color(color(c.accordion_border))
             })
-            .when_some(on_click, |row, on_click| {
-                row.hover(|row| row.bg(color(hover)))
-                    .active(|row| row.bg(color(pressed)))
-                    .on_click(move |event, window, cx| on_click(event, window, cx))
-            })
+            .collect::<Vec<_>>();
+        BaseAccordion::new(self.id)
+            .flex()
+            .flex_col()
+            .w_full()
+            .border_t(hairline)
+            .border_color(color(c.accordion_border))
+            .children(items)
     }
 }
 
@@ -1153,7 +2013,67 @@ pub fn icon_filled(icon: tokens::Icon, size: IconSize) -> Icon {
 
 #[cfg(test)]
 mod tests {
-    use super::{initials, overflow, pulse};
+    use gpui_kit::SharedString;
+
+    use super::{
+        Step, decimals, initials, key_step, move_index, overflow, pulse, snap, toggle_expanded,
+    };
+
+    #[test]
+    fn the_arrow_keys_go_round_the_ends() {
+        assert_eq!(move_index(Some(0), 3, Step::Next), Some(1));
+        assert_eq!(move_index(Some(2), 3, Step::Next), Some(0));
+        assert_eq!(move_index(Some(0), 3, Step::Previous), Some(2));
+        assert_eq!(move_index(None, 3, Step::Next), Some(0));
+        assert_eq!(move_index(None, 3, Step::Previous), Some(2));
+        assert_eq!(move_index(Some(1), 3, Step::First), Some(0));
+        assert_eq!(move_index(Some(1), 3, Step::Last), Some(2));
+        assert_eq!(move_index(None, 0, Step::Next), None);
+    }
+
+    #[test]
+    fn a_slider_value_snaps_to_its_steps_inside_its_range() {
+        assert_eq!(snap(33.0, 0.0, 100.0, 5.0), 35.0);
+        assert_eq!(snap(32.0, 0.0, 100.0, 5.0), 30.0);
+        assert_eq!(snap(104.0, 0.0, 100.0, 1.0), 100.0);
+        assert_eq!(snap(-3.0, 0.0, 100.0, 1.0), 0.0);
+        // Steps are counted from the minimum.
+        assert_eq!(snap(4.0, 1.0, 10.0, 2.0), 5.0);
+        // Without a step the value is kept.
+        assert_eq!(snap(3.3, 0.0, 10.0, 0.0), 3.3);
+        assert_eq!(key_step(0.0, 50.0, 0.0), 0.5);
+        assert_eq!(key_step(0.0, 50.0, 5.0), 5.0);
+    }
+
+    #[test]
+    fn a_value_shows_as_many_decimals_as_its_step() {
+        assert_eq!(decimals(1.0), 0);
+        assert_eq!(decimals(5.0), 0);
+        assert_eq!(decimals(0.5), 1);
+        assert_eq!(decimals(0.1), 1);
+        assert_eq!(decimals(0.25), 2);
+    }
+
+    #[test]
+    fn opening_an_item_closes_the_others_unless_several_may_be_open() {
+        let values = |values: &[&'static str]| -> Vec<SharedString> {
+            values
+                .iter()
+                .map(|value| SharedString::from(*value))
+                .collect()
+        };
+        let open = values(&["a"]);
+        assert_eq!(toggle_expanded(&open, &"b".into(), false), values(&["b"]));
+        assert_eq!(
+            toggle_expanded(&open, &"b".into(), true),
+            values(&["a", "b"])
+        );
+        assert_eq!(toggle_expanded(&open, &"a".into(), false), values(&[]));
+        assert_eq!(
+            toggle_expanded(&values(&["a", "b"]), &"a".into(), true),
+            values(&["b"])
+        );
+    }
 
     #[test]
     fn a_pulse_goes_to_the_highlight_and_back_once_per_beat() {

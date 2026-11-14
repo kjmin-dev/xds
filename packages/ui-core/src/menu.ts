@@ -29,8 +29,7 @@ export function menuItemClass(danger = false): string {
 
 /**
  * The box to place a menu against: its trigger's box before the transform that scales the
- * trigger about its center while the menu is open, so the menu stays where it opened, as in
- * the React library.
+ * trigger about its center while the menu is open, so the menu stays where it opened.
  */
 export function layoutRect(element: HTMLElement): {
   x: number;
@@ -48,4 +47,35 @@ export function layoutRect(element: HTMLElement): {
     width,
     height,
   };
+}
+
+/**
+ * Whether a press on a menu's trigger opens the menu as the button goes down rather than on
+ * the click: the main button of a mouse, without Control (which asks for the context menu on a
+ * Mac), on an enabled trigger. The pressed trigger then takes the focus, so the focus that
+ * comes back to it when the menu closes shows no keyboard ring. Touch and pen open it on the
+ * click, as Zag does.
+ */
+export function opensOnPress(event: {
+  pointerType: string;
+  button: number;
+  ctrlKey: boolean;
+  currentTarget: EventTarget | null;
+}): boolean {
+  return (
+    event.pointerType === "mouse" &&
+    event.button === 0 &&
+    !event.ctrlKey &&
+    !(event.currentTarget instanceof Element && event.currentTarget.matches(":disabled"))
+  );
+}
+
+/**
+ * The value of the first item that can be chosen, by position as the rows are: where the
+ * highlight goes when a screen reader or a script opens the menu with a click, as the keyboard
+ * puts it there, so the next key works the list at once.
+ */
+export function firstMenuValue(items: readonly MenuItem[]): string | undefined {
+  const first = items.findIndex((item) => item !== "separator" && !item.disabled);
+  return first >= 0 ? String(first) : undefined;
 }

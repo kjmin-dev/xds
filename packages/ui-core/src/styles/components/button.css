@@ -65,9 +65,8 @@
     }
   }
 
-  /* After the press and as specific, as in the React library: under a pointer a pressed button
-     keeps its hover fill and only shrinks; a finger, which does not hover, gets the pressed
-     fill. */
+  /* After the press and as specific: under a pointer a pressed button keeps its hover fill and
+     only shrinks; a finger, which does not hover, gets the pressed fill. */
   @media (hover: hover) {
     .button:hover {
       background-color: var(--button-bg-hover);

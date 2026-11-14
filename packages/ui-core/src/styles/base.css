@@ -1,4 +1,4 @@
-/* The page itself, as packages/ui draws it. */
+/* The page itself, under every web library's components. */
 
 :root {
   font-family: var(--acme-font-family-sans);
@@ -33,10 +33,12 @@ body {
   }
 }
 
-/* How every overlay leaves, as in the React library: a menu, a select's list, a tooltip and a
-   dialog fade and shrink a little, a dialog's scrim fades. Each starts it on
-   `[data-state="closed"]`, and its component keeps it on the page until it ends. Both ends
-   are set: WebKit does not run a transform animation that starts from an implicit `none`.
+/* How every overlay leaves: a menu, a select's list, a tooltip and a dialog fade and shrink a
+   little, a dialog's scrim fades. Each starts it on `[data-state="closed"]`, and its component
+   keeps it on the page until it ends. Each holds the last frame (`forwards`): a framework may
+   paint once more before it removes the overlay, which would otherwise show again for that
+   frame. Both ends are set: WebKit does not run a transform animation that starts from an
+   implicit `none`.
    The scale is a literal because a custom property inside a keyframe keeps WebKit from running
    the animation on the compositor. */
 @keyframes acme-overlay-exit {

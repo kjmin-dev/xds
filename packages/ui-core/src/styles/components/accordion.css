@@ -51,7 +51,7 @@
     }
   }
 
-  /* A press that drags does not select the title, as in the React library. */
+  /* A press that drags does not select the title. */
   .accordion__trigger:active {
     background: var(--acme-color-accordion-header-background-pressed);
     user-select: none;

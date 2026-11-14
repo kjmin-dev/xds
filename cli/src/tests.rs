@@ -742,7 +742,10 @@ fn creates_a_web_project() {
             "packages/tokens/src/generated/theme.css",
             "packages/tokens/src/generated/tailwind.css",
             "packages/tokens/src/generated/tokens.ts",
-            // The behavior checks that every web library runs.
+            // The stylesheet and the recipes the React components draw with, and the behavior
+            // checks that every web library runs.
+            "packages/ui-core/src/styles/index.css",
+            "packages/ui-core/src/button.ts",
             "packages/ui-core/test/behavior.ts",
             "packages/ui-core/test/scenarios.ts",
             "package.json",
@@ -776,22 +779,35 @@ fn creates_a_web_project() {
         .clone();
     assert_eq!(
         vitest,
-        serde_json::json!(["packages/ui-core/test/**", "packages/ui/**"])
+        serde_json::json!(["packages/ui-core/test/**", "packages/ui/test/**"])
     );
-    let format = text(&tree, ".oxfmtrc.jsonc");
-    assert!(
-        format.contains("\"./packages/ui/src/styles/index.css\"")
-            && !format.contains("apps/docs")
-            && !format.contains("web-solid")
-    );
-    // React is not on Zag.js yet: its project has none of the Zag.js pins.
-    let workspace = text(&tree, "pnpm-workspace.yaml");
-    assert!(!workspace.contains("@zag-js") && !workspace.contains("minimumReleaseAgeExclude"));
-    assert_eq!(json(&tree, "package.json")["name"], "orbit");
-    assert_eq!(json(&tree, "packages/ui/package.json")["name"], "@orbit/ui");
+    // React's classes sort against ui-core's stylesheet, as Solid's do.
+    let format = jsonc(&text(&tree, ".oxfmtrc.jsonc"), ".oxfmtrc.jsonc");
+    let overrides = format["overrides"].as_array().expect("overrides");
+    assert_eq!(overrides.len(), 1);
     assert_eq!(
-        json(&tree, "packages/ui/package.json")["devDependencies"]["@orbit/ui-core"],
-        "workspace:*"
+        overrides[0]["files"],
+        serde_json::json!(["packages/ui-core/**", "apps/web/**", "packages/ui/**"])
+    );
+    assert_eq!(
+        overrides[0]["options"]["sortTailwindcss"]["stylesheet"],
+        "./packages/ui-core/src/styles/index.css"
+    );
+    // The Zag.js pins and their release-age exclusions come with the target, React's adapter
+    // and none of Solid's.
+    let workspace = text(&tree, "pnpm-workspace.yaml");
+    assert!(workspace.contains("\"@zag-js/menu\"") && workspace.contains("\"@zag-js/react\""));
+    assert!(workspace.contains("minimumReleaseAgeExclude:"));
+    assert!(!workspace.contains("@zag-js/solid") && !workspace.contains("solid-js:"));
+    assert_eq!(json(&tree, "package.json")["name"], "orbit");
+    let library = json(&tree, "packages/ui/package.json");
+    assert_eq!(library["name"], "@orbit/ui");
+    assert_eq!(library["dependencies"]["@orbit/ui-core"], "workspace:*");
+    assert_eq!(library["dependencies"]["@zag-js/react"], "catalog:");
+    // The stylesheet an app imports is ui-core's, under the project's name.
+    assert!(
+        text(&tree, "packages/ui/src/styles/index.css")
+            .contains("@import \"@orbit/ui-core/styles.css\";")
     );
     assert!(text(&tree, "packages/tokens/src/generated/theme.css").contains("--orbit-color-"));
     assert!(text(&tree, "mise.toml").contains("pnpm --filter @orbit/web build"));
@@ -841,7 +857,7 @@ fn creates_a_solid_web_project() {
     let workspace = text(&tree, "pnpm-workspace.yaml");
     assert!(workspace.contains("\"@zag-js/menu\"") && workspace.contains("solid-js:"));
     assert!(workspace.contains("minimumReleaseAgeExclude:"));
-    assert!(!workspace.contains("react:"));
+    assert!(!workspace.contains("react:") && !workspace.contains("@zag-js/react"));
     // Solid's classes sort against ui-core's stylesheet; React's rules stay out of its lint.
     let format = jsonc(&text(&tree, ".oxfmtrc.jsonc"), ".oxfmtrc.jsonc");
     let stylesheets: Vec<&str> = format["overrides"]
@@ -855,8 +871,17 @@ fn creates_a_solid_web_project() {
         })
         .collect();
     assert_eq!(
-        stylesheets, ["./packages/ui-core/src/styles/index.css"; 2],
+        stylesheets,
+        ["./packages/ui-core/src/styles/index.css"],
         "ui-core and the Solid app and library"
+    );
+    assert_eq!(
+        format["overrides"][0]["files"],
+        serde_json::json!([
+            "packages/ui-core/**",
+            "apps/web-solid/**",
+            "packages/ui-solid/**"
+        ])
     );
     let lint = jsonc(&text(&tree, ".oxlintrc.jsonc"), ".oxlintrc.jsonc");
     let overrides = lint["overrides"].as_array().expect("overrides");

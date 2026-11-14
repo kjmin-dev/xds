@@ -1,22 +1,14 @@
+import {
+  MEDIA_CARD_PARTS,
+  type MediaCardBaseProps,
+  mediaCardContentClass,
+  mediaCardIds,
+  mediaCardThumbnailClass,
+} from "@acme/ui-core";
 import { type ReactNode, useId } from "react";
-import { Thumbnail, type ThumbnailRatio } from "./Thumbnail.tsx";
+import { Thumbnail } from "./Thumbnail.tsx";
 
-export type MediaCardProps = {
-  /** `vertical` puts the thumbnail on top; `horizontal` at the start, at 40% of the width. */
-  layout?: "vertical" | "horizontal";
-  /** The picture, as a Thumbnail's. */
-  src?: string | undefined;
-  /** Describes the picture. Defaults to an empty string: the title already says what it is. */
-  alt?: string;
-  ratio?: ThumbnailRatio;
-  /** Short text on the picture's bottom end corner, such as a duration. */
-  badge?: string;
-  /** How much was watched, from 0 to 1. */
-  progress?: number;
-  /** At most two lines, then an ellipsis. */
-  title: string;
-  /** Short details, one line each, such as a channel name and "3 days ago". */
-  meta?: readonly string[];
+export type MediaCardProps = MediaCardBaseProps & {
   /** Before the text in the vertical layout, such as an Avatar. */
   leading?: ReactNode;
   /** At the end of the text: an IconButton or a Menu. It stays a control of its own. */
@@ -46,55 +38,34 @@ export function MediaCard({
   action,
   onPress,
 }: MediaCardProps) {
-  const id = useId();
-  const names = [`${id}-title`, ...meta.map((_, index) => `${id}-meta-${index}`)].join(" ");
+  const ids = mediaCardIds(useId(), meta);
   // On a pressable card the button says all of this, so the parts are hidden from assistive
   // technology and only the action is left beside it.
   const part = onPress ? ({ "aria-hidden": true } as const) : {};
   const horizontal = layout === "horizontal";
-  const text = (
-    <span {...part} className="flex min-w-0 flex-1 flex-col gap-0.5">
-      <span
-        id={`${id}-title`}
-        className="line-clamp-2 text-acme-body-strong text-acme-text-primary"
-      >
-        {title}
-      </span>
-      {meta.map((line, index) => (
-        <span
-          // Two details may read the same, so they are told apart by their position.
-          key={index}
-          id={`${id}-meta-${index}`}
-          className="truncate text-acme-detail text-acme-text-secondary"
-        >
-          {line}
-        </span>
-      ))}
-    </span>
-  );
   const content = (
-    <div
-      // Above the button, which draws the fills under it, and see-through to the pointer, so a
-      // press anywhere but on the action lands on the button.
-      className={`relative flex gap-3 ${horizontal ? "items-start" : "flex-col"} ${onPress ? "pointer-events-none" : ""}`}
-    >
-      <span {...part} className={horizontal ? "w-2/5 shrink-0" : "block"}>
-        <Thumbnail
-          src={src}
-          alt={alt}
-          {...(ratio ? { ratio } : {})}
-          {...(badge ? { badge } : {})}
-          {...(progress === undefined ? {} : { progress })}
-        />
+    <div className={mediaCardContentClass({ horizontal, pressable: onPress !== undefined })}>
+      <span {...part} className={mediaCardThumbnailClass(horizontal)}>
+        <Thumbnail src={src} alt={alt} ratio={ratio} badge={badge} progress={progress} />
       </span>
-      <div className="flex min-w-0 flex-1 items-start gap-3">
+      <div className={MEDIA_CARD_PARTS.body}>
         {!horizontal && leading != null && (
-          <span {...part} className="flex shrink-0">
+          <span {...part} className={MEDIA_CARD_PARTS.leading}>
             {leading}
           </span>
         )}
-        {text}
-        {action != null && <div className="pointer-events-auto flex shrink-0">{action}</div>}
+        <span {...part} className={MEDIA_CARD_PARTS.text}>
+          <span id={ids.title} className={MEDIA_CARD_PARTS.title}>
+            {title}
+          </span>
+          {meta.map((line, index) => (
+            // Two details may read the same, so they are told apart by their position.
+            <span key={index} id={ids.details[index]} className={MEDIA_CARD_PARTS.meta}>
+              {line}
+            </span>
+          ))}
+        </span>
+        {action != null && <div className={MEDIA_CARD_PARTS.action}>{action}</div>}
       </div>
     </div>
   );
@@ -102,18 +73,18 @@ export function MediaCard({
     return (
       // A group, not a fieldset: a fieldset groups form controls, and sizes itself to its
       // content, which would undo the ellipses.
-      <div role="group" aria-labelledby={names} className="flex flex-col">
+      <div role="group" aria-labelledby={ids.names} className={MEDIA_CARD_PARTS.group}>
         {content}
       </div>
     );
   }
   return (
-    <div className="relative flex flex-col rounded-acme-lg p-2">
+    <div className={MEDIA_CARD_PARTS.pressable}>
       <button
         type="button"
         onClick={onPress}
-        aria-labelledby={names}
-        className="absolute inset-0 cursor-pointer rounded-acme-lg transition-colors duration-(--acme-motion-duration-fast) hover:bg-acme-card-background-hover focus-visible:outline-(length:--acme-focus-width) focus-visible:outline-offset-(--acme-focus-offset) focus-visible:outline-acme-border-focus focus-visible:outline-solid active:bg-acme-card-background-pressed"
+        aria-labelledby={ids.names}
+        className={MEDIA_CARD_PARTS.button}
       />
       {content}
     </div>

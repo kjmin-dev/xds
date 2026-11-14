@@ -32,7 +32,7 @@ xds create my-app --yes
 
 | 타깃 | 실행 환경 | 스택 |
 | --- | --- | --- |
-| `web-react` | 브라우저 | React 19, Vite, Tailwind v4, HeroUI v3 |
+| `web-react` | 브라우저 | React 19, Vite, Tailwind v4, Zag.js |
 | `web-solid` | 브라우저 | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js |
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component |
 | `mobile-react-native` | iOS, Android | React Native, Expo |

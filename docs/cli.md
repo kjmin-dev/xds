@@ -63,7 +63,7 @@ Lists the available client stacks and color themes, and marks the defaults.
 ```console
 $ xds list
 Targets
-  web-react            Web                             React 19, Vite, Tailwind v4, HeroUI v3 (default)
+  web-react            Web                             React 19, Vite, Tailwind v4, Zag.js (default)
   web-solid            Web                             SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js
   desktop-gpui         Desktop (macOS)                 Rust, GPUI, GPUI Component
   mobile-react-native  Mobile (iOS, Android)           React Native, Expo
@@ -341,13 +341,13 @@ Agents with shell access do not need the MCP server; running the CLI commands wi
 
 | Id | Runs on | Stack | Paths |
 | --- | --- | --- | --- |
-| `web-react` | Web | React 19, Vite, Tailwind v4, HeroUI v3 | `apps/web`, `packages/ui`, and the shared `packages/ui-core` |
+| `web-react` | Web | React 19, Vite, Tailwind v4, Zag.js | `apps/web`, `packages/ui`, and the shared `packages/ui-core` |
 | `web-solid` | Web | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js | `apps/web-solid`, `packages/ui-solid`, and the shared `packages/ui-core` |
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component | `apps/desktop`, `crates/acme-ui`, `crates/acme-tokens` |
 | `mobile-react-native` | iOS, Android | React Native, Expo | `apps/mobile`, `packages/ui-native` |
 | `kotlin-compose` | Android, iOS, desktop | Kotlin, Compose Multiplatform | `kotlin` |
 
-The JavaScript targets share `packages/tokens` and the root pnpm workspace configuration. The web targets also require the shared group `ui-core`, which is `packages/ui-core`: the behavior tests that every web library runs, and the prop types, class recipes, and stylesheet that the web libraries built on Zag.js share. Every project must include at least one target.
+The JavaScript targets share `packages/tokens` and the root pnpm workspace configuration. The web targets also require the shared group `ui-core`, which is `packages/ui-core`: the prop types, class recipes, and stylesheet that the web libraries share, and the behavior tests that every web library runs. The web libraries take their behavior from Zag.js 2, a prerelease, so every `@zag-js` package is pinned to the same exact version. Every project must include at least one target.
 
 The web targets can be combined in one project. Each has its own app directory, dev server port (5173 for `web-react`, 5174 for `web-solid`), and `mise` alias (`//web`, `//web-solid`), so `--targets all` creates both apps side by side.
 

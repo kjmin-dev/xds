@@ -22,3 +22,12 @@ export type SelectBaseProps<Value extends string = string> = {
   name?: string;
   disabled?: boolean;
 };
+
+/**
+ * The ids of the label and the help line of the option at `index`, under the Select's own id.
+ * The option is named by its label alone, as the field shows it, and described by the help.
+ */
+export function selectOptionIds(id: string, index: number) {
+  const label = `${id}-option-${index}`;
+  return { label, description: `${label}-description` };
+}

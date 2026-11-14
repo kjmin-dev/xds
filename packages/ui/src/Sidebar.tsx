@@ -1,41 +1,29 @@
-import { Focusable } from "@heroui/react";
+import type { IconName } from "@acme/tokens";
+import {
+  SIDEBAR_PARTS,
+  type SidebarBaseProps,
+  sidebarClass,
+  sidebarCount,
+  sidebarIconClass,
+  sidebarRailButtonClass,
+  sidebarSectionClass,
+  sidebarTitleClass,
+} from "@acme/ui-core";
 import { type ReactNode, useId } from "react";
-import { Icon, type IconName } from "./Icon.tsx";
-import { PlaceRow, PRESSABLE_ROW } from "./ListRow.tsx";
+import { Icon } from "./Icon.tsx";
+import { PlaceRow } from "./ListRow.tsx";
 import { TooltipBeside } from "./Tooltip.tsx";
+import { useTrigger } from "./trigger.ts";
 
-export type SidebarItem<Value extends string = string> = {
-  value: Value;
-  label: string;
-  icon: IconName;
-  /** How many things the place holds, at the end of the row. Zero or less shows none. */
-  count?: number;
-};
+export type { SidebarItem, SidebarSection } from "@acme/ui-core";
 
-export type SidebarSection<Value extends string = string> = {
-  /** Shown above the items; a hairline takes its place while the sidebar is collapsed. */
-  title?: string;
-  items: readonly SidebarItem<Value>[];
-};
-
-export type SidebarProps<Value extends string = string> = {
-  sections: readonly SidebarSection<Value>[];
-  /** The current place. */
-  value: Value;
+export type SidebarProps<Value extends string = string> = SidebarBaseProps<Value> & {
   onChange: (value: Value) => void;
-  /** Names the navigation for assistive technology, such as "Main". */
-  label: string;
-  /** A rail of icons, each named by a Tooltip. The app decides when, and holds the state. */
-  collapsed?: boolean;
   /** At the top, such as the app's name. It has to fit the rail itself while collapsed. */
   header?: ReactNode;
   /** At the bottom, such as an account row. It has to fit the rail itself while collapsed. */
   footer?: ReactNode;
 };
-
-// The same number a CountBadge would show, without its red: this is how many things a place
-// holds, not how many are waiting.
-const MAX_COUNT = 99;
 
 /**
  * The top-level places of an app used with a pointer: the counterpart of TabBar on touch. Each
@@ -57,60 +45,38 @@ export function Sidebar<Value extends string = string>({
 }: SidebarProps<Value>) {
   const id = useId();
   return (
-    <nav
-      aria-label={label}
-      className={`flex h-full shrink-0 flex-col gap-2 border-e border-acme-sidebar-border bg-acme-sidebar-background p-2 ${collapsed ? "w-acme-sidebar-rail" : "w-acme-sidebar"}`}
-    >
-      {header != null && <div className="shrink-0">{header}</div>}
+    <nav aria-label={label} className={sidebarClass(collapsed)}>
+      {header != null && <div className={SIDEBAR_PARTS.edge}>{header}</div>}
       {/* The places scroll when there are more than fit; the header and footer stay. */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+      <div className={SIDEBAR_PARTS.places}>
         {sections.map((section, index) => {
           const title = `${id}-${index}`;
           return (
             // A section has nothing but its position to tell it apart: titles are optional.
-            <div key={index} className={index === 0 ? "" : collapsed ? "mt-2" : "mt-4"}>
+            <div key={index} className={sidebarSectionClass(index, collapsed)}>
               {section.title && (
-                // Still there while collapsed, for the list it names, but not shown.
-                <p
-                  id={title}
-                  className={
-                    collapsed
-                      ? "sr-only"
-                      : "px-2 pb-1 text-acme-footnote text-acme-sidebar-section-title"
-                  }
-                >
+                <p id={title} className={sidebarTitleClass(collapsed)}>
                   {section.title}
                 </p>
               )}
-              {collapsed && index > 0 && (
-                <div
-                  aria-hidden="true"
-                  className="mx-2 mb-2 h-(--acme-border-width-thin) bg-acme-sidebar-border"
-                />
-              )}
+              {collapsed && index > 0 && <div aria-hidden="true" className={SIDEBAR_PARTS.rule} />}
               <ul
                 {...(section.title ? { "aria-labelledby": title } : {})}
-                className="flex flex-col"
+                className={SIDEBAR_PARTS.list}
               >
                 {section.items.map((item) => {
                   const selected = item.value === value;
-                  const count = item.count ?? 0;
+                  const count = sidebarCount(item.count);
                   return (
-                    // The row is clipped to the rounded shape; its focus ring is inside it.
-                    <li key={item.value} className="overflow-hidden rounded-acme-md">
+                    <li key={item.value} className={SIDEBAR_PARTS.item}>
                       {collapsed ? (
                         <TooltipBeside label={item.label}>
-                          <Focusable>
-                            <button
-                              type="button"
-                              aria-label={item.label}
-                              {...(selected ? { "aria-current": "page" as const } : {})}
-                              onClick={() => onChange(item.value)}
-                              className={`flex min-h-acme-list-row-compact w-full cursor-pointer items-center justify-center transition-colors duration-(--acme-motion-duration-fast) ${selected ? `bg-acme-list-row-background-selected text-acme-text-primary ${PRESSABLE_ROW.selected}` : `text-acme-text-secondary ${PRESSABLE_ROW.rest}`} ${PRESSABLE_ROW.focus}`}
-                            >
-                              <Icon name={item.icon} size="md" filled={selected} />
-                            </button>
-                          </Focusable>
+                          <RailButton
+                            label={item.label}
+                            icon={item.icon}
+                            selected={selected}
+                            onPress={() => onChange(item.value)}
+                          />
                         </TooltipBeside>
                       ) : (
                         <PlaceRow
@@ -124,20 +90,14 @@ export function Sidebar<Value extends string = string>({
                               name={item.icon}
                               size="md"
                               filled={selected}
-                              className={
-                                selected ? "text-acme-text-primary" : "text-acme-text-secondary"
-                              }
+                              className={sidebarIconClass(selected)}
                             />
                           }
-                          {...(count > 0
-                            ? {
-                                trailing: (
-                                  <span className="text-acme-detail text-acme-text-secondary tabular-nums">
-                                    {count > MAX_COUNT ? `${MAX_COUNT}+` : count}
-                                  </span>
-                                ),
-                              }
-                            : {})}
+                          trailing={
+                            count !== undefined && (
+                              <span className={SIDEBAR_PARTS.count}>{count}</span>
+                            )
+                          }
                         />
                       )}
                     </li>
@@ -148,7 +108,32 @@ export function Sidebar<Value extends string = string>({
           );
         })}
       </div>
-      {footer != null && <div className="shrink-0">{footer}</div>}
+      {footer != null && <div className={SIDEBAR_PARTS.edge}>{footer}</div>}
     </nav>
+  );
+}
+
+/** A row of the collapsed rail. It is the trigger of the Tooltip that names it. */
+function RailButton({
+  label,
+  icon,
+  selected,
+  onPress,
+}: {
+  label: string;
+  icon: IconName;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const attributes = useTrigger({
+    className: sidebarRailButtonClass(selected),
+    "aria-label": label,
+    "aria-current": selected ? ("page" as const) : undefined,
+    onClick: onPress,
+  });
+  return (
+    <button {...attributes} type="button">
+      <Icon name={icon} size="md" filled={selected} />
+    </button>
   );
 }

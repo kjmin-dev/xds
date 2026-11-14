@@ -2,11 +2,12 @@ import {
   ACCORDION_PARTS,
   type AccordionBaseProps,
   type AccordionItemBase,
+  focusTitleOnClick,
   setPanelOpen,
 } from "@acme/ui-core";
 import type { JSX } from "@solidjs/web";
 import * as accordion from "@zag-js/accordion";
-import { normalizeProps, useMachine } from "@zag-js/solid";
+import { mergeProps, normalizeProps, useMachine } from "@zag-js/solid";
 import { createEffect, createMemo, createUniqueId, type Element, For, Show } from "solid-js";
 import { Icon } from "./Icon.tsx";
 
@@ -52,7 +53,10 @@ export function Accordion<Value extends string = string>(props: AccordionProps<V
           <div {...api().getItemProps({ value: item.value })} class="accordion__item">
             <h3 {...api().getItemHeaderProps({ value: item.value })} class="accordion__heading">
               <button
-                {...api().getItemTriggerProps({ value: item.value })}
+                {...mergeProps(() => api().getItemTriggerProps({ value: item.value }), {
+                  // Runs before Zag's handler.
+                  onClick: focusTitleOnClick,
+                })}
                 class="accordion__trigger group"
               >
                 <span class={ACCORDION_PARTS.text}>
@@ -77,8 +81,8 @@ export function Accordion<Value extends string = string>(props: AccordionProps<V
 }
 
 /**
- * An item's body. Its height moves between zero and the height of what it holds, as in the
- * React library, and it is hidden only once it has finished closing.
+ * An item's body. Its height moves between zero and the height of what it holds, and it is
+ * hidden only once it has finished closing.
  */
 function Panel(props: {
   open: boolean;
@@ -96,9 +100,9 @@ function Panel(props: {
       return stop;
     },
   );
-  // A group, as in the React library: a region is a landmark, and a page of accordions would
-  // fill the list of landmarks. A closed one is left out of the accessibility tree as soon as it
-  // starts closing; `hidden="until-found"` alone leaves the empty group in it.
+  // A group: a region is a landmark, and a page of accordions would fill the list of
+  // landmarks. A closed one is left out of the accessibility tree as soon as it starts closing;
+  // `hidden="until-found"` alone leaves the empty group in it.
   return (
     // A group, not a fieldset: it is the body of a disclosure, not a set of form fields.
     <div

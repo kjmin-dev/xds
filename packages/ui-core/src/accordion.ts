@@ -1,4 +1,5 @@
 import { afterAnimations } from "./animation.ts";
+import { focusWithoutRing } from "./focus.ts";
 
 /** An item of an Accordion in every framework, short of its body. */
 export type AccordionItemBase<Value extends string = string> = {
@@ -27,12 +28,12 @@ export const ACCORDION_PARTS = {
 } as const;
 
 /**
- * Opens or closes an item's panel (`.accordion__panel`), as the React library does: its height
- * moves between zero and the height of what it holds, and it is hidden only once it has
- * finished closing, with `hidden="until-found"`, so the browser's find in page still opens it.
- * Call it on every change of `open`, with `animate` false the first time, when there is
- * nothing to move from. Returns the function that stops the change from settling: call it
- * before the next change, which takes over.
+ * Opens or closes an item's panel (`.accordion__panel`): its height moves between zero and the
+ * height of what it holds, and it is hidden only once it has finished closing, with
+ * `hidden="until-found"`, so the browser's find in page still opens it. Call it on every change
+ * of `open`, with `animate` false the first time, when there is nothing to move from. Returns
+ * the function that stops the change from settling: call it before the next change, which
+ * takes over.
  */
 export function setPanelOpen(panel: HTMLElement, open: boolean, animate: boolean): () => void {
   const height = (value: string) => panel.style.setProperty("--accordion-panel-height", value);
@@ -52,4 +53,13 @@ export function setPanelOpen(panel: HTMLElement, open: boolean, animate: boolean
   void getComputedStyle(panel).height;
   height("0px");
   return afterAnimations([panel], () => panel.setAttribute("hidden", "until-found"));
+}
+
+/**
+ * For a click on an item's title, ahead of Zag's handler. Zag toggles the item only while its
+ * title has the focus, which a press gives it but a click from a script or from assistive
+ * technology does not. Focused here first, the title takes those clicks too.
+ */
+export function focusTitleOnClick(event: { currentTarget: EventTarget | null }): void {
+  if (event.currentTarget instanceof HTMLElement) focusWithoutRing(event.currentTarget);
 }

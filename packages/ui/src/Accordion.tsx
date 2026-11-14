@@ -1,23 +1,30 @@
-import { Accordion as HeroAccordion } from "@heroui/react";
-import type { ReactNode } from "react";
+import {
+  ACCORDION_PARTS,
+  type AccordionBaseProps,
+  type AccordionItemBase,
+  focusTitleOnClick,
+  setPanelOpen,
+} from "@acme/ui-core";
+import * as accordion from "@zag-js/accordion";
+import { mergeProps, normalizeProps, useMachine } from "@zag-js/react";
+import {
+  type HTMLAttributes,
+  type ReactNode,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { Icon } from "./Icon.tsx";
 
-export type AccordionItem<Value extends string = string> = {
-  value: Value;
-  title: string;
-  /** A line under the title, shown whether the item is open or not. */
-  description?: string;
+export type AccordionItem<Value extends string = string> = AccordionItemBase<Value> & {
   /** The body, shown under the title while the item is open. */
   content: ReactNode;
 };
 
-export type AccordionProps<Value extends string = string> = {
+export type AccordionProps<Value extends string = string> = AccordionBaseProps<Value> & {
   items: readonly AccordionItem<Value>[];
-  /** The values of the open items. */
-  expanded: readonly Value[];
   onChange: (expanded: Value[]) => void;
-  /** Lets several items be open at once. Without it, opening one closes the others. */
-  multiple?: boolean;
 };
 
 /**
@@ -34,36 +41,101 @@ export function Accordion<Value extends string = string>({
   onChange,
   multiple = false,
 }: AccordionProps<Value>) {
+  const service = useMachine(accordion.machine, {
+    id: useId(),
+    value: [...expanded],
+    onValueChange: (details) => onChange(details.value as Value[]),
+    multiple,
+    collapsible: true,
+    hiddenUntilFound: true,
+  });
+  const api = accordion.connect(service, normalizeProps);
   return (
-    <HeroAccordion
-      expandedKeys={expanded}
-      onExpandedChange={(keys) => onChange([...keys] as Value[])}
-      allowsMultipleExpanded={multiple}
+    <div {...api.getRootProps()} className="accordion">
+      {items.map((item) => {
+        // The panel hides itself once it has finished closing; see Panel.
+        const { hidden: _hidden, ...body } = api.getItemContentProps({ value: item.value });
+        return (
+          <div
+            key={item.value}
+            {...api.getItemProps({ value: item.value })}
+            className="accordion__item"
+          >
+            <h3 {...api.getItemHeaderProps({ value: item.value })} className="accordion__heading">
+              <button
+                {...mergeProps(api.getItemTriggerProps({ value: item.value }), {
+                  // Runs before Zag's handler.
+                  onClick: focusTitleOnClick,
+                })}
+                type="button"
+                className="accordion__trigger group"
+              >
+                <span className={ACCORDION_PARTS.text}>
+                  <span className={ACCORDION_PARTS.title}>{item.title}</span>
+                  {item.description && (
+                    <span className={ACCORDION_PARTS.description}>{item.description}</span>
+                  )}
+                </span>
+                <Icon name="chevron-down" size="sm" className={ACCORDION_PARTS.chevron} />
+              </button>
+            </h3>
+            <Panel open={api.value.includes(item.value)} attributes={body}>
+              {item.content}
+            </Panel>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * An item's body. Its height moves between zero and the height of what it holds, and it is
+ * hidden only once it has finished closing.
+ */
+function Panel({
+  open,
+  attributes,
+  children,
+}: {
+  open: boolean;
+  attributes: HTMLAttributes<HTMLDivElement>;
+  children: ReactNode;
+}) {
+  const panel = useRef<HTMLDivElement>(null);
+  // What the panel was last set to. A change animates; the first setting, and the same one
+  // again when StrictMode runs the effect twice, do not.
+  const shown = useRef<boolean>(undefined);
+  // A page rendered on the server shows the panel before the effect below can run, so a
+  // closed one starts hidden. The value never changes, so React leaves the attribute to the
+  // effect from then on.
+  const [closedAtFirst] = useState(!open);
+  // Before the browser paints, so a closed panel never shows for a frame.
+  useLayoutEffect(() => {
+    if (!panel.current) return;
+    const stop = setPanelOpen(
+      panel.current,
+      open,
+      shown.current !== undefined && shown.current !== open,
+    );
+    shown.current = open;
+    // The next toggle takes over from this one.
+    return stop;
+  }, [open]);
+  // A group: a region is a landmark, and a page of accordions would fill the list of
+  // landmarks. A closed one is left out of the accessibility tree as soon as it starts closing;
+  // `hidden="until-found"` alone leaves the empty group in it.
+  return (
+    // A group, not a fieldset: it is the body of a disclosure, not a set of form fields.
+    <div
+      {...attributes}
+      ref={panel}
+      hidden={closedAtFirst || undefined}
+      role="group"
+      aria-hidden={open ? undefined : true}
+      className="accordion__panel"
     >
-      {items.map((item) => (
-        <HeroAccordion.Item key={item.value} id={item.value}>
-          <HeroAccordion.Heading>
-            <HeroAccordion.Trigger className="group">
-              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="text-acme-body-strong text-acme-text-primary">{item.title}</span>
-                {item.description && (
-                  <span className="text-acme-detail text-acme-text-secondary">
-                    {item.description}
-                  </span>
-                )}
-              </span>
-              <Icon
-                name="chevron-down"
-                size="sm"
-                className="text-acme-accordion-icon transition-transform duration-(--acme-motion-duration-normal) ease-(--acme-motion-easing-standard) group-aria-expanded:rotate-180 motion-reduce:transition-none"
-              />
-            </HeroAccordion.Trigger>
-          </HeroAccordion.Heading>
-          <HeroAccordion.Panel>
-            <HeroAccordion.Body>{item.content}</HeroAccordion.Body>
-          </HeroAccordion.Panel>
-        </HeroAccordion.Item>
-      ))}
-    </HeroAccordion>
+      <div className="accordion__body">{children}</div>
+    </div>
   );
 }

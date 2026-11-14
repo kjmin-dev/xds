@@ -1,4 +1,10 @@
-import { type SliderBaseProps, sliderPageSize, sliderValueText } from "@acme/ui-core";
+import {
+  focusThumbOnPress,
+  type SliderBaseProps,
+  sliderArrowValue,
+  sliderPageSize,
+  sliderValueText,
+} from "@acme/ui-core";
 import * as slider from "@zag-js/slider";
 import { mergeProps, normalizeProps, useMachine } from "@zag-js/solid";
 import { createMemo, createUniqueId, Show } from "solid-js";
@@ -37,31 +43,29 @@ export function Slider(props: SliderProps) {
   }));
   const api = createMemo(() => slider.connect(service, normalizeProps));
   const thumb = mergeProps(() => api().getThumbProps({ index: 0 }), {
-    // Up and Down move a horizontal slider too, as they move a native range input and the
-    // React library's slider. Zag's horizontal slider leaves them to the page.
+    // Up and Down move a horizontal slider too, as they move a native range input.
     onKeyDown: (event: KeyboardEvent) => {
-      const direction = event.key === "ArrowUp" ? 1 : event.key === "ArrowDown" ? -1 : 0;
-      if (direction === 0 || props.disabled) return;
-      const distance = event.shiftKey ? pageSize() : step();
-      const next = (api().value[0] ?? min()) + direction * distance;
-      api().setThumbValue(0, Math.min(max(), Math.max(min(), next)));
+      if (props.disabled) return;
+      const next = sliderArrowValue(event, {
+        value: api().value[0] ?? min(),
+        min: min(),
+        max: max(),
+        step: step(),
+        pageSize: pageSize(),
+      });
+      if (next !== undefined) api().setThumbValue(0, next);
     },
   });
   let thumbElement: HTMLDivElement | undefined;
   const control = mergeProps(() => api().getControlProps(), {
-    // Zag keeps a press on the track or the thumb from focusing anything, then focuses the
-    // thumb from a script, which the browser takes for keyboard focus: the ring shows, where
-    // the React library shows none after a press. Focused here first, without the ring, the
-    // thumb is already focused when Zag focuses it. This handler runs before Zag's.
+    // No focus ring after a press. This handler runs before Zag's.
     onPointerDown: (event: PointerEvent) => {
-      if (props.disabled || event.button !== 0 || thumbElement === undefined) return;
-      if (document.activeElement !== thumbElement)
-        thumbElement.focus({ preventScroll: true, focusVisible: false });
+      if (!props.disabled) focusThumbOnPress(event, thumbElement);
     },
   });
   return (
-    // A group named by the label, around the label, the value and the slider, as in the React
-    // library. Not a fieldset: that is for a set of fields, and this is one slider and its label.
+    // A group named by the label, around the label, the value and the slider. Not a fieldset:
+    // that is for a set of fields, and this is one slider and its label.
     <div
       {...api().getRootProps()}
       role="group"

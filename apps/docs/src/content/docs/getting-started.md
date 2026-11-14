@@ -32,7 +32,7 @@ The available clients are:
 
 | Target | Runs on | Stack |
 | --- | --- | --- |
-| `web-react` | Browsers | React 19, Vite, Tailwind v4, HeroUI v3 |
+| `web-react` | Browsers | React 19, Vite, Tailwind v4, Zag.js |
 | `web-solid` | Browsers | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js |
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component |
 | `mobile-react-native` | iOS, Android | React Native, Expo |

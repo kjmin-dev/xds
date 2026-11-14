@@ -79,8 +79,7 @@
     outline: var(--acme-border-width-thin) solid var(--acme-color-danger-default);
   }
 
-  /* Focused, an invalid field keeps its red border; a group shows focus instead. Both as the
-     React library draws them. */
+  /* Focused, an invalid field keeps its red border; a group shows focus instead. */
   .text-field__control[aria-invalid="true"]:focus {
     box-shadow: none;
   }
@@ -91,7 +90,7 @@
     outline-style: none;
   }
 
-  /* After the error, which it outranks, as in the React library. */
+  /* After the error, which it outranks. */
   @media (hover: hover) {
     .text-field__control:hover:not(:focus, :has(:focus)) {
       border-color: var(--acme-color-text-primary);

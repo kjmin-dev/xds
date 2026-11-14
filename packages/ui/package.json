@@ -11,9 +11,18 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@heroui/react": "^3.2.7",
-    "@heroui/styles": "^3.2.7",
-    "@acme/tokens": "workspace:*"
+    "@acme/tokens": "workspace:*",
+    "@acme/ui-core": "workspace:*",
+    "@zag-js/accordion": "catalog:",
+    "@zag-js/aria-hidden": "catalog:",
+    "@zag-js/dialog": "catalog:",
+    "@zag-js/menu": "catalog:",
+    "@zag-js/react": "catalog:",
+    "@zag-js/remove-scroll": "catalog:",
+    "@zag-js/select": "catalog:",
+    "@zag-js/slider": "catalog:",
+    "@zag-js/tabs": "catalog:",
+    "@zag-js/tooltip": "catalog:"
   },
   "peerDependencies": {
     "react": "catalog:",
@@ -21,7 +30,6 @@
     "tailwindcss": "^4.3.5"
   },
   "devDependencies": {
-    "@acme/ui-core": "workspace:*",
     "@tailwindcss/vite": "^4.3.5",
     "@types/react": "catalog:",
     "@types/react-dom": "~19.3.0",

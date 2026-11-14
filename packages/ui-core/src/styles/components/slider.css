@@ -38,8 +38,8 @@
   }
 
   /* The pressable band, as tall as the smallest pressable area, and inset by half a thumb at
-     each end so the thumb is centered on the value. As in the React library it is as wide as
-     the slider besides, so the far end reaches half a thumb past the slider's edge. */
+     each end so the thumb is centered on the value. It is as wide as the slider besides, so
+     the far end reaches half a thumb past the slider's edge. */
   .slider__control {
     grid-area: track;
     width: 100%;

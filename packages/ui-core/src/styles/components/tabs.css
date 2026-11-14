@@ -3,8 +3,8 @@
  *
  * Parts: `.tabs` (the root, which scrolls), `__list`, `__tab`, `__indicator`. `.tabs--full-width`
  * shares the width between the tabs.
- * States: `[aria-selected="true"]`, `:hover` and `:focus-visible` on a tab; `[data-instant]` on
- * the indicator, which Zag places with `--left` and `--width`.
+ * States: `[aria-selected="true"]`, `:hover` and `:focus-visible` on a tab; `[data-instant]` and
+ * `[hidden]` on the indicator, which Zag places with `--left` and `--width`.
  */
 @layer components {
   /* The root is what scrolls, so the hairline under the row stays put while the tabs move.
@@ -92,6 +92,12 @@
 
   .tabs__indicator[data-instant] {
     transition: none;
+  }
+
+  /* Zag hides the bar until it has measured the selected tab, which a page rendered on the
+     server shows first: the tab draws the same bar inside itself until then. */
+  .tabs__list:has(> .tabs__indicator[hidden]) > .tabs__tab[aria-selected="true"] {
+    box-shadow: inset 0 calc(-1 * var(--acme-border-width-thick)) 0 var(--acme-color-tabs-indicator);
   }
 
   @media (prefers-reduced-motion: reduce) {

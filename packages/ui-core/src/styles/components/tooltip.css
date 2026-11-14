@@ -12,7 +12,7 @@
   }
 
   .tooltip {
-    /* The widest the React library's tooltip gets; a longer label wraps. */
+    /* The widest a tooltip gets; a longer label wraps. */
     max-width: 20rem;
     padding: var(--acme-space-1) var(--acme-space-2);
     border-radius: var(--acme-radius-sm);
@@ -47,7 +47,8 @@
 
   /* After the rules above, which it replaces. */
   .tooltip[data-state="closed"] {
-    animation: acme-overlay-exit var(--acme-motion-duration-fast) var(--acme-motion-easing-exit);
+    animation: acme-overlay-exit var(--acme-motion-duration-fast) var(--acme-motion-easing-exit)
+      forwards;
   }
 
   @media (prefers-reduced-motion: reduce) {

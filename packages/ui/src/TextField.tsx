@@ -1,24 +1,8 @@
-import {
-  Description,
-  FieldError,
-  TextField as HeroTextField,
-  Input,
-  InputGroup,
-  Label,
-  TextArea,
-} from "@heroui/react";
-import type { HTMLInputAutoCompleteAttribute, HTMLInputTypeAttribute, ReactNode } from "react";
+import type { TextFieldBaseProps } from "@acme/ui-core";
+import { type ReactNode, useId } from "react";
 
-export type TextFieldProps = {
-  /** Always visible. A placeholder is not a label: it disappears as soon as the person types. */
-  label: string;
-  value: string;
+export type TextFieldProps = TextFieldBaseProps & {
   onChange: (value: string) => void;
-  /** Help shown under the field. Replaced by `error` while there is one. */
-  description?: string;
-  /** What is wrong and how to fix it. Clear it when the value changes. */
-  error?: string | undefined;
-  placeholder?: string;
   /**
    * Inside the box, in front of the text: an icon, a unit. It takes the placeholder's color
    * unless it sets its own.
@@ -26,18 +10,6 @@ export type TextFieldProps = {
   leading?: ReactNode;
   /** Inside the box, after the text: an icon, a unit, a small button. */
   trailing?: ReactNode;
-  /** A text area of `rows` lines, which scrolls beyond that. `type` does not apply to it. */
-  multiline?: boolean;
-  rows?: number;
-  /** The field takes no more characters than this, and counts them under its end edge. */
-  maxLength?: number;
-  name?: string;
-  type?: HTMLInputTypeAttribute;
-  inputMode?: "text" | "numeric" | "decimal" | "tel" | "email" | "url" | "search";
-  autoComplete?: HTMLInputAutoCompleteAttribute;
-  autoFocus?: boolean;
-  required?: boolean;
-  disabled?: boolean;
 };
 
 /**
@@ -68,52 +40,69 @@ export function TextField({
   required = false,
   disabled = false,
 }: TextFieldProps) {
-  const control = placeholder ? { placeholder } : {};
+  const id = useId();
+  const descriptionId = `${id}-description`;
+  const errorId = `${id}-error`;
+  const invalid = error !== undefined;
   // The box is drawn by the input itself until something has to sit inside it beside the
   // text; then a group draws the box and the input inside it has none.
   const grouped = leading != null || trailing != null;
+  const shared = {
+    id,
+    className: grouped ? "text-field__input" : "text-field__input text-field__control",
+    value,
+    placeholder,
+    name,
+    maxLength,
+    inputMode,
+    autoComplete,
+    autoFocus,
+    required,
+    disabled,
+    "aria-invalid": invalid || undefined,
+    "aria-errormessage": invalid ? errorId : undefined,
+    "aria-describedby": invalid ? errorId : description ? descriptionId : undefined,
+  };
+  const field = multiline ? (
+    <textarea {...shared} rows={rows} onChange={(event) => onChange(event.currentTarget.value)} />
+  ) : (
+    <input {...shared} type={type} onChange={(event) => onChange(event.currentTarget.value)} />
+  );
   return (
-    <HeroTextField
-      fullWidth
-      type={type}
-      value={value}
-      onChange={onChange}
-      isInvalid={error !== undefined}
-      isRequired={required}
-      isDisabled={disabled}
-      autoFocus={autoFocus}
-      {...(maxLength === undefined ? {} : { maxLength })}
-      {...(name ? { name } : {})}
-      {...(inputMode ? { inputMode } : {})}
-      {...(autoComplete ? { autoComplete } : {})}
-    >
-      <Label>{label}</Label>
+    <div className="text-field">
+      <label htmlFor={id} className="text-field__label">
+        {label}
+      </label>
       {grouped ? (
-        <InputGroup fullWidth>
-          {leading != null && <InputGroup.Prefix>{leading}</InputGroup.Prefix>}
-          {multiline ? (
-            <InputGroup.TextArea rows={rows} {...control} />
-          ) : (
-            <InputGroup.Input {...control} />
+        <div className="text-field__control text-field__group">
+          {leading != null && (
+            <span className="text-field__slot text-field__slot--leading">{leading}</span>
           )}
-          {trailing != null && <InputGroup.Suffix>{trailing}</InputGroup.Suffix>}
-        </InputGroup>
-      ) : multiline ? (
-        <TextArea rows={rows} {...control} />
+          {field}
+          {trailing != null && (
+            <span className="text-field__slot text-field__slot--trailing">{trailing}</span>
+          )}
+        </div>
       ) : (
-        <Input {...control} />
+        field
       )}
       {/* One line under the box: the help or the error at the start edge, the count at the
-          end. With none of them it is empty and takes no room. */}
-      <div className="flex items-baseline gap-3 empty:hidden">
-        {description && <Description>{description}</Description>}
-        <FieldError>{error}</FieldError>
+          end. The error is a live region, so it is announced when it appears. */}
+      <div className="text-field__footer">
+        {!invalid && description && (
+          <span id={descriptionId} className="text-field__description">
+            {description}
+          </span>
+        )}
+        <span id={errorId} className="text-field__error" aria-live="polite">
+          {error}
+        </span>
         {maxLength !== undefined && (
           <span className="ms-auto shrink-0 text-acme-footnote text-acme-text-secondary tabular-nums">
             {value.length}/{maxLength}
           </span>
         )}
       </div>
-    </HeroTextField>
+    </div>
   );
 }

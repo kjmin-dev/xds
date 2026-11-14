@@ -79,7 +79,7 @@
     box-shadow: none;
   }
 
-  /* After focus and the error, which it outranks, as in the React library. */
+  /* After focus and the error, which it outranks. */
   @media (hover: hover) {
     .select__trigger:hover {
       border-color: var(--acme-color-text-primary);
@@ -151,7 +151,7 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     scroll-padding-block: var(--acme-space-1);
-    /* HeroUI's thin scrollbar: the text's color, faint. */
+    /* A thin scrollbar in the text's color, faint, which stays out of the way of the rows. */
     scrollbar-width: thin;
     scrollbar-color: color-mix(in oklab, var(--acme-color-text-primary) 15%, transparent)
       transparent;
@@ -169,7 +169,8 @@
 
   /* After the rules above, which it replaces. A closing list takes no more presses. */
   .select__content[data-state="closed"] {
-    animation: acme-overlay-exit var(--acme-motion-duration-fast) var(--acme-motion-easing-exit);
+    animation: acme-overlay-exit var(--acme-motion-duration-fast) var(--acme-motion-easing-exit)
+      forwards;
     pointer-events: none;
   }
 
@@ -243,7 +244,8 @@
 }
 
 /* The list grows a little as it fades in, from the side of the field it opens on. The scale
-   and the distance are literals, as in the React library. */
+   and the distance are literals: a custom property inside a keyframe keeps WebKit from running
+   the animation on the compositor. */
 @keyframes acme-select-enter {
   from {
     opacity: 0;

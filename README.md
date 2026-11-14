@@ -10,13 +10,13 @@ A cross-platform design system template. A single set of design tokens drives a 
 
 | Client | Runs on | Stack | Components | App |
 | --- | --- | --- | --- | --- |
-| `web-react` | Browsers | React 19, Vite, Tailwind v4, HeroUI v3 | `packages/ui` | `apps/web` |
+| `web-react` | Browsers | React 19, Vite, Tailwind v4, Zag.js | `packages/ui`, `packages/ui-core` | `apps/web` |
 | `web-solid` | Browsers | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js | `packages/ui-solid`, `packages/ui-core` | `apps/web-solid` |
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component | `crates/acme-ui` | `apps/desktop` |
 | `mobile-react-native` | iOS, Android | React Native, Expo | `packages/ui-native` | `apps/mobile` |
 | `kotlin-compose` | Android, iOS, desktop | Kotlin Multiplatform, Compose Multiplatform | `kotlin/ui` | `kotlin/androidApp`, `kotlin/iosApp`, `kotlin/desktopApp` |
 
-The two web clients can be combined in one project: each has its own directory, port, and `mise` alias. `packages/ui-core` holds what the web libraries built on Zag.js share (prop types, class recipes, and the stylesheet), so that each framework's library adds only its components.
+The two web clients can be combined in one project: each has its own directory, port, and `mise` alias. `packages/ui-core` holds what the web libraries share (prop types, class recipes, and the stylesheet), so that each framework's library adds only its components, and the web clients look and behave the same.
 
 `acme` is a placeholder name that `xds create` replaces with your project name.
 
@@ -129,7 +129,7 @@ design/icons/           icons, as SVG files
 tools/design-build/     tokens to platform files, plus the contrast check
 packages/tokens/        generated CSS and TypeScript
 packages/ui/            React web components
-packages/ui-core/       prop types, classes, and CSS shared by the Zag.js web components
+packages/ui-core/       prop types, classes, and CSS shared by the web components
 packages/ui-solid/      Solid web components
 packages/ui-native/     React Native components
 crates/acme-tokens/     generated Rust
@@ -150,8 +150,7 @@ template.json           which paths belong to which client
 
 | | Status |
 | --- | --- |
-| Web | Design preview checked in headless Chrome in both light and dark modes |
-| Web (Solid) | Compared with the React design preview in headless Chrome, in both light and dark modes: screenshots of every section and of each open overlay, computed styles, accessibility trees, and keyboard and pointer behavior. Known differences: an open Menu or Select keeps focus on the list and points at the highlighted item with `aria-activedescendant`, where React moves focus to the item; a Tooltip stays open while the page scrolls, for as long as its control has focus or the pointer, where React closes it; a letter typed in a Menu or a Select's list moves past the highlighted item to the next one that starts with it, and Shift+Tab into a RadioGroup with nothing chosen lands on its first option, as the ARIA Authoring Practices describe, where React can stay on the highlighted item and lands on the last option |
+| Web | The React and Solid design previews checked in headless Chrome in both light and dark modes, and compared with each other screenshot by screenshot, every section and each open overlay. The two libraries draw from one stylesheet and take their behavior from the same Zag.js machines |
 | GPUI desktop | Run on macOS; design preview checked in both light and dark modes |
 | React Native | Run on the iOS simulator in light and dark modes, including the bottom sheet. Android and physical devices have not been checked |
 | Compose | Checked on desktop, an Android emulator, and the iOS simulator; see [kotlin/README.md](kotlin/README.md) for details |

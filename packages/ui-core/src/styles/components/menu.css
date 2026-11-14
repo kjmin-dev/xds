@@ -12,9 +12,9 @@
  * opened on, and `[data-state="closed"]` on it while it animates out.
  */
 @layer components {
-  /* The trigger stays pressed while its menu is open, as in the React library, which ties the
-     menu to the control it came from. The underlay is over it, so the pointer does not turn
-     it back to its hover fill. */
+  /* The trigger stays pressed while its menu is open, which ties the menu to the control it
+     came from. The underlay is over it, so the pointer does not turn it back to its hover
+     fill. */
   .menu__trigger[aria-expanded="true"] {
     background-color: var(--button-bg-pressed);
     transform: scale(var(--acme-motion-press-scale));
@@ -27,10 +27,10 @@
     }
   }
 
-  /* Over the page and under the open menu, as in the React library: a press outside lands here
-     and only closes the menu, and nothing on the page reacts to the pointer meanwhile. Rendered
-     before the positioner, it is under it at the same level. Inside a dialog it is above the
-     dialog, which was rendered earlier. */
+  /* Over the page and under the open menu: a press outside lands here and only closes the
+     menu, and nothing on the page reacts to the pointer meanwhile. Rendered before the
+     positioner, it is under it at the same level. Inside a dialog it is above the dialog,
+     which was rendered earlier. */
   .menu__underlay {
     position: fixed;
     inset: 0;
@@ -73,7 +73,8 @@
 
   /* After the rules above, which it replaces. A closing menu takes no more presses. */
   .menu[data-state="closed"] {
-    animation: acme-overlay-exit var(--acme-motion-duration-fast) var(--acme-motion-easing-exit);
+    animation: acme-overlay-exit var(--acme-motion-duration-fast) var(--acme-motion-easing-exit)
+      forwards;
     pointer-events: none;
   }
 
@@ -119,7 +120,7 @@
     background: var(--acme-color-menu-item-background-hover);
   }
 
-  /* A press that drags does not select the row's text, as in the React library. */
+  /* A press that drags does not select the row's text. */
   .menu__item:active {
     background: var(--acme-color-menu-item-background-pressed);
     user-select: none;

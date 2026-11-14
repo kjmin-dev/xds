@@ -1,10 +1,12 @@
 import { space } from "@acme/tokens";
 import {
+  firstMenuValue,
+  keepListKeys,
   layoutRect,
   leaveEscapeToFields,
   type MenuBaseProps,
   menuItemClass,
-  pageTarget,
+  opensOnPress,
 } from "@acme/ui-core";
 import { Portal } from "@solidjs/web";
 import * as menu from "@zag-js/menu";
@@ -46,44 +48,43 @@ export function Menu(props: MenuProps) {
       if (item && item !== "separator") item.onSelect();
     },
     onEscapeKeyDown: leaveEscapeToFields,
-    // The arrow keys go round from the last item to the first, as in the React library.
+    // The arrow keys go round from the last item to the first, as in a native menu.
     loopFocus: true,
   }));
   const api = createMemo(() => menu.connect(service, normalizeProps));
+  // Whether the last press on the trigger opened the menu, which its click must then not do.
+  let pressOpened = false;
   const trigger = provideTrigger(() => {
-    const { onPointerDown, ...rest } = api().getTriggerProps() as TriggerProps & {
-      onPointerDown?: (event: PointerEvent) => void;
-    };
+    // Zag's handler for a press is left out: it keeps the press from focusing the trigger, so
+    // the focus would reach the menu, and come back to the trigger as the menu closes, only
+    // from a script, which the browser marks with the keyboard ring.
+    const { onPointerDown: _onPointerDown, ...rest } = api().getTriggerProps() as TriggerProps;
     return mergeProps(rest, {
       // Added to the control's own class; the trigger looks pressed while its menu is open.
       class: "menu__trigger",
-      // A mouse opens the menu as its button goes down, as in the React library. Zag would
-      // open it on the click and keep the focus off the trigger meanwhile; a pressed trigger
-      // takes the focus, so the focus that comes back to it when the menu closes shows no
-      // keyboard ring. Touch and pen open it on the click, as Zag does.
+      // A mouse opens the menu as its button goes down; touch and pen open it on the click,
+      // as Zag does.
       onPointerDown: (event: PointerEvent & { currentTarget: HTMLElement }) => {
-        if (event.pointerType !== "mouse") {
-          onPointerDown?.(event);
-          return;
-        }
-        if (event.button !== 0 || event.ctrlKey || event.currentTarget.matches(":disabled")) return;
-        if (!api().open) api().setOpen(true);
+        pressOpened = opensOnPress(event) && !api().open;
+        if (pressOpened) api().setOpen(true);
       },
       onClick: (event: MouseEvent) => {
+        // A click with no pointer behind it comes from a screen reader or a script.
+        const pointer = event.detail !== 0;
         // The press opened the menu already. This handler runs before Zag's, which skips a
-        // handled click.
-        if (event instanceof PointerEvent && event.pointerType === "mouse") {
+        // handled click. Not told by the click's pointer type: a browser may send the click
+        // as a plain mouse event.
+        if (pressOpened && pointer) {
+          pressOpened = false;
           event.preventDefault();
           return;
         }
-        // A click with no pointer behind it comes from a screen reader or a script. As with
-        // the keyboard, the first item is highlighted, so the next key works the list at once.
-        if (event.detail !== 0) return;
+        if (pointer) return;
         // After the machine has opened the menu.
         requestAnimationFrame(() => {
           if (!api().open) return;
-          const first = props.items.findIndex((item) => item !== "separator" && !item.disabled);
-          if (first >= 0) api().setHighlightedValue(String(first));
+          const first = firstMenuValue(props.items);
+          if (first !== undefined) api().setHighlightedValue(first);
         });
       },
     });
@@ -99,22 +100,11 @@ export function Menu(props: MenuProps) {
     () => [surface],
   );
   const content = mergeProps(() => api().getContentProps(), {
-    // This handler runs before Zag's, which skips a key that was already handled.
-    onKeyDown: (event: KeyboardEvent) => {
-      // The open menu keeps focus, as in the React library: Tab and Shift+Tab stay in it, and a
-      // choice, Escape or a press outside closes it. Zag would close it and move focus on.
-      if (event.key === "Tab") event.preventDefault();
-      // Zag has no page keys; the React library moves a page, or to the end of a short menu.
-      if ((event.key === "PageDown" || event.key === "PageUp") && surface) {
-        event.preventDefault();
-        const value = pageTarget(
-          surface,
-          ".menu__item:not([data-disabled])",
-          event.key === "PageDown" ? 1 : -1,
-        );
-        if (value !== undefined) api().setHighlightedValue(value);
-      }
-    },
+    // This handler runs before Zag's.
+    onKeyDown: (event: KeyboardEvent) =>
+      keepListKeys(event, surface, ".menu__item:not([data-disabled])", (value) =>
+        api().setHighlightedValue(value),
+      ),
   });
   return (
     <>

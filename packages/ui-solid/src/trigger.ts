@@ -1,8 +1,7 @@
-// Menu and Tooltip take the control that opens them as an element, as the React library does:
+// Menu and Tooltip take the control that opens them as an element, as in every web library:
 // `<Menu trigger={<Button>Actions</Button>} />`, `<Tooltip label="Search"><IconButton /></Tooltip>`.
 // The overlay's machine has props for that control (its id, aria and event handlers), and they
-// reach the Button or IconButton through this context, the way React Aria hands them to
-// HeroUI's Button.
+// reach the Button or IconButton through this context, so an app never wires them up itself.
 
 import { mergeProps } from "@zag-js/solid";
 import { type Accessor, createContext, useContext } from "solid-js";

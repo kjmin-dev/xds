@@ -59,7 +59,7 @@ export function RadioGroup<Value extends string = string>(props: RadioGroupProps
                     .filter(Boolean)
                     .join(" ") || undefined
                 }
-                // oxlint-disable-next-line jsx-a11y/role-supports-aria-props -- on each radio as well as the group, as in the React library, so it is heard on the radio that has focus
+                // oxlint-disable-next-line jsx-a11y/role-supports-aria-props -- on each radio as well as the group, so it is heard on the radio that has focus
                 aria-invalid={invalid() ? "true" : undefined}
                 onChange={() => {
                   props.onChange(option.value);
@@ -94,7 +94,7 @@ export function RadioGroup<Value extends string = string>(props: RadioGroupProps
       {/* The region is there before the error is, so that the error is announced when it
           appears. Empty, it takes no room. */}
       <div aria-live="polite">
-        <Show when={props.error}>
+        <Show when={invalid()}>
           <span id={errorId} class="radio-group__error">
             {props.error}
           </span>

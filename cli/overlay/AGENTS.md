@@ -24,7 +24,7 @@ Acme is built around a shared design system: a single set of design tokens and a
 | `packages/ui-solid`, `apps/web-solid` | Web component library (Solid, Tailwind, Zag.js) and the Solid web app |
 <!-- @endif -->
 <!-- @if ui-core -->
-| `packages/ui-core` | What the web libraries share: the prop types, class recipes, and stylesheet of their components, the DOM helpers their behavior needs, and the behavior tests that each of them runs |
+| `packages/ui-core` | What the web libraries share: the prop types, class recipes, and stylesheet of their components, the DOM helpers their behavior needs, the web design preview as data (`src/preview`), and the behavior tests that each of them runs |
 <!-- @endif -->
 <!-- @if mobile-react-native -->
 | `packages/ui-native`, `apps/mobile` | React Native component library and the Expo app |
@@ -51,6 +51,9 @@ Acme is built around a shared design system: a single set of design tokens and a
 - `packages/ui-core` holds one copy of what the web libraries share, so it never imports a framework. Change a component's classes or CSS there, not in a library. Its CSS selects on its own part classes, native pseudo-classes, `aria-*` attributes, and Zag's state attributes.
 <!-- @endif -->
 - When adding a variant, size, or tone to a component, implement it under the same name across every client in this project, add it to each client's design preview, and record it in `design/components.json`.
+<!-- @if ui-core -->
+- The web design preview is written once, as typed data in `packages/ui-core/src/preview`, and each web library's renderer (`src/preview.tsx`) draws it at `/design`. Show a web component there, not in an app: its props go in `components.ts`, its examples in `sections.ts`, and the component into the `COMPONENTS` of each renderer, which fails to typecheck until it is there and takes every prop the data passes. The `README.md` there explains the data.
+<!-- @endif -->
 - Switch color themes with `mise run theme <name>`. Do not edit the accent or neutral color ramps in `design/tokens/palette.json` by hand.
 <!-- @if js-workspace -->
 - Fix what the linter reports. Where a rule is wrong for one deliberate line, disable it there with `// oxlint-disable-next-line <plugin>/<rule> -- <why>`; a directive that no longer suppresses anything fails `mise run check:js`.
@@ -114,5 +117,11 @@ Inspect the design preview in both light and dark modes after making visual chan
 <!-- @endif -->
 <!-- @if ui-core -->
 
-`mise run check:js` also tests how the interactive web components behave (keyboard, focus, and ARIA state) in the Google Chrome installed on the machine. The checks are in `packages/ui-core/test/behavior.ts` and the scenarios they run against in `scenarios.ts`, and every web library runs them: its `test/behavior.test.tsx` builds each scenario with its own components. When you add or change an interactive web component, add its scenario and its checks to `packages/ui-core/test`, and build the scenario in each library's `behavior.test.tsx`.
+`mise run check:js` also tests how the interactive web components behave (keyboard, focus, and ARIA state) in the Google Chrome installed on the machine. The checks are in `packages/ui-core/test/behavior.ts`, and the screens they run against are written as data in `scenarios.ts`, the way the design preview is. Every web library runs them: its `test/behavior.test.tsx` draws each screen with the library's preview renderer. When you add or change an interactive web component, add its scenario and its checks to `packages/ui-core/test`.
+<!-- @if web-react -->
+<!-- @if web-solid -->
+
+`mise run compare:previews` starts both web apps and compares their design previews pixel by pixel: every section and every `?open=` overlay, at 1280 and 390 px, in both modes. Both draw the same data, so a difference is one library drawing a component differently.
+<!-- @endif -->
+<!-- @endif -->
 <!-- @endif -->

@@ -4,6 +4,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./preview": "./src/preview.tsx",
     "./styles.css": "./src/styles/index.css"
   },
   "scripts": {

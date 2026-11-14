@@ -81,7 +81,7 @@ JSON 출력 형식과 종료 코드에 대한 자세한 내용은 [CLI 문서](d
 - `design/themes`에는 `indigo`(기본값), `ocean`, `forest`, `sunset`, `plum` 다섯 가지 컬러 테마가 있습니다. 각 테마는 강조색(accent) 단계와 무채색(neutral) 단계로 구성되며, 모든 테마가 전체 명암비 검사를 통과합니다.
 - `tools/design-build`는 토큰을 CSS 커스텀 프로퍼티, Tailwind 테마, TypeScript 상수, Rust 상수, Compose 값으로 컴파일합니다. 외부 의존성 없이 Node만으로 실행되며, 색상 조합의 명암비가 WCAG 기준에 미달하면 빌드가 실패합니다.
 - 모든 클라이언트는 동일한 이름과 옵션을 가진 컴포넌트를 구현합니다: Button, TextField, Text, Badge, CountBadge, Banner, Card, Divider, Spinner, Switch, Checkbox, SegmentedControl, Avatar, AvatarStack, ProgressBar, ListRow, Icon, IconButton, Chip, ChipBar, Tabs, Menu, Dialog, Toast, Skeleton, SearchField, RadioGroup, Select, Slider, Thumbnail, MediaCard, SectionHeader, EmptyState, Accordion. 터치 기반의 두 클라이언트에는 TopBar, TabBar, BottomSheet가, 포인터 기반의 클라이언트(두 웹 클라이언트와 GPUI)에는 Tooltip과 Sidebar가 추가로 포함됩니다.
-- 각 앱에는 모든 토큰과 컴포넌트를 한 화면에서 확인할 수 있는 디자인 프리뷰 화면이 포함되어 있습니다.
+- 각 앱에는 모든 토큰과 컴포넌트를 한 화면에서 확인할 수 있는 디자인 프리뷰 화면이 포함되어 있습니다. 웹 앱들은 하나의 프리뷰를 공유합니다. 프리뷰는 `packages/ui-core`에 타입이 있는 데이터로 한 번만 정의되어 있고, 각 웹 라이브러리의 작은 렌더러가 이를 그립니다.
 
 시스템 구조의 설계 배경과 최신 오픈소스 디자인 시스템에서 참고한 관례는 [디자인 시스템 문서](docs/design-system.md)(영문)에서 설명합니다.
 
@@ -152,7 +152,7 @@ template.json           어떤 경로가 어느 클라이언트에 속하는지
 
 | | 상태 |
 | --- | --- |
-| 웹 | 헤드리스 Chrome에서 라이트·다크 모드로 React와 Solid 디자인 프리뷰를 확인하고, 모든 섹션과 열린 오버레이 각각의 스크린샷을 서로 비교. 두 라이브러리는 같은 스타일시트로 그리고 같은 Zag.js 상태 머신에서 동작을 가져옴 |
+| 웹 | 헤드리스 Chrome에서 라이트·다크 모드로 React와 Solid 디자인 프리뷰를 확인하고, 모든 섹션과 열린 오버레이 각각의 스크린샷을 서로 비교. 두 라이브러리는 데이터로 한 번 정의된 같은 프리뷰를 같은 스타일시트로 그리고, 같은 Zag.js 상태 머신에서 동작을 가져옴 |
 | GPUI 데스크톱 | macOS에서 앱 실행 및 라이트·다크 모드 프리뷰 확인 |
 | React Native | iOS 시뮬레이터에서 라이트·다크 모드 및 바텀 시트 동작 확인. Android와 실제 기기는 아직 확인하지 않음 |
 | Compose | 데스크톱, Android 에뮬레이터, iOS 시뮬레이터에서 확인. 자세한 내용은 [kotlin/README.md](kotlin/README.md) 참고 |

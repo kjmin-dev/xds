@@ -320,10 +320,12 @@ const PLATFORM = {
 
 async function components() {
   // The sections of the web design preview, by title: each component page links to its own.
-  const preview = await readFile(join(root, "apps/web/src/DesignPreview.tsx"), "utf8");
+  // They are the entries of SECTIONS, which every web app's preview draws.
+  const preview = await readFile(join(root, "packages/ui-core/src/preview/design.ts"), "utf8");
   const sections = new Set(
-    [...preview.matchAll(/<Section title="([^"]+)">/g)].map(([, title]) => title),
+    [...preview.matchAll(/^ {2}\["([^"]+)", \w+\],$/gm)].map(([, title]) => title),
   );
+  if (sections.size === 0) throw new Error("no sections found in the design preview");
   for (const [index, component] of COMPONENTS.entries()) {
     const sources = Object.entries(component.sources) as [keyof typeof PLATFORM, string][];
     for (const [, file] of sources) {

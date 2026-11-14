@@ -20,6 +20,8 @@ on:
     paths:
       - apps/web/**
       - packages/ui/**
+      # The components' classes and stylesheet, and the preview itself, written there as data.
+      - packages/ui-core/**
       - packages/tokens/**
       - design/**
       - .github/workflows/preview.yml

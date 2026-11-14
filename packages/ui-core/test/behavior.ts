@@ -9,6 +9,7 @@ import { type Locator, page, userEvent } from "vitest/browser";
 import {
   CONFIRM,
   COUNTRY_PLACEHOLDER,
+  KEPT,
   QUESTION,
   QUESTIONS,
   type Scenario,
@@ -66,6 +67,32 @@ const sliderValue = (locator: Locator) => {
 };
 
 export function describeBehavior(mount: Mount) {
+  // A field or a switch is controlled: it shows the value its owner gives it, so one whose owner
+  // does not take a change goes on showing the old value. A native input changes on its own, and
+  // a framework that writes the value only when it changes leaves the edit there.
+  describe("Controlled values", () => {
+    test("a field shows what is typed into it once its owner takes it", async () => {
+      await mount("controlled");
+      const email = page.getByRole("textbox", { name: "Email" });
+      await email.click();
+      await userEvent.keyboard("ada@example.com");
+      await expect.element(email).toHaveValue("ada@example.com");
+    });
+
+    test("a control whose owner keeps its value goes on showing that value", async () => {
+      await mount("controlled");
+      const name = page.getByRole("textbox", { name: "Project name" });
+      await name.click();
+      await userEvent.keyboard(" draft");
+      await expect.element(name).toHaveValue(KEPT);
+      const off = page.getByRole("switch", { name: "Off" });
+      await page.getByText("Off").click();
+      await expect.element(off).not.toBeChecked();
+      await userEvent.keyboard(" ");
+      await expect.element(off).not.toBeChecked();
+    });
+  });
+
   describe("Switch and Checkbox", () => {
     test("a press on the label toggles the control", async () => {
       await mount("selection");

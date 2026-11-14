@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  // The other defaults (two spaces, double quotes, semicolons, trailing commas) are the style
+  // the code was written in.
+  "printWidth": 100,
+  // Keys stay in the order they were written; pnpm and npm append to these files themselves.
+  "sortPackageJson": false,
+  // One block of imports, without blank lines between groups.
+  "sortImports": { "newlinesBetween": false },
+  "ignorePatterns": [
+    // Markdown tables are aligned by width, and TOML arrays collapse once the `@if` lines in
+    // them are gone: both would change in every project `xds create` renames.
+    "**/*.md",
+    "**/*.toml",
+    // Written by tools: the token generator, and JSON.stringify for the files under design/.
+    "**/generated",
+    "design",
+  ],
+  // @if template
+  // The documentation site's pages; Astro brings the compiler that formats them.
+  "astro": true,
+  // @endif
+}

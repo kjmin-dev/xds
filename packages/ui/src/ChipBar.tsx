@@ -13,7 +13,7 @@ export type ChipBarProps = {
  */
 export function ChipBar({ label, children }: ChipBarProps) {
   return (
-    // biome-ignore lint/a11y/useSemanticElements: a fieldset cannot be a scrolling flex row in every browser
+    // A group, not a fieldset: a fieldset cannot be a scrolling flex row in every browser.
     <div
       role="group"
       aria-label={label}

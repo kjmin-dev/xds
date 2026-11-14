@@ -78,21 +78,22 @@ impl Formatter for JavaScript<'_> {
     }
 }
 
-/// The width Biome formats to in the template's `biome.json`.
+/// The width oxfmt formats to, the `printWidth` in the template's `.oxfmtrc.jsonc`.
 const LINE_WIDTH: usize = 100;
 
-/// The layout Biome gives a JSON file: objects spread over lines, and an array on one line when
-/// it fits. Files that `xds` writes into a project with a JavaScript workspace are checked by
-/// `biome ci` there, so they have to come out already formatted.
+/// The layout oxfmt gives a JSON file it did not see before: objects spread over lines, and an
+/// array on one line when it fits. Files that `xds` writes into a project with a JavaScript
+/// workspace are checked by `oxfmt --check` there, so they have to come out already formatted.
 pub fn format(value: &Value) -> String {
     let mut output = String::new();
-    write_value(&mut output, value, 0, 0);
+    write_value(&mut output, value, 0, 0, 0);
     output.push('\n');
     output
 }
 
-/// `used` is how many columns of the current line are taken before the value starts.
-fn write_value(output: &mut String, value: &Value, indent: usize, used: usize) {
+/// `used` is how many columns of the current line are taken before the value starts, and
+/// `after` how many follow it: one for a comma, none for the last member.
+fn write_value(output: &mut String, value: &Value, indent: usize, used: usize, after: usize) {
     let pad = "  ".repeat(indent + 1);
     match value {
         Value::Object(members) if !members.is_empty() => {
@@ -102,12 +103,15 @@ fn write_value(output: &mut String, value: &Value, indent: usize, used: usize) {
                 output.push_str(&pad);
                 output.push_str(&key);
                 output.push_str(": ");
-                write_value(output, member, indent + 1, pad.len() + key.len() + 2);
-                output.push_str(if index + 1 < members.len() {
-                    ",\n"
-                } else {
-                    "\n"
-                });
+                let last = index + 1 == members.len();
+                write_value(
+                    output,
+                    member,
+                    indent + 1,
+                    pad.len() + key.len() + 2,
+                    usize::from(!last),
+                );
+                output.push_str(if last { "\n" } else { ",\n" });
             }
             output.push_str(&"  ".repeat(indent));
             output.push('}');
@@ -124,16 +128,16 @@ fn write_value(output: &mut String, value: &Value, indent: usize, used: usize) {
                     .collect::<Vec<_>>()
                     .join(", ")
             );
-            // One column is kept for the comma that may follow.
-            if flat && used + one_line.len() < LINE_WIDTH {
+            if flat && used + one_line.len() + after <= LINE_WIDTH {
                 output.push_str(&one_line);
                 return;
             }
             output.push_str("[\n");
             for (index, item) in items.iter().enumerate() {
                 output.push_str(&pad);
-                write_value(output, item, indent + 1, pad.len());
-                output.push_str(if index + 1 < items.len() { ",\n" } else { "\n" });
+                let last = index + 1 == items.len();
+                write_value(output, item, indent + 1, pad.len(), usize::from(!last));
+                output.push_str(if last { "\n" } else { ",\n" });
             }
             output.push_str(&"  ".repeat(indent));
             output.push(']');
@@ -176,5 +180,23 @@ mod tests {
         let text = format(&json!({ "targets": long }));
         assert!(text.starts_with("{\n  \"targets\": [\n    \"target-number-0\",\n"));
         assert!(text.lines().all(|line| line.len() <= LINE_WIDTH));
+    }
+
+    /// oxfmt keeps an array on one line when the line, with its comma if it has one, is at
+    /// most `LINE_WIDTH` columns.
+    #[test]
+    fn format_fills_the_line_exactly() {
+        // `  "a": ["…"]` is 11 columns around the string.
+        let fits = "x".repeat(LINE_WIDTH - 11);
+        let last = format(&json!({ "a": [fits] }));
+        assert!(last.contains(&format!("  \"a\": [\"{fits}\"]\n")), "{last}");
+        let followed = format(&json!({ "a": [fits], "b": 1 }));
+        assert!(followed.contains("  \"a\": [\n"), "{followed}");
+        let shorter = &fits[1..];
+        let followed = format(&json!({ "a": [shorter], "b": 1 }));
+        assert!(
+            followed.contains(&format!("  \"a\": [\"{shorter}\"],\n")),
+            "{followed}"
+        );
     }
 }

@@ -100,7 +100,8 @@ export function MediaCard({
   );
   if (!onPress) {
     return (
-      // biome-ignore lint/a11y/useSemanticElements: a fieldset groups form controls, and sizes itself to its content, which would undo the ellipses
+      // A group, not a fieldset: a fieldset groups form controls, and sizes itself to its
+      // content, which would undo the ellipses.
       <div role="group" aria-labelledby={names} className="flex flex-col">
         {content}
       </div>

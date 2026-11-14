@@ -43,6 +43,9 @@ Acme is built around a shared design system: a single set of design tokens and a
 <!-- @endif -->
 - When adding a variant, size, or tone to a component, implement it under the same name across every client in this project, add it to each client's design preview, and record it in `design/components.json`.
 - Switch color themes with `mise run theme <name>`. Do not edit the accent or neutral color ramps in `design/tokens/palette.json` by hand.
+<!-- @if js-workspace -->
+- Fix what the linter reports. Where a rule is wrong for one deliberate line, disable it there with `// oxlint-disable-next-line <plugin>/<rule> -- <why>`; a directive that no longer suppresses anything fails `mise run check:js`.
+<!-- @endif -->
 
 ## Commands
 

@@ -24,6 +24,7 @@ This repository is the xds template: a single set of design tokens, component li
 - Every top-level path in the repository must be accounted for in `template.json` (under a target, a shared group, `common`, or `exclude`). Target-specific lines in shared files must be wrapped in `@if <names>` and `@endif` comments. A name is a target id or a shared unit from `template.json`; use the unit (`@if js-workspace`) when the lines serve every target that requires it, so that a new target gets them too. Use `@if template` for lines needed only in this template repository.
 - Machine-written JSON files under `design/` must be formatted with `JSON.stringify(value, null, 2)` followed by a trailing newline.
 - Write comments that explain why, not what.
+- Fix what the linter reports. Where a rule is wrong for one deliberate line, disable it there with `// oxlint-disable-next-line <plugin>/<rule> -- <why>`; a directive that no longer suppresses anything fails `mise run check:js`.
 
 ## Commands
 

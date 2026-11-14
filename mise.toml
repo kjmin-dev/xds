@@ -111,7 +111,9 @@ run = [
   "cargo fmt --all",
   # @endif
   # @if js-workspace
-  "pnpm exec biome check --write",
+  # Lint fixes first: the formatter then lays out whatever they changed.
+  "pnpm exec oxlint --fix",
+  "pnpm exec oxfmt",
   # @endif
 ]
 
@@ -121,7 +123,8 @@ run = [
 description = "Lint, type-check, and test the TypeScript workspace"
 depends = ["install"]
 run = [
-  "pnpm exec biome ci",
+  "pnpm exec oxfmt --check",
+  "pnpm exec oxlint",
   "pnpm --recursive --if-present run typecheck",
   "pnpm --recursive --if-present run test",
   # @if web-react

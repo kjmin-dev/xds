@@ -2,8 +2,8 @@ import { radius, space } from "@acme/tokens";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Text } from "./Text.tsx";
-import { Thumbnail, type ThumbnailRatio } from "./Thumbnail.tsx";
 import { useColors } from "./theme.ts";
+import { Thumbnail, type ThumbnailRatio } from "./Thumbnail.tsx";
 
 export type MediaCardProps = {
   /** `vertical`: the thumbnail on top, the text under it. `horizontal`: the thumbnail at the start. */

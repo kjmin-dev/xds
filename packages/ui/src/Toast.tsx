@@ -66,7 +66,7 @@ export function Toast({
       className="pointer-events-none fixed inset-x-0 top-auto bottom-0 m-0 w-full max-w-none justify-center overflow-visible border-0 bg-transparent p-4 pb-[calc(var(--acme-space-4)+env(safe-area-inset-bottom))] [&:popover-open]:flex"
     >
       {open && (
-        // biome-ignore lint/a11y/noStaticElementInteractions: hover and focus only pause the timer; the action inside is a real button
+        // No role: hover and focus only pause the timer, and the action inside is a real button.
         <div
           onPointerEnter={() => setHovered(true)}
           onPointerLeave={() => setHovered(false)}

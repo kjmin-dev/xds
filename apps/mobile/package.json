@@ -7,7 +7,7 @@
     "start": "expo start",
     "ios": "expo start --ios",
     "android": "expo start --android",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsrs --noEmit"
   },
   "dependencies": {
     "@acme/tokens": "workspace:*",
@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "@types/react": "catalog:",
+    "tsrs": "catalog:",
     "typescript": "catalog:"
   }
 }

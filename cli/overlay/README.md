@@ -67,6 +67,10 @@ The first run resolves dependencies and generates the lockfiles. Commit them to 
 <!-- @endif -->
 | List all tasks | `mise tasks --all` |
 
+<!-- @if js-workspace -->
+On the command line, `mise run check:js` type-checks and runs oxlint's type-aware rules with [tsrs](https://github.com/oxc-project/tsrs), an experimental Rust port of TypeScript 7.1, pinned to an exact release. Editors keep TypeScript's own language server; point them at the root `typescript` package, the version tsrs is held to. Upgrade the two together in the catalog in `pnpm-workspace.yaml`, taking the tsrs release that ports the new TypeScript version (`pnpm view tsrs@<release> tsrs.typescriptVersion` shows the version a release ports); `mise run check:js` fails while they differ.
+
+<!-- @endif -->
 <!-- @if ui-core -->
 The tests of the web components run in Google Chrome, which `mise run check` needs installed.
 <!-- @endif -->

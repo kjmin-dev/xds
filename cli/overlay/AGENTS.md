@@ -54,6 +54,7 @@ Acme is built around a shared design system: a single set of design tokens and a
 - Switch color themes with `mise run theme <name>`. Do not edit the accent or neutral color ramps in `design/tokens/palette.json` by hand.
 <!-- @if js-workspace -->
 - Fix what the linter reports. Where a rule is wrong for one deliberate line, disable it there with `// oxlint-disable-next-line <plugin>/<rule> -- <why>`; a directive that no longer suppresses anything fails `mise run check:js`.
+- On the command line, type checking (each package's `typecheck` script, `tsrs --noEmit`) and oxlint's type-aware rules (`tsrs-lint`) run on tsrs, an experimental Rust port of TypeScript 7.1. Editors keep TypeScript's own language server; the root `typescript` package is the version to point them at, and the one tsrs is held to. tsrs is built from one TypeScript commit, so the pnpm catalog pins both exactly and they move together: to upgrade TypeScript, change both, taking the tsrs release that ports the new version (`pnpm view tsrs@<release> tsrs.typescriptVersion` shows the version a release ports). `mise run check:js` fails while they differ. Build scripts do not type-check; `mise run check:js` does.
 <!-- @endif -->
 
 ## Commands

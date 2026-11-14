@@ -22,8 +22,13 @@ catalog:
   react: 19.3.0
   react-dom: 19.3.0
   # @endif
-  # Exact pin while 7.1 is in beta: a range such as ~7.1.0-beta also matches the nightly
-  # 7.1.0-dev.* builds, which sort above "beta". Move to ~7.1.0 when 7.1.0 is released.
+  # These two move together. tsrs, which type-checks and runs the type-aware lint rules on the
+  # command line, is a Rust port built from one TypeScript commit, and typescript is the version
+  # editors are pointed at, so both are exact pins: a range would let one of them move without the
+  # other. On a TypeScript upgrade, take the tsrs release that ports the new version (`pnpm view
+  # tsrs@<release> tsrs.typescriptVersion` shows the version a release ports); check:js fails
+  # while the two differ.
+  tsrs: 0.25.0-ts7.1.0-beta
   typescript: 7.1.0-beta
   # @if ui-core
   # The state machines behind the overlays and the composite controls of the web libraries.

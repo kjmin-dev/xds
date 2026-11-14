@@ -27,6 +27,7 @@ This repository is the xds template: a single set of design tokens, component li
 - Machine-written JSON files under `design/` must be formatted with `JSON.stringify(value, null, 2)` followed by a trailing newline.
 - Write comments that explain why, not what.
 - Fix what the linter reports. Where a rule is wrong for one deliberate line, disable it there with `// oxlint-disable-next-line <plugin>/<rule> -- <why>`; a directive that no longer suppresses anything fails `mise run check:js`.
+- On the command line, type checking (each package's `typecheck` script, `tsrs --noEmit`) and oxlint's type-aware rules (`tsrs-lint`) run on tsrs, an experimental Rust port of TypeScript 7.1. Editors keep TypeScript's own language server; the root `typescript` package is the version to point them at, and the one tsrs is held to. tsrs is built from one TypeScript commit, so the pnpm catalog pins both exactly and they move together: to upgrade TypeScript, change both, taking the tsrs release that ports the new version (`pnpm view tsrs@<release> tsrs.typescriptVersion` shows the version a release ports). `mise run check:js` fails while they differ. Build scripts do not type-check; `check:js` does it once, before the web builds.
 
 ## Commands
 
@@ -36,7 +37,7 @@ This repository is the xds template: a single set of design tokens, component li
 | Regenerate token files | `mise run tokens` |
 | Verify generated files are up to date | `mise run check:generated` |
 | Format code | `mise run fmt` |
-| TypeScript lint, typecheck, tests, and web builds | `mise run check:js` |
+| TypeScript lint (type-aware rules on tsrs-lint), typecheck (tsrs), tests, and web builds | `mise run check:js` |
 | Web component behavior tests, in headless Google Chrome | `pnpm --filter @acme/ui test` (React), `pnpm --filter @acme/ui-solid test` (Solid) |
 | Rust lint and tests | `mise run check:rust`, `mise run check:desktop` (macOS), `mise run check:cli` |
 | Kotlin tests and builds | `mise run //kotlin:check` |

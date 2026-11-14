@@ -500,6 +500,60 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
                 }
             }
 
+            // tsrs type-checks and runs the type-aware lint rules, at the version of the root
+            // typescript package, which editors are pointed at: a check holds the two together
+            // before the steps that run tsrs. The web builds come after the type check, because
+            // their build scripts no longer type-check.
+            let root: Value = serde_json::from_str(&read("package.json")).expect("valid JSON");
+            for package in ["tsrs", "typescript"] {
+                assert_eq!(
+                    root["devDependencies"][package], "catalog:",
+                    "{selected:?}: {package}"
+                );
+                assert!(
+                    workspace.contains(&format!("\n  {package}: ")),
+                    "{selected:?}: the catalog's {package}"
+                );
+            }
+            assert!(
+                !workspace.contains("tsgolint") && !read("package.json").contains("tsgolint"),
+                "{selected:?}"
+            );
+            let check = &tasks["check:js"];
+            assert_eq!(
+                check["env"]["OXLINT_TSGOLINT_PATH"]
+                    .as_str()
+                    .map(|path| path.starts_with("node_modules/.bin/tsrs-lint")),
+                Some(true),
+                "{selected:?}"
+            );
+            let steps: Vec<&str> = check["run"]
+                .as_array()
+                .expect("the steps of check:js")
+                .iter()
+                .map(|step| step.as_str().expect("a command"))
+                .collect();
+            let step = |command: &str| {
+                steps
+                    .iter()
+                    .position(|step| *step == command)
+                    .unwrap_or_else(|| panic!("{selected:?}: check:js runs {command}"))
+            };
+            let typecheck = step("pnpm --recursive --if-present run typecheck");
+            let lint = steps
+                .iter()
+                .position(|step| step.starts_with("pnpm exec oxlint --type-aware"))
+                .expect("the type-aware lint");
+            assert!(
+                step("node tools/check-tsrs.ts") < lint.min(typecheck),
+                "{selected:?}"
+            );
+            for (index, command) in steps.iter().enumerate() {
+                if command.ends_with(" build") {
+                    assert!(index > typecheck, "{selected:?}: {command}");
+                }
+            }
+
             // The formatter and linter configurations parse, and each override names files
             // that the project has: a glob that matches nothing is silently ignored, oxlint
             // fails on a missing plugin, and oxfmt sorts nothing with a missing stylesheet.
@@ -523,6 +577,47 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
                         assert!(files.contains_key(path), "{selected:?}: {path}");
                     }
                 }
+            }
+        }
+        assert_eq!(
+            files.contains_key("tools/check-tsrs.ts"),
+            js,
+            "{selected:?}"
+        );
+        // A package that type-checks does it with tsrs, which it declares as it declared
+        // typescript, and no other script of it type-checks again. typescript stays where
+        // something runs it: at the root, for editors and the version check, and in the mobile
+        // app, whose Expo CLI requires it and loads TypeScript config files with it.
+        for (path, file) in files
+            .iter()
+            .filter(|(path, _)| path.ends_with("package.json"))
+        {
+            let package: Value = serde_json::from_slice(&file.contents)
+                .unwrap_or_else(|error| panic!("{selected:?}: {path}: {error}"));
+            let keeps_typescript =
+                ["package.json", "apps/mobile/package.json"].contains(&path.as_str());
+            assert_eq!(
+                package["devDependencies"]["typescript"].as_str(),
+                keeps_typescript.then_some("catalog:"),
+                "{selected:?}: {path}"
+            );
+            if let Some(typecheck) = package["scripts"]["typecheck"].as_str() {
+                assert_eq!(typecheck, "tsrs --noEmit", "{selected:?}: {path}");
+                assert_eq!(
+                    package["devDependencies"]["tsrs"], "catalog:",
+                    "{selected:?}: {path}"
+                );
+            }
+            for (name, script) in package["scripts"].as_object().into_iter().flatten() {
+                let checks_types = script
+                    .as_str()
+                    .expect("a command")
+                    .split_whitespace()
+                    .any(|word| word == "tsc" || word == "tsrs");
+                assert!(
+                    !checks_types || name == "typecheck",
+                    "{selected:?}: {path}: {name}"
+                );
             }
         }
 

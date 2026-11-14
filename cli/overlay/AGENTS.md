@@ -14,7 +14,7 @@ Acme is built around a shared design system: a single set of design tokens and a
 | `design/themes` | Color themes, each defining an accent ramp and a neutral ramp |
 | `design/components.json` | Component contract: variants, sizes, tones, and the source file for each client |
 | `tools/design-build` | Token compiler and WCAG contrast checker |
-<!-- @if web-react mobile-react-native -->
+<!-- @if js-tokens -->
 | `packages/tokens` | Generated CSS and TypeScript token files. Do not edit |
 <!-- @endif -->
 <!-- @if web-react -->
@@ -50,7 +50,7 @@ Acme is built around a shared design system: a single set of design tokens and a
 | --- | --- |
 | Run all CI checks | `mise run check` |
 | Regenerate token files | `mise run tokens` |
-<!-- @if web-react desktop-gpui mobile-react-native -->
+<!-- @if js-workspace rust-workspace -->
 | Format code | `mise run fmt` |
 <!-- @endif -->
 <!-- @if web-react -->

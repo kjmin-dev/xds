@@ -12,12 +12,12 @@ use tempfile::TempDir;
 
 use crate::commands::{self, AddArgs, CreateArgs, MERGE_SUFFIX, ThemeArgs};
 use crate::inspect::{self, COMPONENTS_PATH, Location};
-use crate::manifest::{Target, is_under, manifest};
+use crate::manifest::{TEMPLATE_ONLY, Target, is_under, manifest};
 use crate::markers;
 use crate::output::Out;
 use crate::rename::Names;
 use crate::render::{self, BUILD_CONFIG, RECORD, Record};
-use crate::template::{is_binary, template};
+use crate::template::{File, Files, Template, is_binary, template};
 use crate::theme::{self, PALETTE_PATH, Source};
 
 const WEB: &str = "web-react";
@@ -289,12 +289,29 @@ fn the_manifest_is_consistent() {
         );
     }
     assert!(!template().overlay.is_empty());
+    // `create --yes` would otherwise make a project without a target.
+    assert!(
+        !manifest.default_targets().is_empty(),
+        "at least one target is a default"
+    );
+    // A marker name has to mean one thing: a target id, a shared unit, or the template.
+    for unit in manifest.shared.keys() {
+        assert!(
+            manifest.target(unit).is_none(),
+            "{unit} is a target and a unit"
+        );
+        assert_ne!(unit, TEMPLATE_ONLY);
+    }
+    assert!(manifest.target(TEMPLATE_ONLY).is_none());
 }
 
 #[test]
 fn shared_files_are_valid_for_every_combination_of_targets() {
     let ids = manifest().target_ids();
     let names = Names::new("orbit", None).expect("a valid name");
+    // The template's component contract, which each project's is cut down from.
+    let contract: Value =
+        serde_json::from_slice(&template().files[COMPONENTS_PATH].contents).expect("valid JSON");
     // Every non-empty subset of the targets.
     for mask in 1u32..(1 << ids.len()) {
         let selected: Vec<String> = ids
@@ -306,7 +323,21 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
         let targets = manifest().select(&selected).expect("known ids");
         let files = render::render(template(), manifest(), &targets, &names).expect("renders");
         let has = |id: &str| selected.iter().any(|selected| selected == id);
-        let js = has(WEB) || has(MOBILE);
+        // What follows from template.json is read from it, so that a new target which requires
+        // the JavaScript workspace needs expectations for what is its own, and nothing more.
+        let requires = |unit: &str| {
+            targets
+                .iter()
+                .any(|target| target.requires.iter().any(|required| required == unit))
+        };
+        let js = requires("js-workspace");
+        let apps: BTreeSet<&str> = targets
+            .iter()
+            .flat_map(|target| &target.paths)
+            .map(String::as_str)
+            .filter(|path| is_under(path, "apps"))
+            .collect();
+        let formatted = targets.iter().any(|target| target.format.is_some());
 
         let read = |path: &str| String::from_utf8(files[path].contents.clone()).expect("text");
         let mise: toml::Table = read("mise.toml")
@@ -338,13 +369,25 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
             .map(|root| root.as_str().expect("a path"))
             .collect();
         let mut expected_roots = Vec::new();
-        if js || has(DESKTOP) {
+        if !apps.is_empty() {
             expected_roots.push("apps/*");
         }
         if has(KOTLIN) {
             expected_roots.push("kotlin");
         }
         assert_eq!(roots, expected_roots, "{selected:?}");
+        // Each app has an alias, for `mise run //web:dev`.
+        let aliases: BTreeSet<&str> = mise["monorepo"]
+            .get("path_aliases")
+            .and_then(toml::Value::as_table)
+            .map(|aliases| {
+                aliases
+                    .values()
+                    .map(|path| path.as_str().expect("a path"))
+                    .collect()
+            })
+            .unwrap_or_default();
+        assert_eq!(aliases, apps, "{selected:?}");
 
         // `check` runs exactly the checks that exist.
         let tasks = mise["tasks"].as_table().expect("tasks");
@@ -381,15 +424,18 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
             );
         }
         assert_eq!(tasks.contains_key("install"), js, "{selected:?}");
+        // The `format` command that `create` asks for has to exist.
+        assert_eq!(tasks.contains_key("fmt"), formatted, "{selected:?}");
         assert!(
             !tasks.contains_key("check:cli") && !tasks.contains_key("xds"),
             "{selected:?}"
         );
 
-        // The Rust workspace exists only for the desktop app, and never mentions the CLI.
+        // The Rust workspace exists only for the targets that require it, and never mentions
+        // the CLI.
         assert_eq!(
             files.contains_key("Cargo.toml"),
-            has(DESKTOP),
+            requires("rust-workspace"),
             "{selected:?}"
         );
         if has(DESKTOP) {
@@ -419,12 +465,19 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
         );
         if js {
             let workspace = read("pnpm-workspace.yaml");
-            assert_eq!(workspace.contains("- apps/web\n"), has(WEB), "{selected:?}");
-            assert_eq!(
-                workspace.contains("- apps/mobile\n"),
-                has(MOBILE),
-                "{selected:?}"
-            );
+            let js_targets = manifest()
+                .targets
+                .iter()
+                .filter(|target| target.requires.iter().any(|unit| unit == "js-workspace"));
+            for target in js_targets {
+                for app in target.paths.iter().filter(|path| is_under(path, "apps")) {
+                    assert_eq!(
+                        workspace.contains(&format!("- {app}\n")),
+                        has(&target.id),
+                        "{selected:?}: {app}"
+                    );
+                }
+            }
         }
 
         // One CI job per check, and none for the CLI.
@@ -441,19 +494,17 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
         }
         assert!(ci.ends_with("\n") && !ci.ends_with("\n\n"), "{selected:?}");
 
-        // The README names the selected stacks and no others.
+        // The README names the selected stacks and no others: how to start each of them.
         let readme = read("README.md");
-        for (command, expected) in [
-            ("mise run //web:dev", has(WEB)),
-            ("mise run //desktop:dev", has(DESKTOP)),
-            ("mise run //mobile:ios", has(MOBILE)),
-            ("mise run //kotlin:desktop", has(KOTLIN)),
-        ] {
-            assert_eq!(
-                readme.contains(command),
-                expected,
-                "{selected:?}: {command}"
-            );
+        for target in &manifest().targets {
+            for run in &target.run {
+                assert_eq!(
+                    readme.contains(&run.command),
+                    has(&target.id),
+                    "{selected:?}: {}",
+                    run.command
+                );
+            }
         }
         assert!(readme.starts_with("# Orbit\n"), "{selected:?}");
 
@@ -464,25 +515,39 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
             ("`crates/orbit-ui`", has(DESKTOP)),
             ("`packages/ui-native`", has(MOBILE)),
             ("`kotlin/ui`", has(KOTLIN)),
-            ("`packages/tokens`", js),
-            ("mise run fmt", js || has(DESKTOP)),
+            ("`packages/tokens`", requires("js-tokens")),
+            ("mise run fmt", formatted),
         ] {
             assert_eq!(agents.contains(path), expected, "{selected:?}: {path}");
         }
         assert!(agents.starts_with("# Working in Orbit\n"), "{selected:?}");
         assert_eq!(read("CLAUDE.md"), "@AGENTS.md\n", "{selected:?}");
 
-        // The component contract names the selected clients only, and files of this project.
+        // The component contract keeps the components that a selected client has, with only
+        // the selected clients, and names files of this project.
         let components: Value = serde_json::from_str(&read(COMPONENTS_PATH)).expect("valid JSON");
         let components = components["components"].as_array().expect("a list");
         assert!(!components.is_empty(), "{selected:?}");
-        let touch = has(MOBILE) || has(KOTLIN);
+        let expected: Vec<&Value> = contract["components"]
+            .as_array()
+            .expect("a list")
+            .iter()
+            .filter(|component| {
+                component["clients"]
+                    .as_object()
+                    .expect("clients")
+                    .keys()
+                    .any(|id| has(id))
+            })
+            .map(|component| &component["name"])
+            .collect();
         assert_eq!(
             components
                 .iter()
-                .any(|component| component["name"] == "TabBar"),
-            touch,
-            "{selected:?}: TabBar"
+                .map(|component| &component["name"])
+                .collect::<Vec<_>>(),
+            expected,
+            "{selected:?}"
         );
         for component in components {
             let clients = component["clients"].as_object().expect("clients");
@@ -494,6 +559,56 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
             }
         }
     }
+}
+
+/// A marker can name a shared unit, which stands for every target that requires it.
+#[test]
+fn a_marker_may_name_a_shared_unit() {
+    let names = Names::new("orbit", None).expect("a valid name");
+    let with_mise = |text: &str| {
+        let mut files = Files::new();
+        files.insert(
+            BUILD_CONFIG.to_owned(),
+            template().files[BUILD_CONFIG].clone(),
+        );
+        let mise = File {
+            contents: text.as_bytes().to_vec(),
+            executable: false,
+        };
+        files.insert("mise.toml".to_owned(), mise);
+        Template {
+            files,
+            overlay: Files::new(),
+        }
+    };
+
+    let marked = with_mise(
+        "# @if js-workspace\njs\n# @endif\n# @if rust-workspace kotlin-compose\nnative\n# @endif\n",
+    );
+    for target in &manifest().targets {
+        let files = render::render(&marked, manifest(), &[target], &names).expect("renders");
+        let requires = |unit: &str| target.requires.iter().any(|required| required == unit);
+        let mut expected = String::new();
+        if requires("js-workspace") {
+            expected.push_str("js\n");
+        }
+        if requires("rust-workspace") || target.id == KOTLIN {
+            expected.push_str("native\n");
+        }
+        assert_eq!(
+            String::from_utf8_lossy(&files["mise.toml"].contents),
+            expected,
+            "{}",
+            target.id
+        );
+    }
+
+    // A unit name is checked like a target id: a typo is an error, not a block that is never
+    // there.
+    let typo = with_mise("# @if js-worksapce\njs\n# @endif\n");
+    let error = render::render(&typo, manifest(), &[&manifest().targets[0]], &names)
+        .expect_err("an unknown name");
+    assert!(error.to_string().contains("js-worksapce"), "{error}");
 }
 
 // ---------------------------------------------------------------- create
@@ -643,7 +758,7 @@ fn keeps_scripts_executable() {
 fn creates_a_project_with_every_target() {
     let (_temp, directory) = project(&["all"]);
     let tree = read_tree(&directory);
-    assert_clean(&tree, &[WEB, DESKTOP, MOBILE, KOTLIN]);
+    assert_clean(&tree, &manifest().target_ids());
     assert_paths(
         &tree,
         &[
@@ -662,6 +777,33 @@ fn creates_a_project_with_every_target() {
     for path in template().files.keys() {
         let path = names.apply(path, &manifest().placeholder);
         assert!(tree.contains_key(&path), "{path} is missing");
+    }
+}
+
+#[test]
+fn yes_without_targets_takes_the_default_targets() {
+    let temp = TempDir::new().expect("a temporary directory");
+    let directory = temp.path().join("project");
+    let args = CreateArgs {
+        targets: None,
+        ..create_args(&directory, &[])
+    };
+    let result = commands::create(&args, Out::plain()).expect("create succeeds");
+    let defaults: Vec<&str> = manifest()
+        .default_targets()
+        .iter()
+        .map(|target| target.id.as_str())
+        .collect();
+    assert_eq!(result["targets"], serde_json::json!(defaults));
+
+    let tree = read_tree(&directory);
+    assert_clean(&tree, &defaults);
+    let names = Names::new("orbit", None).expect("a valid name");
+    for target in manifest().targets.iter().filter(|target| !target.default) {
+        for path in &target.paths {
+            let path = names.apply(path, &manifest().placeholder);
+            assert!(!has_path(&tree, &path), "{path} is not a default");
+        }
     }
 }
 

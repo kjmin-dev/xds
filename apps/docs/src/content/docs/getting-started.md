@@ -21,10 +21,11 @@ Then create a new project:
 xds create my-app
 ```
 
-By default, `xds` prompts for a project name, the clients to include, and a color theme. To skip the prompts, pass those options as flags:
+By default, `xds` prompts for a project name, the clients to include, and a color theme. Each prompt starts at its default: the directory name, the `web-react` client, and the `indigo` theme. To skip the prompts, pass those options as flags, or pass `--yes` to take the defaults:
 
 ```sh
 xds create my-app --name orbit --targets web-react,kotlin-compose --theme ocean
+xds create my-app --yes
 ```
 
 The available clients are:

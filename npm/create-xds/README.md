@@ -8,6 +8,7 @@ This runs `xds create my-app` from [xds-cli](https://www.npmjs.com/package/xds-c
 
 ```sh
 npm create xds@latest my-app -- --targets web-react,desktop-gpui --theme ocean
+npm create xds@latest my-app -- --yes    # the defaults: the web client and the indigo theme
 ```
 
 See [the documentation](https://github.com/kjmin-dev/xds/blob/main/docs/cli.md).

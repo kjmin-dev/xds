@@ -87,6 +87,12 @@ fn lists_targets_and_themes_without_color_when_piped() {
         !stdout.contains('\x1b'),
         "piped output has no escape sequences"
     );
+    // The default target is marked like the default theme.
+    let web = stdout
+        .lines()
+        .find(|line| line.trim_start().starts_with("web-react "))
+        .expect("a line for web-react");
+    assert!(web.ends_with(" (default)"), "{web}");
 }
 
 #[test]
@@ -284,7 +290,21 @@ fn json_output_is_one_document_and_nothing_else() {
     let (output, stdout, stderr) = run(xds().args(["list", "--json"]).current_dir(temp.path()));
     assert!(output.status.success(), "{stderr}");
     let list = parse(&stdout);
-    assert_eq!(list["targets"].as_array().expect("targets").len(), 4);
+    // Every target of template.json, where `default` may be left out.
+    let manifest = parse(include_str!("../../template.json"));
+    let expected: Vec<(&serde_json::Value, bool)> = manifest["targets"]
+        .as_array()
+        .expect("targets")
+        .iter()
+        .map(|target| (&target["id"], target["default"] == true))
+        .collect();
+    let listed: Vec<(&serde_json::Value, bool)> = list["targets"]
+        .as_array()
+        .expect("targets")
+        .iter()
+        .map(|target| (&target["id"], target["default"].as_bool().expect("a flag")))
+        .collect();
+    assert_eq!(listed, expected);
     assert!(list["themes"][0]["accent"]["600"].is_string(), "{stdout}");
 
     let (output, stdout, _) = run(xds().args(["themes", "ocean", "--json"]));

@@ -58,12 +58,12 @@ Every command accepts `--help`. Pass `--no-color` or set the `NO_COLOR` environm
 
 ### `xds list`
 
-Lists the available client stacks and color themes.
+Lists the available client stacks and color themes, and marks the defaults.
 
 ```console
 $ xds list
 Targets
-  web-react            Web                             React 19, Vite, Tailwind v4, HeroUI v3
+  web-react            Web                             React 19, Vite, Tailwind v4, HeroUI v3 (default)
   desktop-gpui         Desktop (macOS)                 Rust, GPUI, GPUI Component
   mobile-react-native  Mobile (iOS, Android)           React Native, Expo
   kotlin-compose       Kotlin (Android, iOS, Desktop)  Kotlin, Compose Multiplatform
@@ -86,10 +86,10 @@ xds create <directory> [--name <name>] [--title <title>] [--targets <a,b|all>]
 When run interactively in a terminal, `xds create my-app` prompts for any options not supplied via flags:
 
 1. The project name (text input, defaulting to the target directory name).
-2. The client targets to include (multi-select list: Up and Down or `k` and `j` to move, Space to toggle, `a` to toggle all, Enter to confirm).
+2. The client targets to include (multi-select list: Up and Down or `k` and `j` to move, Space to toggle, `a` to toggle all, Enter to confirm). The default targets start out selected.
 3. The color theme (select list with a live preview rendered below it; see [Themes](#themes)).
 
-Pressing Esc or Ctrl-C cancels the prompt at any point. No files are written until the final prompt is confirmed.
+Pressing Enter at every prompt creates the same project as `--yes`. Pressing Esc or Ctrl-C cancels the prompt at any point. No files are written until the final prompt is confirmed.
 
 When all options are supplied via flags, `xds` runs without prompting:
 
@@ -119,9 +119,9 @@ Run
 | --- | --- |
 | `--name` | Lowercase ASCII letters and digits, starting with a letter, up to 40 characters. Replaces `acme` across the project: crate names (`orbit-ui`), the npm scope (`@orbit/ui`), CSS custom properties (`--orbit-color-*`), and the Kotlin package (`orbit.tokens`). Kotlin and Java reserved keywords are rejected |
 | `--title` | Display name used to replace `Acme`. Accepts letters, digits, spaces, and `-`, `_`, `.`. Defaults to the project name with an uppercase first letter |
-| `--targets` | Comma-separated target IDs, or `all` |
+| `--targets` | Comma-separated target IDs, or `all` for every target |
 | `--theme` | Theme name. Defaults to `indigo` |
-| `--yes`, `-y` | Skip interactive prompts and use defaults for any omitted flags: the project name comes from the directory name, all targets are included, and the theme defaults to `indigo` |
+| `--yes`, `-y` | Skip interactive prompts and use defaults for any omitted flags: the project name comes from the directory name, the targets are the default targets (`web-react`, marked `(default)` in `xds list`), and the theme defaults to `indigo` |
 | `--dry-run` | Print the file paths that would be written without writing anything to disk |
 | `--force` | Allow scaffolding into a non-empty directory. Existing files at matching paths are overwritten, while unrelated files are left untouched |
 
@@ -347,6 +347,8 @@ Agents with shell access do not need the MCP server; running the CLI commands wi
 
 The two JavaScript targets share `packages/tokens` and the root pnpm workspace configuration. Every project must include at least one target.
 
+`web-react` is the default target: `xds create --yes` without `--targets` creates a project with it alone, and the interactive list starts with it selected. `xds list` marks it `(default)`, and `xds list --json` gives each target a `default` field.
+
 ## Themes
 
 A theme is a JSON file in `design/themes` defining an accent color ramp and a neutral color ramp. Applying a theme replaces those two ramps in `design/tokens/palette.json`. Because semantic and component color tokens reference palette steps via aliases (`{palette.accent.600}`), they pick up the new colors automatically without being edited.
@@ -380,14 +382,14 @@ If the token generator rejects a theme (for example, because a color pairing fal
 | `exclude` | Repository paths that stay in this template repository and are never embedded in the binary |
 | `common` | Paths included in every generated project |
 | `shared` | Named groups of paths shared by multiple targets, such as `js-workspace` |
-| `targets` | Per-stack definitions: `id`, `title`, `stack`, `platforms`, `paths`, `requires` (names of `shared` groups), `outputs` (kinds of generated token files the stack reads, matching the keys of `design/build.json`), `format` (the command that formats its code, if any), and `run` (commands shown after `create`) |
+| `targets` | Per-stack definitions: `id`, `default` (`true` for a target that `create --yes` includes and the interactive list starts with selected; at least one target is a default), `title`, `stack`, `platforms`, `paths`, `requires` (names of `shared` groups), `outputs` (kinds of generated token files the stack reads, matching the keys of `design/build.json`), `format` (the command that formats its code, if any), and `run` (commands shown after `create`) |
 
-Shared configuration files use conditional comment blocks to include lines only when specific targets are selected. A comment line `@if <target ids>` opens a block and `@endif` closes it:
+Shared configuration files use conditional comment blocks to include lines only when specific targets are selected. A comment line `@if <names>` opens a block and `@endif` closes it. Each name is a target ID or the name of a `shared` group:
 
 ```toml
 [tools]
 node = "26.13.1"
-# @if web-react mobile-react-native
+# @if js-workspace
 pnpm = "12.19.0"
 # @endif
 # @if desktop-gpui
@@ -395,11 +397,12 @@ rust = { version = "1.99.1", components = "rustfmt,clippy" }
 # @endif
 ```
 
-- A conditional block is kept when any of its listed targets is selected. The marker lines themselves are stripped from the generated project.
+- A conditional block is kept when any of its listed targets is selected, or when any selected target lists one of its `shared` groups in `requires`. The marker lines themselves are stripped from the generated project.
+- Name the `shared` group when a block serves everything that uses the group, such as the pnpm version for `js-workspace`, so that a new target requiring the group gets the block without the marker being changed. Name targets when a block is about those targets themselves. No name may be both a target ID and a `shared` group.
 - Blocks can be nested and can wrap individual elements inside multi-line arrays.
 - Each marker must occupy its own full comment line. `#`, `//`, `<!-- -->`, and `/* */` comment styles are supported; `cli/src/markers.rs` lists them.
 - `@if template` marks lines needed only in this repository, such as the `cli` workspace member and the CLI's CI job. `template` is never selected in generated projects.
-- A marker that references an unknown target ID is an error, and the test suite renders every combination of targets so a typo cannot silently drop a block.
+- A marker that references an unknown target ID or `shared` group is an error, and the test suite renders every combination of targets so a typo cannot silently drop a block.
 
 Within this repository, marker lines act as ordinary comments so every block remains active.
 
@@ -414,9 +417,9 @@ Binary files (detected by a NUL byte within the first 8 KB) are copied verbatim.
 1. Add the client code, using the `acme` placeholder for names in both file contents and file paths.
 2. If the stack consumes a new format of generated token file, add an emitter to `tools/design-build` and an entry to `design/build.json`.
 3. Add a target entry to `template.json`: its `paths`, the `shared` groups it `requires`, the `outputs` it reads, and its `run` commands. Include a `format` command if the stack has a formatter enforced by `mise run check`.
-4. Wrap any stack-specific additions to the shared root files (`mise.toml`, `.github/workflows/ci.yml`, `.gitignore`, `.gitattributes`, `Cargo.toml`, `pnpm-workspace.yaml`, `cli/overlay/README.md`) in `@if <id>` blocks.
+4. Wrap any stack-specific additions to the shared root files (`mise.toml`, `.github/workflows/ci.yml`, `.gitignore`, `.gitattributes`, `Cargo.toml`, `pnpm-workspace.yaml`, `cli/overlay/README.md`) in `@if <id>` blocks. Blocks marked with a `shared` group the stack requires, such as `@if js-workspace`, already include it.
 5. List the stack's components in `design/components.json`, with the source file and the symbol of each.
-6. Run `cargo test -p xds`. The tests fail if any repository file belongs to no target, shared group, `common`, or `exclude`; if any conditional marker is unbalanced or references an unknown target; or if `mise.toml` or `Cargo.toml` is not valid TOML for any combination of targets. Add the new target's expectations to `shared_files_are_valid_for_every_combination_of_targets` in `cli/src/tests.rs`.
+6. Run `cargo test -p xds`. The tests fail if any repository file belongs to no target, shared group, `common`, or `exclude`; if any conditional marker is unbalanced or references an unknown target or shared group; or if `mise.toml` or `Cargo.toml` is not valid TOML for any combination of targets. Add the new target's expectations to `shared_files_are_valid_for_every_combination_of_targets` in `cli/src/tests.rs`.
 
 No Rust code changes are needed when adding a stack that follows this structure.
 

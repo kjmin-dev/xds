@@ -10,7 +10,7 @@
 target/
 
 # @endif
-# @if web-react mobile-react-native
+# @if js-workspace
 # Node
 node_modules/
 dist/

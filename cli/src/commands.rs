@@ -31,14 +31,15 @@ pub struct CreateArgs {
     /// Display name. It replaces `Acme` [default: the name, capitalized]
     #[arg(long)]
     pub title: Option<String>,
-    /// Client stacks to include, comma separated, or `all` (see `xds list`)
+    /// Client stacks to include, comma separated, or `all` (see `xds list`, which marks the
+    /// default ones)
     #[arg(long, value_delimiter = ',', value_name = "TARGETS")]
     pub targets: Option<Vec<String>>,
     /// Color theme (see `xds themes`)
     #[arg(long)]
     pub theme: Option<String>,
-    /// Ask nothing: the name comes from the directory, every target is included, and the theme
-    /// is the default, unless a flag says otherwise
+    /// Ask nothing: the name comes from the directory, and the targets and the theme are the
+    /// default ones, unless a flag says otherwise
     #[arg(long, short)]
     pub yes: bool,
     /// Print what would be written and write nothing
@@ -95,19 +96,20 @@ pub fn list(out: Out) -> Result<Value> {
     let source = Source::Embedded(template());
 
     say!(out, "{}", style.bold("Targets"));
-    let rows: Vec<(&str, String, &str)> = manifest
+    let rows: Vec<(&Target, String)> = manifest
         .targets
         .iter()
-        .map(|target| (target.id.as_str(), target.label(), target.stack.as_str()))
+        .map(|target| (target, target.label()))
         .collect();
-    let id_width = rows.iter().map(|row| row.0.len()).max().unwrap_or(0);
+    let id_width = rows.iter().map(|row| row.0.id.len()).max().unwrap_or(0);
     let platform_width = rows.iter().map(|row| row.1.len()).max().unwrap_or(0);
-    for (id, platforms, stack) in rows {
+    for (target, platforms) in rows {
+        let default = if target.default { " (default)" } else { "" };
         say!(
             out,
-            "  {}  {platforms:<platform_width$}  {}",
-            style.cyan(&format!("{id:<id_width$}")),
-            style.dim(stack)
+            "  {}  {platforms:<platform_width$}  {}{default}",
+            style.cyan(&format!("{:<id_width$}", target.id)),
+            style.dim(&target.stack)
         );
     }
 
@@ -153,6 +155,7 @@ fn target_json(target: &Target) -> Value {
         "title": target.title,
         "stack": target.stack,
         "platforms": target.platforms,
+        "default": target.default,
         "paths": target.paths,
         "run": target
             .run
@@ -298,10 +301,17 @@ pub fn create(args: &CreateArgs, out: Out) -> Result<Value> {
         .filter_map(|(flag, missing)| missing.then_some(flag))
         .collect();
         if !missing.is_empty() {
+            let defaults: Vec<&str> = manifest
+                .default_targets()
+                .iter()
+                .map(|target| target.id.as_str())
+                .collect();
             return Err(Error::Message(format!(
                 "This is not a terminal, so there is nobody to ask. Pass {}, or --yes to take the \
-                 defaults (the name of the directory, every target, the {} theme).",
+                 defaults (the name of the directory, the {} target{}, the {} theme).",
                 missing.join(" and "),
+                defaults.join(" and "),
+                if defaults.len() == 1 { "" } else { "s" },
                 manifest.default_theme
             )));
         }
@@ -330,7 +340,7 @@ pub fn create(args: &CreateArgs, out: Out) -> Result<Value> {
 
     let targets: Vec<&Target> = match flag_targets {
         Some(targets) => targets,
-        None if args.yes => manifest.targets.iter().collect(),
+        None if args.yes => manifest.default_targets(),
         None => {
             let choices: Vec<Choice> = manifest
                 .targets
@@ -340,7 +350,14 @@ pub fn create(args: &CreateArgs, out: Out) -> Result<Value> {
                     description: format!("{} - {}", target.label(), target.stack),
                 })
                 .collect();
-            let picked = prompt::multi_select(style, "Targets", &choices, &[])?;
+            // Ticked to start with, so that Enter gives the project --yes gives.
+            let defaults: Vec<usize> = manifest
+                .targets
+                .iter()
+                .enumerate()
+                .filter_map(|(index, target)| target.default.then_some(index))
+                .collect();
+            let picked = prompt::multi_select(style, "Targets", &choices, &defaults)?;
             picked
                 .into_iter()
                 .map(|index| &manifest.targets[index])

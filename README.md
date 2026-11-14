@@ -23,7 +23,7 @@ A cross-platform design system template. A single set of design tokens drives a 
 xds create my-app
 ```
 
-`xds` prompts for a project name, the clients to include, and a color theme, then generates a repository containing only those clients. As you move through the theme list, it renders a preview of each theme in the terminal.
+`xds` prompts for a project name, the clients to include, and a color theme, then generates a repository containing only those clients. As you move through the theme list, it renders a preview of each theme in the terminal. Each prompt starts at its default (the directory name, the web client, and the indigo theme), and `--yes` takes those defaults without asking.
 
 ```sh
 # Or without questions:

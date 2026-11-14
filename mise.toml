@@ -4,7 +4,7 @@
 #   mise run check       run everything CI runs
 #   mise tasks --all     list every task, including each app's
 #
-# @if web-react desktop-gpui mobile-react-native
+# @if js-workspace rust-workspace
 # Each app under apps/ has its own mise.toml. Its tasks are addressed by path
 # (`mise run //apps/<app>:dev`) or by the alias below (`mise run //<app>:dev`).
 # @endif
@@ -13,10 +13,11 @@
 # @endif
 # @if template
 #
-# The lines between an `@if <targets>` comment and its `@endif` belong to those client stacks:
-# `xds create` keeps them in a project only when one of the stacks is selected, and never
-# copies the comments themselves. `@if template` marks what only this repository needs.
-# See docs/cli.md.
+# The lines between an `@if <names>` comment and its `@endif` belong to the client stacks
+# named, and to every stack that requires a shared unit named (`js-workspace`, from
+# template.json): `xds create` keeps them in a project only when one of those stacks is
+# selected, and never copies the comments themselves. `@if template` marks what only this
+# repository needs. See docs/cli.md.
 # @endif
 
 min_version = "2026.10.0"
@@ -24,7 +25,7 @@ monorepo_root = true
 
 [monorepo]
 config_roots = [
-  # @if web-react desktop-gpui mobile-react-native
+  # @if js-workspace rust-workspace
   "apps/*",
   # @endif
   # @if kotlin-compose
@@ -33,7 +34,7 @@ config_roots = [
 ]
 lockfile = true
 
-# @if web-react desktop-gpui mobile-react-native
+# @if js-workspace rust-workspace
 [monorepo.path_aliases]
 # @if desktop-gpui
 desktop = "apps/desktop"
@@ -52,7 +53,7 @@ docs = "apps/docs"
 [tools]
 # The token generator runs on Node alone, so every project needs it.
 node = "26.13.1"
-# @if web-react mobile-react-native
+# @if js-workspace
 pnpm = "12.19.0"
 # @endif
 # @if desktop-gpui
@@ -63,7 +64,7 @@ java = "temurin-17"
 # @endif
 actionlint = "1.7.12"
 
-# @if web-react mobile-react-native
+# @if js-workspace
 # ---------------------------------------------------------------- setup
 
 [tasks.install]
@@ -99,23 +100,23 @@ run = "node tools/design-build/src/theme.ts"
 
 # ---------------------------------------------------------------- checks
 
-# @if web-react desktop-gpui mobile-react-native
+# @if js-workspace rust-workspace
 [tasks.fmt]
 description = "Format everything"
-# @if web-react mobile-react-native
+# @if js-workspace
 depends = ["install"]
 # @endif
 run = [
   # @if desktop-gpui
   "cargo fmt --all",
   # @endif
-  # @if web-react mobile-react-native
+  # @if js-workspace
   "pnpm exec biome check --write",
   # @endif
 ]
 
 # @endif
-# @if web-react mobile-react-native
+# @if js-workspace
 [tasks."check:js"]
 description = "Lint, type-check, and test the TypeScript workspace"
 depends = ["install"]
@@ -197,7 +198,7 @@ description = "Run everything CI runs"
 run = [
   { task = "check:generated" },
   { tasks = [
-    # @if web-react mobile-react-native
+    # @if js-workspace
     "check:js",
     # @endif
     # @if desktop-gpui

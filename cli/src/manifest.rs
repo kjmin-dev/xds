@@ -44,6 +44,10 @@ pub struct Shared {
 #[derive(Debug, Deserialize)]
 pub struct Target {
     pub id: String,
+    /// Part of a project when nobody picks: `create --yes` without `--targets` takes the default
+    /// targets, and the interactive list starts with them ticked.
+    #[serde(default)]
+    pub default: bool,
     pub title: String,
     pub stack: String,
     pub platforms: Vec<String>,
@@ -98,6 +102,13 @@ impl Manifest {
         self.targets
             .iter()
             .map(|target| target.id.as_str())
+            .collect()
+    }
+
+    pub fn default_targets(&self) -> Vec<&Target> {
+        self.targets
+            .iter()
+            .filter(|target| target.default)
             .collect()
     }
 

@@ -107,7 +107,7 @@ mise run check          # CI가 돌리는 것 전부
 | 문서 사이트 실행 | `mise run //docs:dev` 실행 후 `http://localhost:4321` 접속 |
 | 전체 코드 포맷 | `mise run fmt` |
 
-GPUI 데스크톱 앱은 macOS에서 빌드됩니다. Compose 앱을 빌드하려면 Android는 Android SDK, iOS는 Xcode가 필요합니다. 자세한 내용은 [kotlin/README.md](kotlin/README.md)(영문)를 참고하세요. 모바일 앱에서는 홈 화면의 버튼을 눌러 디자인 프리뷰를 열 수 있습니다.
+웹 컴포넌트 테스트는 Google Chrome에서 실행되므로 `mise run check`에는 Chrome이 설치되어 있어야 합니다. GPUI 데스크톱 앱은 macOS에서 빌드됩니다. Compose 앱을 빌드하려면 Android는 Android SDK, iOS는 Xcode가 필요합니다. 자세한 내용은 [kotlin/README.md](kotlin/README.md)(영문)를 참고하세요. 모바일 앱에서는 홈 화면의 버튼을 눌러 디자인 프리뷰를 열 수 있습니다.
 
 ## 디자인 수정하기
 
@@ -147,7 +147,7 @@ template.json           어떤 경로가 어느 클라이언트에 속하는지
 | React Native | iOS 시뮬레이터에서 라이트·다크 모드 및 바텀 시트 동작 확인. Android와 실제 기기는 아직 확인하지 않음 |
 | Compose | 데스크톱, Android 에뮬레이터, iOS 시뮬레이터에서 확인. 자세한 내용은 [kotlin/README.md](kotlin/README.md) 참고 |
 | `xds` | 개별 클라이언트만 선택한 프로젝트와 네 클라이언트를 모두 선택한 프로젝트를 생성해 macOS에서 각각의 `mise run check` 통과 확인. Linux·Windows 바이너리 및 릴리스 워크플로는 아직 실행하지 않음 |
-| 접근성 | 명암비는 빌드 시 자동 검증. 스크린 리더 테스트는 어느 클라이언트에서도 진행하지 않음 |
+| 접근성 | 명암비는 빌드 시 자동 검증. 웹의 인터랙티브 컴포넌트는 키보드·포커스·ARIA 동작을 헤드리스 Chrome에서 테스트. 스크린 리더 테스트는 어느 클라이언트에서도 진행하지 않음 |
 
 ## 라이선스
 

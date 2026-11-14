@@ -80,8 +80,9 @@
     // them. The correctness category brings more, such as no-misused-spread.
     "typescript/consistent-type-exports": "error",
     "typescript/dot-notation": "error",
-    // node:test registers a test when test() is called, and runs it whether or not the
-    // returned promise is awaited.
+    // tools/design-build is tested with node:test, because it has no dependencies. node:test
+    // registers a test when test() is called, and runs it whether or not the returned promise is
+    // awaited.
     "typescript/no-floating-promises": [
       "error",
       {
@@ -116,6 +117,14 @@
         // use deliberately: a fieldset, for one, cannot be a scrolling flex row.
         "jsx-a11y/prefer-tag-over-role": "off",
       },
+    },
+    // packages/ui is tested with Vitest. The plugin's correctness rules catch a focused or
+    // skipped test, and an expect.element or expect.poll that is not awaited, which the test does
+    // not wait for.
+    {
+      "files": ["packages/ui/**"],
+      "plugins": ["vitest"],
+      "rules": { "vitest/no-identical-title": "error" },
     },
     // @endif
     // @if mobile-react-native

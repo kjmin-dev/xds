@@ -35,6 +35,7 @@ This repository is the xds template: a single set of design tokens, component li
 | Verify generated files are up to date | `mise run check:generated` |
 | Format code | `mise run fmt` |
 | TypeScript lint, typecheck, tests, and web build | `mise run check:js` |
+| Web component behavior tests, in headless Google Chrome | `pnpm --filter @acme/ui test` |
 | Rust lint and tests | `mise run check:rust`, `mise run check:desktop` (macOS), `mise run check:cli` |
 | Kotlin tests and builds | `mise run //kotlin:check` |
 | Run the CLI from source | `mise run xds -- list` |
@@ -45,6 +46,8 @@ Use `xds tokens`, `xds components`, `xds contrast`, and `xds doctor` to inspect 
 ## Checking a UI change
 
 There is no automated visual regression test, so inspect the design preview in both light and dark modes on every client you modify.
+
+How the interactive web components behave (keyboard, focus, and ARIA state) is tested in `packages/ui/test`, in the Google Chrome installed on the machine. The checks in `behavior.ts` find elements by role and name and do not depend on React; `behavior.test.tsx` mounts the scenarios of `scenarios.ts` with the React components. When you add or change an interactive web component, add its scenario and its checks there.
 
 | Client | How to open a specific section directly |
 | --- | --- |

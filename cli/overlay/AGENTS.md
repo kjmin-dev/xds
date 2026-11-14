@@ -90,3 +90,7 @@ Inspect the design preview in both light and dark modes after making visual chan
 <!-- @if kotlin-compose -->
 | Compose | Run `mise run //kotlin:render` to render PNG screenshots into `kotlin/build/preview`, or `mise run //kotlin:design` to open the interactive preview window |
 <!-- @endif -->
+<!-- @if web-react -->
+
+`mise run check:js` also tests how the interactive web components behave (keyboard, focus, and ARIA state) in the Google Chrome installed on the machine. The checks are in `packages/ui/test/behavior.ts` and the scenarios they run against in `scenarios.ts`; when you add or change an interactive web component, add its scenario and its checks there.
+<!-- @endif -->

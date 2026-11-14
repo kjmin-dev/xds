@@ -49,7 +49,7 @@ mise run fmt
 mise run check
 ```
 
-Run `mise run fmt` once before the first `mise run check`, because substituting the project name can change line lengths and import order. `xds` also prints the command to start each selected client, such as `mise run //web:dev`.
+Run `mise run fmt` once before the first `mise run check`, because substituting the project name can change line lengths and import order. With the web client, `mise run check` also tests the web components in Google Chrome, which has to be installed. `xds` also prints the command to start each selected client, such as `mise run //web:dev`.
 
 Each app includes a design preview that displays all tokens and components on a single screen.
 

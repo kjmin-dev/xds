@@ -107,7 +107,7 @@ mise run check          # everything CI runs
 | Run the documentation site | `mise run //docs:dev`, then open `http://localhost:4321` |
 | Format the codebase | `mise run fmt` |
 
-The GPUI desktop app requires macOS. Building the Compose app requires the Android SDK for Android and Xcode for iOS; see [kotlin/README.md](kotlin/README.md) for details. In the mobile apps, use the button on the home screen to open the design preview.
+The tests of the web components run in Google Chrome, which `mise run check` needs installed. The GPUI desktop app requires macOS. Building the Compose app requires the Android SDK for Android and Xcode for iOS; see [kotlin/README.md](kotlin/README.md) for details. In the mobile apps, use the button on the home screen to open the design preview.
 
 ## Changing the design
 
@@ -147,7 +147,7 @@ template.json           which paths belong to which client
 | React Native | Run on the iOS simulator in light and dark modes, including the bottom sheet. Android and physical devices have not been checked |
 | Compose | Checked on desktop, an Android emulator, and the iOS simulator; see [kotlin/README.md](kotlin/README.md) for details |
 | `xds` | Generated projects for each individual client and for all four combined; each passed its own `mise run check` on macOS. The Linux and Windows binaries and the release workflow have not been run |
-| Accessibility | Contrast is verified by the build. No client has been tested with a screen reader |
+| Accessibility | Contrast is verified by the build. The keyboard, focus, and ARIA behavior of the interactive web components is tested in headless Chrome. No client has been tested with a screen reader |
 
 ## License
 

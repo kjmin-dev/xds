@@ -127,6 +127,9 @@ description = "Lint, type-check, and test the TypeScript workspace"
 depends = ["install"]
 run = [
   "pnpm exec oxfmt --check",
+  # Before the steps that run tsrs: it fails when tsrs ports a different TypeScript version from
+  # the typescript package that editors are pointed at.
+  "node tools/check-tsrs.ts",
   # Type information adds rules such as no-floating-promises, and makes the run slower, so it is
   # only here. So is the check for unused disable directives: to a run without the type-aware
   # rules, a directive for one of them looks unused, and `oxlint --fix` in fmt would delete it.
@@ -135,7 +138,7 @@ run = [
   "pnpm --recursive --if-present run test",
   # @if ui-core
   # A production build of a web app catches what the type checker cannot: unresolved imports,
-  # and CSS that Tailwind rejects.
+  # and CSS that Tailwind rejects. The build scripts leave type-checking to the step above.
   # @endif
   # @if web-react
   "pnpm --filter @acme/web build",
@@ -144,6 +147,17 @@ run = [
   "pnpm --filter @acme/web-solid build",
   # @endif
 ]
+
+[tasks."check:js".env]
+# The type-aware rules run on tsrs-lint, so that they and the type check run on one engine, tsrs.
+# Without this, oxlint takes the first backend it finds in node_modules/.bin or on PATH. pnpm
+# writes a .CMD shim beside the shell script on Windows, and only that one can be started there.
+OXLINT_TSGOLINT_PATH = "node_modules/.bin/tsrs-lint{% if os_family() == 'windows' %}.CMD{% endif %}"
+# tsrs-lint turns on tsrs's fast preset unless told not to. The preset sizes the pool of checkers
+# to the machine's cores and lets them steal work, which can change what a rule reports from one
+# machine to the next. With it off, the rules run on TypeScript's own checker settings, as the
+# type check does, and report the same everywhere.
+TSRS_FAST = "0"
 
 # @endif
 # @if desktop-gpui

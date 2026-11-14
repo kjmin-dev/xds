@@ -9,7 +9,7 @@
     "./test/scenarios": "./test/scenarios.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsrs --noEmit",
     "test": "node --test \"src/**/*.test.ts\""
   },
   "dependencies": {
@@ -28,7 +28,7 @@
     "@vitest/browser-playwright": "^5.1.0",
     "playwright": "^1.65.0",
     "tailwindcss": "^4.3.5",
-    "typescript": "catalog:",
+    "tsrs": "catalog:",
     "vite": "^8.3.8",
     "vitest": "^5.1.0"
   }

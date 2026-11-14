@@ -4,9 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsrs --noEmit"
   },
   "dependencies": {
     "@acme/tokens": "workspace:*",
@@ -18,7 +18,7 @@
     "@solidjs/vite-plugin": "catalog:",
     "@tailwindcss/vite": "^4.3.5",
     "tailwindcss": "^4.3.5",
-    "typescript": "catalog:",
+    "tsrs": "catalog:",
     "vite": "^8.3.8"
   }
 }

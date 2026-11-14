@@ -114,6 +114,8 @@ mise run check          # everything CI runs
 
 The tests of the web components run in Google Chrome, which `mise run check` needs installed. The GPUI desktop app requires macOS. Building the Compose app requires the Android SDK for Android and Xcode for iOS; see [kotlin/README.md](kotlin/README.md) for details. In the mobile apps, use the button on the home screen to open the design preview.
 
+On the command line, `mise run check:js` type-checks and runs oxlint's type-aware rules with [tsrs](https://github.com/oxc-project/tsrs), an experimental Rust port of TypeScript 7.1, pinned to an exact release. Editors keep TypeScript's own language server; point them at the root `typescript` package, the version tsrs is held to. tsrs is built from one TypeScript commit, so upgrade the two together in the catalog in `pnpm-workspace.yaml`: move `typescript`, and move `tsrs` to the release that ports the same version (`pnpm view tsrs@<release> tsrs.typescriptVersion` shows the version a release ports). `mise run check:js` fails while they differ.
+
 ## Changing the design
 
 1. Edit the token JSON files in `design/tokens`, or switch themes with `mise run theme <name>`.

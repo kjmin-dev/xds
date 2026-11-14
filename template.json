@@ -45,7 +45,8 @@
         "pnpm-workspace.yaml",
         ".oxfmtrc.jsonc",
         ".oxlintrc.jsonc",
-        "tsconfig.base.json"
+        "tsconfig.base.json",
+        "tools/check-tsrs.ts"
       ]
     },
     "js-tokens": {

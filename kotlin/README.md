@@ -8,7 +8,7 @@ Compose Multiplatform implementation of the design system, paired with an app th
 | `shared` | Application screens. `App()` is the root composable shared across platforms; start in `shared/src/commonMain/kotlin/acme/app/Home.kt` |
 | `androidApp`, `desktopApp`, `iosApp` | Thin platform entry points |
 
-Components are built directly on `compose.foundation` without any Material library dependency, so all visual styling comes from the tokens. Wrap screens in `AcmeTheme { }`: the color mode follows the OS setting, and control sizes adapt to the input device (pointer on desktop, touch on Android and iOS).
+Components are built directly on `compose.foundation` without any Material library dependency, so all visual styling comes from the tokens. The one library beyond Compose is Coil 3, which loads the pictures of `Avatar`, with a Ktor engine per platform. Wrap screens in `AcmeTheme { }`: the color mode follows the OS setting, and control sizes adapt to the input device (pointer on desktop, touch on Android and iOS).
 
 ## Running the apps
 

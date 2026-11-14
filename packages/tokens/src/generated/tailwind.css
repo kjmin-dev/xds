@@ -23,6 +23,8 @@
   --color-acme-accent-hover: var(--acme-color-accent-hover);
   --color-acme-accent-pressed: var(--acme-color-accent-pressed);
   --color-acme-accent-subtle: var(--acme-color-accent-subtle);
+  --color-acme-accent-subtle-hover: var(--acme-color-accent-subtle-hover);
+  --color-acme-accent-subtle-pressed: var(--acme-color-accent-subtle-pressed);
   --color-acme-control-default: var(--acme-color-control-default);
   --color-acme-control-hover: var(--acme-color-control-hover);
   --color-acme-control-pressed: var(--acme-color-control-pressed);
@@ -55,6 +57,11 @@
   --color-acme-button-danger-background-hover: var(--acme-color-button-danger-background-hover);
   --color-acme-button-danger-background-pressed: var(--acme-color-button-danger-background-pressed);
   --color-acme-button-danger-text: var(--acme-color-button-danger-text);
+  --color-acme-button-selected-background: var(--acme-color-button-selected-background);
+  --color-acme-button-selected-background-hover: var(--acme-color-button-selected-background-hover);
+  --color-acme-button-selected-background-pressed: var(--acme-color-button-selected-background-pressed);
+  --color-acme-button-selected-border: var(--acme-color-button-selected-border);
+  --color-acme-button-selected-text: var(--acme-color-button-selected-text);
   --color-acme-button-disabled-background: var(--acme-color-button-disabled-background);
   --color-acme-button-disabled-text: var(--acme-color-button-disabled-text);
   --color-acme-field-background: var(--acme-color-field-background);
@@ -73,6 +80,10 @@
   --color-acme-badge-warning-text: var(--acme-color-badge-warning-text);
   --color-acme-badge-danger-background: var(--acme-color-badge-danger-background);
   --color-acme-badge-danger-text: var(--acme-color-badge-danger-text);
+  --color-acme-badge-overlay-background: var(--acme-color-badge-overlay-background);
+  --color-acme-badge-overlay-text: var(--acme-color-badge-overlay-text);
+  --color-acme-badge-count-background: var(--acme-color-badge-count-background);
+  --color-acme-badge-count-text: var(--acme-color-badge-count-text);
   --color-acme-banner-success-background: var(--acme-color-banner-success-background);
   --color-acme-banner-success-accent: var(--acme-color-banner-success-accent);
   --color-acme-banner-warning-background: var(--acme-color-banner-warning-background);
@@ -82,6 +93,9 @@
   --color-acme-banner-info-background: var(--acme-color-banner-info-background);
   --color-acme-banner-info-accent: var(--acme-color-banner-info-accent);
   --color-acme-banner-text: var(--acme-color-banner-text);
+  --color-acme-card-background-hover: var(--acme-color-card-background-hover);
+  --color-acme-card-background-pressed: var(--acme-color-card-background-pressed);
+  --color-acme-card-border-selected: var(--acme-color-card-border-selected);
   --color-acme-switch-track: var(--acme-color-switch-track);
   --color-acme-switch-track-on: var(--acme-color-switch-track-on);
   --color-acme-switch-thumb: var(--acme-color-switch-thumb);
@@ -99,10 +113,15 @@
   --color-acme-segmented-selected-text: var(--acme-color-segmented-selected-text);
   --color-acme-avatar-background: var(--acme-color-avatar-background);
   --color-acme-avatar-text: var(--acme-color-avatar-text);
+  --color-acme-avatar-ring: var(--acme-color-avatar-ring);
+  --color-acme-avatar-overflow-background: var(--acme-color-avatar-overflow-background);
+  --color-acme-avatar-overflow-text: var(--acme-color-avatar-overflow-text);
   --color-acme-progress-track: var(--acme-color-progress-track);
   --color-acme-progress-fill: var(--acme-color-progress-fill);
   --color-acme-list-row-background-hover: var(--acme-color-list-row-background-hover);
   --color-acme-list-row-background-pressed: var(--acme-color-list-row-background-pressed);
+  --color-acme-list-row-background-selected: var(--acme-color-list-row-background-selected);
+  --color-acme-list-row-background-selected-hover: var(--acme-color-list-row-background-selected-hover);
   --color-acme-top-bar-background: var(--acme-color-top-bar-background);
   --color-acme-top-bar-text: var(--acme-color-top-bar-text);
   --color-acme-top-bar-action: var(--acme-color-top-bar-action);
@@ -181,6 +200,7 @@
   --spacing-acme-switch-height: var(--acme-size-switch-height);
   --spacing-acme-checkbox: var(--acme-size-checkbox);
   --spacing-acme-list-row: var(--acme-size-list-row);
+  --spacing-acme-list-row-compact: var(--acme-size-list-row-compact);
   --spacing-acme-bar: var(--acme-size-bar);
   --spacing-acme-button-radius: var(--acme-size-button-radius);
   --spacing-acme-icon-xs: var(--acme-size-icon-xs);
@@ -191,7 +211,9 @@
   --spacing-acme-avatar-sm: var(--acme-size-avatar-sm);
   --spacing-acme-avatar-md: var(--acme-size-avatar-md);
   --spacing-acme-avatar-lg: var(--acme-size-avatar-lg);
+  --spacing-acme-avatar-xl: var(--acme-size-avatar-xl);
   --spacing-acme-badge: var(--acme-size-badge);
+  --spacing-acme-count-badge: var(--acme-size-count-badge);
   --spacing-acme-progress: var(--acme-size-progress);
   --spacing-acme-spinner-sm: var(--acme-size-spinner-sm);
   --spacing-acme-spinner-md: var(--acme-size-spinner-md);

@@ -3,12 +3,14 @@
 // design tokens. TopBar, TabBar and BottomSheet exist only where screens are navigated by touch.
 
 export { Avatar, type AvatarSize } from "./Avatar.tsx";
+export { AvatarStack, type AvatarStackPerson, type AvatarStackProps } from "./AvatarStack.tsx";
 export { Badge, type BadgeTone } from "./Badge.tsx";
 export { Banner, type BannerTone } from "./Banner.tsx";
 export { BottomSheet, type BottomSheetProps } from "./BottomSheet.tsx";
 export { Button, type ButtonProps, type ButtonVariant } from "./Button.tsx";
-export { Card, Divider } from "./Card.tsx";
+export { Card, type CardProps, Divider } from "./Card.tsx";
 export { Checkbox, type CheckboxProps } from "./Checkbox.tsx";
+export { CountBadge, type CountBadgeProps } from "./CountBadge.tsx";
 export { Icon, type IconName, type IconProps, type IconSize } from "./Icon.tsx";
 export { ListRow, type ListRowProps } from "./ListRow.tsx";
 export { ProgressBar } from "./ProgressBar.tsx";

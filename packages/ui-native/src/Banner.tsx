@@ -1,6 +1,7 @@
 import { radius, space, typography } from "@acme/tokens";
 import type { ReactNode } from "react";
 import { Text as NativeText, StyleSheet, View } from "react-native";
+import { Button } from "./Button.tsx";
 import { Text } from "./Text.tsx";
 import { type Colors, control, useColors } from "./theme.ts";
 
@@ -29,10 +30,22 @@ function look(colors: Colors, tone: BannerTone): { background: string; accent: s
 export function Banner({
   tone = "info",
   title,
+  action,
+  onDismiss,
+  dismissLabel = "Dismiss",
   children,
 }: {
   tone?: BannerTone;
   title?: string;
+  /** One thing to do about the message, as a button under it. */
+  action?: { label: string; onPress: () => void };
+  /**
+   * Shows a close button. The banner does not hide itself: the handler decides what a
+   * dismissal means.
+   */
+  onDismiss?: () => void;
+  /** What a screen reader says for the close button. */
+  dismissLabel?: string;
   children: ReactNode;
 }) {
   const colors = useColors();
@@ -56,7 +69,26 @@ export function Banner({
         <Text variant="detail" tone="inherit" style={{ color: colors.bannerText }}>
           {children}
         </Text>
+        {action && (
+          <Button
+            variant="secondary"
+            size="sm"
+            label={action.label}
+            onPress={action.onPress}
+            style={styles.action}
+          />
+        )}
       </View>
+      {onDismiss && (
+        <Button
+          variant="ghost"
+          size="sm"
+          iconStart="x"
+          accessibilityLabel={dismissLabel}
+          onPress={onDismiss}
+          style={styles.dismiss}
+        />
+      )}
     </View>
   );
 }
@@ -85,5 +117,19 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     gap: space["0_5"],
+  },
+  action: {
+    // As wide as its label, not as the column.
+    alignSelf: "flex-start",
+    // With the gap of the column, `space.2` under the message.
+    marginTop: space["1_5"],
+  },
+  // The button is taller than a line of text. Pulled toward the corner it takes about a line's
+  // room, so a banner of one line stays that tall. It stops `space.1` short of the edges, which
+  // is what a small button's press area reaches past its outline.
+  dismiss: {
+    marginTop: -space[2],
+    marginEnd: -space[2],
+    marginBottom: -space[2],
   },
 });

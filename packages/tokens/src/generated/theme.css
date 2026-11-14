@@ -25,6 +25,8 @@
   --acme-color-accent-hover: light-dark(#4338ca, #4f46e5);
   --acme-color-accent-pressed: light-dark(#3730a3, #4338ca);
   --acme-color-accent-subtle: light-dark(#eef2ff, #1e1b4b);
+  --acme-color-accent-subtle-hover: light-dark(#e0e7ff, #312e81);
+  --acme-color-accent-subtle-pressed: light-dark(#c7d2fe, #3730a3);
   --acme-color-control-default: light-dark(#ececf0, #2c2c33);
   --acme-color-control-hover: light-dark(#e2e2e8, #44444c);
   --acme-color-control-pressed: light-dark(#c9c9d1, #5c5c66);
@@ -57,6 +59,11 @@
   --acme-color-button-danger-background-hover: #b42318;
   --acme-color-button-danger-background-pressed: #912018;
   --acme-color-button-danger-text: #ffffff;
+  --acme-color-button-selected-background: light-dark(#eef2ff, #1e1b4b);
+  --acme-color-button-selected-background-hover: light-dark(#e0e7ff, #312e81);
+  --acme-color-button-selected-background-pressed: light-dark(#c7d2fe, #3730a3);
+  --acme-color-button-selected-border: light-dark(#4f46e5, #5b5ef0);
+  --acme-color-button-selected-text: light-dark(#18181c, #f5f5f7);
   --acme-color-button-disabled-background: light-dark(#ececf0, #2c2c33);
   --acme-color-button-disabled-text: light-dark(#a9a9b4, #5c5c66);
   --acme-color-field-background: light-dark(#ffffff, #0e0e11);
@@ -75,6 +82,10 @@
   --acme-color-badge-warning-text: light-dark(#b54708, #fdb022);
   --acme-color-badge-danger-background: light-dark(#fef3f2, #55160c);
   --acme-color-badge-danger-text: light-dark(#b42318, #f97066);
+  --acme-color-badge-overlay-background: rgb(0 0 0 / 0.72);
+  --acme-color-badge-overlay-text: #ffffff;
+  --acme-color-badge-count-background: #d92d20;
+  --acme-color-badge-count-text: #ffffff;
   --acme-color-banner-success-background: light-dark(#ecfdf3, #053321);
   --acme-color-banner-success-accent: light-dark(#067647, #47cd89);
   --acme-color-banner-warning-background: light-dark(#fffaeb, #4e1d09);
@@ -84,6 +95,9 @@
   --acme-color-banner-info-background: light-dark(#eff8ff, #102a56);
   --acme-color-banner-info-accent: light-dark(#175cd3, #53b1fd);
   --acme-color-banner-text: light-dark(#18181c, #f5f5f7);
+  --acme-color-card-background-hover: light-dark(#ececf0, #222228);
+  --acme-color-card-background-pressed: light-dark(#e2e2e8, #2c2c33);
+  --acme-color-card-border-selected: light-dark(#4f46e5, #5b5ef0);
   --acme-color-switch-track: #84848f;
   --acme-color-switch-track-on: light-dark(#4f46e5, #5b5ef0);
   --acme-color-switch-thumb: #ffffff;
@@ -101,10 +115,15 @@
   --acme-color-segmented-selected-text: light-dark(#18181c, #f5f5f7);
   --acme-color-avatar-background: light-dark(#eef2ff, #1e1b4b);
   --acme-color-avatar-text: light-dark(#4f46e5, #a5b4fc);
+  --acme-color-avatar-ring: light-dark(#ffffff, #18181c);
+  --acme-color-avatar-overflow-background: light-dark(#ececf0, #2c2c33);
+  --acme-color-avatar-overflow-text: light-dark(#5c5c66, #a9a9b4);
   --acme-color-progress-track: light-dark(#ececf0, #2c2c33);
   --acme-color-progress-fill: light-dark(#4f46e5, #a5b4fc);
   --acme-color-list-row-background-hover: light-dark(#ececf0, #222228);
   --acme-color-list-row-background-pressed: light-dark(#e2e2e8, #2c2c33);
+  --acme-color-list-row-background-selected: light-dark(#eef2ff, #1e1b4b);
+  --acme-color-list-row-background-selected-hover: light-dark(#e0e7ff, #312e81);
   --acme-color-top-bar-background: light-dark(#f5f5f7, #0e0e11);
   --acme-color-top-bar-text: light-dark(#18181c, #f5f5f7);
   --acme-color-top-bar-action: light-dark(#4f46e5, #a5b4fc);
@@ -208,6 +227,7 @@
   --acme-size-switch-height: 20px;
   --acme-size-checkbox: 18px;
   --acme-size-list-row: 40px;
+  --acme-size-list-row-compact: 32px;
   --acme-size-bar: 48px;
   --acme-size-button-radius: 10px;
   --acme-size-icon-xs: 12px;
@@ -218,7 +238,9 @@
   --acme-size-avatar-sm: 24px;
   --acme-size-avatar-md: 32px;
   --acme-size-avatar-lg: 40px;
+  --acme-size-avatar-xl: 56px;
   --acme-size-badge: 24px;
+  --acme-size-count-badge: 18px;
   --acme-size-progress: 8px;
   --acme-size-spinner-sm: 16px;
   --acme-size-spinner-md: 24px;
@@ -237,6 +259,7 @@
     --acme-size-switch-height: 32px;
     --acme-size-checkbox: 24px;
     --acme-size-list-row: 56px;
+    --acme-size-list-row-compact: 44px;
     --acme-size-bar: 56px;
     --acme-size-button-radius: 9999px;
     --acme-size-icon-xs: 12px;
@@ -247,7 +270,9 @@
     --acme-size-avatar-sm: 24px;
     --acme-size-avatar-md: 32px;
     --acme-size-avatar-lg: 40px;
+    --acme-size-avatar-xl: 56px;
     --acme-size-badge: 24px;
+    --acme-size-count-badge: 20px;
     --acme-size-progress: 8px;
     --acme-size-spinner-sm: 16px;
     --acme-size-spinner-md: 24px;

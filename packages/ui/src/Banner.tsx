@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Button } from "./Button.tsx";
 
 const TONE = {
   info: {
@@ -29,6 +30,21 @@ const TONE = {
 
 export type BannerTone = keyof typeof TONE;
 
+export type BannerProps = {
+  tone?: BannerTone;
+  title?: string;
+  /** What the person can do about the message. Drawn under it as a small secondary button. */
+  action?: { label: string; onPress: () => void };
+  /**
+   * Shows a close control. The banner does not hide itself: the handler decides what happens
+   * to it.
+   */
+  onDismiss?: () => void;
+  /** Names the close control for assistive technology. */
+  dismissLabel?: string;
+  children: ReactNode;
+};
+
 /**
  * A message about the whole view or a section of it. Each tone has its own icon shape, so the
  * tone does not depend on color. Problems (`warning`, `danger`) interrupt a screen reader;
@@ -37,12 +53,11 @@ export type BannerTone = keyof typeof TONE;
 export function Banner({
   tone = "info",
   title,
+  action,
+  onDismiss,
+  dismissLabel = "Dismiss",
   children,
-}: {
-  tone?: BannerTone;
-  title?: string;
-  children: ReactNode;
-}) {
+}: BannerProps) {
   const { surface, accent, icon } = TONE[tone];
   const urgent = tone === "danger" || tone === "warning";
   return (
@@ -57,10 +72,30 @@ export function Banner({
       >
         <path fill="currentColor" d={icon} />
       </svg>
-      <div className="flex min-w-0 flex-col gap-0.5 text-acme-detail">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5 text-acme-detail">
         {title && <p className="text-acme-label">{title}</p>}
         <div>{children}</div>
+        {action && (
+          <div className="mt-2">
+            <Button size="sm" onPress={action.onPress}>
+              {action.label}
+            </Button>
+          </div>
+        )}
       </div>
+      {onDismiss && (
+        // Pulled into the padding, so the cross lines up with the first line of text and a
+        // pointer-sized close control does not make a one-line banner taller.
+        <div className="-m-1 flex shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            iconStart="x"
+            aria-label={dismissLabel}
+            onPress={onDismiss}
+          />
+        </div>
+      )}
     </div>
   );
 }

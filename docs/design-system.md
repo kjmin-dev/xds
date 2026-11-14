@@ -85,7 +85,7 @@ Semantic color groups:
 | background | base, surface, raised, inverse, disabled | Page backgrounds, cards, floating surfaces, disabled controls. `inverse` is a surface that stands against the page instead of sitting on it, such as a toast or a tooltip: dark in light mode and light in dark mode |
 | text | primary, secondary, tertiary, disabled, accent, on-accent, on-danger, on-inverse | Text colors (`on-*` is used for text drawn on a colored fill). `tertiary` is used for placeholders, timestamps, and marks such as chevrons; it maintains 4.5:1 contrast on the page and on surfaces, and is not used on raised surfaces |
 | border | default, control, strong, focus | Decorative dividers; outlines on controls already identified by a label; control boundaries that require 3:1 contrast; focus rings |
-| accent | default, hover, pressed, subtle | Primary view actions and selected states |
+| accent | default, hover, pressed, subtle, subtle-hover, subtle-pressed | Primary view actions and selected states. The subtle steps tint a selected control: primary text reads on all three, secondary text on `subtle` and `subtle-hover` |
 | control | default, hover, pressed | Neutral control fills |
 | danger | default, hover, pressed | Destructive action fills |
 | status | danger, success, warning, info, plus a subtle variant of each | Status text and its matching tinted background |
@@ -155,12 +155,14 @@ On the web, the Tailwind configuration generates utility classes for typographic
 | `size.switch.width`, `size.switch.height` | 36 × 20 | 52 × 32 |
 | `size.checkbox` | 18 | 24 |
 | `size.list-row` | 40 | 56 |
+| `size.list-row-compact` | 32 | 44 |
 | `size.bar` | 48 | 56 |
 | `size.button-radius` | 10 | capsule |
 | `size.icon.xs`, `sm`, `md`, `lg`, `xl` | 12, 16, 20, 24, 32 | 12, 16, 20, 24, 32 |
-| `size.avatar.sm`, `md`, `lg` | 24, 32, 40 | 24, 32, 40 |
+| `size.avatar.sm`, `md`, `lg`, `xl` | 24, 32, 40, 56 | 24, 32, 40, 56 |
 | `size.spinner.sm`, `md`, `lg` | 16, 24, 32 | 16, 24, 32 |
 | `size.badge` | 24 | 24 |
+| `size.count-badge` | 18 | 20 |
 | `size.progress` | 8 | 8 |
 
 On the web, `@media (pointer: coarse)` switches between the pointer and touch scales. Keying off the input device rather than viewport width avoids common edge cases: a narrow browser window on a laptop is still used with a mouse, and a large tablet is still used with touch. The GPUI desktop app always uses pointer sizes, the React Native app always uses touch sizes, and the Compose client uses touch sizes on Android and iOS and pointer sizes on desktop.
@@ -223,20 +225,22 @@ Every platform exposes the same component names, variants, sizes, and tones.
 
 | Component | Options | Rule |
 | --- | --- | --- |
-| Button | variant: primary, secondary, ghost, danger. size: sm, md, lg. disabled, loading | Use at most one primary button per view, with a verb for the label. Secondary buttons are outlined. Renders as a rounded rectangle for pointer input and a capsule for touch |
-| TextField | label, description, error, disabled | Always display a visible label; placeholder text is not a substitute for a label |
+| Button | variant: primary, secondary, ghost, danger. size: sm, md, lg. iconStart, iconEnd, selected, disabled, loading | Use at most one primary button per view, with a verb for the label. Secondary buttons are outlined. Renders as a rounded rectangle for pointer input and a capsule for touch. With `selected` it is a toggle: a selected secondary or ghost button gets a tinted fill, an accent outline, and a filled start icon |
+| TextField | label, description, error, leading, trailing, multiline, rows, maxLength, disabled | Always display a visible label; placeholder text is not a substitute for a label. `leading` and `trailing` are slots inside the box. `maxLength` shows a counter under the end edge |
 | Text | variant: the type roles. tone: primary, secondary, accent, danger, success, warning | Choose the semantic element for the document outline and set its visual style with `variant` |
-| Badge | tone: neutral, accent, success, warning, danger. dot | Pill-shaped. The text label carries the meaning, while color reinforces it |
-| Banner | tone: info, success, warning, danger. title | Each tone uses a distinct mark shape; warnings and errors announce immediately to screen readers |
-| Card | title, description, actions, flush | Separated from the page by a hairline border and subtle shadow. `flush` removes internal padding when the card wraps a list |
+| Badge | tone: neutral, accent, success, warning, danger, overlay. dot, icon | Pill-shaped. The text label carries the meaning, while color reinforces it. `overlay` is for a badge on a picture |
+| CountBadge | count, max, label, child | A count on the top end corner of an icon, an avatar, or a button. Draws nothing for zero, and `99+` above `max` |
+| Banner | tone: info, success, warning, danger. title, action, onDismiss, dismissLabel | Each tone uses a distinct mark shape; warnings and errors announce immediately to screen readers. The action is a small secondary button under the message. The banner does not hide itself when dismissed: the handler decides |
+| Card | title, description, actions, media, onPress, selected, flush | Separated from the page by a hairline border and subtle shadow. `flush` removes internal padding when the card wraps a list. `media` runs edge to edge at the top. With `onPress` the whole card is one button and takes no other control. A selected card has a thick accent outline |
 | Divider, Spinner | | A spinner is announced to assistive technologies only when given a label |
 | Switch | checked, label, disabled | Used for settings that take effect immediately. Remains clearly visible when off, with a track that holds 3:1 contrast against the page |
 | Checkbox | checked, label, disabled | Used for selections that are applied later when submitting a form |
 | SegmentedControl | options, value, full width | The active segment is raised: a hairline border, a faint shadow, and a darker label set it apart from the track |
-| Avatar | name. size: sm, md, lg | Displays initials visually while exposing the full name to assistive technologies |
+| Avatar | name, src. size: sm, md, lg, xl | Displays a picture, or initials while it loads, when it fails, and when there is none. Assistive technologies get the full name either way |
+| AvatarStack | people, max, size, label | Overlapping avatars, each ringed in the surface color, and a `+N` for those beyond `max`. One image for assistive technologies, named with every person's name |
 | ProgressBar | value from 0 to 1, label | Used for operations with known progress; use a Spinner for indeterminate work |
 | Icon | name, size: xs, sm, md, lg, xl. filled, label | Inherits the surrounding text color. Treated as decorative unless given a label. `filled` marks a selected state on an icon made of closed shapes. Arrows and chevrons can mirror in right-to-left layouts |
-| ListRow | title, description, leading, trailing, chevron, disabled | Interactive when given an action. Separate adjacent rows with a Divider |
+| ListRow | title, description, leading, trailing, chevron, selected, compact, disabled | Interactive when given an action. Separate adjacent rows with a Divider. A selected row is tinted and its title is heavier. `compact` is for menus and sidebars, where many rows share little room |
 
 Three additional navigation components exist only on the touch-oriented platforms (React Native and Compose):
 

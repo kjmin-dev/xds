@@ -77,7 +77,7 @@ See the [CLI documentation](docs/cli.md#for-scripts-and-agents) for details on t
 - `design/tokens` contains the design tokens in DTCG format: a color palette, light and dark semantic colors, component-specific colors, typographic roles, spacing, border radius, motion, shadows, and control sizes for pointer and touch input.
 - `design/themes` provides five color themes: `indigo` (the default), `ocean`, `forest`, `sunset`, and `plum`. Each theme defines an accent ramp and a neutral ramp, and every theme passes all contrast checks.
 - `tools/design-build` compiles the tokens into CSS custom properties, a Tailwind theme, TypeScript constants, Rust constants, and Compose values. It runs on plain Node with no external dependencies, and fails the build if any color pairing falls below its required WCAG contrast ratio.
-- Every client implements the same set of components with matching names and options: Button, TextField, Text, Badge, Banner, Card, Divider, Spinner, Switch, Checkbox, SegmentedControl, Avatar, ProgressBar, ListRow, and Icon. The two touch clients also provide TopBar, TabBar, and BottomSheet.
+- Every client implements the same set of components with matching names and options: Button, TextField, Text, Badge, CountBadge, Banner, Card, Divider, Spinner, Switch, Checkbox, SegmentedControl, Avatar, AvatarStack, ProgressBar, ListRow, and Icon. The two touch clients also provide TopBar, TabBar, and BottomSheet.
 - Each app includes a design preview screen that renders every token and component in a single view.
 
 See the [design system documentation](docs/design-system.md) for the rationale behind this structure and the conventions it adopts from current open-source design systems.

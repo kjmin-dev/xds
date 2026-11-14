@@ -17,7 +17,17 @@ export type ListRowProps = {
   /** Makes the whole row pressable. */
   onPress?: () => void;
   disabled?: boolean;
+  /**
+   * The row that is the current choice: the open conversation, the active filter. It is tinted
+   * and its title is set heavier, so the choice does not rest on the tint alone.
+   */
+  selected?: boolean;
+  /** A lower row with smaller text, for long lists and menus. */
+  compact?: boolean;
 };
+
+// A compact row is lower than the smallest target, so its press area reaches past it.
+const COMPACT_SLOP = Math.max(0, (control.targetMin - control.listRowCompact) / 2);
 
 /** One line of a list or a settings screen. Separate rows with a Divider. */
 export function ListRow({
@@ -28,15 +38,32 @@ export function ListRow({
   chevron = false,
   onPress,
   disabled = false,
+  selected = false,
+  compact = false,
 }: ListRowProps) {
   const colors = useColors();
+  const titleVariant = compact
+    ? selected
+      ? "label"
+      : "detail"
+    : selected
+      ? "body-strong"
+      : "body";
+  const layout = [styles.row, compact && styles.compact];
   const content = (
     <>
       {leading}
-      <View style={styles.text}>
-        <Text tone={disabled ? "secondary" : "primary"}>{title}</Text>
+      <View
+        // Without a press the row is not one element to a screen reader, so the words carry
+        // the state.
+        {...(selected && !onPress ? { accessible: true, accessibilityState: { selected } } : {})}
+        style={styles.text}
+      >
+        <Text variant={titleVariant} tone={disabled ? "secondary" : "primary"}>
+          {title}
+        </Text>
         {description && (
-          <Text variant="detail" tone="secondary">
+          <Text variant={compact ? "footnote" : "detail"} tone="secondary">
             {description}
           </Text>
         )}
@@ -45,16 +72,29 @@ export function ListRow({
       {chevron && <Icon name="chevron-right" size="sm" color={colors.textTertiary} directional />}
     </>
   );
-  if (!onPress) return <View style={styles.row}>{content}</View>;
+  if (!onPress) {
+    return (
+      <View style={[layout, selected && { backgroundColor: colors.listRowBackgroundSelected }]}>
+        {content}
+      </View>
+    );
+  }
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ disabled }}
+      accessibilityState={{ disabled, selected }}
       disabled={disabled}
+      {...(compact ? { hitSlop: { top: COMPACT_SLOP, bottom: COMPACT_SLOP } } : {})}
       onPress={onPress}
       style={({ pressed }) => [
-        styles.row,
-        pressed && { backgroundColor: colors.listRowBackgroundPressed },
+        layout,
+        selected
+          ? {
+              backgroundColor: pressed
+                ? colors.listRowBackgroundSelectedHover
+                : colors.listRowBackgroundSelected,
+            }
+          : pressed && { backgroundColor: colors.listRowBackgroundPressed },
       ]}
     >
       {content}
@@ -71,6 +111,10 @@ const styles = StyleSheet.create({
     minHeight: control.listRow,
     paddingHorizontal: space[4],
     paddingVertical: space[2],
+  },
+  compact: {
+    minHeight: control.listRowCompact,
+    paddingVertical: space[1],
   },
   text: {
     flex: 1,

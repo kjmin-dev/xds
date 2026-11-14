@@ -11,12 +11,12 @@ mod preview;
 mod theme;
 
 pub use components::{
-    Badge, BadgeTone, Banner, BannerTone, ButtonVariant, ControlSize, TextField, button, card,
-    divider, text,
+    Badge, BadgeTone, Banner, BannerTone, Button, ButtonVariant, Card, ControlSize, CountBadge,
+    TextField, button, card, divider, text,
 };
 pub use controls::{
-    Avatar, AvatarSize, IconSize, ListRow, ProgressBar, SegmentedControl, checkbox, icon,
-    icon_filled, initials, switch,
+    Avatar, AvatarSize, AvatarStack, IconSize, ListRow, Person, ProgressBar, SegmentedControl,
+    SpinnerSize, checkbox, icon, icon_filled, initials, spinner, switch,
 };
 pub use preview::DesignPreview;
 pub use theme::{TypographyExt, color, font, init, mode, palette, set_mode};

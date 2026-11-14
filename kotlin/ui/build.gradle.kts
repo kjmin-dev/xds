@@ -32,6 +32,20 @@ kotlin {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.ui)
+            // The one thing not drawn from the tokens: an avatar's picture, which has to be
+            // fetched, decoded and cached. Coil does that on every platform.
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor3)
+        }
+        // Coil fetches through Ktor, which needs an HTTP engine on each platform.
+        androidMain.dependencies {
+            implementation(libs.ktor.client.android)
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
+        }
+        jvmMain.dependencies {
+            implementation(libs.ktor.client.java)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

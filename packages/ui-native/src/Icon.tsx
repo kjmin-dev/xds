@@ -1,7 +1,8 @@
 import { type IconName, icons } from "@acme/tokens";
+import { useContext } from "react";
 import { I18nManager } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import { control, useColors } from "./theme.ts";
+import { ContentColor, control, useColors } from "./theme.ts";
 
 const SIZE = {
   xs: control.iconXs,
@@ -21,7 +22,7 @@ export type IconProps = {
    * bar, and `xl` illustrates, as in an empty state.
    */
   size?: IconSize;
-  /** Defaults to the primary text color. */
+  /** Defaults to the primary text color, or to the color of the slot the icon is in. */
   color?: string;
   /**
    * Fills the shapes, so that a selected state shows in the form and not in the color alone:
@@ -44,7 +45,8 @@ export function Icon({
   directional = false,
 }: IconProps) {
   const colors = useColors();
-  const tint = color ?? colors.textPrimary;
+  const inherited = useContext(ContentColor);
+  const tint = color ?? inherited ?? colors.textPrimary;
   return (
     <Svg
       width={SIZE[size]}

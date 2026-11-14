@@ -5,9 +5,18 @@
 // `/design?from=3` starts at the third section and `/design?sheet=1` opens the bottom sheet,
 // for taking screenshots from a script, which can neither scroll nor tap.
 
-import { icons, radius, size, space, colors as tokenColors, typography } from "@acme/tokens";
+import {
+  border,
+  icons,
+  radius,
+  size,
+  space,
+  colors as tokenColors,
+  typography,
+} from "@acme/tokens";
 import {
   Avatar,
+  AvatarStack,
   Badge,
   type BadgeTone,
   Banner,
@@ -18,6 +27,7 @@ import {
   Card,
   Checkbox,
   type ControlSize,
+  CountBadge,
   Divider,
   Icon,
   type IconName,
@@ -36,11 +46,12 @@ import {
 } from "@acme/ui-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { type ReactNode, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Image, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const VARIANTS: ButtonVariant[] = ["primary", "secondary", "ghost", "danger"];
 const SIZES: ControlSize[] = ["sm", "md", "lg"];
+// `overlay` is not in the row of tones: it is made for pictures and is shown on blocks below.
 const BADGE_TONES: BadgeTone[] = ["neutral", "accent", "success", "warning", "danger"];
 const BANNER_TONES: BannerTone[] = ["info", "success", "warning", "danger"];
 const ICON_SIZES: IconSize[] = ["xs", "sm", "md", "lg", "xl"];
@@ -72,7 +83,28 @@ const kebab = (name: string) => name.replace(/[A-Z0-9]+/g, (match) => `-${match.
 
 /** Semantic colors by group. Component colors are shown by the components that use them. */
 const COMPONENT_COLORS =
-  /^(button|field|badge|banner|switch|checkbox|segmented|avatar|progress|listRow|topBar|tabBar|sheet)/;
+  /^(button|field|badge|banner|card|switch|checkbox|segmented|avatar|progress|listRow|topBar|tabBar|sheet)/;
+
+// The preview works offline, so its picture ships with it: a 16 by 16 gradient, scaled up.
+const PICTURE =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAn0lEQVR42mNITvuYkfY+N/1tUfrrsoyX1RnPGzKetmY+7sp82J91f3LW3RlZt+dm31yUfX15ztU1OVcYSFK9IecSA0mqt+ZeYCBJ9a7ccwwkqd6fd4aBJNVH8k4xkKT6ZN4JBpJUn80/xkCS6kv5RxhIUn294BADSarvFBxgIEn1w4J9DCSpfla4h4Ek1a8KdzGQpPp90Q4GklR/KdoGANKd6y5LxwwKAAAAAElFTkSuQmCC";
+/** Not a picture at all, to show an avatar whose picture fails. */
+const BROKEN_PICTURE = "data:image/png;base64,AAAA";
+
+const PEOPLE = [
+  { name: "Ada Lovelace", src: PICTURE },
+  { name: "Grace Hopper" },
+  { name: "Alan Turing" },
+  { name: "Katherine Johnson" },
+  { name: "Margaret Hamilton" },
+  { name: "Hedy Lamarr" },
+];
+
+const FOLDERS: { key: string; title: string; description?: string }[] = [
+  { key: "inbox", title: "Inbox", description: "3 unread" },
+  { key: "drafts", title: "Drafts" },
+  { key: "archive", title: "Archive" },
+];
 
 const VIEWS = [
   { value: "day", label: "Day" },
@@ -108,6 +140,14 @@ export default function Design() {
   const [agreed, setAgreed] = useState(true);
   const [view, setView] = useState<(typeof VIEWS)[number]["value"]>("week");
   const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("home");
+  const [starred, setStarred] = useState(true);
+  const [liked, setLiked] = useState(true);
+  const [query, setQuery] = useState("");
+  const [weight, setWeight] = useState("72");
+  const [bio, setBio] = useState("Wrote the first program.");
+  const [bannerShown, setBannerShown] = useState(true);
+  const [folder, setFolder] = useState("inbox");
+  const [picked, setPicked] = useState(false);
   const params = useLocalSearchParams<{ from?: string; sheet?: string }>();
   const from = Number(params.from ?? 1);
   const [sheet, setSheet] = useState(params.sheet === "1");
@@ -206,6 +246,29 @@ export default function Design() {
         </View>
       ))}
       <Button variant="primary" label="Full width" fullWidth />
+      <View style={styles.row}>
+        <Button size="sm" iconStart="plus" label="New" />
+        <Button variant="primary" iconEnd="arrow-right" label="Next" />
+        <Button size="lg" iconStart="download" iconEnd="chevron-down" label="Export" />
+        <Button variant="primary" iconStart="cloud-upload" label="Uploading" loading />
+      </View>
+      {/* Toggles: press them. The filled icon and the outline say "on", not the tint alone. */}
+      <View style={styles.row}>
+        <Button
+          iconStart="star"
+          label={starred ? "Starred" : "Star"}
+          selected={starred}
+          onPress={() => setStarred(!starred)}
+        />
+        <Button
+          variant="ghost"
+          iconStart="heart"
+          label={liked ? "Liked" : "Like"}
+          selected={liked}
+          onPress={() => setLiked(!liked)}
+        />
+        <Button iconStart="bookmark" label="Saved" selected disabled />
+      </View>
     </Section>,
 
     <Section key="fields" title="Text fields">
@@ -223,6 +286,39 @@ export default function Design() {
         error="That code is wrong or has expired."
       />
       <TextField label="Organization" value="Acme Inc." onChange={() => {}} disabled />
+      <TextField
+        label="Search"
+        placeholder="People and teams"
+        value={query}
+        onChange={setQuery}
+        leading={<Icon name="search" />}
+        trailing={
+          <Button
+            variant="ghost"
+            size="sm"
+            iconStart="x"
+            accessibilityLabel="Clear the search"
+            onPress={() => setQuery("")}
+          />
+        }
+      />
+      <TextField
+        label="Weight"
+        value={weight}
+        onChange={setWeight}
+        keyboardType="decimal-pad"
+        trailing={<Text>kg</Text>}
+      />
+      <TextField
+        label="About you"
+        description="Shown on your profile."
+        value={bio}
+        onChange={setBio}
+        multiline
+        rows={3}
+        maxLength={80}
+        leading={<Icon name="pencil" />}
+      />
     </Section>,
 
     <Section key="selection" title="Selection">
@@ -262,6 +358,48 @@ export default function Design() {
         <Badge tone="warning" label="Connecting" dot />
         <Badge tone="danger" label="Offline" dot />
       </View>
+      <View style={styles.row}>
+        <Badge tone="success" icon="check" label="Verified" />
+        <Badge tone="accent" icon="star" label="Featured" />
+        <Badge tone="warning" icon="clock" label="Pending" dot />
+      </View>
+      {/* The overlay tone is the same in both modes, so it is shown on the darkest and on the
+          lightest page color, whichever mode the preview is in. */}
+      <View style={styles.row}>
+        <View style={[styles.block, { backgroundColor: tokenColors.dark.backgroundBase }]}>
+          <Badge tone="overlay" label="overlay" />
+          <Badge tone="overlay" icon="clock" label="3:24" />
+        </View>
+        <View
+          style={[
+            styles.block,
+            {
+              backgroundColor: tokenColors.light.backgroundBase,
+              borderColor: colors.borderDefault,
+            },
+          ]}
+        >
+          <Badge tone="overlay" label="overlay" />
+          <Badge tone="overlay" icon="clock" label="3:24" />
+        </View>
+      </View>
+      <View style={styles.row}>
+        <CountBadge count={3} />
+        <CountBadge count={120} />
+        <CountBadge count={3} label="3 unread notifications">
+          <Icon name="bell" size="lg" />
+        </CountBadge>
+        <CountBadge count={120} label="More than 99 messages">
+          <Avatar name="Ada Lovelace" size="lg" />
+        </CountBadge>
+        <CountBadge count={2} label="2 items in the cart">
+          <Button iconStart="shopping-cart" label="Cart" />
+        </CountBadge>
+        {/* Nothing to count: the icon is drawn alone. */}
+        <CountBadge count={0}>
+          <Icon name="mail" size="lg" />
+        </CountBadge>
+      </View>
     </Section>,
 
     <Section key="banners" title="Banners">
@@ -270,6 +408,22 @@ export default function Design() {
           Your changes are saved on this device.
         </Banner>
       ))}
+      {bannerShown ? (
+        <Banner
+          tone="info"
+          title="A new version is ready"
+          action={{ label: "Restart now", onPress: () => {} }}
+          onDismiss={() => setBannerShown(false)}
+          dismissLabel="Dismiss the update notice"
+        >
+          Restart the app to get it.
+        </Banner>
+      ) : (
+        <Button label="Show the dismissed banner" onPress={() => setBannerShown(true)} />
+      )}
+      <Banner tone="warning" onDismiss={() => {}}>
+        You are offline.
+      </Banner>
     </Section>,
 
     <Section key="card" title="Card">
@@ -286,9 +440,42 @@ export default function Design() {
           <Avatar name="Ada Lovelace" size="sm" />
           <Avatar name="Ada Lovelace" />
           <Avatar name="Grace Hopper" size="lg" />
+          <Avatar name="Alan Turing" size="xl" />
+        </View>
+        {/* A picture, and a picture that fails: the second falls back to the initials. */}
+        <View style={styles.row}>
+          <Avatar name="Ada Lovelace" src={PICTURE} />
+          <Avatar name="Ada Lovelace" size="xl" src={PICTURE} />
+          <Avatar name="Grace Hopper" size="xl" src={BROKEN_PICTURE} />
+        </View>
+        <View style={styles.row}>
+          <AvatarStack people={PEOPLE.slice(0, 3)} />
+          <AvatarStack people={PEOPLE} />
+          <AvatarStack people={PEOPLE} max={2} size="lg" label="Six people are editing" />
         </View>
         <ProgressBar value={0.6} label="Upload" />
       </Card>
+      <Card
+        title="With a picture"
+        description="The picture runs to the card's edges."
+        media={
+          <View>
+            <Image source={{ uri: PICTURE }} resizeMode="cover" style={styles.picture} />
+            <View style={styles.onPicture}>
+              <Badge tone="overlay" icon="clock" label="3:24" />
+            </View>
+          </View>
+        }
+      >
+        <Text tone="secondary">The badge on it uses the overlay tone.</Text>
+      </Card>
+      <Card
+        title="Pressable"
+        description={picked ? "Selected. Press to clear." : "The whole card is one button."}
+        selected={picked}
+        onPress={() => setPicked(!picked)}
+      />
+      <Card title="Selected" description="A heavier outline, at the same size." selected />
     </Section>,
 
     <Section key="list" title="List">
@@ -326,6 +513,27 @@ export default function Design() {
           onPress={() => {}}
           disabled
         />
+        <Divider />
+        <ListRow
+          leading={<Icon name="palette" />}
+          title="Appearance"
+          description="The row you are on"
+          selected
+          onPress={() => {}}
+        />
+      </Card>
+      {/* Compact rows, as in a menu: press one to select it. */}
+      <Card flush>
+        {FOLDERS.map((item) => (
+          <ListRow
+            key={item.key}
+            compact
+            title={item.title}
+            description={item.description}
+            selected={folder === item.key}
+            onPress={() => setFolder(item.key)}
+          />
+        ))}
       </Card>
     </Section>,
 
@@ -416,6 +624,24 @@ const styles = StyleSheet.create({
   sample: {
     alignItems: "center",
     gap: space[1],
+  },
+  // Stands in for a picture under an overlay badge.
+  block: {
+    flexDirection: "row",
+    gap: space[2],
+    padding: space[3],
+    borderWidth: border.width.thin,
+    borderColor: "transparent",
+    borderRadius: radius.md,
+  },
+  picture: {
+    width: "100%",
+    aspectRatio: 16 / 9,
+  },
+  onPicture: {
+    position: "absolute",
+    bottom: space[2],
+    end: space[2],
   },
   // A small stand-in for a screen, to show the bars where they belong.
   frame: {

@@ -3,7 +3,7 @@
   "components": [
     {
       "name": "Button",
-      "purpose": "An action. Use `primary` once per view, `secondary` for other actions, `ghost` for actions that stay out of the way, and `danger` for ones that destroy.",
+      "purpose": "An action. Use `primary` once per view, `secondary` for other actions, `ghost` for actions that stay out of the way, and `danger` for ones that destroy. With `selected` it is a toggle that stays pressed.",
       "options": {
         "variant": [
           "primary",
@@ -19,7 +19,12 @@
         "flags": [
           "disabled",
           "loading",
-          "fullWidth"
+          "fullWidth",
+          "selected"
+        ],
+        "fields": [
+          "iconStart",
+          "iconEnd"
         ]
       },
       "states": [
@@ -27,14 +32,16 @@
         "pressed",
         "focus",
         "disabled",
-        "loading"
+        "loading",
+        "selected"
       ],
-      "accessibility": "The label is the accessible name. A loading button keeps its label and ignores presses.",
+      "accessibility": "The label is the accessible name. A loading button keeps its label and ignores presses. A button given `selected` reports whether it is pressed.",
       "tokens": [
         "color.button",
         "size.control",
         "size.button-radius",
-        "motion.press-scale"
+        "motion.press-scale",
+        "size.icon"
       ],
       "clients": {
         "web-react": {
@@ -57,16 +64,21 @@
     },
     {
       "name": "TextField",
-      "purpose": "A labelled single-line text field with an optional description and error message.",
+      "purpose": "A labelled text field with an optional description and error message. One line, or several with `multiline`.",
       "options": {
         "fields": [
           "label",
           "description",
           "error",
-          "placeholder"
+          "placeholder",
+          "leading",
+          "trailing",
+          "rows",
+          "maxLength"
         ],
         "flags": [
-          "disabled"
+          "disabled",
+          "multiline"
         ]
       },
       "states": [
@@ -157,10 +169,14 @@
           "accent",
           "success",
           "warning",
-          "danger"
+          "danger",
+          "overlay"
         ],
         "flags": [
           "dot"
+        ],
+        "fields": [
+          "icon"
         ]
       },
       "states": [],
@@ -188,6 +204,42 @@
       }
     },
     {
+      "name": "CountBadge",
+      "purpose": "A count on an icon, an avatar or a button: unread messages, items in a cart. A count of zero draws nothing.",
+      "options": {
+        "fields": [
+          "count",
+          "max",
+          "label",
+          "children"
+        ]
+      },
+      "states": [],
+      "accessibility": "`label` says what is counted, such as \"3 unread notifications\". Without it assistive technology reads the number.",
+      "tokens": [
+        "color.badge.count",
+        "size.count-badge"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/CountBadge.tsx",
+          "symbol": "CountBadge"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/components.rs",
+          "symbol": "CountBadge"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/CountBadge.tsx",
+          "symbol": "CountBadge"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/CountBadge.kt",
+          "symbol": "CountBadge"
+        }
+      }
+    },
+    {
       "name": "Banner",
       "purpose": "A message about the whole view or a section of it.",
       "options": {
@@ -198,11 +250,14 @@
           "danger"
         ],
         "fields": [
-          "title"
+          "title",
+          "action",
+          "onDismiss",
+          "dismissLabel"
         ]
       },
       "states": [],
-      "accessibility": "Each tone has its own mark. `warning` and `danger` interrupt a screen reader; `info` and `success` wait their turn.",
+      "accessibility": "Each tone has its own mark. `warning` and `danger` interrupt a screen reader; `info` and `success` wait their turn. The dismiss control has a name of its own.",
       "tokens": [
         "color.banner"
       ],
@@ -227,24 +282,32 @@
     },
     {
       "name": "Card",
-      "purpose": "A surface that groups related content, with an optional title, description and actions.",
+      "purpose": "A surface that groups related content, with an optional picture, title, description and actions. With `onPress` the whole card is one button.",
       "options": {
         "fields": [
           "title",
           "description",
-          "actions"
+          "actions",
+          "media",
+          "onPress"
         ],
         "flags": [
-          "flush"
+          "flush",
+          "selected"
         ]
       },
-      "states": [],
-      "accessibility": "The title renders as a heading.",
+      "states": [
+        "hover",
+        "pressed",
+        "focus",
+        "selected"
+      ],
+      "accessibility": "The title is a heading. A pressable card is one button: put no other control inside it. A selected card is outlined, not only tinted.",
       "tokens": [
-        "color.background.surface",
-        "color.border.default",
-        "shadow.subtle",
-        "radius.lg"
+        "color.card",
+        "color.background",
+        "color.border",
+        "shadow"
       ],
       "clients": {
         "web-react": {
@@ -313,6 +376,10 @@
         "web-react": {
           "source": "packages/ui/src/Spinner.tsx",
           "symbol": "Spinner"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/controls.rs",
+          "symbol": "spinner"
         },
         "mobile-react-native": {
           "source": "packages/ui-native/src/Spinner.tsx",
@@ -445,21 +512,24 @@
     },
     {
       "name": "Avatar",
-      "purpose": "Stands for a person or a team by their initials.",
+      "purpose": "Stands for a person or a team by a picture, or by their initials when there is none.",
       "options": {
         "size": [
           "sm",
           "md",
-          "lg"
+          "lg",
+          "xl"
         ],
         "fields": [
-          "name"
+          "name",
+          "src"
         ]
       },
       "states": [],
-      "accessibility": "Assistive technology gets the full name.",
+      "accessibility": "Assistive technology gets the full name, with or without a picture.",
       "tokens": [
-        "color.avatar"
+        "color.avatar",
+        "size.avatar"
       ],
       "clients": {
         "web-react": {
@@ -477,6 +547,47 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Avatar.kt",
           "symbol": "Avatar"
+        }
+      }
+    },
+    {
+      "name": "AvatarStack",
+      "purpose": "Several people in the room of one: overlapping avatars, and a count of those that did not fit.",
+      "options": {
+        "size": [
+          "sm",
+          "md",
+          "lg",
+          "xl"
+        ],
+        "fields": [
+          "people",
+          "max",
+          "label"
+        ]
+      },
+      "states": [],
+      "accessibility": "One image whose name is every person's name, or `label`. The avatars inside are hidden from assistive technology.",
+      "tokens": [
+        "color.avatar",
+        "size.avatar"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/AvatarStack.tsx",
+          "symbol": "AvatarStack"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/controls.rs",
+          "symbol": "AvatarStack"
+        },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/AvatarStack.tsx",
+          "symbol": "AvatarStack"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/AvatarStack.kt",
+          "symbol": "AvatarStack"
         }
       }
     },
@@ -568,19 +679,23 @@
         ],
         "flags": [
           "chevron",
-          "disabled"
+          "disabled",
+          "selected",
+          "compact"
         ]
       },
       "states": [
         "hover",
         "pressed",
         "focus",
-        "disabled"
+        "disabled",
+        "selected"
       ],
       "accessibility": "With an action the whole row is a button, so do not put another control in `trailing`.",
       "tokens": [
         "color.list-row",
-        "size.list-row"
+        "size.list-row",
+        "size.list-row-compact"
       ],
       "clients": {
         "web-react": {

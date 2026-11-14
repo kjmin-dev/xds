@@ -493,6 +493,16 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
             assert_eq!(ci.contains(job), expected, "{selected:?}: job {job:?}");
         }
         assert!(ci.ends_with("\n") && !ci.ends_with("\n\n"), "{selected:?}");
+        // CI turns off mise's automatic installs, so a job has only the tools it names, and it
+        // can only name tools the project pins.
+        for names in ci
+            .lines()
+            .filter_map(|line| line.trim().strip_prefix("install_args: "))
+        {
+            for tool in names.split_whitespace() {
+                assert!(tools.contains(tool), "{selected:?}: ci.yml installs {tool}");
+            }
+        }
 
         // The README names the selected stacks and no others: how to start each of them.
         let readme = read("README.md");

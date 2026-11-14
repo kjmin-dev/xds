@@ -12,11 +12,15 @@ concurrency:
 permissions:
   contents: read
 
-# @if desktop-gpui
 env:
+  # @if desktop-gpui
   CARGO_TERM_COLOR: always
+  # @endif
+  # Each job installs only the tools its tasks use (`install_args`). Without this, `mise run`
+  # would first install every other tool in mise.toml, and Rust alone takes ten seconds to
+  # resolve. The cache key includes `install_args`, so the jobs do not share a cache.
+  MISE_AUTO_INSTALL: "false"
 
-# @endif
 # Every job runs the same mise tasks a developer runs locally: `mise run check` is all of them.
 jobs:
   generated:
@@ -25,6 +29,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: jdx/mise-action@v5
+        with:
+          install_args: node actionlint
       - run: mise run check:generated
       - run: mise run check:workflows
 
@@ -35,6 +41,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: jdx/mise-action@v5
+        with:
+          install_args: node pnpm
       - run: mise run check:js
 
   # @endif
@@ -45,6 +53,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: jdx/mise-action@v5
+        with:
+          # @if template
+          # Node runs the xds test that compares `xds theme` with the TypeScript tool.
+          # @endif
+          install_args: rust node
       - uses: Swatinem/rust-cache@v2
       - run: mise run check:rust
 
@@ -54,6 +67,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: jdx/mise-action@v5
+        with:
+          install_args: rust
       - uses: Swatinem/rust-cache@v2
       - run: mise run check:desktop
 
@@ -65,20 +80,44 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: jdx/mise-action@v5
+        with:
+          install_args: java
+      # Without a cache, Gradle spends a minute and a half downloading dependencies before it
+      # builds anything, then builds everything. The key changes only with kotlin/, so a change
+      # elsewhere restores the build cache of the same sources and every task comes from it.
+      # Only main saves: a pull request's entry would serve that pull request alone, and the
+      # entries are large.
+      - id: gradle-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('kotlin/**') }}
+          restore-keys: gradle-${{ runner.os }}-
       - run: mise run //kotlin:check
+      - if: github.ref == 'refs/heads/main' && steps.gradle-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ steps.gradle-cache.outputs.cache-primary-key }}
 
   # @endif
   # @if template
-  # The Rust job tests xds on Linux. It ships for macOS and Windows as well, where paths and the
-  # terminal differ.
   docs:
     name: Documentation site
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: jdx/mise-action@v5
+        with:
+          install_args: node pnpm
       - run: mise run check:docs
 
+  # The Rust job tests xds on Linux. It ships for macOS and Windows as well, where paths and the
+  # terminal differ.
   cli:
     name: CLI (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -88,7 +127,10 @@ jobs:
         os: [macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v7
+      # Node for the same test as in the Rust job.
       - uses: jdx/mise-action@v5
+        with:
+          install_args: rust node
       - uses: Swatinem/rust-cache@v2
       - run: mise run check:cli
   # @endif

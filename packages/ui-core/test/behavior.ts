@@ -10,6 +10,7 @@ import {
   CONFIRM,
   COUNTRY_PLACEHOLDER,
   KEPT,
+  KEPT_NOTES,
   QUESTION,
   QUESTIONS,
   type Scenario,
@@ -90,6 +91,26 @@ export function describeBehavior(mount: Mount) {
       await expect.element(off).not.toBeChecked();
       await userEvent.keyboard(" ");
       await expect.element(off).not.toBeChecked();
+    });
+
+    // A reset sets each field to its default value: the `value` attribute of an input, the
+    // text of a text area, the `checked` attribute of a checkbox or a radio. A library that
+    // writes only the value leaves them empty, and a reset would clear the fields without
+    // telling their owners. (React writes the `checked` attribute only at first, so a control
+    // changed since then goes back to its first state; these controls do not change.)
+    test("a form's reset leaves each control showing the value its owner gives it", async () => {
+      await mount("controlled");
+      const email = page.getByRole("textbox", { name: "Email" });
+      await email.click();
+      await userEvent.keyboard("ada@example.com");
+      await expect.element(email).toHaveValue("ada@example.com");
+      await page.getByRole("button", { name: "Reset" }).click();
+      await expect.element(email).toHaveValue("ada@example.com");
+      await expect.element(page.getByRole("textbox", { name: "Project name" })).toHaveValue(KEPT);
+      await expect.element(page.getByRole("textbox", { name: "Notes" })).toHaveValue(KEPT_NOTES);
+      await expect.element(page.getByRole("switch", { name: "Off" })).not.toBeChecked();
+      await expect.element(page.getByRole("checkbox", { name: "On" })).toBeChecked();
+      await expect.element(page.getByRole("radio", { name: "Express" })).toBeChecked();
     });
   });
 

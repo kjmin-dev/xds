@@ -2,6 +2,12 @@
 // and `checked` only when the prop changes. The web libraries' fields are controlled, as
 // React's are, so a field whose parent keeps the old value puts it back. These do that, once
 // the parent's update has run.
+//
+// Solid writes `value` and `checked` as properties only, which leave a field's default (the
+// `value` or `checked` attribute) empty, and a form's reset puts every field back to its
+// default. So each field also gives its value as `defaultValue` or `defaultChecked`, and a
+// reset leaves it showing what its parent gives it. React and Vue keep the default value so;
+// Vue keeps the default checked state so too, React only its first.
 
 import { flush } from "solid-js";
 

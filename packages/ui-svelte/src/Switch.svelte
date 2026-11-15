@@ -34,6 +34,7 @@
     aria-label={ariaLabel}
     class="peer sr-only"
     {checked}
+    defaultChecked={checked}
     {disabled}
     onchange={(event) => {
       onChange(event.currentTarget.checked);

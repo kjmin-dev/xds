@@ -87,6 +87,7 @@
       {id}
       class={box ? "text-field__input text-field__control" : "text-field__input"}
       {value}
+      defaultValue={value}
       {placeholder}
       {name}
       maxlength={maxLength}
@@ -106,6 +107,7 @@
       {id}
       class={box ? "text-field__input text-field__control" : "text-field__input"}
       {value}
+      defaultValue={value}
       {placeholder}
       {name}
       maxlength={maxLength}

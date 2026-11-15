@@ -32,6 +32,7 @@ export function SearchField(props: SearchFieldProps) {
           enterkeyhint="search"
           placeholder={props.placeholder}
           value={props.value}
+          defaultValue={props.value}
           disabled={props.disabled}
           // Escape clears only while there is something to clear; an empty field lets Escape
           // through to whatever it sits in, such as a dialog.

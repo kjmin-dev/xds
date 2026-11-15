@@ -29,6 +29,7 @@ export function Switch(props: SwitchProps) {
         aria-label={props["aria-label"]}
         class="peer sr-only"
         checked={props.checked}
+        defaultChecked={props.checked}
         disabled={props.disabled}
         onChange={(event) => {
           props.onChange(event.currentTarget.checked);

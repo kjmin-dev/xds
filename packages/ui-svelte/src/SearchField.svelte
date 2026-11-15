@@ -39,6 +39,7 @@
       enterkeyhint="search"
       {placeholder}
       {value}
+      defaultValue={value}
       {disabled}
       data-uses-escape={value !== "" ? "" : undefined}
       oninput={(event) => {

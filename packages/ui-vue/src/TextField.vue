@@ -64,6 +64,10 @@ const shared = computed(() => ({
   id,
   class: grouped.value ? "text-field__input" : "text-field__input text-field__control",
   value: value.value,
+  // A form's reset puts a field back to its default value: for an input its `value` attribute,
+  // which Vue writes, but for a text area its text, which Vue leaves empty. React keeps both
+  // equal to the value.
+  defaultValue: value.value,
   placeholder,
   name,
   maxlength: maxLength,

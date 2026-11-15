@@ -47,6 +47,7 @@ export function RadioGroup<Value extends string = string>(props: RadioGroupProps
                 name={props.name ?? id}
                 value={option.value}
                 checked={option.value === props.value}
+                defaultChecked={option.value === props.value}
                 disabled={props.disabled}
                 // The description is inside the pressable row, so the row's text would name the
                 // radio together with it. The label alone names it; the description describes it.

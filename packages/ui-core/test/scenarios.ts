@@ -82,13 +82,26 @@ const keep = () => undefined;
 /** The value of a field whose owner keeps it, whatever is typed. */
 export const KEPT = "Weekly report";
 
+/** The value of a text area whose owner keeps it. */
+export const KEPT_NOTES = "Ship the report.\nBook the room.";
+
+// In a form with a reset button, which puts every field of the form back to its default value.
 function controlled(): Screen {
-  const { ui, bind, screen } = builder<{ email: string }>();
-  return screen({ email: "" }, [
-    ui.TextField({ label: "Email", ...bind("email") }),
-    ui.TextField({ label: "Project name", value: KEPT, onChange: keep }),
-    ui.Switch({ checked: false, onChange: keep, label: "Off" }),
-  ]);
+  const { ui, el, bind, screen } = builder<{ email: string }>();
+  return screen(
+    { email: "" },
+    el(
+      "form",
+      {},
+      ui.TextField({ label: "Email", ...bind("email") }),
+      ui.TextField({ label: "Project name", value: KEPT, onChange: keep }),
+      ui.TextField({ label: "Notes", multiline: true, value: KEPT_NOTES, onChange: keep }),
+      ui.Switch({ checked: false, onChange: keep, label: "Off" }),
+      ui.Checkbox({ checked: true, onChange: keep, label: "On" }),
+      ui.RadioGroup({ label: "Delivery", options: DELIVERY, value: "express", onChange: keep }),
+      ui.Button({ type: "reset" }, "Reset"),
+    ),
+  );
 }
 
 function selection(): Screen {

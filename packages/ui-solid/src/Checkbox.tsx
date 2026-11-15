@@ -25,6 +25,7 @@ export function Checkbox(props: CheckboxProps) {
         aria-label={props["aria-label"]}
         class="peer sr-only"
         checked={props.checked}
+        defaultChecked={props.checked}
         disabled={props.disabled}
         name={props.name || undefined}
         onChange={(event) => {

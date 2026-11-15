@@ -45,6 +45,7 @@ export function TextField(props: TextFieldProps) {
     id,
     class: box ? "text-field__input text-field__control" : "text-field__input",
     value: props.value,
+    defaultValue: props.value,
     placeholder: props.placeholder,
     name: props.name,
     maxlength: props.maxLength,

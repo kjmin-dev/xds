@@ -36,6 +36,7 @@ export function SegmentedControl<Value extends string>(props: SegmentedControlPr
               value={option.value}
               class="peer sr-only"
               checked={option.value === props.value}
+              defaultChecked={option.value === props.value}
               onChange={() => {
                 props.onChange(option.value);
                 // The browser moved the dot already; where the parent kept the old value, it

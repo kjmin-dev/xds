@@ -47,6 +47,7 @@
         value={option.value}
         class="peer sr-only"
         checked={option.value === value}
+        defaultChecked={option.value === value}
         onchange={() => {
           onChange(option.value);
           // The browser moved the dot already; where the owner kept the old value, it goes

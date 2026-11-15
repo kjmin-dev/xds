@@ -43,6 +43,10 @@ export function Slider(props: SliderProps) {
   }));
   const api = createMemo(() => slider.connect(service, normalizeProps));
   const thumb = mergeProps(() => api().getThumbProps({ index: 0 }), {
+    // Zag gives `draggable: false`, and Solid removes an attribute whose value is false.
+    // `draggable` is not a boolean attribute: without it the thumb is "auto", so "false" has
+    // to be written out, as the other web libraries write it.
+    draggable: "false" as const,
     // Up and Down move a horizontal slider too, as they move a native range input.
     onKeyDown: (event: KeyboardEvent) => {
       if (props.disabled) return;

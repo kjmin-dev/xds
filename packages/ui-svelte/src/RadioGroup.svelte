@@ -54,6 +54,7 @@
           name={name ?? id}
           value={option.value}
           checked={option.value === value}
+          defaultChecked={option.value === value}
           {disabled}
           aria-labelledby={`${id}-${index}`}
           aria-describedby={[

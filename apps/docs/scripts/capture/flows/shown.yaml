@@ -1,0 +1,9 @@
+# Waits until TEXT is on the screen, and then until nothing on it moves.
+appId: ${APP_ID}
+---
+- extendedWaitUntil:
+    visible: ${TEXT}
+    timeout: 10000
+# The preview's skeletons pulse for as long as they are on screen, so this stops after a while.
+- waitForAnimationToEnd:
+    timeout: 5000

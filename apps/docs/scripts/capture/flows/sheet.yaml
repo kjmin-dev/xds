@@ -1,0 +1,7 @@
+# Presses the button in the design preview's Navigation section that opens the bottom sheet,
+# while the capture script records the screen. It does not wait for the sheet here: while Maestro
+# reads the screen over and over, an iOS simulator stops drawing the app, and the recording would
+# miss the sheet rising. shown.yaml checks for it once the recording has stopped.
+appId: ${APP_ID}
+---
+- tapOn: "Open a bottom sheet"

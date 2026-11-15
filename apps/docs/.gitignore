@@ -11,3 +11,5 @@ src/content/docs/components/
 public/install.sh
 # Written by scripts/generate.ts from design/components.json and template.json, for the pages.
 src/generated/
+# The builds, devices, raw pictures and logs of `mise run docs:capture` (scripts/capture.ts).
+.capture/

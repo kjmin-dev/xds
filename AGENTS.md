@@ -48,6 +48,7 @@ This repository is the xds template: a single set of design tokens, component li
 | Check the Expo app's native packages against its SDK, and bundle it for iOS and Android | `mise run //mobile:check`, `mise run //mobile:bundle` |
 | Run the CLI from source | `mise run xds -- list` |
 | List or apply a theme | `mise run theme`, `mise run theme ocean` |
+| Take the documentation's pictures of the iOS, Android, and Compose apps (macOS with Xcode, an Android system image, ffmpeg, and cwebp) | `mise run docs:capture -- all`, `mise run docs:capture -- sheet --platform compose` |
 
 Use `xds tokens`, `xds components`, `xds contrast`, and `xds doctor` to inspect the design system instead of reading JSON files by hand; pass `--json` for structured output. See `docs/cli.md` for details.
 

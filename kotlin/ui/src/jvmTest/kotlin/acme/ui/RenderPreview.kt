@@ -1,5 +1,6 @@
 // Draws the design preview off screen and writes it as PNG files: `./gradlew :ui:renderPreview`.
 // It lives with the tests because it is a way of checking the components, not part of them.
+// With `-Pcaptures=<directory>` it draws only the phone screens the documentation shows.
 
 package acme.ui
 
@@ -43,6 +44,7 @@ fun main(args: Array<String>) {
     Locale.setDefault(Locale.US)
 
     val directory = File(args.firstOrNull() ?: "build/preview").apply { mkdirs() }
+    if ("--captures" in args) return captures(directory)
     fun page(name: String, width: Int, mode: Mode, sizes: Sizes, open: PreviewOverlay? = null) {
         val file = File(directory, name)
         draw(file, width, height = null) {
@@ -80,6 +82,25 @@ fun main(args: Array<String>) {
         page("menu-pointer-${mode.name.lowercase()}.png", 900, mode, PointerSizes, open = PreviewOverlay.Menu)
         page("select-pointer-${mode.name.lowercase()}.png", 900, mode, PointerSizes, open = PreviewOverlay.Select)
         page("datepicker-pointer-${mode.name.lowercase()}.png", 900, mode, PointerSizes, open = PreviewOverlay.DatePicker)
+    }
+}
+
+/**
+ * The pictures of the touch-only components on their documentation pages, which
+ * `mise run docs:capture` takes from here: a phone's screen with the Navigation section at the top,
+ * where React Native's preview starts with `?section=navigation`, and with the sheet open over it.
+ */
+private fun captures(directory: File) {
+    for (mode in Mode.entries) {
+        for ((name, open) in listOf("navigation" to null, "sheet" to PreviewOverlay.Sheet)) {
+            val file = File(directory, "$name-${mode.name.lowercase()}.png")
+            draw(file, 390, 844) {
+                AcmeTheme(mode, TouchSizes) {
+                    DesignPreviewScreen(onBack = {}, scrolls = true, open = open, from = "navigation")
+                }
+            }
+            println(file)
+        }
     }
 }
 

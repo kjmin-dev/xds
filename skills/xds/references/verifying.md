@@ -10,7 +10,7 @@ mise run //web:dev        # serves http://localhost:5173
 
 - The design preview is served at `/design`. Every section has an anchor ID: `#colors`, `#typography`, `#space-radius-size`, `#icons`, `#buttons`, `#text-fields`, `#selection`, `#controls`, `#chips`, `#tabs`, `#badges`, `#banners`, `#card`, `#media`, `#list`, `#sidebar`, `#accordion`, `#menu`, `#dialog`, `#toast`, `#skeleton`, `#empty-state`.
 - Use `?theme=light` or `?theme=dark` to pin the color mode, for example `http://localhost:5173/design?theme=dark#buttons`.
-- Use `?open=menu`, `?open=select`, `?open=dialog`, `?open=toast`, or `?open=tooltip` to load the preview with that overlay showing.
+- Use `?open=menu`, `?open=select`, `?open=datepicker`, `?open=dialog`, `?open=toast`, or `?open=tooltip` to load the preview with that overlay showing.
 - To capture a screenshot with headless Chrome: `chrome --headless --screenshot=buttons.png --window-size=1200,900 "http://localhost:5173/design?theme=dark#buttons"`.
 
 ## Web (Solid)

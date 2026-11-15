@@ -1145,6 +1145,71 @@ export const COMPONENTS: Component[] = [
     preview: "Controls",
   },
   {
+    slug: "date-picker",
+    name: "DatePicker",
+    summary: "A field for choosing one day.",
+    guidance: [
+      "Closed, it looks like a Select: the chosen day in the language's medium form, such as Mar 10, 2026, or the placeholder, with a description or an error under the box.",
+      "Pressed, a calendar of one month opens under the field, on the chosen day, or on today while none is. Days before `min` or after `max` are dimmed and cannot be chosen. Today has a ring; the chosen day is a filled circle.",
+      "Choosing a day calls `onChange` with it as `YYYY-MM-DD` and closes the calendar. A press outside or Escape closes it without a choice, and the focus goes back to the field.",
+      "The field is a button that says it opens a dialog and whether it is open. In the calendar the arrow keys move a day or a week, Page Up and Page Down a month (a year with Shift), and Home and End to the first and the last day of the month, never past `min` or `max`. Tab goes round the month buttons and the focused day.",
+      "The names of the months and days, the form of the day and the first day of the week follow the language of the page. One day only: there is no typing a date, no range, and no month or year view.",
+    ],
+    example: `import { DatePicker } from "@acme/ui";
+
+<DatePicker
+  label="Due date"
+  value={due}
+  onChange={setDue}
+  min="2026-03-05"
+  max="2026-04-20"
+  description="Within the current sprint."
+/>`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "label", type: "string", description: "Required. Always visible." },
+      {
+        name: "value",
+        type: "string | undefined",
+        description: "The chosen day, as `YYYY-MM-DD`. Leave it out while none is chosen.",
+      },
+      {
+        name: "onChange",
+        type: "(value: string) => void",
+        description: "Required. Gets the chosen day as `YYYY-MM-DD`.",
+      },
+      { name: "min", type: "string", description: "The first day that can be chosen." },
+      { name: "max", type: "string", description: "The last day that can be chosen." },
+      { name: "placeholder", type: "string", description: "Shown while no day is chosen." },
+      {
+        name: "description",
+        type: "string",
+        description: "Help under the field, replaced by `error` while there is one.",
+      },
+      { name: "error", type: "string | undefined", description: "" },
+      {
+        name: "name",
+        type: "string",
+        description: "The name the day is submitted under, as `YYYY-MM-DD`.",
+      },
+      { name: "disabled", type: "boolean", description: "" },
+      {
+        name: "previousLabel",
+        type: "string",
+        description:
+          "Names the button to the month before for assistive technology. Defaults to `Previous month`.",
+      },
+      {
+        name: "nextLabel",
+        type: "string",
+        description:
+          "Names the button to the month after for assistive technology. Defaults to `Next month`.",
+      },
+    ],
+    demo: "web",
+    preview: "Controls",
+  },
+  {
     slug: "slider",
     name: "Slider",
     summary: "Picks a number in a range by dragging.",

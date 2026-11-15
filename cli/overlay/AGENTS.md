@@ -129,16 +129,16 @@ Inspect the design preview in both light and dark modes after making visual chan
 | Client | How to open the preview |
 | --- | --- |
 <!-- @if web-react -->
-| Web | Open `http://localhost:5173/design#buttons` while the web dev server is running. Each section has an anchor, `?theme=light` or `?theme=dark` pins the color mode, and `?open=menu`, `select`, `dialog`, `toast`, or `tooltip` opens that overlay |
+| Web | Open `http://localhost:5173/design#buttons` while the web dev server is running. Each section has an anchor, `?theme=light` or `?theme=dark` pins the color mode, and `?open=menu`, `select`, `datepicker`, `dialog`, `toast`, or `tooltip` opens that overlay |
 <!-- @endif -->
 <!-- @if web-solid -->
-| Web (Solid) | Open `http://localhost:5174/design#buttons` while the Solid dev server is running. Each section has an anchor, `?theme=light` or `?theme=dark` pins the color mode, and `?open=menu`, `select`, `dialog`, `toast`, or `tooltip` opens that overlay |
+| Web (Solid) | Open `http://localhost:5174/design#buttons` while the Solid dev server is running. Each section has an anchor, `?theme=light` or `?theme=dark` pins the color mode, and `?open=menu`, `select`, `datepicker`, `dialog`, `toast`, or `tooltip` opens that overlay |
 <!-- @endif -->
 <!-- @if web-vue -->
-| Web (Vue) | Open `http://localhost:5175/design#buttons` while the Vue dev server is running. Each section has an anchor, `?theme=light` or `?theme=dark` pins the color mode, and `?open=menu`, `select`, `dialog`, `toast`, or `tooltip` opens that overlay |
+| Web (Vue) | Open `http://localhost:5175/design#buttons` while the Vue dev server is running. Each section has an anchor, `?theme=light` or `?theme=dark` pins the color mode, and `?open=menu`, `select`, `datepicker`, `dialog`, `toast`, or `tooltip` opens that overlay |
 <!-- @endif -->
 <!-- @if web-svelte -->
-| Web (Svelte) | Open `http://localhost:5176/design#buttons` while the Svelte dev server is running. Each section has an anchor, `?theme=light` or `?theme=dark` pins the color mode, and `?open=menu`, `select`, `dialog`, `toast`, or `tooltip` opens that overlay |
+| Web (Svelte) | Open `http://localhost:5176/design#buttons` while the Svelte dev server is running. Each section has an anchor, `?theme=light` or `?theme=dark` pins the color mode, and `?open=menu`, `select`, `datepicker`, `dialog`, `toast`, or `tooltip` opens that overlay |
 <!-- @endif -->
 <!-- @if desktop-gpui -->
 | Desktop | Run `mise run //desktop:design`. Pass `--light` or `--dark` to pin the mode, `--scroll <pixels>` to open at a vertical offset, and `--open menu`, `select`, `dialog`, `toast`, or `tooltip` to open with that overlay showing |

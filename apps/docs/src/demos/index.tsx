@@ -15,6 +15,7 @@ import {
   Chip,
   ChipBar,
   CountBadge,
+  DatePicker,
   Dialog,
   Divider,
   EmptyState,
@@ -855,6 +856,32 @@ function SelectDemo() {
   );
 }
 
+function DatePickerDemo() {
+  const [due, setDue] = useState<string>("2026-03-10");
+  const [start, setStart] = useState<string>();
+  return (
+    // Tall enough for the open calendar, which would otherwise be cut off by the frame.
+    <div className="grid min-h-112 content-start gap-4 sm:grid-cols-2">
+      <DatePicker
+        label="Due date"
+        value={due}
+        onChange={setDue}
+        min="2026-03-05"
+        max="2026-04-20"
+        description="Within the current sprint."
+      />
+      <DatePicker
+        label="Start date"
+        placeholder="Choose a day"
+        value={start}
+        onChange={setStart}
+        error={start === undefined ? "Choose when the project starts." : undefined}
+      />
+      <DatePicker label="Locked" value="2026-03-10" onChange={() => {}} disabled />
+    </div>
+  );
+}
+
 function SliderDemo() {
   const [volume, setVolume] = useState(60);
   const [size, setSize] = useState(16);
@@ -1083,6 +1110,7 @@ const DEMOS = {
   "search-field": SearchFieldDemo,
   "radio-group": RadioGroupDemo,
   select: SelectDemo,
+  "date-picker": DatePickerDemo,
   slider: SliderDemo,
   thumbnail: ThumbnailDemo,
   "media-card": MediaCardDemo,

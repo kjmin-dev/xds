@@ -1,0 +1,44 @@
+{
+  "name": "@acme/ui-vue",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./preview": "./src/preview.ts",
+    "./styles.css": "./src/styles/index.css"
+  },
+  "scripts": {
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@acme/tokens": "workspace:*",
+    "@acme/ui-core": "workspace:*",
+    "@zag-js/accordion": "catalog:",
+    "@zag-js/aria-hidden": "catalog:",
+    "@zag-js/dialog": "catalog:",
+    "@zag-js/menu": "catalog:",
+    "@zag-js/remove-scroll": "catalog:",
+    "@zag-js/select": "catalog:",
+    "@zag-js/slider": "catalog:",
+    "@zag-js/tabs": "catalog:",
+    "@zag-js/tooltip": "catalog:",
+    "@zag-js/vue": "catalog:"
+  },
+  "peerDependencies": {
+    "tailwindcss": "^4.3.5",
+    "vue": "catalog:"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
+    "@vitejs/plugin-vue": "catalog:vue",
+    "@vitest/browser-playwright": "^5.1.0",
+    "playwright": "^1.65.0",
+    "tailwindcss": "^4.3.5",
+    "typescript": "catalog:vue",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0",
+    "vue": "catalog:",
+    "vue-tsc": "catalog:vue"
+  }
+}

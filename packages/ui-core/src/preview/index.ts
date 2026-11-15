@@ -12,6 +12,7 @@ export {
   type ElementNode,
   type ElementProps,
   type Host,
+  isCallback,
   isNode,
   isStatic,
   type Live,

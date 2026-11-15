@@ -152,6 +152,13 @@
       },
     },
     // @endif
+    // @if web-vue
+    // Its rules read the script blocks of the .vue files: oxlint lints no template.
+    {
+      "files": ["apps/web-vue/**", "packages/ui-vue/**"],
+      "plugins": ["vue"],
+    },
+    // @endif
     // @if ui-core
     // The web libraries are tested with Vitest, each against the checks in packages/ui-core/test.
     // The plugin's correctness rules catch a focused or skipped test, and an expect.element or
@@ -164,6 +171,9 @@
         // @endif
         // @if web-solid
         "packages/ui-solid/test/**",
+        // @endif
+        // @if web-vue
+        "packages/ui-vue/test/**",
         // @endif
       ],
       "plugins": ["vitest"],

@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+    // oxlint does not report unused variables in .vue files.
+    "noUnusedLocals": true
+  },
+  "include": ["src", "vite.config.ts"],
+  "vueCompilerOptions": {
+    "strictTemplates": true,
+    "dataAttributes": ["data-*"],
+    // `aria-label` on a component is its `ariaLabel` prop, as `max-length` would be `maxLength`.
+    "htmlAttributes": []
+  }
+}

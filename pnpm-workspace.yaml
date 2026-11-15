@@ -11,6 +11,9 @@ packages:
   # @if web-solid
   - apps/web-solid
   # @endif
+  # @if web-vue
+  - apps/web-vue
+  # @endif
   - packages/*
   - tools/*
 
@@ -60,6 +63,26 @@ catalog:
   "@solidjs/web": 2.0.0-rc.21
   "@solidjs/vite-plugin": 3.0.0-next.57
   # @endif
+  # @if web-vue
+  "@zag-js/vue": 2.0.0-next.4
+  vue: 3.5.45
+  # @endif
+# @if web-vue
+
+# Named catalogs, for what only some packages take.
+catalogs:
+  # The Vue packages take these in place of the default catalog's typescript. vue-tsc, which
+  # type-checks .vue files, runs on TypeScript's JavaScript API, which TypeScript 7 no longer has,
+  # and so does Vite's SFC compiler where a component's props use a type imported from another
+  # package. The bridge keeps TypeScript 6.0.3's API with the TypeScript 7 checker (tsgo 7.0.2)
+  # behind it. Every Vue package declares this typescript itself: otherwise pnpm can hand vue the
+  # root's TypeScript 7, and the build then fails on such props. Exact pins: the bridge's version
+  # is a prerelease string, which a range would not match.
+  vue:
+    typescript: npm:typescript-native-bridge@6.0.3-bridge.19.tsgo.7.0.2
+    vue-tsc: 3.3.14
+    "@vitejs/plugin-vue": 6.0.11
+# @endif
 # @if ui-core
 
 # Zag 2.0.0-next.4 was less than a day old when it was added. Drop these once it is older than
@@ -94,6 +117,9 @@ minimumReleaseAgeExclude:
   - "@zag-js/tooltip@2.0.0-next.4"
   - "@zag-js/types@2.0.0-next.4"
   - "@zag-js/utils@2.0.0-next.4"
+  # @if web-vue
+  - "@zag-js/vue@2.0.0-next.4"
+  # @endif
 # @endif
 # @if template
 

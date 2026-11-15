@@ -313,6 +313,7 @@ async function tokens() {
 const PLATFORM = {
   web: "Web (React)",
   solid: "Web (Solid)",
+  vue: "Web (Vue)",
   gpui: "Desktop (GPUI)",
   reactNative: "React Native",
   compose: "Compose Multiplatform",

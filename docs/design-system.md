@@ -27,6 +27,7 @@ flowchart TD
   TW --> CORE
   CORE --> WEB["@acme/ui<br/>web components (React)"]
   CORE --> SOLID["@acme/ui-solid<br/>web components (Solid)"]
+  CORE --> VUE["@acme/ui-vue<br/>web components (Vue)"]
   TS --> RN["@acme/ui-native<br/>React Native components"]
   RS --> UI["acme-ui<br/>GPUI components"]
   KT --> CMP["kotlin/ui<br/>Compose components"]
@@ -299,16 +300,16 @@ Clearing the error state on edit avoids a common web form trap: when an invalid 
 
 ### Platform implementations
 
-| | Web (React) | Web (Solid) | Desktop | Mobile | Kotlin |
-| --- | --- | --- | --- | --- | --- |
-| Package | `@acme/ui` on `@acme/ui-core` | `@acme/ui-solid` on `@acme/ui-core` | `acme-ui` | `@acme/ui-native` | `kotlin/ui` |
-| Built on | Zag.js state machines and native inputs | Zag.js state machines and native inputs | GPUI Component | React Native primitives | Compose foundation |
-| Runs on | Browsers | Browsers | macOS | iOS, Android | Android, iOS, desktop (JVM) |
-| Tokens arrive as | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | Rust constants | TypeScript constants | Compose values (`Color`, `Dp`, `TextStyle`) |
-| Sizes | Follow the input device | Follow the input device | Pointer | Touch | Touch on phones, pointer on desktop |
-| Design preview | `/design` | `/design` | `acme --design` | `/design` | The button on the home screen |
+| | Web (React) | Web (Solid) | Web (Vue) | Desktop | Mobile | Kotlin |
+| --- | --- | --- | --- | --- | --- | --- |
+| Package | `@acme/ui` on `@acme/ui-core` | `@acme/ui-solid` on `@acme/ui-core` | `@acme/ui-vue` on `@acme/ui-core` | `acme-ui` | `@acme/ui-native` | `kotlin/ui` |
+| Built on | Zag.js state machines and native inputs | Zag.js state machines and native inputs | Zag.js state machines and native inputs | GPUI Component | React Native primitives | Compose foundation |
+| Runs on | Browsers | Browsers | Browsers | macOS | iOS, Android | Android, iOS, desktop (JVM) |
+| Tokens arrive as | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | Rust constants | TypeScript constants | Compose values (`Color`, `Dp`, `TextStyle`) |
+| Sizes | Follow the input device | Follow the input device | Follow the input device | Pointer | Touch | Touch on phones, pointer on desktop |
+| Design preview | `/design` | `/design` | `/design` | `acme --design` | `/design` | The button on the home screen |
 
-On the web, the React and Solid clients share their framework-free half, `@acme/ui-core`, and must look and behave the same. It holds each component's prop types, the Tailwind class strings of the components drawn with utilities, pure helpers, the steps on the page that the state machines leave to each library (an overlay's exit animation, an accordion panel's height, the page keys of a list), and a stylesheet for each component with states of its own. That CSS selects on the library's own part classes, native pseudo-classes, `aria-*` attributes, and Zag.js state attributes, never on a framework's. `@acme/ui` adds the React components and `@acme/ui-solid` the Solid ones. Dialog, Menu, Select, Slider, Tabs, Tooltip, and Accordion take their keyboard, focus, and dismissal behavior from Zag.js state machines, with an adapter for each framework. Switch, Checkbox, RadioGroup, SegmentedControl, and the text fields are native HTML inputs with custom visuals drawn alongside or around them, so keyboard navigation, forms, and screen readers interact with standard controls. The remaining components are plain HTML elements styled with Tailwind utilities. A library for another framework can be built on the same core.
+On the web, the React, Solid, and Vue clients share their framework-free half, `@acme/ui-core`, and must look and behave the same. It holds each component's prop types, the Tailwind class strings of the components drawn with utilities, pure helpers, the steps on the page that the state machines leave to each library (an overlay's exit animation, an accordion panel's height, the page keys of a list), and a stylesheet for each component with states of its own. That CSS selects on the library's own part classes, native pseudo-classes, `aria-*` attributes, and Zag.js state attributes, never on a framework's. `@acme/ui` adds the React components, `@acme/ui-solid` the Solid ones, and `@acme/ui-vue` the Vue ones. Dialog, Menu, Select, Slider, Tabs, Tooltip, and Accordion take their keyboard, focus, and dismissal behavior from Zag.js state machines, with an adapter for each framework. Switch, Checkbox, RadioGroup, SegmentedControl, and the text fields are native HTML inputs with custom visuals drawn alongside or around them, so keyboard navigation, forms, and screen readers interact with standard controls. The remaining components are plain HTML elements styled with Tailwind utilities. A library for another framework can be built on the same core.
 
 On desktop, `acme_ui::set_mode` applies the generated tokens to GPUI Component's theme. `button`, `switch`, and `checkbox` return GPUI Component controls configured with token values, while Badge, Banner, TextField, SegmentedControl, Avatar, ProgressBar, ListRow, `card`, `divider`, and `text` are rendered directly with GPUI primitives.
 
@@ -328,12 +329,13 @@ Platform differences:
 
 Every platform includes a design preview screen that renders all tokens and components in the same order: colors, typography, spacing/radius/sizes, buttons, text fields, selection controls, badges, banners, cards, lists, and (on touch platforms) navigation components. This makes it easy to place two platforms side by side for visual comparison. Color swatches are generated directly from the token exports, so newly added color tokens appear in the preview automatically.
 
-The web apps share one preview. It is written once, as typed data in `packages/ui-core/src/preview`: its sections, each component by name with its props and children, plain elements with their classes, named state slots that the controls are bound to, and the token specimens built from the token data. Each web library draws that data with a small renderer of its own (`src/preview.tsx`, on its `./preview` subpath), so a web framework added later brings its renderer and none of the preview. The behavior tests draw their screens the same way. The data is checked against the components' shared prop types, so naming a component or a prop that does not exist is a type error, and each renderer is checked against its library, so a component there that lacks a prop the data passes, or takes it with another type, is one too.
+The web apps share one preview. It is written once, as typed data in `packages/ui-core/src/preview`: its sections, each component by name with its props and children, plain elements with their classes, named state slots that the controls are bound to, and the token specimens built from the token data. Each web library draws that data with a small renderer of its own (`src/preview.tsx`, or `src/preview.ts` in Vue, on its `./preview` subpath), so a web framework added later brings its renderer and none of the preview. The behavior tests draw their screens the same way. The data is checked against the components' shared prop types, so naming a component or a prop that does not exist is a type error, and each renderer is checked against its library, so a component there that lacks a prop the data passes, or takes it with another type, is one too.
 
 | | How to open it | Entry point | Light and dark |
 | --- | --- | --- | --- |
 | Web | `mise run //web:dev`, then `http://localhost:5173/design` | The button on the home screen | Follows the system. `?theme=light` and `?theme=dark` pin the mode |
 | Web (Solid) | `mise run //web-solid:dev`, then `http://localhost:5174/design` | The button on the home screen | Follows the system. `?theme=light` and `?theme=dark` pin the mode |
+| Web (Vue) | `mise run //web-vue:dev`, then `http://localhost:5175/design` | The button on the home screen | Follows the system. `?theme=light` and `?theme=dark` pin the mode |
 | Desktop | `mise run //desktop:design` or `acme --design` | The button in the home window | Follows the system. Use the window toggle button, or pass `--light` or `--dark` |
 | Mobile | The `/design` screen | The button on the home screen | Follows the system |
 | Kotlin | `mise run //kotlin:design` on desktop; the home screen button elsewhere | The button on the home screen | Follows the system. Includes an in-app mode switch |

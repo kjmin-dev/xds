@@ -94,6 +94,22 @@
       ]
     },
     {
+      "id": "web-vue",
+      "title": "Web",
+      "stack": "Vue 3, Vite, Tailwind v4, Zag.js",
+      "platforms": ["Web"],
+      "paths": ["apps/web-vue", "packages/ui-vue"],
+      "requires": ["js-workspace", "js-tokens", "ui-core"],
+      "outputs": ["css", "tailwind", "typescript"],
+      "format": "mise run fmt",
+      "run": [
+        {
+          "command": "mise run //web-vue:dev",
+          "description": "Start the Vue web app on http://localhost:5175"
+        }
+      ]
+    },
+    {
       "id": "desktop-gpui",
       "title": "Desktop",
       "stack": "Rust, GPUI, GPUI Component",

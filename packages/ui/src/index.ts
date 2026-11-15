@@ -2,9 +2,10 @@
 // underneath (Zag.js for behavior, @acme/ui-core for the classes and the stylesheet) can change
 // without touching a screen.
 //
-// The Solid components are in @acme/ui-solid, the React Native ones in @acme/ui-native, the
-// GPUI ones in the acme-ui crate and the Compose ones under kotlin/ui. All of them take the
-// same variants, sizes and tones, and draw them from the same design tokens.
+// The Solid components are in @acme/ui-solid, the Vue ones in @acme/ui-vue, the React Native
+// ones in @acme/ui-native, the GPUI ones in the acme-ui crate and the Compose ones under
+// kotlin/ui. All of them take the same variants, sizes and tones, and draw them from the same
+// design tokens.
 
 export { Accordion, type AccordionItem, type AccordionProps } from "./Accordion.tsx";
 export { Avatar, type AvatarProps, type AvatarSize } from "./Avatar.tsx";

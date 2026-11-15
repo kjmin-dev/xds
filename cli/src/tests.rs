@@ -27,6 +27,7 @@ use crate::theme::{self, PALETTE_PATH, Source};
 
 const WEB: &str = "web-react";
 const SOLID: &str = "web-solid";
+const VUE: &str = "web-vue";
 const DESKTOP: &str = "desktop-gpui";
 const MOBILE: &str = "mobile-react-native";
 const KOTLIN: &str = "kotlin-compose";
@@ -447,6 +448,30 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
         assert_eq!(tasks.contains_key("install"), js, "{selected:?}");
         // The `format` command that `create` asks for has to exist.
         assert_eq!(tasks.contains_key("fmt"), formatted, "{selected:?}");
+        // The design previews of the web apps are compared with each other wherever there is a
+        // web app, and the script has exactly the apps of the project; with one, it says that
+        // there is nothing to compare.
+        assert_eq!(
+            tasks.contains_key("compare:previews"),
+            requires("ui-core"),
+            "{selected:?}"
+        );
+        if requires("ui-core") {
+            let script = read("packages/ui-core/scripts/compare-previews.ts");
+            let web_apps = manifest()
+                .targets
+                .iter()
+                .filter(|target| target.requires.iter().any(|unit| unit == "ui-core"));
+            for target in web_apps {
+                for app in target.paths.iter().filter(|path| is_under(path, "apps")) {
+                    assert_eq!(
+                        script.contains(&format!("dir: \"{app}\"")),
+                        has(&target.id),
+                        "{selected:?}: compare-previews.ts and {app}"
+                    );
+                }
+            }
+        }
         assert!(
             !tasks.contains_key("check:cli") && !tasks.contains_key("xds"),
             "{selected:?}"
@@ -599,38 +624,56 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
         // (ui-core's scripts, which Node runs, have their own), which it declares as it declared
         // typescript, and no other script of it type-checks again. typescript stays where
         // something runs it: at the root, for editors and the version check, and in the mobile
-        // app, whose Expo CLI requires it and loads TypeScript config files with it.
+        // app, whose Expo CLI requires it and loads TypeScript config files with it. The Vue
+        // packages are the exception: vue-tsc checks their .vue files, on the TypeScript of the
+        // `vue` catalog, which each of them declares because Vite's compiler for .vue files
+        // needs it too.
         for (path, file) in files
             .iter()
             .filter(|(path, _)| path.ends_with("package.json"))
         {
             let package: Value = serde_json::from_slice(&file.contents)
                 .unwrap_or_else(|error| panic!("{selected:?}: {path}: {error}"));
+            let vue = ["dependencies", "peerDependencies", "devDependencies"]
+                .iter()
+                .any(|kind| package[kind]["vue"].is_string());
             let keeps_typescript =
                 ["package.json", "apps/mobile/package.json"].contains(&path.as_str());
             assert_eq!(
                 package["devDependencies"]["typescript"].as_str(),
-                keeps_typescript.then_some("catalog:"),
+                if vue {
+                    Some("catalog:vue")
+                } else {
+                    keeps_typescript.then_some("catalog:")
+                },
                 "{selected:?}: {path}"
             );
             if let Some(typecheck) = package["scripts"]["typecheck"].as_str() {
-                for command in typecheck.split(" && ") {
-                    assert!(
-                        command == "tsrs --noEmit" || command.starts_with("tsrs --noEmit -p "),
-                        "{selected:?}: {path}: {typecheck}"
+                if vue {
+                    assert_eq!(typecheck, "vue-tsc --noEmit", "{selected:?}: {path}");
+                    assert_eq!(
+                        package["devDependencies"]["vue-tsc"], "catalog:vue",
+                        "{selected:?}: {path}"
+                    );
+                } else {
+                    for command in typecheck.split(" && ") {
+                        assert!(
+                            command == "tsrs --noEmit" || command.starts_with("tsrs --noEmit -p "),
+                            "{selected:?}: {path}: {typecheck}"
+                        );
+                    }
+                    assert_eq!(
+                        package["devDependencies"]["tsrs"], "catalog:",
+                        "{selected:?}: {path}"
                     );
                 }
-                assert_eq!(
-                    package["devDependencies"]["tsrs"], "catalog:",
-                    "{selected:?}: {path}"
-                );
             }
             for (name, script) in package["scripts"].as_object().into_iter().flatten() {
                 let checks_types = script
                     .as_str()
                     .expect("a command")
                     .split_whitespace()
-                    .any(|word| word == "tsc" || word == "tsrs");
+                    .any(|word| ["tsc", "tsrs", "vue-tsc"].contains(&word));
                 assert!(
                     !checks_types || name == "typecheck",
                     "{selected:?}: {path}: {name}"
@@ -686,6 +729,7 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
         for (path, expected) in [
             ("`packages/ui`", has(WEB)),
             ("`packages/ui-solid`", has(SOLID)),
+            ("`packages/ui-vue`", has(VUE)),
             ("`packages/ui-core`", requires("ui-core")),
             ("`crates/orbit-ui`", has(DESKTOP)),
             ("`packages/ui-native`", has(MOBILE)),
@@ -875,8 +919,10 @@ fn creates_a_web_project() {
             "apps/desktop",
             "apps/mobile",
             "apps/web-solid",
+            "apps/web-vue",
             "packages/ui-native",
             "packages/ui-solid",
+            "packages/ui-vue",
             "tools/lint",
             "crates",
             "kotlin",
@@ -909,11 +955,12 @@ fn creates_a_web_project() {
         "./packages/ui-core/src/styles/index.css"
     );
     // The Zag.js pins and their release-age exclusions come with the target, React's adapter
-    // and none of Solid's.
+    // and none of Solid's or Vue's.
     let workspace = text(&tree, "pnpm-workspace.yaml");
     assert!(workspace.contains("\"@zag-js/menu\"") && workspace.contains("\"@zag-js/react\""));
     assert!(workspace.contains("minimumReleaseAgeExclude:"));
     assert!(!workspace.contains("@zag-js/solid") && !workspace.contains("solid-js:"));
+    assert!(!workspace.contains("@zag-js/vue") && !workspace.contains("catalogs:"));
     assert_eq!(json(&tree, "package.json")["name"], "orbit");
     let library = json(&tree, "packages/ui/package.json");
     assert_eq!(library["name"], "@orbit/ui");
@@ -932,7 +979,8 @@ fn creates_a_web_project() {
     assert!(preview.contains("from \"@orbit/ui/preview\""));
     assert!(!preview.contains("VITE_DOCS_SITE"));
     let note = text(&tree, "packages/ui-core/src/preview/README.md");
-    assert!(note.contains("packages/ui/src/preview.tsx") && !note.contains("ui-solid"));
+    assert!(note.contains("packages/ui/src/preview.tsx"));
+    assert!(!note.contains("ui-solid") && !note.contains("ui-vue"));
 }
 
 #[test]
@@ -959,7 +1007,9 @@ fn creates_a_solid_web_project() {
         &[
             "apps/web",
             "apps/web-solid/src/preview",
+            "apps/web-vue",
             "packages/ui",
+            "packages/ui-vue",
             "apps/mobile",
             "packages/ui-native",
             "tools/lint",
@@ -1030,10 +1080,98 @@ fn creates_a_solid_web_project() {
 }
 
 #[test]
-fn the_web_targets_coexist() {
-    let (_temp, directory) = project(&[WEB, SOLID]);
+fn creates_a_vue_web_project() {
+    let (_temp, directory) = project(&[VUE]);
     let tree = read_tree(&directory);
-    assert_clean(&tree, &[WEB, SOLID]);
+    assert_clean(&tree, &[VUE]);
+    assert_paths(
+        &tree,
+        &[
+            "apps/web-vue/package.json",
+            "apps/web-vue/mise.toml",
+            "apps/web-vue/src/App.vue",
+            "packages/ui-vue/package.json",
+            "packages/ui-vue/src/Button.vue",
+            "packages/ui-vue/src/preview.ts",
+            "packages/ui-vue/test/behavior.test.ts",
+            "packages/ui-core/src/preview/design.ts",
+            "packages/tokens/src/generated/theme.css",
+            "pnpm-workspace.yaml",
+            ".oxfmtrc.jsonc",
+            ".oxlintrc.jsonc",
+        ],
+        &[
+            "apps/web",
+            "apps/web-solid",
+            "packages/ui",
+            "packages/ui-solid",
+            "apps/mobile",
+            "packages/ui-native",
+            "crates",
+            "kotlin",
+        ],
+    );
+    let library = json(&tree, "packages/ui-vue/package.json");
+    assert_eq!(library["name"], "@orbit/ui-vue");
+    assert_eq!(library["dependencies"]["@zag-js/vue"], "catalog:");
+    assert_eq!(library["scripts"]["typecheck"], "vue-tsc --noEmit");
+    let mise = text(&tree, "mise.toml");
+    assert!(mise.contains("pnpm --filter @orbit/web-vue build"));
+    assert!(mise.contains("web-vue = \"apps/web-vue\""));
+    assert!(text(&tree, "apps/web-vue/vite.config.ts").contains("port: 5175, strictPort: true"));
+    // Vue, Zag's Vue adapter with its release-age exclusion, and the `vue` catalog of vue-tsc
+    // and the TypeScript it runs on come with the target, and nothing of React's or Solid's.
+    let workspace = text(&tree, "pnpm-workspace.yaml");
+    for line in [
+        "  - apps/web-vue\n",
+        "  \"@zag-js/vue\": ",
+        "  vue: ",
+        "catalogs:\n  # ",
+        "    typescript: npm:typescript-native-bridge@",
+        "    vue-tsc: ",
+        "  - \"@zag-js/vue@",
+    ] {
+        assert!(workspace.contains(line), "{line}");
+    }
+    assert!(!workspace.contains("react:") && !workspace.contains("@zag-js/react"));
+    assert!(!workspace.contains("solid-js:"));
+    // Vue's classes sort against ui-core's stylesheet, and its lint has the Vue plugin.
+    let format = jsonc(&text(&tree, ".oxfmtrc.jsonc"), ".oxfmtrc.jsonc");
+    assert_eq!(
+        format["overrides"][0]["files"],
+        serde_json::json!([
+            "packages/ui-core/**",
+            "apps/web-vue/**",
+            "packages/ui-vue/**"
+        ])
+    );
+    let lint = jsonc(&text(&tree, ".oxlintrc.jsonc"), ".oxlintrc.jsonc");
+    let overrides = lint["overrides"].as_array().expect("overrides");
+    assert_eq!(overrides.len(), 2);
+    assert_eq!(overrides[0]["plugins"], serde_json::json!(["vue"]));
+    assert_eq!(
+        overrides[0]["files"],
+        serde_json::json!(["apps/web-vue/**", "packages/ui-vue/**"])
+    );
+    assert_eq!(
+        overrides[1]["files"],
+        serde_json::json!(["packages/ui-core/test/**", "packages/ui-vue/test/**"])
+    );
+    assert!(lint.get("settings").is_none());
+    assert!(
+        text(&tree, "apps/web-vue/src/DesignPreview.vue")
+            .contains("from \"@orbit/ui-vue/preview\"")
+    );
+    let note = text(&tree, "packages/ui-core/src/preview/README.md");
+    assert!(note.contains("packages/ui-vue/src/preview.ts") && !note.contains("packages/ui/"));
+    assert!(!note.contains("ui-solid"));
+}
+
+#[test]
+fn the_web_targets_coexist() {
+    let (_temp, directory) = project(&[WEB, SOLID, VUE]);
+    let tree = read_tree(&directory);
+    assert_clean(&tree, &[WEB, SOLID, VUE]);
     assert_paths(
         &tree,
         &[
@@ -1041,6 +1179,8 @@ fn the_web_targets_coexist() {
             "packages/ui/package.json",
             "apps/web-solid/package.json",
             "packages/ui-solid/package.json",
+            "apps/web-vue/package.json",
+            "packages/ui-vue/package.json",
             "packages/ui-core/package.json",
         ],
         &[],
@@ -1049,11 +1189,16 @@ fn the_web_targets_coexist() {
     for build in [
         "pnpm --filter @orbit/web build",
         "pnpm --filter @orbit/web-solid build",
+        "pnpm --filter @orbit/web-vue build",
     ] {
         assert!(mise.contains(build), "{build}");
     }
     // Each app keeps its own dev server port, which it does not give up for a free one.
-    for (app, port) in [("apps/web", 5173), ("apps/web-solid", 5174)] {
+    for (app, port) in [
+        ("apps/web", 5173),
+        ("apps/web-solid", 5174),
+        ("apps/web-vue", 5175),
+    ] {
         let config = text(&tree, &format!("{app}/vite.config.ts"));
         assert!(
             config.contains(&format!("port: {port}, strictPort: true")),
@@ -1062,18 +1207,31 @@ fn the_web_targets_coexist() {
     }
     // Both libraries run the behavior checks of ui-core, under the project's name, on the
     // screens ui-core writes as data, drawn by the library's preview renderer.
-    for library in ["packages/ui", "packages/ui-solid"] {
-        let test = text(&tree, &format!("{library}/test/behavior.test.tsx"));
+    for (test, renderer) in [
+        ("packages/ui/test/behavior.test.tsx", "../src/preview.tsx"),
+        (
+            "packages/ui-solid/test/behavior.test.tsx",
+            "../src/preview.tsx",
+        ),
+        ("packages/ui-vue/test/behavior.test.ts", "../src/preview.ts"),
+    ] {
+        let code = text(&tree, test);
         assert!(
-            test.contains("from \"@orbit/ui-core/test/behavior\"")
-                && test.contains("from \"@orbit/ui-core/test/scenarios\"")
-                && test.contains("from \"../src/preview.tsx\""),
-            "{library}"
+            code.contains("from \"@orbit/ui-core/test/behavior\"")
+                && code.contains("from \"@orbit/ui-core/test/scenarios\"")
+                && code.contains(&format!("from \"{renderer}\"")),
+            "{test}"
         );
     }
     let note = text(&tree, "packages/ui-core/src/preview/README.md");
     assert!(note.contains("packages/ui/src/preview.tsx"));
     assert!(note.contains("packages/ui-solid/src/preview.tsx"));
+    assert!(note.contains("packages/ui-vue/src/preview.ts"));
+    // compare:previews compares the three apps.
+    let script = text(&tree, "packages/ui-core/scripts/compare-previews.ts");
+    for app in ["apps/web", "apps/web-solid", "apps/web-vue"] {
+        assert!(script.contains(&format!("dir: \"{app}\"")), "{app}");
+    }
 }
 
 #[test]
@@ -1199,11 +1357,13 @@ fn creates_a_project_with_every_target() {
         &[
             "apps/web",
             "apps/web-solid",
+            "apps/web-vue",
             "apps/desktop",
             "apps/mobile",
             "packages/ui",
             "packages/ui-core",
             "packages/ui-solid",
+            "packages/ui-vue",
             "packages/ui-native",
             "crates/orbit-ui",
             "kotlin",
@@ -1338,14 +1498,14 @@ fn rejects_bad_flags_before_writing() {
             theme: Some("neon".to_owned()),
             ..create_args(&directory, &[WEB])
         },
-        create_args(&directory, &["web-vue"]),
+        create_args(&directory, &["web-angular"]),
         create_args(&directory, &[]),
     ];
     for args in cases {
         assert!(commands::create(&args, Out::plain()).is_err(), "{args:?}");
         assert!(!directory.exists(), "{args:?} wrote something");
     }
-    let error = commands::create(&create_args(&directory, &["web-vue"]), Out::plain())
+    let error = commands::create(&create_args(&directory, &["web-angular"]), Out::plain())
         .expect_err("unknown");
     assert!(
         error.to_string().contains(KOTLIN),
@@ -1381,6 +1541,8 @@ fn adding_a_target_gives_the_project_that_create_would_have() {
         (MOBILE, KOTLIN),
         (WEB, SOLID),
         (SOLID, MOBILE),
+        (SOLID, VUE),
+        (VUE, KOTLIN),
     ] {
         let (_temp, grown) = project(&[first]);
         add(&grown, &[second]);
@@ -1507,7 +1669,7 @@ fn add_needs_a_project_and_a_known_target() {
 
     let (_temp, directory) = project(&[WEB]);
     let args = AddArgs {
-        targets: vec!["web-vue".to_owned()],
+        targets: vec!["web-angular".to_owned()],
         project: Some(directory),
         dry_run: false,
     };
@@ -1704,7 +1866,12 @@ fn the_component_contract_matches_the_code() {
                 .get(path)
                 .unwrap_or_else(|| panic!("{name}: {path} does not exist"));
             let code = String::from_utf8_lossy(&file.contents);
-            assert!(code.contains(symbol), "{name}: {path} has no {symbol}");
+            // A single-file component is named by its file.
+            let defines = match path.strip_suffix(".vue") {
+                Some(stem) => stem.rsplit('/').next() == Some(symbol),
+                None => code.contains(symbol),
+            };
+            assert!(defines, "{name}: {path} has no {symbol}");
             let target = manifest().target(id).expect("a target");
             assert!(
                 target.paths.iter().any(|prefix| is_under(path, prefix)),
@@ -1718,6 +1885,7 @@ fn the_component_contract_matches_the_code() {
     for (id, index) in [
         (WEB, "packages/ui/src/index.ts"),
         (SOLID, "packages/ui-solid/src/index.ts"),
+        (VUE, "packages/ui-vue/src/index.ts"),
         (MOBILE, "packages/ui-native/src/index.ts"),
     ] {
         let index = String::from_utf8_lossy(&template.files[index].contents).into_owned();
@@ -1731,6 +1899,8 @@ fn the_component_contract_matches_the_code() {
                 .split(',')
                 .map(str::trim)
                 .filter(|name| !name.is_empty())
+                // A single-file component is its module's default export.
+                .map(|name| name.strip_prefix("default as ").unwrap_or(name))
             {
                 // Types and hooks are not components.
                 if name.starts_with("type ") || !name.starts_with(char::is_uppercase) {

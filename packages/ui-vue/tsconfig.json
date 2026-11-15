@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    // The behavior tests import the stylesheet, which Vite resolves.
+    "types": ["vite/client"],
+    // oxlint does not report unused variables in .vue files.
+    "noUnusedLocals": true
+  },
+  "include": ["src", "test", "vitest.config.ts"],
+  "vueCompilerOptions": {
+    // Checks every prop, attribute and event a template passes, and what a generic component's
+    // v-model writes back.
+    "strictTemplates": true,
+    "dataAttributes": ["data-*"],
+    // `aria-label` on a component is its `ariaLabel` prop, as `max-length` would be `maxLength`.
+    "htmlAttributes": []
+  }
+}

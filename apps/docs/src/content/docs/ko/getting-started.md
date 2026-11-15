@@ -34,11 +34,12 @@ xds create my-app --yes
 | --- | --- | --- |
 | `web-react` | 브라우저 | React 19, Vite, Tailwind v4, Zag.js |
 | `web-solid` | 브라우저 | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js |
+| `web-vue` | 브라우저 | Vue 3, Vite, Tailwind v4, Zag.js |
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component |
 | `mobile-react-native` | iOS, Android | React Native, Expo |
 | `kotlin-compose` | Android, iOS, 데스크톱 | Kotlin Multiplatform, Compose Multiplatform |
 
-두 웹 클라이언트는 한 프로젝트에 함께 넣을 수 있습니다. 각각 앱, 포트, `mise` 별칭이 따로 있습니다.
+웹 클라이언트들은 한 프로젝트에 함께 넣을 수 있습니다. 각각 앱, 포트, `mise` 별칭이 따로 있습니다.
 
 ## 실행하기
 

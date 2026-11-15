@@ -19,7 +19,17 @@ mise run //web:dev        # serves http://localhost:5173
 mise run //web-solid:dev  # serves http://localhost:5174
 ```
 
-The Solid preview at `/design` is the same preview as the React one, drawn from the same data in `packages/ui-core/src/preview` by the Solid library, with the same sections, anchors, `?theme=` and `?open=` parameters. The web libraries share `packages/ui-core` and must look and behave the same. When both clients are in the project, `mise run compare:previews` starts both apps and compares their previews pixel by pixel (every section and every `?open=` overlay, at 1280 and 390 px, in both modes), and writes both sides of any capture that differs to a temporary directory it names.
+The Solid preview at `/design` is the same preview as the React one, drawn from the same data in `packages/ui-core/src/preview` by the Solid library, with the same sections, anchors, `?theme=` and `?open=` parameters.
+
+## Web (Vue)
+
+```sh
+mise run //web-vue:dev    # serves http://localhost:5175
+```
+
+The Vue preview at `/design` is the same preview again, drawn by the Vue library, with the same sections, anchors, `?theme=` and `?open=` parameters.
+
+The web libraries share `packages/ui-core` and must look and behave the same. When a project has two or more web clients, `mise run compare:previews` starts every web app and compares their previews pixel by pixel (every section and every `?open=` overlay, at 1280 and 390 px, in both modes), and writes both sides of any capture that differs to a temporary directory it names.
 
 ## Web behavior tests
 
@@ -28,9 +38,10 @@ The Solid preview at `/design` is the same preview as the React one, drawn from 
 ```sh
 pnpm --filter @acme/ui test        # React
 pnpm --filter @acme/ui-solid test  # Solid
+pnpm --filter @acme/ui-vue test    # Vue
 ```
 
-The checks in `packages/ui-core/test/behavior.ts` drive each component with the keyboard and the pointer and check focus, roles, names, and ARIA state. Every web library runs the same checks against its own components, so a failure in one library and not the other is a difference between the two. They check behavior, not appearance: look at the preview as well.
+The checks in `packages/ui-core/test/behavior.ts` drive each component with the keyboard and the pointer and check focus, roles, names, and ARIA state. Every web library runs the same checks against its own components, so a failure in one library and not another is a difference between them. They check behavior, not appearance: look at the preview as well.
 
 ## GPUI desktop (macOS)
 

@@ -1,7 +1,8 @@
 // Compares the design previews of the web apps pixel by pixel: every section at rest and every
 // `?open=` overlay, at a desktop and a phone width, in both color modes, in the Google Chrome
 // installed on the machine. The apps draw the same data with different libraries, so any
-// difference is one library drawing a component differently. Run it with
+// difference is one library drawing a component differently. Each app is compared with the
+// first, and a project with one web app has nothing to compare. Run it with
 // `mise run compare:previews`; it starts each app's dev server itself, on any free port, or
 // from the port given with `--port <port>` on, one per app.
 
@@ -19,6 +20,9 @@ const APPS = [
   // @if web-solid
   { name: "solid", dir: "apps/web-solid" },
   // @endif
+  // @if web-vue
+  { name: "vue", dir: "apps/web-vue" },
+  // @endif
 ];
 const WIDTHS = [1280, 390];
 const THEMES = ["light", "dark"];
@@ -29,7 +33,7 @@ const firstPort = portArgument > 0 ? Number(process.argv[portArgument + 1]) : un
 const out = join(tmpdir(), "acme-preview-compare");
 
 if (APPS.length < 2) {
-  console.log("This project has one web app, so there is nothing to compare it with.");
+  console.log("This project has fewer than two web apps, so there is nothing to compare.");
   process.exit(0);
 }
 if (firstPort !== undefined && !(Number.isInteger(firstPort) && firstPort > 0)) {
@@ -159,7 +163,7 @@ try {
 }
 console.log(
   differences === 0
-    ? `The design previews of ${APPS.map((app) => app.name).join(" and ")} are the same.`
+    ? `The design previews of ${APPS.map((app) => app.name).join(", ")} are the same.`
     : `${differences} captures differ. Both sides of each are in ${out}.`,
 );
 process.exitCode = differences === 0 ? 0 : 1;

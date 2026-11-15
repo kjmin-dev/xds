@@ -39,6 +39,10 @@
         "apps/web-solid/**",
         "packages/ui-solid/**",
         // @endif
+        // @if web-vue
+        "apps/web-vue/**",
+        "packages/ui-vue/**",
+        // @endif
       ],
       "options": { "sortTailwindcss": { "stylesheet": "./packages/ui-core/src/styles/index.css" } },
     },
@@ -47,7 +51,7 @@
       "files": ["apps/docs/**"],
       "options": { "sortTailwindcss": { "stylesheet": "./apps/docs/src/styles/demo.css" } },
     },
-    // web-vue and web-svelte each add their app and library to the files of the first override.
+    // web-svelte adds its app and library to the files of the first override.
     // @endif
   ],
   // @endif

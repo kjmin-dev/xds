@@ -12,11 +12,12 @@ A cross-platform design system template. A single set of design tokens drives a 
 | --- | --- | --- | --- | --- |
 | `web-react` | Browsers | React 19, Vite, Tailwind v4, Zag.js | `packages/ui`, `packages/ui-core` | `apps/web` |
 | `web-solid` | Browsers | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js | `packages/ui-solid`, `packages/ui-core` | `apps/web-solid` |
+| `web-vue` | Browsers | Vue 3, Vite, Tailwind v4, Zag.js | `packages/ui-vue`, `packages/ui-core` | `apps/web-vue` |
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component | `crates/acme-ui` | `apps/desktop` |
 | `mobile-react-native` | iOS, Android | React Native, Expo | `packages/ui-native` | `apps/mobile` |
 | `kotlin-compose` | Android, iOS, desktop | Kotlin Multiplatform, Compose Multiplatform | `kotlin/ui` | `kotlin/androidApp`, `kotlin/iosApp`, `kotlin/desktopApp` |
 
-The two web clients can be combined in one project: each has its own directory, port, and `mise` alias. `packages/ui-core` holds what the web libraries share (prop types, class recipes, and the stylesheet), so that each framework's library adds only its components, and the web clients look and behave the same.
+The web clients can be combined in one project: each has its own directory, port, and `mise` alias. `packages/ui-core` holds what the web libraries share (prop types, class recipes, and the stylesheet), so that each framework's library adds only its components, and the web clients look and behave the same.
 
 `acme` is a placeholder name that `xds create` replaces with your project name.
 
@@ -80,7 +81,7 @@ See the [CLI documentation](docs/cli.md#for-scripts-and-agents) for details on t
 - `design/tokens` contains the design tokens in DTCG format: a color palette, light and dark semantic colors, component-specific colors, typographic roles, spacing, border radius, motion, shadows, and control sizes for pointer and touch input.
 - `design/themes` provides five color themes: `indigo` (the default), `ocean`, `forest`, `sunset`, and `plum`. Each theme defines an accent ramp and a neutral ramp, and every theme passes all contrast checks.
 - `tools/design-build` compiles the tokens into CSS custom properties, a Tailwind theme, TypeScript constants, Rust constants, and Compose values. It runs on plain Node with no external dependencies, and fails the build if any color pairing falls below its required WCAG contrast ratio.
-- Every client implements the same set of components with matching names and options: Button, TextField, Text, Badge, CountBadge, Banner, Card, Divider, Spinner, Switch, Checkbox, SegmentedControl, Avatar, AvatarStack, ProgressBar, ListRow, Icon, IconButton, Chip, ChipBar, Tabs, Menu, Dialog, Toast, Skeleton, SearchField, RadioGroup, Select, Slider, Thumbnail, MediaCard, SectionHeader, EmptyState, and Accordion. The two touch clients also provide TopBar, TabBar, and BottomSheet, and the pointer clients (the two web clients and GPUI) provide Tooltip and Sidebar.
+- Every client implements the same set of components with matching names and options: Button, TextField, Text, Badge, CountBadge, Banner, Card, Divider, Spinner, Switch, Checkbox, SegmentedControl, Avatar, AvatarStack, ProgressBar, ListRow, Icon, IconButton, Chip, ChipBar, Tabs, Menu, Dialog, Toast, Skeleton, SearchField, RadioGroup, Select, Slider, Thumbnail, MediaCard, SectionHeader, EmptyState, and Accordion. The two touch clients also provide TopBar, TabBar, and BottomSheet, and the pointer clients (the three web clients and GPUI) provide Tooltip and Sidebar.
 - Each app includes a design preview screen that renders every token and component in a single view. The web apps share one, defined once as typed data in `packages/ui-core` and drawn by a small renderer in each web library.
 
 See the [design system documentation](docs/design-system.md) for the rationale behind this structure and the conventions it adopts from current open-source design systems.
@@ -100,6 +101,8 @@ mise run check          # everything CI runs
 | Open the web design preview | Visit `http://localhost:5173/design` |
 | Start the Solid web app | `mise run //web-solid:dev`, then open `http://localhost:5174` |
 | Open the Solid design preview | Visit `http://localhost:5174/design` |
+| Start the Vue web app | `mise run //web-vue:dev`, then open `http://localhost:5175` |
+| Open the Vue design preview | Visit `http://localhost:5175/design` |
 | Start the GPUI desktop app | `mise run //desktop:dev` |
 | Open the GPUI design preview | `mise run //desktop:design` |
 | Start the React Native app | `mise run //mobile:ios` or `mise run //mobile:android` |
@@ -115,7 +118,7 @@ mise run check          # everything CI runs
 
 The tests of the web components run in Google Chrome, which `mise run check` needs installed. The GPUI desktop app requires macOS. Building the Compose app requires the Android SDK for Android and Xcode for iOS; see [kotlin/README.md](kotlin/README.md) for details. In the mobile apps, use the button on the home screen to open the design preview.
 
-On the command line, `mise run check:js` type-checks and runs oxlint's type-aware rules with [tsrs](https://github.com/oxc-project/tsrs), an experimental Rust port of TypeScript 7.1, pinned to an exact release. Editors keep TypeScript's own language server; point them at the root `typescript` package, the version tsrs is held to. tsrs is built from one TypeScript commit, so upgrade the two together in the catalog in `pnpm-workspace.yaml`: move `typescript`, and move `tsrs` to the release that ports the same version (`pnpm view tsrs@<release> tsrs.typescriptVersion` shows the version a release ports). `mise run check:js` fails while they differ.
+On the command line, `mise run check:js` type-checks and runs oxlint's type-aware rules with [tsrs](https://github.com/oxc-project/tsrs), an experimental Rust port of TypeScript 7.1, pinned to an exact release. Editors keep TypeScript's own language server; point them at the root `typescript` package, the version tsrs is held to. tsrs is built from one TypeScript commit, so upgrade the two together in the catalog in `pnpm-workspace.yaml`: move `typescript`, and move `tsrs` to the release that ports the same version (`pnpm view tsrs@<release> tsrs.typescriptVersion` shows the version a release ports). `mise run check:js` fails while they differ. The Vue packages check their `.vue` files with vue-tsc instead, on [typescript-native-bridge](https://www.npmjs.com/package/typescript-native-bridge), which keeps the TypeScript 6 API that vue-tsc and Vite's compiler for `.vue` files need over the TypeScript 7 checker.
 
 `mise run check:js` also checks the React Native app against its Expo SDK: `mise run //mobile:check` fails when a native package is not at the version the installed SDK expects, and `mise run //mobile:bundle` bundles the app for iOS and Android. Add native packages with `pnpm exec expo install` in `apps/mobile`; [CONTRIBUTING.md](CONTRIBUTING.md) explains how to move to the next SDK.
 
@@ -136,12 +139,14 @@ packages/tokens/        generated CSS and TypeScript
 packages/ui/            React web components
 packages/ui-core/       prop types, classes, and CSS shared by the web components
 packages/ui-solid/      Solid web components
+packages/ui-vue/        Vue web components
 packages/ui-native/     React Native components
 crates/acme-tokens/     generated Rust
 crates/acme-ui/         GPUI components
 kotlin/                 Compose components and apps (a Gradle build of its own)
 apps/web/               React app
 apps/web-solid/         Solid app
+apps/web-vue/           Vue app
 apps/desktop/           GPUI app
 apps/mobile/            Expo app
 apps/docs/              the documentation site (not copied into projects)
@@ -155,12 +160,12 @@ template.json           which paths belong to which client
 
 | | Status |
 | --- | --- |
-| Web | The React and Solid design previews checked in headless Chrome in both light and dark modes, and compared with each other screenshot by screenshot, every section and each open overlay. The two libraries draw one preview, defined once as data, from one stylesheet, and take their behavior from the same Zag.js machines |
+| Web | The React, Solid, and Vue design previews checked in headless Chrome in both light and dark modes, and compared with each other screenshot by screenshot, every section and each open overlay. The three libraries draw one preview, defined once as data, from one stylesheet, and take their behavior from the same Zag.js machines |
 | GPUI desktop | Run on macOS; design preview checked in both light and dark modes |
 | React Native | Run on the iOS simulator in light and dark modes, including the bottom sheet. Android and physical devices have not been checked |
 | Compose | Checked on desktop, an Android emulator, and the iOS simulator; see [kotlin/README.md](kotlin/README.md) for details |
-| `xds` | Generated projects for each client other than `web-solid` alone and for those four combined; each passed its own `mise run check` on macOS. Projects with `web-solid` alone and with both web clients passed their install, `check:js`, and the Solid build. The Linux and Windows binaries and the release workflow have not been run |
-| Accessibility | Contrast is verified by the build. The keyboard, focus, and ARIA behavior of the interactive web components is tested in headless Chrome, with the same checks for the React and the Solid library. No client has been tested with a screen reader |
+| `xds` | Generated projects for each client other than `web-solid` and `web-vue` alone and for those four combined; each passed its own `mise run check` on macOS. Projects with `web-solid` alone, with `web-vue` alone, and with two or three web clients passed their install, `check:js`, and the web builds. The Linux and Windows binaries and the release workflow have not been run |
+| Accessibility | Contrast is verified by the build. The keyboard, focus, and ARIA behavior of the interactive web components is tested in headless Chrome, with the same checks for the React, Solid, and Vue libraries. No client has been tested with a screen reader |
 
 ## License
 

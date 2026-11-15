@@ -45,6 +45,7 @@ const TEMPLATE_ONLY_PATHS: &[&str] = &[
     ".claude-plugin",
     "LICENSE",
     "docs/cli.md",
+    "docs/library.md",
     "docs/images",
     ".github/workflows/release.yml",
     "Cargo.lock",

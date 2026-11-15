@@ -28,6 +28,10 @@ catalog:
   # other. On a TypeScript upgrade, take the tsrs release that ports the new version (`pnpm view
   # tsrs@<release> tsrs.typescriptVersion` shows the version a release ports); check:js fails
   # while the two differ.
+  # @if mobile-react-native
+  # The mobile app lists typescript in `expo.install.exclude`: the Expo SDK expects an older
+  # TypeScript, and `expo install --fix` would otherwise move the app off this pin.
+  # @endif
   tsrs: 0.25.0-ts7.1.0-beta
   typescript: 7.1.0-beta
   # @if ui-core

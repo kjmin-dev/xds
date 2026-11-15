@@ -54,6 +54,7 @@ The first run resolves dependencies and generates the lockfiles. Commit them to 
 <!-- @endif -->
 <!-- @if mobile-react-native -->
 | Start the mobile app | `mise run //mobile:ios` or `mise run //mobile:android` |
+| Check the mobile app against its Expo SDK | `mise run //mobile:check`, `mise run //mobile:bundle` |
 <!-- @endif -->
 <!-- @if kotlin-compose -->
 | Start the Compose desktop app | `mise run //kotlin:desktop` |
@@ -79,6 +80,8 @@ The desktop app requires macOS.
 <!-- @endif -->
 <!-- @if mobile-react-native -->
 On mobile, use the button on the home screen to open the design preview.
+
+`mise run check:js` also checks the mobile app against its Expo SDK: `mise run //mobile:check` fails when a native package is not at the version the installed SDK expects, and `mise run //mobile:bundle` bundles the app for iOS and Android. Add native packages with `pnpm exec expo install` in `apps/mobile`; AGENTS.md explains how to move to the next SDK.
 <!-- @endif -->
 
 ## Changing the design

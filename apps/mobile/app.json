@@ -6,6 +6,12 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "com.example.acme.mobile"
+    },
+    "android": {
+      "package": "com.example.acme.mobile"
+    },
     "plugins": ["expo-router"],
     "experiments": {
       "typedRoutes": true

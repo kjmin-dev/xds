@@ -113,7 +113,8 @@ export async function loadPlatforms(root: string, slugs: Map<string, string>): P
 
 // ---------------------------------------------------------------- words
 
-const list = (names: string[]) =>
+/** "A", "A and B", "A, B and C". */
+export const list = (names: string[]) =>
   names.length < 2
     ? names.join("")
     : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;

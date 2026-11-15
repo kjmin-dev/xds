@@ -39,9 +39,20 @@ export default defineConfig({
           // The Korean pages translate the English ones; one language is enough for a model.
           exclude: ["ko/**"],
           // A component page's chips repeat its Platforms section, which says it in words, and
-          // the index's filter buttons and legend mean nothing in text. Its table stays.
+          // the index's filter buttons and legend mean nothing in text. Its table stays. Of the
+          // preview tabs, the pictures of one mode stay, with their captions.
           customSelectors: {
-            all: [".platforms", ".matrix__filter", ".matrix__count", ".matrix__legend"],
+            all: [
+              ".platforms",
+              ".matrix__filter",
+              ".matrix__count",
+              ".matrix__legend",
+              ".preview__tabs",
+              ".preview__badge",
+              ".capture__play",
+              ".capture__clip",
+              '.capture__media[data-mode="dark"]',
+            ],
           },
         }),
       ],

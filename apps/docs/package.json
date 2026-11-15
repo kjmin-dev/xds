@@ -8,7 +8,7 @@
     "build": "node scripts/generate.ts && astro build",
     "preview": "astro preview",
     "typecheck": "tsrs --noEmit",
-    "test": "vitest run"
+    "test": "node --test \"test/*.test.ts\" && vitest run"
   },
   "dependencies": {
     "@acme/tokens": "workspace:*",

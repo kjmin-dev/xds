@@ -3,7 +3,7 @@
 //   docs/cli.md, docs/design-system.md     ->  src/content/docs/cli, design-system
 //   design/tokens, design/themes           ->  src/content/docs/tokens
 //   scripts/components.ts, template.json,
-//   design/components.json                 ->  src/content/docs/components, src/generated
+//   design/components.json, captures.json  ->  src/content/docs/components, src/generated
 //   install.sh                             ->  public/install.sh
 //
 // Everything written here is ignored by git. Runs before `astro dev` and `astro build`.
@@ -17,8 +17,9 @@ import {
   type Value,
 } from "../../../tools/design-build/src/model.ts";
 import { listThemes } from "../../../tools/design-build/src/themes.ts";
+import { loadCapturePages, warningLine } from "./capture-pages.ts";
 import { COMPONENTS } from "./components.ts";
-import { loadPlatforms, optionPill, platformsSection, reach } from "./platforms.ts";
+import { list, loadPlatforms, optionPill, platformsSection, reach } from "./platforms.ts";
 import { previewAnchor, previewLink } from "./preview.ts";
 
 const root = join(import.meta.dirname, "../../..");
@@ -330,9 +331,23 @@ async function components() {
     root,
     new Map(COMPONENTS.map((component) => [component.name, component.slug])),
   );
-  // The Astro components and the Markdown copies read it from here.
+  const docs = join(import.meta.dirname, "..");
+  const { pages: captures, warnings } = await loadCapturePages(
+    JSON.parse(await readFile(join(docs, "captures.json"), "utf8")),
+    {
+      root,
+      publicDir: join(docs, "public"),
+      contract: JSON.parse(await readFile(join(root, "design/components.json"), "utf8")),
+      clients: platforms.clients,
+    },
+  );
+  for (const warning of warnings) {
+    console.log(warningLine(warning, process.env.GITHUB_ACTIONS === "true"));
+  }
+  // The Astro components and the Markdown copies read them from here.
   await mkdir(generated, { recursive: true });
   await writeFile(join(generated, "platforms.json"), `${JSON.stringify(platforms, null, 2)}\n`);
+  await writeFile(join(generated, "captures.json"), `${JSON.stringify(captures, null, 2)}\n`);
 
   for (const [index, component] of COMPONENTS.entries()) {
     const contract = platforms.components.find(({ name }) => name === component.name);
@@ -347,24 +362,37 @@ async function components() {
       );
     }
     const link = component.preview && previewLink(previewAnchor(component.preview));
+    const live =
+      component.demo === "web"
+        ? {
+            imports: 'import Demo from "../../../components/Demo.astro";',
+            frame: `<Demo name="${component.slug}" title="${component.name} examples" />`,
+            text: "The frame above shows the real web components, in the mode this site is in.",
+          }
+        : {
+            imports: 'import PhoneDemo from "../../../components/PhoneDemo.astro";',
+            frame: `<PhoneDemo name="${component.slug}" title="${component.name} example" />`,
+            // What a reader could take for the app and is not. One line: the Markdown copy
+            // drops it with the frame.
+            text: "The frame above shows the real React Native component from `@acme/ui-native`, in the mode this site is in, drawn in this browser by react-native-web. It answers clicks, taps and the keyboard, but it is not a phone: the text is in the browser's system font, nothing that iOS or Android draws itself (the status bar, the home indicator, system animations) is there, and where a component takes one path on iOS and another on Android, here it takes neither.",
+            soon: "Pictures from the iOS and Android apps will follow.",
+          };
+    // With pictures from the real clients, the live example becomes the first of a row of tabs.
+    const pictures = captures[component.name];
+    const tabs = pictures?.tabs.map((tab) => tab.label) ?? [];
     const body = [
       NOTE("apps/docs/scripts/components.ts and design/components.json"),
       'import Platforms from "../../../components/Platforms.astro";',
       `<Platforms name="${component.name}" />`,
       component.summary,
-      ...(component.demo === "web"
+      ...(pictures
         ? [
-            'import Demo from "../../../components/Demo.astro";',
-            `<Demo name="${component.slug}" title="${component.name} examples" />`,
-            "The frame above shows the real web components, in the mode this site is in.",
+            'import PreviewTabs from "../../../components/PreviewTabs.astro";',
+            live.imports,
+            `<PreviewTabs name="${component.name}">\n${live.frame}\n</PreviewTabs>`,
+            `${live.text} The ${list(tabs)} ${tabs.length > 1 ? "tabs show pictures of the component taken from the real clients" : "tab shows a picture of the component taken from the real client"}.`,
           ]
-        : [
-            'import PhoneDemo from "../../../components/PhoneDemo.astro";',
-            `<PhoneDemo name="${component.slug}" title="${component.name} example" />`,
-            // What a reader could take for the app and is not. One line: the Markdown copy
-            // drops it with the frame.
-            "The frame above shows the real React Native component from `@acme/ui-native`, in the mode this site is in, drawn in this browser by react-native-web. It answers clicks, taps and the keyboard, but it is not a phone: the text is in the browser's system font, nothing that iOS or Android draws itself (the status bar, the home indicator, system animations) is there, and where a component takes one path on iOS and another on Android, here it takes neither. Pictures from the iOS and Android apps will follow.",
-          ]),
+        : [live.imports, live.frame, live.soon ? `${live.text} ${live.soon}` : live.text]),
       ...(link
         ? [`The [design preview](${link}) shows it next to every other web component.`]
         : []),

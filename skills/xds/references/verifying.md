@@ -79,7 +79,7 @@ On the iOS simulator, navigate to a specific section with `xcrun simctl openurl 
 mise run //kotlin:render
 ```
 
-This task renders the Compose preview headlessly without launching a window and writes PNG screenshots to `kotlin/build/preview`, each in a `-light` and a `-dark` version: the whole preview (`preview-touch`, `preview-pointer`), the open bottom sheet (`sheet-touch`), the open menu (`menu-touch` as a sheet, `menu-pointer` as a popup), the open select list (`select-touch`, `select-pointer`), the open dialog (`dialog-touch`, `dialog-pointer`), and the toast (`toast-touch`, `toast-pointer`). Because it runs on any OS without an emulator, it is the fastest way to visually check token changes.
+This task renders the Compose preview headlessly without launching a window and writes PNG screenshots to `kotlin/build/preview`, each in a `-light` and a `-dark` version: the whole preview (`preview-touch`, `preview-pointer`), the open bottom sheet (`sheet-touch`), the open menu (`menu-touch` as a sheet, `menu-pointer` as a popup), the open select list (`select-touch`, `select-pointer`), the open calendar (`datepicker-touch` as a sheet, `datepicker-pointer` as a popup), the open dialog (`dialog-touch`, `dialog-pointer`), and the toast (`toast-touch`, `toast-pointer`). Because it runs on any OS without an emulator, it is the fastest way to visually check token changes.
 
 ## What to look for
 

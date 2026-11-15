@@ -147,7 +147,7 @@ Inspect the design preview in both light and dark modes after making visual chan
 | Mobile | Tap the preview button on the home screen, or navigate to the design route with `?from=<section number>`, `?sheet=1`, `?menu=1`, `?select=1`, `?dialog=1`, or `?toast=1` |
 <!-- @endif -->
 <!-- @if kotlin-compose -->
-| Compose | Run `mise run //kotlin:render` to render PNG screenshots into `kotlin/build/preview`, or `mise run //kotlin:design` to open the interactive preview window |
+| Compose | Run `mise run //kotlin:render` to render PNG screenshots into `kotlin/build/preview` (the whole preview, and each overlay open: `menu-*`, `select-*`, `datepicker-*`, `sheet-*`, `dialog-*`, `toast-*`), or `mise run //kotlin:design` to open the interactive preview window |
 <!-- @endif -->
 <!-- @if ui-core -->
 

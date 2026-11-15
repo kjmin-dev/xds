@@ -65,7 +65,7 @@ How the interactive web components behave (keyboard, focus, and ARIA state) is t
 | Web (Svelte) | Run `mise run //web-svelte:dev`, then open `http://localhost:5176/design#buttons` (the same preview, anchors, and parameters as the React app's, drawn by the Svelte library; it must look the same) |
 | GPUI desktop | `cargo run --package acme-desktop -- --design --dark --scroll 800` (`--open menu`, `select`, `datepicker`, `dialog`, `toast`, or `tooltip` opens that overlay) |
 | React Native | Pass `?from=<section number>`, `?sheet=1`, `?menu=1`, `?select=1`, `?dialog=1`, or `?toast=1` to the design screen route |
-| Compose | `mise run //kotlin:render` renders PNG screenshots to `kotlin/build/preview` |
+| Compose | `mise run //kotlin:render` renders PNG screenshots to `kotlin/build/preview`: the whole preview, and each overlay open (`menu-*`, `select-*`, `datepicker-*`, `sheet-*`, `dialog-*`, `toast-*`) |
 
 ## Changing the CLI
 

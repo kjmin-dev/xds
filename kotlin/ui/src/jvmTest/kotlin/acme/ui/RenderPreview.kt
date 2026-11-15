@@ -20,6 +20,7 @@ import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.annotation.DelicateCoilApi
 import java.io.File
+import java.util.Locale
 import kotlin.coroutines.EmptyCoroutineContext
 import org.jetbrains.skia.EncodedImageFormat
 
@@ -36,6 +37,10 @@ fun main(args: Array<String>) {
     SingletonImageLoader.setUnsafe(
         ImageLoader.Builder(PlatformContext.INSTANCE).coroutineContext(EmptyCoroutineContext).build(),
     )
+
+    // The names of months and days, and the day weeks start on, as the web's behavior checks pin
+    // them, so the images are the same on every machine.
+    Locale.setDefault(Locale.US)
 
     val directory = File(args.firstOrNull() ?: "build/preview").apply { mkdirs() }
     fun page(name: String, width: Int, mode: Mode, sizes: Sizes, open: PreviewOverlay? = null) {
@@ -65,6 +70,7 @@ fun main(args: Array<String>) {
     screen("sheet-touch", PreviewOverlay.Sheet, TouchSizes)
     screen("menu-touch", PreviewOverlay.Menu, TouchSizes)
     screen("select-touch", PreviewOverlay.Select, TouchSizes)
+    screen("datepicker-touch", PreviewOverlay.DatePicker, TouchSizes)
     screen("dialog-touch", PreviewOverlay.Dialog, TouchSizes)
     screen("dialog-pointer", PreviewOverlay.Dialog, PointerSizes)
     screen("toast-touch", PreviewOverlay.Toast, TouchSizes)
@@ -73,6 +79,7 @@ fun main(args: Array<String>) {
     for (mode in Mode.entries) {
         page("menu-pointer-${mode.name.lowercase()}.png", 900, mode, PointerSizes, open = PreviewOverlay.Menu)
         page("select-pointer-${mode.name.lowercase()}.png", 900, mode, PointerSizes, open = PreviewOverlay.Select)
+        page("datepicker-pointer-${mode.name.lowercase()}.png", 900, mode, PointerSizes, open = PreviewOverlay.DatePicker)
     }
 }
 

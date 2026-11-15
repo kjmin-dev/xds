@@ -357,7 +357,7 @@ internal fun MenuRow(
  * trigger when there is no room below it but there is above, and kept inside the window when
  * there is room on neither side. Never past the window's sides.
  */
-private class MenuPosition(private val align: MenuAlign, private val gap: Int) : PopupPositionProvider {
+internal class MenuPosition(private val align: MenuAlign, private val gap: Int) : PopupPositionProvider {
     override fun calculatePosition(
         anchorBounds: IntRect,
         windowSize: IntSize,

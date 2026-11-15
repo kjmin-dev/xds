@@ -62,6 +62,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.datetime.LocalDate
 
 /**
  * The first word of every component color group. Those colors are shown by the components that
@@ -140,7 +141,7 @@ fun DesignPreview(onBack: () -> Unit) {
 }
 
 /** What the preview can start with open, so that it can be drawn into an image open. */
-internal enum class PreviewOverlay { Sheet, Menu, Select, Dialog, Toast }
+internal enum class PreviewOverlay { Sheet, Menu, Select, DatePicker, Dialog, Toast }
 
 /**
  * @param scrolls False lays the whole page out at its full height, for drawing it into one image.
@@ -186,7 +187,10 @@ internal fun DesignPreviewScreen(onBack: () -> Unit, scrolls: Boolean, open: Pre
                 ButtonsSection()
                 TextFieldsSection()
                 SelectionSection()
-                ControlsSection(selectOpen = open == PreviewOverlay.Select)
+                ControlsSection(
+                    selectOpen = open == PreviewOverlay.Select,
+                    datePickerOpen = open == PreviewOverlay.DatePicker,
+                )
                 ChipsSection()
                 TabsSection()
                 BadgesSection(colors)
@@ -575,9 +579,12 @@ private val Languages = listOf(
     SelectOption("zh", "中文", description = "Chinese, simplified"),
 )
 
-/** @param selectOpen Starts with the list of the select that has a value open. */
+/**
+ * @param selectOpen Starts with the list of the select that has a value open.
+ * @param datePickerOpen Starts with the calendar of the first date picker open.
+ */
 @Composable
-private fun ControlsSection(selectOpen: Boolean) {
+private fun ControlsSection(selectOpen: Boolean, datePickerOpen: Boolean) {
     Section("Controls") {
         // Empty, chosen, with an error, and disabled.
         var country by remember { mutableStateOf<String?>(null) }
@@ -618,6 +625,34 @@ private fun ControlsSection(selectOpen: Boolean) {
             onValueChange = {},
             enabled = false,
         )
+
+        // With a range, empty with an error, and disabled. Fixed days in March 2026, so the
+        // images of the open calendar do not change with the day they are drawn on.
+        var due by remember { mutableStateOf<LocalDate?>(LocalDate(2026, 3, 10)) }
+        DatePicker(
+            label = "Due date",
+            value = due,
+            onValueChange = { due = it },
+            modifier = Modifier,
+            min = LocalDate(2026, 3, 5),
+            max = LocalDate(2026, 4, 20),
+            placeholder = null,
+            description = "Within the current sprint.",
+            error = null,
+            enabled = true,
+            previousLabel = "Previous month",
+            nextLabel = "Next month",
+            initiallyOpen = datePickerOpen,
+        )
+        var start by remember { mutableStateOf<LocalDate?>(null) }
+        DatePicker(
+            label = "Start date",
+            value = start,
+            onValueChange = { start = it },
+            placeholder = "Choose a day",
+            error = if (start == null) "Choose when the project starts." else null,
+        )
+        DatePicker(label = "Locked", value = LocalDate(2026, 3, 10), onValueChange = {}, enabled = false)
 
         var volume by remember { mutableStateOf(40f) }
         Slider(label = "Volume", value = volume, onValueChange = { volume = it }, showValue = true)

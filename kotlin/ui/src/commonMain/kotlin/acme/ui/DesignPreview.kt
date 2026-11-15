@@ -43,6 +43,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -146,9 +147,11 @@ internal enum class PreviewOverlay { Sheet, Menu, Select, DatePicker, Dialog, To
 /**
  * @param scrolls False lays the whole page out at its full height, for drawing it into one image.
  * @param open The sample overlay to start with open, for the same reason.
+ * @param from The section to start at, by the key React Native's preview gives it in `?section=`.
+ *   The sections above it are left out, so that one can be drawn at the top of a phone's screen.
  */
 @Composable
-internal fun DesignPreviewScreen(onBack: () -> Unit, scrolls: Boolean, open: PreviewOverlay?) {
+internal fun DesignPreviewScreen(onBack: () -> Unit, scrolls: Boolean, open: PreviewOverlay?, from: String? = null) {
     val ambient = if (LocalColors.current === DarkColors) Mode.Dark else Mode.Light
     // The switch in the top bar pins a mode for this screen only. Until it is used, the screen
     // follows the theme around it.
@@ -180,31 +183,38 @@ internal fun DesignPreviewScreen(onBack: () -> Unit, scrolls: Boolean, open: Pre
                     .padding(Space.s4),
                 verticalArrangement = Arrangement.spacedBy(Space.s8),
             ) {
-                ColorsSection(colors)
-                TypographySection()
-                SizesSection(colors)
-                IconsSection()
-                ButtonsSection()
-                TextFieldsSection()
-                SelectionSection()
-                ControlsSection(
-                    selectOpen = open == PreviewOverlay.Select,
-                    datePickerOpen = open == PreviewOverlay.DatePicker,
+                val sections = listOf<Pair<String, @Composable () -> Unit>>(
+                    "colors" to { ColorsSection(colors) },
+                    "text" to { TypographySection() },
+                    "sizes" to { SizesSection(colors) },
+                    "icons" to { IconsSection() },
+                    "buttons" to { ButtonsSection() },
+                    "fields" to { TextFieldsSection() },
+                    "selection" to { SelectionSection() },
+                    "controls" to {
+                        ControlsSection(
+                            selectOpen = open == PreviewOverlay.Select,
+                            datePickerOpen = open == PreviewOverlay.DatePicker,
+                        )
+                    },
+                    "chips" to { ChipsSection() },
+                    "tabs" to { TabsSection() },
+                    "badges" to { BadgesSection(colors) },
+                    "banners" to { BannersSection() },
+                    "card" to { CardSection(colors) },
+                    "media" to { MediaSection() },
+                    "list" to { ListSection() },
+                    "accordion" to { AccordionSection() },
+                    "empty" to { EmptyStateSection() },
+                    "navigation" to { NavigationSection(colors, sheetOpen = open == PreviewOverlay.Sheet) },
+                    "menu" to { MenuSection(open = open == PreviewOverlay.Menu) },
+                    "dialog" to { DialogSection(open = open == PreviewOverlay.Dialog) },
+                    "toast" to { ToastSection(open = open == PreviewOverlay.Toast) },
+                    "skeleton" to { SkeletonSection() },
                 )
-                ChipsSection()
-                TabsSection()
-                BadgesSection(colors)
-                BannersSection()
-                CardSection(colors)
-                MediaSection()
-                ListSection()
-                AccordionSection()
-                EmptyStateSection()
-                NavigationSection(colors, sheetOpen = open == PreviewOverlay.Sheet)
-                MenuSection(open = open == PreviewOverlay.Menu)
-                DialogSection(open = open == PreviewOverlay.Dialog)
-                ToastSection(open = open == PreviewOverlay.Toast)
-                SkeletonSection()
+                for ((name, section) in sections.dropWhile { from != null && it.first != from }) {
+                    key(name) { section() }
+                }
             }
         }
     }

@@ -346,7 +346,7 @@ The web apps share one preview. It is written once, as typed data in `packages/u
 | Mobile | The `/design` screen | The button on the home screen | Follows the system |
 | Kotlin | `mise run //kotlin:design` on desktop; the home screen button elsewhere | The button on the home screen | Follows the system. Includes an in-app mode switch |
 
-To support automated screenshot scripts that cannot scroll or tap interactively: web sections expose URL hash anchors (`/design#buttons`) and `?open=<overlay>`, the desktop binary accepts `--scroll <pixels>` and `--open <overlay>`, and the mobile preview accepts `?from=<section number>`, `?sheet=1`, `?menu=1`, `?select=1`, `?dialog=1`, and `?toast=1`. The overlays are `menu`, `select`, `dialog`, `toast`, and, on the pointer clients, `tooltip`; the web previews and the desktop binary also open `datepicker`.
+To support automated screenshot scripts that cannot scroll or tap interactively: web sections expose URL hash anchors (`/design#buttons`) and `?open=<overlay>`, the desktop binary accepts `--scroll <pixels>` and `--open <overlay>`, and the mobile preview accepts `?section=<key>` (such as `navigation`), `?from=<section number>`, `?sheet=1`, `?menu=1`, `?select=1`, `?dialog=1`, and `?toast=1`. The overlays are `menu`, `select`, `dialog`, `toast`, and, on the pointer clients, `tooltip`; the web previews and the desktop binary also open `datepicker`.
 
 On the web, the preview code is lazy-loaded only when navigating to `/design`. Static file hosts must be configured to serve `index.html` for `/design`.
 

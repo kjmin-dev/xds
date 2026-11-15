@@ -60,15 +60,18 @@ kotlin {
 }
 
 // Draws the whole design preview off screen and writes it as PNG files, so the components can be
-// looked at without starting an app.
+// looked at without starting an app. `-Pcaptures=<directory>` draws only the screens that the
+// documentation shows, into that directory (an absolute path): `mise run docs:capture` asks for them.
 tasks.register<JavaExec>("renderPreview") {
     group = "verification"
     description = "Writes PNG images of the design preview to build/preview"
     val test = kotlin.jvm().compilations["test"]
     classpath = files(test.output.allOutputs, test.runtimeDependencyFiles)
     mainClass = "acme.ui.RenderPreviewKt"
-    val output = rootProject.layout.buildDirectory.dir("preview")
+    val captures = providers.gradleProperty("captures")
+    val project = layout.projectDirectory
+    val output = captures.map { project.dir(it) }.orElse(rootProject.layout.buildDirectory.dir("preview"))
     outputs.dir(output)
-    argumentProviders.add { listOf(output.get().asFile.path) }
+    argumentProviders.add { listOf(output.get().asFile.path) + if (captures.isPresent) listOf("--captures") else emptyList() }
     systemProperty("java.awt.headless", "true")
 }

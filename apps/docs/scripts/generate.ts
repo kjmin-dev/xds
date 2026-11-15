@@ -314,6 +314,7 @@ const PLATFORM = {
   web: "Web (React)",
   solid: "Web (Solid)",
   vue: "Web (Vue)",
+  svelte: "Web (Svelte)",
   gpui: "Desktop (GPUI)",
   reactNative: "React Native",
   compose: "Compose Multiplatform",

@@ -51,6 +51,9 @@ web-solid = "apps/web-solid"
 # @if web-vue
 web-vue = "apps/web-vue"
 # @endif
+# @if web-svelte
+web-svelte = "apps/web-svelte"
+# @endif
 # @if template
 docs = "apps/docs"
 # @endif
@@ -151,6 +154,9 @@ run = [
   # @endif
   # @if web-vue
   "pnpm --filter @acme/web-vue build",
+  # @endif
+  # @if web-svelte
+  "pnpm --filter @acme/web-svelte build",
   # @endif
   # @if mobile-react-native
   # Neither is visible to the type checker: a native package that has moved off the version the

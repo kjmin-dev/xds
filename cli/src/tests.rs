@@ -28,6 +28,7 @@ use crate::theme::{self, PALETTE_PATH, Source};
 const WEB: &str = "web-react";
 const SOLID: &str = "web-solid";
 const VUE: &str = "web-vue";
+const SVELTE: &str = "web-svelte";
 const DESKTOP: &str = "desktop-gpui";
 const MOBILE: &str = "mobile-react-native";
 const KOTLIN: &str = "kotlin-compose";
@@ -655,6 +656,22 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
                         package["devDependencies"]["vue-tsc"], "catalog:vue",
                         "{selected:?}: {path}"
                     );
+                } else if typecheck.starts_with("svelte-check ") {
+                    // Svelte's components are type-checked by svelte-check, on the TypeScript 7
+                    // that it finds as @typescript/native, at the catalog's version. Its own
+                    // TypeScript, which reads the components, comes from .pnpmfile.cjs.
+                    assert_eq!(
+                        typecheck,
+                        "svelte-check --tsconfig ./tsconfig.json --tsgo-experimental-api --fail-on-warnings",
+                        "{selected:?}: {path}"
+                    );
+                    for tool in ["svelte-check", "@typescript/native"] {
+                        assert_eq!(
+                            package["devDependencies"][tool], "catalog:",
+                            "{selected:?}: {path}: {tool}"
+                        );
+                    }
+                    assert!(files.contains_key(".pnpmfile.cjs"), "{selected:?}: {path}");
                 } else {
                     for command in typecheck.split(" && ") {
                         assert!(
@@ -673,7 +690,7 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
                     .as_str()
                     .expect("a command")
                     .split_whitespace()
-                    .any(|word| ["tsc", "tsrs", "vue-tsc"].contains(&word));
+                    .any(|word| ["tsc", "tsrs", "vue-tsc", "svelte-check"].contains(&word));
                 assert!(
                     !checks_types || name == "typecheck",
                     "{selected:?}: {path}: {name}"
@@ -730,6 +747,7 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
             ("`packages/ui`", has(WEB)),
             ("`packages/ui-solid`", has(SOLID)),
             ("`packages/ui-vue`", has(VUE)),
+            ("`packages/ui-svelte`", has(SVELTE)),
             ("`packages/ui-core`", requires("ui-core")),
             ("`crates/orbit-ui`", has(DESKTOP)),
             ("`packages/ui-native`", has(MOBILE)),
@@ -920,9 +938,12 @@ fn creates_a_web_project() {
             "apps/mobile",
             "apps/web-solid",
             "apps/web-vue",
+            "apps/web-svelte",
             "packages/ui-native",
             "packages/ui-solid",
             "packages/ui-vue",
+            "packages/ui-svelte",
+            ".pnpmfile.cjs",
             "tools/lint",
             "crates",
             "kotlin",
@@ -955,12 +976,13 @@ fn creates_a_web_project() {
         "./packages/ui-core/src/styles/index.css"
     );
     // The Zag.js pins and their release-age exclusions come with the target, React's adapter
-    // and none of Solid's or Vue's.
+    // and none of Solid's, Vue's or Svelte's.
     let workspace = text(&tree, "pnpm-workspace.yaml");
     assert!(workspace.contains("\"@zag-js/menu\"") && workspace.contains("\"@zag-js/react\""));
     assert!(workspace.contains("minimumReleaseAgeExclude:"));
     assert!(!workspace.contains("@zag-js/solid") && !workspace.contains("solid-js:"));
     assert!(!workspace.contains("@zag-js/vue") && !workspace.contains("catalogs:"));
+    assert!(!workspace.contains("@zag-js/svelte") && !workspace.contains("svelte:"));
     assert_eq!(json(&tree, "package.json")["name"], "orbit");
     let library = json(&tree, "packages/ui/package.json");
     assert_eq!(library["name"], "@orbit/ui");
@@ -980,7 +1002,9 @@ fn creates_a_web_project() {
     assert!(!preview.contains("VITE_DOCS_SITE"));
     let note = text(&tree, "packages/ui-core/src/preview/README.md");
     assert!(note.contains("packages/ui/src/preview.tsx"));
-    assert!(!note.contains("ui-solid") && !note.contains("ui-vue"));
+    assert!(!note.contains("ui-solid") && !note.contains("ui-vue") && !note.contains("ui-svelte"));
+    // Formatting Svelte files needs Svelte's compiler, which only the web-svelte target installs.
+    assert!(!text(&tree, ".oxfmtrc.jsonc").contains("\"svelte\""));
 }
 
 #[test]
@@ -1008,8 +1032,11 @@ fn creates_a_solid_web_project() {
             "apps/web",
             "apps/web-solid/src/preview",
             "apps/web-vue",
+            "apps/web-svelte",
             "packages/ui",
             "packages/ui-vue",
+            "packages/ui-svelte",
+            ".pnpmfile.cjs",
             "apps/mobile",
             "packages/ui-native",
             "tools/lint",
@@ -1103,8 +1130,11 @@ fn creates_a_vue_web_project() {
         &[
             "apps/web",
             "apps/web-solid",
+            "apps/web-svelte",
             "packages/ui",
             "packages/ui-solid",
+            "packages/ui-svelte",
+            ".pnpmfile.cjs",
             "apps/mobile",
             "packages/ui-native",
             "crates",
@@ -1120,7 +1150,8 @@ fn creates_a_vue_web_project() {
     assert!(mise.contains("web-vue = \"apps/web-vue\""));
     assert!(text(&tree, "apps/web-vue/vite.config.ts").contains("port: 5175, strictPort: true"));
     // Vue, Zag's Vue adapter with its release-age exclusion, and the `vue` catalog of vue-tsc
-    // and the TypeScript it runs on come with the target, and nothing of React's or Solid's.
+    // and the TypeScript it runs on come with the target, and nothing of React's, Solid's or
+    // Svelte's.
     let workspace = text(&tree, "pnpm-workspace.yaml");
     for line in [
         "  - apps/web-vue\n",
@@ -1134,7 +1165,7 @@ fn creates_a_vue_web_project() {
         assert!(workspace.contains(line), "{line}");
     }
     assert!(!workspace.contains("react:") && !workspace.contains("@zag-js/react"));
-    assert!(!workspace.contains("solid-js:"));
+    assert!(!workspace.contains("solid-js:") && !workspace.contains("@zag-js/svelte"));
     // Vue's classes sort against ui-core's stylesheet, and its lint has the Vue plugin.
     let format = jsonc(&text(&tree, ".oxfmtrc.jsonc"), ".oxfmtrc.jsonc");
     assert_eq!(
@@ -1164,14 +1195,106 @@ fn creates_a_vue_web_project() {
     );
     let note = text(&tree, "packages/ui-core/src/preview/README.md");
     assert!(note.contains("packages/ui-vue/src/preview.ts") && !note.contains("packages/ui/"));
-    assert!(!note.contains("ui-solid"));
+    assert!(!note.contains("ui-solid") && !note.contains("ui-svelte"));
+}
+
+#[test]
+fn creates_a_svelte_web_project() {
+    let (_temp, directory) = project(&[SVELTE]);
+    let tree = read_tree(&directory);
+    assert_clean(&tree, &[SVELTE]);
+    assert_paths(
+        &tree,
+        &[
+            "apps/web-svelte/package.json",
+            "apps/web-svelte/mise.toml",
+            "apps/web-svelte/svelte.config.js",
+            "packages/ui-svelte/package.json",
+            "packages/ui-svelte/src/preview/Preview.svelte",
+            "packages/ui-core/package.json",
+            "packages/ui-core/src/styles/index.css",
+            "packages/ui-core/src/preview/design.ts",
+            "packages/tokens/src/generated/theme.css",
+            ".pnpmfile.cjs",
+            "pnpm-workspace.yaml",
+            ".oxfmtrc.jsonc",
+            ".oxlintrc.jsonc",
+        ],
+        &[
+            "apps/web",
+            "apps/web-solid",
+            "apps/web-vue",
+            "packages/ui",
+            "packages/ui-solid",
+            "packages/ui-vue",
+            "apps/mobile",
+            "packages/ui-native",
+            "tools/lint",
+            "crates",
+            "kotlin",
+        ],
+    );
+    assert_eq!(
+        json(&tree, "packages/ui-svelte/package.json")["name"],
+        "@orbit/ui-svelte"
+    );
+    let mise = text(&tree, "mise.toml");
+    assert!(mise.contains("pnpm --filter @orbit/web-svelte build"));
+    assert!(mise.contains("web-svelte = \"apps/web-svelte\""));
+    assert!(!mise.contains("pnpm --filter @orbit/web build"));
+    // The Zag.js and Svelte pins, svelte-check's TypeScript 7 under its other name, and Zag's
+    // release-age exclusions come with the target.
+    let workspace = text(&tree, "pnpm-workspace.yaml");
+    for pin in [
+        "\"@zag-js/menu\"",
+        "\"@zag-js/svelte\"",
+        "\n  svelte: ",
+        "\n  svelte-check: ",
+        "\"@typescript/native\": npm:typescript@",
+        "\"@zag-js/svelte@",
+    ] {
+        assert!(workspace.contains(pin), "{pin}");
+    }
+    assert!(!workspace.contains("react:") && !workspace.contains("solid-js:"));
+    assert!(!workspace.contains("@zag-js/vue") && !workspace.contains("catalogs:"));
+    // Svelte files are formatted, and their classes sort against ui-core's stylesheet. oxlint
+    // has no rules of Svelte's own; the Vitest rules take its tests.
+    let format = jsonc(&text(&tree, ".oxfmtrc.jsonc"), ".oxfmtrc.jsonc");
+    assert_eq!(format["svelte"], true);
+    assert_eq!(
+        format["overrides"][0]["files"],
+        serde_json::json!([
+            "packages/ui-core/**",
+            "apps/web-svelte/**",
+            "packages/ui-svelte/**"
+        ])
+    );
+    let lint = jsonc(&text(&tree, ".oxlintrc.jsonc"), ".oxlintrc.jsonc");
+    let overrides = lint["overrides"].as_array().expect("overrides");
+    assert_eq!(overrides.len(), 1);
+    assert_eq!(
+        overrides[0]["files"],
+        serde_json::json!(["packages/ui-core/test/**", "packages/ui-svelte/test/**"])
+    );
+    assert!(lint.get("settings").is_none());
+    assert!(
+        text(&tree, "apps/web-svelte/src/DesignPreview.svelte")
+            .contains("from \"@orbit/ui-svelte/preview\"")
+    );
+    let note = text(&tree, "packages/ui-core/src/preview/README.md");
+    assert!(
+        note.contains("packages/ui-svelte/src/preview/")
+            && !note.contains("packages/ui/")
+            && !note.contains("ui-solid")
+            && !note.contains("ui-vue")
+    );
 }
 
 #[test]
 fn the_web_targets_coexist() {
-    let (_temp, directory) = project(&[WEB, SOLID, VUE]);
+    let (_temp, directory) = project(&[WEB, SOLID, VUE, SVELTE]);
     let tree = read_tree(&directory);
-    assert_clean(&tree, &[WEB, SOLID, VUE]);
+    assert_clean(&tree, &[WEB, SOLID, VUE, SVELTE]);
     assert_paths(
         &tree,
         &[
@@ -1181,6 +1304,8 @@ fn the_web_targets_coexist() {
             "packages/ui-solid/package.json",
             "apps/web-vue/package.json",
             "packages/ui-vue/package.json",
+            "apps/web-svelte/package.json",
+            "packages/ui-svelte/package.json",
             "packages/ui-core/package.json",
         ],
         &[],
@@ -1190,6 +1315,7 @@ fn the_web_targets_coexist() {
         "pnpm --filter @orbit/web build",
         "pnpm --filter @orbit/web-solid build",
         "pnpm --filter @orbit/web-vue build",
+        "pnpm --filter @orbit/web-svelte build",
     ] {
         assert!(mise.contains(build), "{build}");
     }
@@ -1198,6 +1324,7 @@ fn the_web_targets_coexist() {
         ("apps/web", 5173),
         ("apps/web-solid", 5174),
         ("apps/web-vue", 5175),
+        ("apps/web-svelte", 5176),
     ] {
         let config = text(&tree, &format!("{app}/vite.config.ts"));
         assert!(
@@ -1205,7 +1332,7 @@ fn the_web_targets_coexist() {
             "{app}: {port}"
         );
     }
-    // Both libraries run the behavior checks of ui-core, under the project's name, on the
+    // Every library runs the behavior checks of ui-core, under the project's name, on the
     // screens ui-core writes as data, drawn by the library's preview renderer.
     for (test, renderer) in [
         ("packages/ui/test/behavior.test.tsx", "../src/preview.tsx"),
@@ -1214,6 +1341,10 @@ fn the_web_targets_coexist() {
             "../src/preview.tsx",
         ),
         ("packages/ui-vue/test/behavior.test.ts", "../src/preview.ts"),
+        (
+            "packages/ui-svelte/test/behavior.test.ts",
+            "../src/preview/index.ts",
+        ),
     ] {
         let code = text(&tree, test);
         assert!(
@@ -1227,9 +1358,15 @@ fn the_web_targets_coexist() {
     assert!(note.contains("packages/ui/src/preview.tsx"));
     assert!(note.contains("packages/ui-solid/src/preview.tsx"));
     assert!(note.contains("packages/ui-vue/src/preview.ts"));
-    // compare:previews compares the three apps.
+    assert!(note.contains("packages/ui-svelte/src/preview/"));
+    // compare:previews compares the four apps.
     let script = text(&tree, "packages/ui-core/scripts/compare-previews.ts");
-    for app in ["apps/web", "apps/web-solid", "apps/web-vue"] {
+    for app in [
+        "apps/web",
+        "apps/web-solid",
+        "apps/web-vue",
+        "apps/web-svelte",
+    ] {
         assert!(script.contains(&format!("dir: \"{app}\"")), "{app}");
     }
 }
@@ -1358,12 +1495,14 @@ fn creates_a_project_with_every_target() {
             "apps/web",
             "apps/web-solid",
             "apps/web-vue",
+            "apps/web-svelte",
             "apps/desktop",
             "apps/mobile",
             "packages/ui",
             "packages/ui-core",
             "packages/ui-solid",
             "packages/ui-vue",
+            "packages/ui-svelte",
             "packages/ui-native",
             "crates/orbit-ui",
             "kotlin",
@@ -1543,6 +1682,7 @@ fn adding_a_target_gives_the_project_that_create_would_have() {
         (SOLID, MOBILE),
         (SOLID, VUE),
         (VUE, KOTLIN),
+        (SVELTE, WEB),
     ] {
         let (_temp, grown) = project(&[first]);
         add(&grown, &[second]);
@@ -1866,8 +2006,11 @@ fn the_component_contract_matches_the_code() {
                 .get(path)
                 .unwrap_or_else(|| panic!("{name}: {path} does not exist"));
             let code = String::from_utf8_lossy(&file.contents);
-            // A single-file component is named by its file.
-            let defines = match path.strip_suffix(".vue") {
+            // A single-file component, Vue's or Svelte's, is named by its file.
+            let defines = match path
+                .strip_suffix(".vue")
+                .or_else(|| path.strip_suffix(".svelte"))
+            {
                 Some(stem) => stem.rsplit('/').next() == Some(symbol),
                 None => code.contains(symbol),
             };
@@ -1886,6 +2029,7 @@ fn the_component_contract_matches_the_code() {
         (WEB, "packages/ui/src/index.ts"),
         (SOLID, "packages/ui-solid/src/index.ts"),
         (VUE, "packages/ui-vue/src/index.ts"),
+        (SVELTE, "packages/ui-svelte/src/index.ts"),
         (MOBILE, "packages/ui-native/src/index.ts"),
     ] {
         let index = String::from_utf8_lossy(&template.files[index].contents).into_owned();

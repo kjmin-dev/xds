@@ -35,6 +35,7 @@ xds create my-app --yes
 | `web-react` | 브라우저 | React 19, Vite, Tailwind v4, Zag.js |
 | `web-solid` | 브라우저 | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js |
 | `web-vue` | 브라우저 | Vue 3, Vite, Tailwind v4, Zag.js |
+| `web-svelte` | 브라우저 | Svelte 5, Vite, Tailwind v4, Zag.js |
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component |
 | `mobile-react-native` | iOS, Android | React Native, Expo |
 | `kotlin-compose` | Android, iOS, 데스크톱 | Kotlin Multiplatform, Compose Multiplatform |

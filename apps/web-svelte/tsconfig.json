@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    // oxlint's no-unused-vars passes over a component's script, whose names the template may
+    // use, so svelte-check, which reads both, reports what is unused.
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "types": ["svelte", "vite/client"]
+  },
+  "include": ["src", "vite.config.ts"]
+}

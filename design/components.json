@@ -56,6 +56,10 @@
           "source": "packages/ui-vue/src/Button.vue",
           "symbol": "Button"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Button.svelte",
+          "symbol": "Button"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/components.rs",
           "symbol": "button"
@@ -110,6 +114,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/TextField.vue",
+          "symbol": "TextField"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/TextField.svelte",
           "symbol": "TextField"
         },
         "desktop-gpui": {
@@ -170,6 +178,10 @@
           "source": "packages/ui-vue/src/Text.vue",
           "symbol": "Text"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Text.svelte",
+          "symbol": "Text"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/components.rs",
           "symbol": "text"
@@ -221,6 +233,10 @@
           "source": "packages/ui-vue/src/Badge.vue",
           "symbol": "Badge"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Badge.svelte",
+          "symbol": "Badge"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/components.rs",
           "symbol": "Badge"
@@ -263,6 +279,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/CountBadge.vue",
+          "symbol": "CountBadge"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/CountBadge.svelte",
           "symbol": "CountBadge"
         },
         "desktop-gpui": {
@@ -312,6 +332,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/Banner.vue",
+          "symbol": "Banner"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Banner.svelte",
           "symbol": "Banner"
         },
         "desktop-gpui": {
@@ -370,6 +394,10 @@
           "source": "packages/ui-vue/src/Card.vue",
           "symbol": "Card"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Card.svelte",
+          "symbol": "Card"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/components.rs",
           "symbol": "card"
@@ -404,6 +432,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/Divider.vue",
+          "symbol": "Divider"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Divider.svelte",
           "symbol": "Divider"
         },
         "desktop-gpui": {
@@ -447,6 +479,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/Spinner.vue",
+          "symbol": "Spinner"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Spinner.svelte",
           "symbol": "Spinner"
         },
         "desktop-gpui": {
@@ -497,6 +533,10 @@
           "source": "packages/ui-vue/src/Switch.vue",
           "symbol": "Switch"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Switch.svelte",
+          "symbol": "Switch"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/controls.rs",
           "symbol": "switch"
@@ -543,6 +583,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/Checkbox.vue",
+          "symbol": "Checkbox"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Checkbox.svelte",
           "symbol": "Checkbox"
         },
         "desktop-gpui": {
@@ -592,6 +636,10 @@
           "source": "packages/ui-vue/src/SegmentedControl.vue",
           "symbol": "SegmentedControl"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/SegmentedControl.svelte",
+          "symbol": "SegmentedControl"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/controls.rs",
           "symbol": "SegmentedControl"
@@ -638,6 +686,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/Avatar.vue",
+          "symbol": "Avatar"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Avatar.svelte",
           "symbol": "Avatar"
         },
         "desktop-gpui": {
@@ -689,6 +741,10 @@
           "source": "packages/ui-vue/src/AvatarStack.vue",
           "symbol": "AvatarStack"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/AvatarStack.svelte",
+          "symbol": "AvatarStack"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/controls.rs",
           "symbol": "AvatarStack"
@@ -728,6 +784,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/ProgressBar.vue",
+          "symbol": "ProgressBar"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/ProgressBar.svelte",
           "symbol": "ProgressBar"
         },
         "desktop-gpui": {
@@ -779,6 +839,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/Icon.vue",
+          "symbol": "Icon"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Icon.svelte",
           "symbol": "Icon"
         },
         "desktop-gpui": {
@@ -836,6 +900,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/ListRow.vue",
+          "symbol": "ListRow"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/ListRow.svelte",
           "symbol": "ListRow"
         },
         "desktop-gpui": {
@@ -905,6 +973,10 @@
           "source": "packages/ui-vue/src/IconButton.vue",
           "symbol": "IconButton"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/IconButton.svelte",
+          "symbol": "IconButton"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/components.rs",
           "symbol": "icon_button"
@@ -957,6 +1029,10 @@
           "source": "packages/ui-vue/src/Chip.vue",
           "symbol": "Chip"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Chip.svelte",
+          "symbol": "Chip"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/controls.rs",
           "symbol": "Chip"
@@ -996,6 +1072,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/ChipBar.vue",
+          "symbol": "ChipBar"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/ChipBar.svelte",
           "symbol": "ChipBar"
         },
         "desktop-gpui": {
@@ -1046,6 +1126,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/Tabs.vue",
+          "symbol": "Tabs"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Tabs.svelte",
           "symbol": "Tabs"
         },
         "desktop-gpui": {
@@ -1099,6 +1183,10 @@
           "source": "packages/ui-vue/src/Menu.vue",
           "symbol": "Menu"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Menu.svelte",
+          "symbol": "Menu"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/overlays.rs",
           "symbol": "Menu"
@@ -1150,6 +1238,10 @@
           "source": "packages/ui-vue/src/Dialog.vue",
           "symbol": "Dialog"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Dialog.svelte",
+          "symbol": "Dialog"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/overlays.rs",
           "symbol": "Dialog"
@@ -1198,6 +1290,10 @@
           "source": "packages/ui-vue/src/Toast.vue",
           "symbol": "Toast"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Toast.svelte",
+          "symbol": "Toast"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/overlays.rs",
           "symbol": "Toast"
@@ -1242,6 +1338,10 @@
           "source": "packages/ui-vue/src/Tooltip.vue",
           "symbol": "Tooltip"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Tooltip.svelte",
+          "symbol": "Tooltip"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/overlays.rs",
           "symbol": "tooltip"
@@ -1279,6 +1379,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/Skeleton.vue",
+          "symbol": "Skeleton"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Skeleton.svelte",
           "symbol": "Skeleton"
         },
         "desktop-gpui": {
@@ -1332,6 +1436,10 @@
           "source": "packages/ui-vue/src/SearchField.vue",
           "symbol": "SearchField"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/SearchField.svelte",
+          "symbol": "SearchField"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/components.rs",
           "symbol": "SearchField"
@@ -1381,6 +1489,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/RadioGroup.vue",
+          "symbol": "RadioGroup"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/RadioGroup.svelte",
           "symbol": "RadioGroup"
         },
         "desktop-gpui": {
@@ -1437,6 +1549,10 @@
           "source": "packages/ui-vue/src/Select.vue",
           "symbol": "Select"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Select.svelte",
+          "symbol": "Select"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/overlays.rs",
           "symbol": "Select"
@@ -1490,6 +1606,10 @@
           "source": "packages/ui-vue/src/Slider.vue",
           "symbol": "Slider"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Slider.svelte",
+          "symbol": "Slider"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/controls.rs",
           "symbol": "Slider"
@@ -1539,6 +1659,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/Thumbnail.vue",
+          "symbol": "Thumbnail"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Thumbnail.svelte",
           "symbol": "Thumbnail"
         },
         "desktop-gpui": {
@@ -1600,6 +1724,10 @@
           "source": "packages/ui-vue/src/MediaCard.vue",
           "symbol": "MediaCard"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/MediaCard.svelte",
+          "symbol": "MediaCard"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/components.rs",
           "symbol": "MediaCard"
@@ -1643,6 +1771,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/SectionHeader.vue",
+          "symbol": "SectionHeader"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/SectionHeader.svelte",
           "symbol": "SectionHeader"
         },
         "desktop-gpui": {
@@ -1700,6 +1832,10 @@
           "source": "packages/ui-vue/src/Sidebar.vue",
           "symbol": "Sidebar"
         },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Sidebar.svelte",
+          "symbol": "Sidebar"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/navigation.rs",
           "symbol": "Sidebar"
@@ -1734,6 +1870,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/EmptyState.vue",
+          "symbol": "EmptyState"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/EmptyState.svelte",
           "symbol": "EmptyState"
         },
         "desktop-gpui": {
@@ -1784,6 +1924,10 @@
         },
         "web-vue": {
           "source": "packages/ui-vue/src/Accordion.vue",
+          "symbol": "Accordion"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/Accordion.svelte",
           "symbol": "Accordion"
         },
         "desktop-gpui": {

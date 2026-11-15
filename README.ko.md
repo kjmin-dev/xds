@@ -13,6 +13,7 @@
 | `web-react` | 브라우저 | React 19, Vite, Tailwind v4, Zag.js | `packages/ui`, `packages/ui-core` | `apps/web` |
 | `web-solid` | 브라우저 | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js | `packages/ui-solid`, `packages/ui-core` | `apps/web-solid` |
 | `web-vue` | 브라우저 | Vue 3, Vite, Tailwind v4, Zag.js | `packages/ui-vue`, `packages/ui-core` | `apps/web-vue` |
+| `web-svelte` | 브라우저 | Svelte 5, Vite, Tailwind v4, Zag.js | `packages/ui-svelte`, `packages/ui-core` | `apps/web-svelte` |
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component | `crates/acme-ui` | `apps/desktop` |
 | `mobile-react-native` | iOS, Android | React Native, Expo | `packages/ui-native` | `apps/mobile` |
 | `kotlin-compose` | Android, iOS, 데스크톱 | Kotlin Multiplatform, Compose Multiplatform | `kotlin/ui` | `kotlin/androidApp`, `kotlin/iosApp`, `kotlin/desktopApp` |
@@ -81,7 +82,7 @@ JSON 출력 형식과 종료 코드에 대한 자세한 내용은 [CLI 문서](d
 - `design/tokens`에는 DTCG 형식의 디자인 토큰이 들어 있습니다. 컬러 팔레트, 라이트·다크 모드 시맨틱 컬러, 컴포넌트 전용 컬러, 타이포그래피 역할, 여백, 모서리 반경, 모션, 그림자, 포인터 및 터치 입력 환경별 컨트롤 크기를 정의합니다.
 - `design/themes`에는 `indigo`(기본값), `ocean`, `forest`, `sunset`, `plum` 다섯 가지 컬러 테마가 있습니다. 각 테마는 강조색(accent) 단계와 무채색(neutral) 단계로 구성되며, 모든 테마가 전체 명암비 검사를 통과합니다.
 - `tools/design-build`는 토큰을 CSS 커스텀 프로퍼티, Tailwind 테마, TypeScript 상수, Rust 상수, Compose 값으로 컴파일합니다. 외부 의존성 없이 Node만으로 실행되며, 색상 조합의 명암비가 WCAG 기준에 미달하면 빌드가 실패합니다.
-- 모든 클라이언트는 동일한 이름과 옵션을 가진 컴포넌트를 구현합니다: Button, TextField, Text, Badge, CountBadge, Banner, Card, Divider, Spinner, Switch, Checkbox, SegmentedControl, Avatar, AvatarStack, ProgressBar, ListRow, Icon, IconButton, Chip, ChipBar, Tabs, Menu, Dialog, Toast, Skeleton, SearchField, RadioGroup, Select, Slider, Thumbnail, MediaCard, SectionHeader, EmptyState, Accordion. 터치 기반의 두 클라이언트에는 TopBar, TabBar, BottomSheet가, 포인터 기반의 클라이언트(세 웹 클라이언트와 GPUI)에는 Tooltip과 Sidebar가 추가로 포함됩니다.
+- 모든 클라이언트는 동일한 이름과 옵션을 가진 컴포넌트를 구현합니다: Button, TextField, Text, Badge, CountBadge, Banner, Card, Divider, Spinner, Switch, Checkbox, SegmentedControl, Avatar, AvatarStack, ProgressBar, ListRow, Icon, IconButton, Chip, ChipBar, Tabs, Menu, Dialog, Toast, Skeleton, SearchField, RadioGroup, Select, Slider, Thumbnail, MediaCard, SectionHeader, EmptyState, Accordion. 터치 기반의 두 클라이언트에는 TopBar, TabBar, BottomSheet가, 포인터 기반의 클라이언트(네 웹 클라이언트와 GPUI)에는 Tooltip과 Sidebar가 추가로 포함됩니다.
 - 각 앱에는 모든 토큰과 컴포넌트를 한 화면에서 확인할 수 있는 디자인 프리뷰 화면이 포함되어 있습니다. 웹 앱들은 하나의 프리뷰를 공유합니다. 프리뷰는 `packages/ui-core`에 타입이 있는 데이터로 한 번만 정의되어 있고, 각 웹 라이브러리의 작은 렌더러가 이를 그립니다.
 
 시스템 구조의 설계 배경과 최신 오픈소스 디자인 시스템에서 참고한 관례는 [디자인 시스템 문서](docs/design-system.md)(영문)에서 설명합니다.
@@ -103,6 +104,8 @@ mise run check          # CI가 돌리는 것 전부
 | Solid 디자인 프리뷰 열기 | `http://localhost:5174/design` 접속 |
 | Vue 웹 앱 실행 | `mise run //web-vue:dev` 실행 후 `http://localhost:5175` 접속 |
 | Vue 디자인 프리뷰 열기 | `http://localhost:5175/design` 접속 |
+| Svelte 웹 앱 실행 | `mise run //web-svelte:dev` 실행 후 `http://localhost:5176` 접속 |
+| Svelte 디자인 프리뷰 열기 | `http://localhost:5176/design` 접속 |
 | GPUI 데스크톱 앱 실행 | `mise run //desktop:dev` |
 | GPUI 디자인 프리뷰 열기 | `mise run //desktop:design` |
 | React Native 앱 실행 | `mise run //mobile:ios` 또는 `mise run //mobile:android` |
@@ -118,7 +121,7 @@ mise run check          # CI가 돌리는 것 전부
 
 웹 컴포넌트 테스트는 Google Chrome에서 실행되므로 `mise run check`에는 Chrome이 설치되어 있어야 합니다. GPUI 데스크톱 앱은 macOS에서 빌드됩니다. Compose 앱을 빌드하려면 Android는 Android SDK, iOS는 Xcode가 필요합니다. 자세한 내용은 [kotlin/README.md](kotlin/README.md)(영문)를 참고하세요. 모바일 앱에서는 홈 화면의 버튼을 눌러 디자인 프리뷰를 열 수 있습니다.
 
-명령줄의 타입 검사와 oxlint의 타입 인식 규칙은 `mise run check:js`에서 [tsrs](https://github.com/oxc-project/tsrs)로 실행됩니다. tsrs는 TypeScript 7.1을 Rust로 옮긴 실험판으로, 정확한 버전에 고정되어 있습니다. 에디터는 TypeScript 자체의 언어 서버를 그대로 쓰므로, 루트의 `typescript` 패키지를 쓰도록 지정하세요. tsrs도 이 버전에 맞춰집니다. tsrs는 TypeScript의 특정 커밋에서 빌드되므로 둘은 `pnpm-workspace.yaml`의 카탈로그에서 함께 올립니다. `typescript`를 올릴 때 `tsrs`도 같은 버전을 옮긴 릴리스로 바꾸세요(릴리스가 옮긴 버전은 `pnpm view tsrs@<릴리스> tsrs.typescriptVersion`으로 확인합니다). 둘이 다르면 `mise run check:js`가 실패합니다. Vue 패키지는 예외로, `.vue` 파일을 vue-tsc로 검사합니다. vue-tsc와 Vite의 `.vue` 컴파일러에 필요한 TypeScript 6 API를 TypeScript 7 검사기 위에 유지하는 [typescript-native-bridge](https://www.npmjs.com/package/typescript-native-bridge) 위에서 실행됩니다.
+명령줄의 타입 검사와 oxlint의 타입 인식 규칙은 `mise run check:js`에서 [tsrs](https://github.com/oxc-project/tsrs)로 실행됩니다. tsrs는 TypeScript 7.1을 Rust로 옮긴 실험판으로, 정확한 버전에 고정되어 있습니다. 에디터는 TypeScript 자체의 언어 서버를 그대로 쓰므로, 루트의 `typescript` 패키지를 쓰도록 지정하세요. tsrs도 이 버전에 맞춰집니다. tsrs는 TypeScript의 특정 커밋에서 빌드되므로 둘은 `pnpm-workspace.yaml`의 카탈로그에서 함께 올립니다. `typescript`를 올릴 때 `tsrs`도 같은 버전을 옮긴 릴리스로 바꾸세요(릴리스가 옮긴 버전은 `pnpm view tsrs@<릴리스> tsrs.typescriptVersion`으로 확인합니다). 둘이 다르면 `mise run check:js`가 실패합니다. Vue 패키지는 예외로, `.vue` 파일을 vue-tsc로 검사합니다. vue-tsc와 Vite의 `.vue` 컴파일러에 필요한 TypeScript 6 API를 TypeScript 7 검사기 위에 유지하는 [typescript-native-bridge](https://www.npmjs.com/package/typescript-native-bridge) 위에서 실행됩니다. Svelte 패키지는 svelte-check로 같은 TypeScript 7(카탈로그의 `@typescript/native` 별칭)을 써서 타입을 검사합니다. svelte-check는 아직 `.svelte` 파일을 TypeScript 6으로 읽기 때문에, `.pnpmfile.cjs`가 svelte-check에만 TypeScript 6을 줍니다.
 
 `mise run check:js`는 React Native 앱도 Expo SDK 기준으로 검사합니다. `mise run //mobile:check`는 네이티브 패키지가 설치된 SDK가 기대하는 버전과 다르면 실패하고, `mise run //mobile:bundle`은 앱을 iOS와 Android용으로 번들합니다. 네이티브 패키지는 `apps/mobile`에서 `pnpm exec expo install`로 추가하세요. 다음 SDK로 옮기는 방법은 [CONTRIBUTING.md](CONTRIBUTING.md)(영문)에 있습니다.
 
@@ -140,6 +143,7 @@ packages/ui/            React 웹 컴포넌트
 packages/ui-core/       웹 컴포넌트가 함께 쓰는 prop 타입, 클래스, CSS
 packages/ui-solid/      Solid 웹 컴포넌트
 packages/ui-vue/        Vue 웹 컴포넌트
+packages/ui-svelte/     Svelte 웹 컴포넌트
 packages/ui-native/     React Native 컴포넌트
 crates/acme-tokens/     생성된 Rust
 crates/acme-ui/         GPUI 컴포넌트
@@ -147,6 +151,7 @@ kotlin/                 Compose 컴포넌트와 앱 (별도의 Gradle 빌드)
 apps/web/               React 앱
 apps/web-solid/         Solid 앱
 apps/web-vue/           Vue 앱
+apps/web-svelte/        Svelte 앱
 apps/desktop/           GPUI 앱
 apps/mobile/            Expo 앱
 apps/docs/              문서 사이트 (프로젝트에는 복사되지 않음)
@@ -160,12 +165,12 @@ template.json           어떤 경로가 어느 클라이언트에 속하는지
 
 | | 상태 |
 | --- | --- |
-| 웹 | 헤드리스 Chrome에서 라이트·다크 모드로 React, Solid, Vue 디자인 프리뷰를 확인하고, 모든 섹션과 열린 오버레이 각각의 스크린샷을 서로 비교. 세 라이브러리는 데이터로 한 번 정의된 같은 프리뷰를 같은 스타일시트로 그리고, 같은 Zag.js 상태 머신에서 동작을 가져옴 |
+| 웹 | 헤드리스 Chrome에서 라이트·다크 모드로 React, Solid, Vue, Svelte 디자인 프리뷰를 확인하고, 모든 섹션과 열린 오버레이 각각의 스크린샷을 서로 비교. 네 라이브러리는 데이터로 한 번 정의된 같은 프리뷰를 같은 스타일시트로 그리고, 같은 Zag.js 상태 머신에서 동작을 가져옴 |
 | GPUI 데스크톱 | macOS에서 앱 실행 및 라이트·다크 모드 프리뷰 확인 |
 | React Native | iOS 시뮬레이터에서 라이트·다크 모드 및 바텀 시트 동작 확인. Android와 실제 기기는 아직 확인하지 않음 |
 | Compose | 데스크톱, Android 에뮬레이터, iOS 시뮬레이터에서 확인. 자세한 내용은 [kotlin/README.md](kotlin/README.md) 참고 |
-| `xds` | `web-solid`와 `web-vue`를 뺀 네 클라이언트를 하나씩 선택한 프로젝트와 그 넷을 모두 선택한 프로젝트를 생성해 macOS에서 각각의 `mise run check` 통과 확인. `web-solid`만, `web-vue`만 선택한 프로젝트와 웹 클라이언트 두세 개를 함께 선택한 프로젝트는 설치, `check:js`, 웹 빌드 통과 확인. Linux·Windows 바이너리 및 릴리스 워크플로는 아직 실행하지 않음 |
-| 접근성 | 명암비는 빌드 시 자동 검증. 웹의 인터랙티브 컴포넌트는 키보드·포커스·ARIA 동작을 헤드리스 Chrome에서 테스트하며, React, Solid, Vue 라이브러리가 같은 검사를 통과함. 스크린 리더 테스트는 어느 클라이언트에서도 진행하지 않음 |
+| `xds` | `web-solid`, `web-vue`, `web-svelte`를 뺀 네 클라이언트를 하나씩 선택한 프로젝트와 그 넷을 모두 선택한 프로젝트를 생성해 macOS에서 각각의 `mise run check` 통과 확인. `web-solid`만, `web-vue`만, `web-svelte`만 선택한 프로젝트와 웹 클라이언트 둘에서 넷까지를 함께 선택한 프로젝트는 설치, `check:js`, 웹 빌드 통과 확인. Linux·Windows 바이너리 및 릴리스 워크플로는 아직 실행하지 않음 |
+| 접근성 | 명암비는 빌드 시 자동 검증. 웹의 인터랙티브 컴포넌트는 키보드·포커스·ARIA 동작을 헤드리스 Chrome에서 테스트하며, React, Solid, Vue, Svelte 라이브러리가 같은 검사를 통과함. 스크린 리더 테스트는 어느 클라이언트에서도 진행하지 않음 |
 
 ## 라이선스
 

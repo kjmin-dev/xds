@@ -110,6 +110,22 @@
       ]
     },
     {
+      "id": "web-svelte",
+      "title": "Web",
+      "stack": "Svelte 5, Vite, Tailwind v4, Zag.js",
+      "platforms": ["Web"],
+      "paths": ["apps/web-svelte", "packages/ui-svelte", ".pnpmfile.cjs"],
+      "requires": ["js-workspace", "js-tokens", "ui-core"],
+      "outputs": ["css", "tailwind", "typescript"],
+      "format": "mise run fmt",
+      "run": [
+        {
+          "command": "mise run //web-svelte:dev",
+          "description": "Start the Svelte web app on http://localhost:5176"
+        }
+      ]
+    },
+    {
       "id": "desktop-gpui",
       "title": "Desktop",
       "stack": "Rust, GPUI, GPUI Component",

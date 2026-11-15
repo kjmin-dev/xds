@@ -14,6 +14,9 @@ packages:
   # @if web-vue
   - apps/web-vue
   # @endif
+  # @if web-svelte
+  - apps/web-svelte
+  # @endif
   - packages/*
   - tools/*
 
@@ -67,6 +70,17 @@ catalog:
   "@zag-js/vue": 2.0.0-next.4
   vue: 3.5.45
   # @endif
+  # @if web-svelte
+  "@zag-js/svelte": 2.0.0-next.4
+  svelte: 5.57.3
+  "@sveltejs/vite-plugin-svelte": 7.3.1
+  # svelte-check's type checking on TypeScript 7 (--tsgo-experimental-api) is experimental, so
+  # it is an exact pin, upgraded together with typescript. It finds TypeScript 7 only under the
+  # name @typescript/native, which is the same exact version as typescript above (check:js
+  # fails otherwise); its own TypeScript, which reads the Svelte files, is set in .pnpmfile.cjs.
+  svelte-check: 4.7.8
+  "@typescript/native": npm:typescript@7.1.0-beta
+  # @endif
 # @if web-vue
 
 # Named catalogs, for what only some packages take.
@@ -112,6 +126,9 @@ minimumReleaseAgeExclude:
   - "@zag-js/slider@2.0.0-next.4"
   # @if web-solid
   - "@zag-js/solid@2.0.0-next.4"
+  # @endif
+  # @if web-svelte
+  - "@zag-js/svelte@2.0.0-next.4"
   # @endif
   - "@zag-js/tabs@2.0.0-next.4"
   - "@zag-js/tooltip@2.0.0-next.4"

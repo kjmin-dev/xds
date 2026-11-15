@@ -50,8 +50,8 @@ struct TokensRequest {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 struct ComponentsRequest {
-    /// Only this client: web-react, web-solid, web-vue, desktop-gpui, mobile-react-native or
-    /// kotlin-compose.
+    /// Only this client: web-react, web-solid, web-vue, web-svelte, desktop-gpui,
+    /// mobile-react-native or kotlin-compose.
     client: Option<String>,
     project: Option<PathBuf>,
 }

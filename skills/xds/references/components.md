@@ -18,6 +18,7 @@ These commands read the component contract in `design/components.json`.
 | `web-react` | `packages/ui/src/<Name>.tsx`, re-exported from `index.ts`; its prop types, classes, and CSS in `packages/ui-core/src` | `packages/ui-core/src/preview/sections.ts`, shared by every web app; drawn by `packages/ui/src/preview.tsx` |
 | `web-solid` | `packages/ui-solid/src/<Name>.tsx`, re-exported from `index.ts`; its prop types, classes, and CSS in `packages/ui-core/src` | `packages/ui-core/src/preview/sections.ts`, shared by every web app; drawn by `packages/ui-solid/src/preview.tsx` |
 | `web-vue` | `packages/ui-vue/src/<Name>.vue`, re-exported from `index.ts`; its prop types, classes, and CSS in `packages/ui-core/src` | `packages/ui-core/src/preview/sections.ts`, shared by every web app; drawn by `packages/ui-vue/src/preview.ts` |
+| `web-svelte` | `packages/ui-svelte/src/<Name>.svelte`, re-exported from `index.ts`; its prop types, classes, and CSS in `packages/ui-core/src` | `packages/ui-core/src/preview/sections.ts`, shared by every web app; drawn by `packages/ui-svelte/src/preview/` |
 | `mobile-react-native` | `packages/ui-native/src/<Name>.tsx`, re-exported from `index.ts` | `apps/mobile/app/design.tsx` |
 | `desktop-gpui` | `crates/acme-ui/src/components.rs` or `controls.rs`, re-exported from `lib.rs` | `crates/acme-ui/src/preview.rs` |
 | `kotlin-compose` | `kotlin/ui/src/commonMain/kotlin/acme/ui/<Name>.kt` | `DesignPreview.kt` in the same directory |

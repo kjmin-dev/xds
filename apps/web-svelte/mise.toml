@@ -1,0 +1,16 @@
+[tasks.dev]
+description = "Run the Svelte web app on http://localhost:5176"
+depends = ["//:install"]
+run = "pnpm exec vite"
+
+[tasks.build]
+description = "Build the Svelte web app into dist/"
+depends = ["//:install"]
+run = "pnpm exec vite build"
+sources = ["src/**/*", "index.html", "vite.config.ts", "svelte.config.js", "../../packages/*/src/**/*"]
+outputs = ["dist/**/*"]
+
+[tasks.preview]
+description = "Serve the built Svelte web app"
+depends = ["build"]
+run = "pnpm exec vite preview"

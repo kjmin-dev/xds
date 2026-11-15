@@ -35,6 +35,7 @@ The available clients are:
 | `web-react` | Browsers | React 19, Vite, Tailwind v4, Zag.js |
 | `web-solid` | Browsers | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js |
 | `web-vue` | Browsers | Vue 3, Vite, Tailwind v4, Zag.js |
+| `web-svelte` | Browsers | Svelte 5, Vite, Tailwind v4, Zag.js |
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component |
 | `mobile-react-native` | iOS, Android | React Native, Expo |
 | `kotlin-compose` | Android, iOS, desktop | Kotlin Multiplatform, Compose Multiplatform |

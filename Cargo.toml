@@ -21,6 +21,13 @@ acme-ui = { path = "crates/acme-ui" }
 # GPUI, GPUI Component and their assets. GPUI has no stable release, so pin exactly.
 gpui-kit = "=0.9.1"
 
+# Dates for the date picker, and the names, formats and first weekday of the system's locale.
+# pure-rust-locales is the table chrono's `unstable-locales` reads; it is named here as well for
+# the first weekday, which chrono does not expose, so keep it at the version chrono takes.
+chrono = { version = "0.4.45", default-features = false, features = ["clock", "unstable-locales"] }
+pure-rust-locales = "0.8.2"
+sys-locale = "0.3.2"
+
 [workspace.lints.rust]
 unsafe_code = "deny"
 

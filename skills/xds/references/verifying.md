@@ -60,7 +60,7 @@ The checks in `packages/ui-core/test/behavior.ts` drive each component with the 
 cargo run --package acme-desktop -- --design --dark --scroll 800 --exit-after 5
 ```
 
-`--scroll <pixels>` opens the preview at a vertical scroll offset, `--light` and `--dark` pin the color mode, `--open menu|select|dialog|toast|tooltip` opens the preview with that overlay showing, and `--exit-after <seconds>` closes the window automatically after the given delay. Capture the window while it is open using a tool such as `screencapture`.
+`--scroll <pixels>` opens the preview at a vertical scroll offset, `--light` and `--dark` pin the color mode, `--open menu|select|datepicker|dialog|toast|tooltip` opens the preview with that overlay showing, and `--exit-after <seconds>` closes the window automatically after the given delay. Capture the window while it is open using a tool such as `screencapture`.
 
 ## React Native
 

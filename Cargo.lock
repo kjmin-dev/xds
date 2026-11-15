@@ -100,7 +100,10 @@ name = "acme-ui"
 version = "0.1.0"
 dependencies = [
  "acme-tokens",
+ "chrono",
  "gpui-kit",
+ "pure-rust-locales",
+ "sys-locale",
 ]
 
 [[package]]
@@ -878,6 +881,7 @@ dependencies = [
  "iana-time-zone",
  "js-sys",
  "num-traits",
+ "pure-rust-locales",
  "serde",
  "wasm-bindgen",
  "windows-link 0.2.1",
@@ -5004,6 +5008,12 @@ dependencies = [
  "quote",
  "syn 2.0.119",
 ]
+
+[[package]]
+name = "pure-rust-locales"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "869675ad2d7541aea90c6d88c81f46a7f4ea9af8cd0395d38f11a95126998a0d"
 
 [[package]]
 name = "pxfm"

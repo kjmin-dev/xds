@@ -11,6 +11,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use acme_tokens as tokens;
+use chrono::NaiveDate;
 use gpui_kit::base::ElementExt;
 use gpui_kit::component::{
     Disableable,
@@ -26,13 +27,13 @@ use gpui_kit::{
 
 use crate::{
     Accordion, AccordionItem, Avatar, AvatarSize, AvatarStack, Badge, BadgeTone, Banner,
-    BannerTone, ButtonVariant, Chip, ChipBar, ControlSize, CountBadge, Dialog, EmptyState,
-    IconSize, ListRow, MediaCard, MediaCardLayout, Menu, MenuAlign, MenuItem, Person, ProgressBar,
-    RadioGroup, RadioOption, SearchField, SectionHeader, SegmentedControl, Select, SelectOption,
-    Sidebar, SidebarItem, SidebarSection, Skeleton, SkeletonShape, Slider, SpinnerSize, TabItem,
-    Tabs, TextField, Thumbnail, ThumbnailRatio, Toast, TooltipPlacement, TypographyExt, button,
-    card, checkbox, color, divider, icon, icon_button, icon_filled, mode, palette, set_mode,
-    spinner, switch, text, tooltip,
+    BannerTone, ButtonVariant, Chip, ChipBar, ControlSize, CountBadge, DatePicker, Dialog,
+    EmptyState, IconSize, ListRow, MediaCard, MediaCardLayout, Menu, MenuAlign, MenuItem, Person,
+    ProgressBar, RadioGroup, RadioOption, SearchField, SectionHeader, SegmentedControl, Select,
+    SelectOption, Sidebar, SidebarItem, SidebarSection, Skeleton, SkeletonShape, Slider,
+    SpinnerSize, TabItem, Tabs, TextField, Thumbnail, ThumbnailRatio, Toast, TooltipPlacement,
+    TypographyExt, button, card, checkbox, color, divider, icon, icon_button, icon_filled, mode,
+    palette, set_mode, spinner, switch, text, tooltip,
 };
 
 /// Component colors are shown by the components that use them, not as swatches.
@@ -73,6 +74,7 @@ const COMPONENT_COLORS: [&str; 28] = [
 pub enum PreviewOverlay {
     Menu,
     Select,
+    DatePicker,
     Dialog,
     Toast,
     Tooltip,
@@ -85,11 +87,13 @@ impl FromStr for PreviewOverlay {
         match name {
             "menu" => Ok(Self::Menu),
             "select" => Ok(Self::Select),
+            "datepicker" => Ok(Self::DatePicker),
             "dialog" => Ok(Self::Dialog),
             "toast" => Ok(Self::Toast),
             "tooltip" => Ok(Self::Tooltip),
             _ => Err(format!(
-                "there is no overlay called `{name}`: use menu, select, dialog, toast or tooltip"
+                "there is no overlay called `{name}`: use menu, select, datepicker, dialog, toast \
+                 or tooltip"
             )),
         }
     }
@@ -391,6 +395,8 @@ pub struct DesignPreview {
     delivery: Option<SharedString>,
     country: Option<SharedString>,
     time_zone: SharedString,
+    due_date: NaiveDate,
+    start_date: Option<NaiveDate>,
     volume: f32,
     speed: f32,
     faq: Vec<SharedString>,
@@ -487,6 +493,8 @@ impl DesignPreview {
             delivery: None,
             country: None,
             time_zone: "seoul".into(),
+            due_date: day(2026, 3, 10),
+            start_date: None,
             volume: 60.0,
             speed: 1.25,
             faq: vec!["cancel".into()],
@@ -537,7 +545,10 @@ impl DesignPreview {
                     && matches!(
                         overlay,
                         Some(
-                            PreviewOverlay::Menu | PreviewOverlay::Select | PreviewOverlay::Tooltip
+                            PreviewOverlay::Menu
+                                | PreviewOverlay::Select
+                                | PreviewOverlay::DatePicker
+                                | PreviewOverlay::Tooltip
                         )
                     );
                 preview
@@ -561,6 +572,11 @@ impl DesignPreview {
             ));
         })
     }
+}
+
+/// A day of the preview's fixtures.
+fn day(year: i32, month: u32, day: u32) -> NaiveDate {
+    NaiveDate::from_ymd_opt(year, month, day).expect("a fixture day is a real day")
 }
 
 fn row() -> Div {
@@ -1151,6 +1167,55 @@ impl Render for DesignPreview {
                             .description("Set by your organization.")
                             .disabled(true),
                     )),
+            ),
+        );
+        // Fixed days, so the calendar opens on a month that holds no today and a capture of it
+        // does not change from day to day.
+        let date_pickers = self.mark_overlay(
+            PreviewOverlay::DatePicker,
+            labelled("date picker", secondary).items_start().child(
+                div()
+                    .flex_1()
+                    .flex()
+                    .flex_wrap()
+                    .gap(px(tokens::SPACE_4))
+                    .child(
+                        div().w(px(300.0)).child(
+                            DatePicker::new("due-date", "Due date")
+                                .value(self.due_date)
+                                .min(day(2026, 3, 5))
+                                .max(day(2026, 4, 20))
+                                .description("Within the current sprint.")
+                                .default_open(self.overlay == Some(PreviewOverlay::DatePicker))
+                                .on_change(cx.listener(|this, value: &NaiveDate, _, cx| {
+                                    this.due_date = *value;
+                                    cx.notify();
+                                })),
+                        ),
+                    )
+                    .child(
+                        div().w(px(300.0)).child(
+                            DatePicker::new("start-date", "Start date")
+                                .when_some(self.start_date, |picker, value| picker.value(value))
+                                .placeholder("Choose a day")
+                                .error(
+                                    self.start_date
+                                        .is_none()
+                                        .then_some("Choose when the project starts."),
+                                )
+                                .on_change(cx.listener(|this, value: &NaiveDate, _, cx| {
+                                    this.start_date = Some(*value);
+                                    cx.notify();
+                                })),
+                        ),
+                    )
+                    .child(
+                        div().w(px(300.0)).child(
+                            DatePicker::new("locked-date", "Locked")
+                                .value(day(2026, 3, 10))
+                                .disabled(true),
+                        ),
+                    ),
             ),
         );
         let sliders = labelled("slider", secondary)
@@ -1747,7 +1812,12 @@ impl Render for DesignPreview {
                     .children(search_fields)
                     .child(text(searched, tokens::TYPOGRAPHY_DETAIL).text_color(color(secondary))),
             )
-            .child(section("Controls").child(selects).child(sliders))
+            .child(
+                section("Controls")
+                    .child(selects)
+                    .child(date_pickers)
+                    .child(sliders),
+            )
             .child(
                 section("Selection")
                     .child(

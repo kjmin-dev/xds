@@ -25,8 +25,9 @@ function failure(
   const text = log && existsSync(log) ? readFileSync(log, "utf8") : printed;
   const where = log ? ` (all of its output is in ${log})` : "";
   const tail = text.trimEnd().split("\n").slice(-25).join("\n");
+  // Printed, and so perhaps saved by whoever ran the task: without the device ids.
   return new Error(
-    `${[command, ...args].join(" ")} failed (${code ?? "killed"})${where}:\n${tail}`,
+    hide(`${[command, ...args].join(" ")} failed (${code ?? "killed"})${where}:\n${tail}`),
   );
 }
 
@@ -170,19 +171,20 @@ export function secret(id: string) {
   return id;
 }
 
+function hide(text: string) {
+  let hidden = text;
+  for (const id of ids) hidden = hidden.replaceAll(id, "<device>");
+  return hidden;
+}
+
 /** Replaces every remembered id in the files under `directory` with a placeholder. */
 export function scrub(directory: string) {
   if (!existsSync(directory) || ids.size === 0) return;
   for (const entry of readdirSync(directory, { recursive: true, withFileTypes: true })) {
     if (!entry.isFile()) continue;
     const file = join(entry.parentPath, entry.name);
-    let text = readFileSync(file, "latin1");
-    let changed = false;
-    for (const id of ids) {
-      if (!text.includes(id)) continue;
-      text = text.replaceAll(id, "<device>");
-      changed = true;
-    }
-    if (changed) writeFileSync(file, text, "latin1");
+    const text = readFileSync(file, "latin1");
+    const hidden = hide(text);
+    if (hidden !== text) writeFileSync(file, hidden, "latin1");
   }
 }

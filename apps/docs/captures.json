@@ -1,0 +1,65 @@
+{
+  "captures": [
+    {
+      "name": "navigation",
+      "components": ["TopBar", "TabBar"],
+      "platform": "ios",
+      "client": "mobile-react-native",
+      "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
+      "date": "2026-11-15",
+      "alt": "A phone screen showing the Navigation section of the design preview: a top bar titled Settings with a back button and an Edit button, a button labeled Open a bottom sheet, and a floating tab bar with Home, Search and Profile, Home selected.",
+      "inputs": "sha256:276fe6dcae5cce5c97807a224f36151ead58fe34c0bf6a834481f14abdbf92f1"
+    },
+    {
+      "name": "navigation",
+      "components": ["TopBar", "TabBar"],
+      "platform": "android",
+      "client": "mobile-react-native",
+      "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
+      "date": "2026-11-15",
+      "alt": "A phone screen showing the Navigation section of the design preview: a top bar titled Settings with a back button and an Edit button, a button labeled Open a bottom sheet, and a floating tab bar with Home, Search and Profile, Home selected.",
+      "inputs": "sha256:276fe6dcae5cce5c97807a224f36151ead58fe34c0bf6a834481f14abdbf92f1"
+    },
+    {
+      "name": "navigation",
+      "components": ["TopBar", "TabBar"],
+      "platform": "compose",
+      "client": "kotlin-compose",
+      "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
+      "date": "2026-11-15",
+      "alt": "A phone screen showing the Navigation section of the design preview: a top bar titled Settings with a back button and an Edit button, a floating tab bar with Home, Search and Profile, Home selected, and a button labeled Open the sheet.",
+      "inputs": "sha256:18998330c9ef57e352777ca80b8d8fdd63bd9467b1e73c87090f829d7a8bf573"
+    },
+    {
+      "name": "sheet",
+      "components": ["BottomSheet"],
+      "platform": "ios",
+      "client": "mobile-react-native",
+      "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
+      "date": "2026-11-15",
+      "alt": "A bottom sheet risen from the bottom of a phone screen over the dimmed design preview, with a handle, the title Share report, a line of text, a Copy link button and a Cancel button.",
+      "clip": true,
+      "inputs": "sha256:2fd7bb08cc002b7c5fcea344a91137868033f5618ded46390d47439e7b9d6869"
+    },
+    {
+      "name": "sheet",
+      "components": ["BottomSheet"],
+      "platform": "android",
+      "client": "mobile-react-native",
+      "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
+      "date": "2026-11-15",
+      "alt": "A bottom sheet risen from the bottom of a phone screen over the dimmed design preview, with a handle, the title Share report, a line of text, a Copy link button and a Cancel button.",
+      "inputs": "sha256:2fd7bb08cc002b7c5fcea344a91137868033f5618ded46390d47439e7b9d6869"
+    },
+    {
+      "name": "sheet",
+      "components": ["BottomSheet"],
+      "platform": "compose",
+      "client": "kotlin-compose",
+      "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
+      "date": "2026-11-15",
+      "alt": "A bottom sheet risen from the bottom of a phone screen over the dimmed design preview, with a handle, the title Share the report, a line of text, a Copy the link button and a Cancel button.",
+      "inputs": "sha256:fec3236efb1439a677392fe19b650ee8345833fa67d725b198f2f84c0f5f82b1"
+    }
+  ]
+}

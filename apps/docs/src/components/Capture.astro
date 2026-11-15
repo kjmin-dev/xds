@@ -1,0 +1,77 @@
+---
+// A picture of a component from a real client, which says what it is: a dashed border where the
+// live example has a solid one, a "Capture" badge, and a caption with where and when it was
+// taken. Both modes are on the page and the site's mode shows one; the other is never fetched,
+// because a lazy image that is not displayed does not load. A clip plays only when asked to.
+import type { CaptureView, Still } from "../../scripts/capture-pages.ts";
+import { MODES } from "../../scripts/captures.ts";
+
+interface Props {
+  capture: CaptureView;
+}
+const { capture } = Astro.props;
+// About the size of the phone frame of the live example, at most 390 by 640 pixels, with the
+// picture's own proportions. The size in the attributes keeps its space while it loads.
+const width = (still: Still) => Math.min(390, Math.round((640 * still.width) / still.height));
+---
+
+<figure class="capture" data-clip={capture.clips ? "" : undefined}>
+  <span class="preview__badge preview__badge--capture" aria-hidden="true">
+    Capture
+  </span>
+  <div class="capture__frame">
+    {MODES.map((mode) => {
+      const still = capture.stills[mode];
+      return (
+        <img
+          class="capture__media"
+          data-mode={mode}
+          src={still.src}
+          width={still.width}
+          height={still.height}
+          style={`--capture-width: ${width(still)}px`}
+          alt={capture.alt}
+          loading="lazy"
+          decoding="async"
+        />
+      );
+    })}
+    {capture.clips &&
+      MODES.map((mode) => {
+        const still = capture.stills[mode];
+        return (
+          <video
+            class="capture__media capture__clip"
+            data-mode={mode}
+            data-poster={still.src}
+            width={still.width}
+            height={still.height}
+            style={`--capture-width: ${width(still)}px`}
+            aria-label={capture.alt}
+            preload="none"
+            playsinline
+            muted
+          >
+            <source src={capture.clips?.[mode]} type="video/mp4" />
+          </video>
+        );
+      })}
+  </div>
+  {capture.clips && (
+    <button type="button" class="capture__play" aria-pressed="false">
+      <span class="capture__play-icon" aria-hidden="true" />
+      Play
+    </button>
+  )}
+  <figcaption>
+    Captured from {capture.client}, in {capture.source},{" "}
+    <time datetime={capture.date}>{capture.date}</time>. A picture of the real component, not a live
+    example.
+    {capture.stale && (
+      <>
+        {" "}
+        <strong class="capture__stale">Captured before the latest change to this component.</strong>
+      </>
+    )}
+  </figcaption>
+</figure>

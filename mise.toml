@@ -218,6 +218,16 @@ description = "Build the documentation site, which fails on a page whose source 
 depends = ["install"]
 run = "pnpm --filter @acme/docs build"
 
+# The pictures of the iOS, Android and Compose apps on the component pages. It needs ffmpeg and
+# cwebp; iOS needs macOS with Xcode and CocoaPods, and Android an emulator system image already
+# installed in $ANDROID_HOME. apps/docs/scripts/capture.ts says what it does.
+[tasks."docs:capture"]
+description = "Take the docs' pictures of the iOS, Android and Compose apps: mise run docs:capture -- all"
+depends = ["install"]
+run = "node apps/docs/scripts/capture.ts"
+# Here rather than under [tools], so that only this task downloads it.
+tools = { "github:mobile-dev-inc/maestro" = { version = "2.12.1", version_prefix = "cli-" } }
+
 # The deploy tasks upload a dist directory that is already built, and deliberately depend on
 # nothing: the workflows build in one job and deploy in another, so that the job holding the
 # Cloudflare token runs Wrangler from the lockfile and no other code. Locally, build first, and

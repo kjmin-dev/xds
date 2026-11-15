@@ -4,7 +4,9 @@
 
 import type { APIRoute, GetStaticPaths } from "astro";
 import { getCollection } from "astro:content";
+import { type CapturePages, capturesMarkdown } from "../../scripts/capture-pages.ts";
 import { matrixMarkdown, type Platforms } from "../../scripts/platforms.ts";
+import captures from "../generated/captures.json";
 import data from "../generated/platforms.json";
 
 export const getStaticPaths: GetStaticPaths = async () => {
@@ -18,7 +20,8 @@ export const getStaticPaths: GetStaticPaths = async () => {
 /**
  * MDX to plain Markdown: without imports, comments and the components that only a browser can
  * show. A component page says in its Platforms section, in words, what its chips show; the
- * index's table becomes a Markdown table. Pills keep their text.
+ * index's table becomes a Markdown table, and the pictures in a page's preview tabs a sentence
+ * that links to them. Pills keep their text.
  */
 const plain = (body: string) =>
   body
@@ -26,6 +29,11 @@ const plain = (body: string) =>
     .replace(/^The frame above shows .*$/gm, "")
     .replace(/^\{\/\*.*\*\/\}$/gm, "")
     .replace(/^<(Demo|PhoneDemo|Platforms) .*\/>$/gm, "")
+    .replace(/^<PreviewTabs name="([^"]+)">$/gm, (_, name: string) => {
+      const page = (captures as CapturePages)[name];
+      return page ? capturesMarkdown(page) : "";
+    })
+    .replace(/^<\/PreviewTabs>$/gm, "")
     .replace(/^<ComponentMatrix \/>$/gm, () => matrixMarkdown(data as Platforms))
     .replace(/<span class="swatch"[^>]*><\/span>/g, "")
     .replace(

@@ -3,7 +3,7 @@
   "compilerOptions": {
     "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
-    "types": ["node"]
+    "types": ["node", "vite/client"]
   },
   "include": ["scripts", "src/**/*.ts", "src/**/*.tsx", "test", "vitest.config.ts"],
   "exclude": ["src/pages", "src/content.config.ts"]

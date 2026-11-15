@@ -48,6 +48,7 @@ This repository is the xds template: a single set of design tokens, component li
 | Check the Expo app's native packages against its SDK, and bundle it for iOS and Android | `mise run //mobile:check`, `mise run //mobile:bundle` |
 | Run the CLI from source | `mise run xds -- list` |
 | List or apply a theme | `mise run theme`, `mise run theme ocean` |
+| Take the documentation's pictures of the iOS, Android, and Compose apps (macOS with Xcode, an Android system image, ffmpeg, and cwebp) | `mise run docs:capture -- all`, `mise run docs:capture -- sheet --platform compose` |
 
 Use `xds tokens`, `xds components`, `xds contrast`, and `xds doctor` to inspect the design system instead of reading JSON files by hand; pass `--json` for structured output. See `docs/cli.md` for details.
 
@@ -64,7 +65,7 @@ How the interactive web components behave (keyboard, focus, and ARIA state) is t
 | Web (Vue) | Run `mise run //web-vue:dev`, then open `http://localhost:5175/design#buttons` (the same preview, anchors, and parameters as the React app's, drawn by the Vue library; it must look the same) |
 | Web (Svelte) | Run `mise run //web-svelte:dev`, then open `http://localhost:5176/design#buttons` (the same preview, anchors, and parameters as the React app's, drawn by the Svelte library; it must look the same) |
 | GPUI desktop | `cargo run --package acme-desktop -- --design --dark --scroll 800` (`--open menu`, `select`, `datepicker`, `dialog`, `toast`, or `tooltip` opens that overlay) |
-| React Native | Pass `?from=<section number>`, `?sheet=1`, `?menu=1`, `?select=1`, `?dialog=1`, or `?toast=1` to the design screen route |
+| React Native | Pass `?section=<key>` (`navigation`), `?from=<section number>`, `?sheet=1`, `?menu=1`, `?select=1`, `?dialog=1`, or `?toast=1` to the design screen route |
 | Compose | `mise run //kotlin:render` renders PNG screenshots to `kotlin/build/preview`: the whole preview, and each overlay open (`menu-*`, `select-*`, `datepicker-*`, `sheet-*`, `dialog-*`, `toast-*`) |
 
 ## Changing the CLI

@@ -2,10 +2,10 @@
 // screen links here; the web app has the same page at `/design`, and the desktop app opens it
 // with `acme --design`.
 //
-// `/design?from=3` starts at the third section, for taking screenshots from a script, which
-// can neither scroll nor tap. For the same reason `/design?sheet=1` opens the bottom sheet,
-// `?menu=1` the menu, `?select=1` the select's list, `?dialog=1` the dialog and `?toast=1` the
-// toast, which then stays.
+// `/design?section=navigation` starts at the section with that key, and `/design?from=3` at the
+// third section, for taking screenshots from a script, which can neither scroll nor tap. For the
+// same reason `/design?sheet=1` opens the bottom sheet, `?menu=1` the menu, `?select=1` the
+// select's list, `?dialog=1` the dialog and `?toast=1` the toast, which then stays.
 
 import {
   border,
@@ -296,6 +296,7 @@ export default function Design() {
   const [question, setQuestion] = useState<readonly string[]>(["refund"]);
   const [panels, setPanels] = useState<readonly string[]>(["notifications", "privacy"]);
   const params = useLocalSearchParams<{
+    section?: string;
     from?: string;
     sheet?: string;
     menu?: string;
@@ -1012,6 +1013,9 @@ export default function Design() {
     </Section>,
   ];
 
+  // A key keeps pointing at its section when sections are added above it; a number does not.
+  const start = sections.findIndex((section) => section.key === params.section);
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.backgroundBase }}>
       <SafeAreaView edges={["bottom", "left", "right"]} style={styles.screen}>
@@ -1028,7 +1032,7 @@ export default function Design() {
         />
         {/* A tap on a button while the keyboard is up is that button's, not only the keyboard's. */}
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.page}>
-          {sections.slice(from - 1)}
+          {sections.slice(start === -1 ? from - 1 : start)}
         </ScrollView>
         <BottomSheet open={sheet} onClose={() => setSheet(false)} title="Share report">
           <Text tone="secondary">A sheet holds a short task and leaves the screen behind it.</Text>

@@ -1,0 +1,97 @@
+---
+// The first block of a component page that has pictures from the real clients: the live example
+// in the slot, as the page without pictures shows it, then a tab for each platform with pictures.
+// The tab a reader chooses holds on every page of the site. llms.txt drops the tabs and the
+// badges and keeps one mode's pictures with their captions; the Markdown copy of the page says in
+// a sentence where the pictures are.
+import type { CapturePages } from "../../scripts/capture-pages.ts";
+import data from "../generated/captures.json";
+import Capture from "./Capture.astro";
+import { STORAGE_KEY } from "./preview.ts";
+import "./preview.css";
+
+interface Props {
+  /** The component, by its name in design/components.json. */
+  name: string;
+}
+const page = (data as CapturePages)[Astro.props.name];
+if (!page) throw new Error(`${Astro.props.name} has no captures in captures.json`);
+const tabs = [
+  { id: "live", label: "Live" },
+  ...page.tabs.map((tab) => ({ id: tab.platform, label: tab.label })),
+];
+---
+
+<div class="preview not-content" data-preview>
+  <div class="preview__tabs" role="tablist" aria-label="Preview">
+    {tabs.map((tab) => (
+      <button
+        type="button"
+        role="tab"
+        id={`preview-tab-${tab.id}`}
+        aria-controls={`preview-panel-${tab.id}`}
+        aria-selected={String(tab.id === page.initial)}
+        tabindex={tab.id === page.initial ? 0 : -1}
+        data-tab={tab.id}
+      >
+        {tab.label}
+      </button>
+    ))}
+  </div>
+  <div
+    class="preview__panel"
+    role="tabpanel"
+    id="preview-panel-live"
+    aria-labelledby="preview-tab-live"
+    data-panel="live"
+    hidden={page.initial !== "live"}
+  >
+    <span class="preview__badge" aria-hidden="true">
+      Live
+    </span>
+    <slot />
+  </div>
+  {page.tabs.map((tab) => (
+    <div
+      class="preview__panel"
+      role="tabpanel"
+      id={`preview-panel-${tab.platform}`}
+      aria-labelledby={`preview-tab-${tab.platform}`}
+      data-panel={tab.platform}
+      hidden={page.initial !== tab.platform}
+      tabindex="0"
+    >
+      {tab.captures.map((capture) => (
+        <Capture capture={capture} />
+      ))}
+    </div>
+  ))}
+  <script is:inline define:vars={{ key: STORAGE_KEY }}>
+    // Selects the tab chosen last before the page is painted, so that the live example does not
+    // show first and then give way. preview.ts handles every choice after this.
+    const block = document.currentScript.parentElement;
+    let chosen = null;
+    try {
+      chosen = localStorage.getItem(key);
+    } catch {
+      // Without storage, the page opens on the tab it was built with.
+    }
+    const tab = [...block.querySelectorAll('[role="tab"]')].find(
+      (each) => each.dataset.tab === chosen,
+    );
+    if (tab) {
+      for (const each of block.querySelectorAll('[role="tab"]')) {
+        const selected = each === tab;
+        each.setAttribute("aria-selected", String(selected));
+        each.tabIndex = selected ? 0 : -1;
+        block.querySelector(`[data-panel="${each.dataset.tab}"]`).hidden = !selected;
+      }
+    }
+  </script>
+</div>
+
+<script>
+  import { setUpPreview } from "./preview.ts";
+
+  for (const block of document.querySelectorAll<HTMLElement>("[data-preview]")) setUpPreview(block);
+</script>

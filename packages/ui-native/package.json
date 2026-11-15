@@ -14,13 +14,17 @@
     "@acme/tokens": "workspace:*"
   },
   "peerDependencies": {
+    "@expo/ui": "~58.0.28",
+    "expo": "~58.0.25",
     "react": "catalog:",
     "react-native": "0.88.1",
     "react-native-safe-area-context": "~5.11.1",
     "react-native-svg": "15.16.0"
   },
   "devDependencies": {
+    "@expo/ui": "~58.0.28",
     "@types/react": "catalog:",
+    "expo": "~58.0.25",
     "react": "catalog:",
     "react-native": "0.88.1",
     "react-native-safe-area-context": "~5.11.1",

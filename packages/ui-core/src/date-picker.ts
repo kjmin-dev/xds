@@ -208,24 +208,38 @@ export function keepCalendarFocus(
 
 /**
  * After a render in which the focused day or the month changed, while the calendar is open:
- * puts the focus back on the focused day if the change took it off. Zag focuses the day a key
- * moves to a frame after the move, but a move held at `min` or `max` into another month shows
- * that month a render later, which a framework that renders after the frame has not drawn yet:
- * the day the focus was on is gone, and the focus with it. A focus elsewhere in the calendar,
- * such as on a month button that was pressed, stays where it is.
+ * puts the focus back on the focused day if the change took it off, as React Aria's calendar
+ * does. Two changes take it off:
+ *
+ * - Zag focuses the day a key moves to a frame after the move, but a move held at `min` or
+ *   `max` into another month shows that month a render later, which a framework that renders
+ *   after the frame has not drawn yet: the day the focus was on is gone, and the focus with it.
+ * - A month button pressed into the month of `min` or `max` is disabled with the focus on it,
+ *   which the browser then drops to the page, where Tab is no longer held in the calendar.
+ *
+ * A focus elsewhere in the calendar, such as on a month button that can still be pressed, stays
+ * where it is.
  */
 export function keepDayFocused(open: boolean, content: HTMLElement | null | undefined): void {
   const grid = open ? content?.querySelector('[role="grid"]') : undefined;
-  if (!grid) return;
+  if (!content || !grid) return;
   const active = document.activeElement;
-  if (active !== null && active !== document.body && !grid.contains(active)) return;
+  const lost =
+    active === null ||
+    active === document.body ||
+    grid.contains(active) ||
+    (active instanceof HTMLButtonElement && active.disabled && content.contains(active));
+  if (!lost) return;
   const day = grid.querySelector<HTMLElement>("[data-focus]:not([data-outside-range])");
   if (day && day !== active) day.focus({ preventScroll: true });
 }
 
-/** The classes of the calendar's month buttons: a small ghost IconButton's. */
-export const DATE_PICKER_NAV_CLASS = buttonClass({
+/**
+ * The classes of the calendar's month buttons: the `__nav` part, which button.css draws as a
+ * small ghost IconButton.
+ */
+export const DATE_PICKER_NAV_CLASS = `date-picker__nav ${buttonClass({
   variant: "ghost",
   size: "sm",
   iconButton: true,
-});
+})}`;

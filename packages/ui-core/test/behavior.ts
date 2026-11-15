@@ -369,8 +369,12 @@ export function describeBehavior(mount: Mount) {
       const grid = page.getByRole("grid");
       await expect.element(grid).toBeVisible();
       await expect.element(grid).toHaveAccessibleName(/March 2026/);
-      await expect.element(page.getByRole("dialog", { name: "Due date" })).toBeVisible();
+      const dialog = page.getByRole("dialog", { name: "Due date" });
+      await expect.element(dialog).toBeVisible();
       expect(field.getAttribute("aria-expanded")).toBe("true");
+      // Named by what the page shows alone: a name of the toolkit's own would be in English.
+      expect(field.hasAttribute("aria-label")).toBe(false);
+      expect(dialog.element().hasAttribute("aria-label")).toBe(false);
       await expect
         .element(page.getByRole("gridcell", { name: "March 10, 2026", exact: false }))
         .toHaveAttribute("aria-selected", "true");
@@ -464,6 +468,29 @@ export function describeBehavior(mount: Mount) {
       await expect.element(calendar).not.toBeInTheDocument();
       await expect.poll(() => hiddenFromAssistiveTechnology(behind)).toBe(false);
       await expect.element(due).toHaveFocus();
+    });
+
+    test("a month button disabled at min or max hands the focus to the focused day", async () => {
+      await mount("date-picker");
+      const due = dateField("Due date");
+      await due.click();
+      const calendar = page.getByRole("dialog");
+      const next = calendar.getByRole("button", { name: "Next month" });
+      const previous = calendar.getByRole("button", { name: "Previous month" });
+      await expect.poll(focusedDay).toMatch(/March 10, 2026/);
+      // From the day to the one month button that can be pressed in March.
+      await userEvent.tab();
+      await expect.element(next).toHaveFocus();
+      await userEvent.keyboard("{Enter}");
+      await expect.element(page.getByRole("grid")).toHaveAccessibleName(/April 2026/);
+      await expect.element(next).toBeDisabled();
+      await expect.poll(focusedDay).toMatch(/April 10, 2026/);
+      await previous.click();
+      await expect.element(page.getByRole("grid")).toHaveAccessibleName(/March 2026/);
+      await expect.element(previous).toBeDisabled();
+      await expect.poll(focusedDay).toMatch(/March 10, 2026/);
+      await userEvent.tab();
+      expect(holdsFocus(calendar)).toBe(true);
     });
 
     test("moves past min or max stop at them", async () => {

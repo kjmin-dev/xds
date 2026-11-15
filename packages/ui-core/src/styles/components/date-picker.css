@@ -5,8 +5,9 @@
  *
  * Parts: `.date-picker__underlay` (over the page while the calendar is open),
  * `__positioner`, `__content` (the surface, a dialog), `__header`, `__nav` (the two month
- * buttons, also small ghost IconButtons), `__heading` (the month and year), `__grid` (a table),
- * `__weekday` (a column header), `__cell` (a grid cell), `__day` (the day in it, a button).
+ * buttons, which button.css draws as small ghost IconButtons: DATE_PICKER_NAV_CLASS gives them
+ * both classes), `__heading` (the month and year), `__grid` (a table), `__weekday` (a column
+ * header), `__cell` (a grid cell), `__day` (the day in it, a button).
  * States on a day: `:hover`, `:active`, `:focus-visible`, `[data-selected]`, `[data-today]`,
  * `[data-disabled]` (outside `min`..`max`), `[data-outside-range]` (a day of the month before
  * or after). On the content: `[data-side]`, and `[data-state="closed"]` while it animates out.

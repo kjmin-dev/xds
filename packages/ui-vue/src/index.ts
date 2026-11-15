@@ -22,6 +22,7 @@ export { default as Checkbox, type CheckboxProps } from "./Checkbox.vue";
 export { default as Chip, type ChipProps } from "./Chip.vue";
 export { default as ChipBar, type ChipBarProps } from "./ChipBar.vue";
 export { default as CountBadge, type CountBadgeProps } from "./CountBadge.vue";
+export { default as DatePicker, type DatePickerProps, type IsoDate } from "./DatePicker.vue";
 export { default as Dialog, type DialogProps } from "./Dialog.vue";
 export { default as Divider } from "./Divider.vue";
 export { default as EmptyState, type EmptyStateProps } from "./EmptyState.vue";

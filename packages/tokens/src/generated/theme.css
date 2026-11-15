@@ -145,6 +145,19 @@
   --acme-color-menu-item-background-pressed: light-dark(#e2e2e8, #2c2c33);
   --acme-color-menu-danger-text: light-dark(#b42318, #f97066);
   --acme-color-menu-danger-background-hover: light-dark(#fef3f2, #55160c);
+  --acme-color-date-picker-background: light-dark(#ffffff, #222228);
+  --acme-color-date-picker-heading: light-dark(#18181c, #f5f5f7);
+  --acme-color-date-picker-weekday: light-dark(#5c5c66, #a9a9b4);
+  --acme-color-date-picker-day-text: light-dark(#18181c, #f5f5f7);
+  --acme-color-date-picker-day-background-hover: light-dark(#ececf0, #2c2c33);
+  --acme-color-date-picker-day-background-pressed: light-dark(#e2e2e8, #44444c);
+  --acme-color-date-picker-today-text: light-dark(#4f46e5, #a5b4fc);
+  --acme-color-date-picker-today-border: light-dark(#4f46e5, #5b5ef0);
+  --acme-color-date-picker-selected-background: light-dark(#4f46e5, #5b5ef0);
+  --acme-color-date-picker-selected-background-hover: light-dark(#4338ca, #4f46e5);
+  --acme-color-date-picker-selected-background-pressed: light-dark(#3730a3, #4338ca);
+  --acme-color-date-picker-selected-text: #ffffff;
+  --acme-color-date-picker-disabled-text: light-dark(#a9a9b4, #5c5c66);
   --acme-color-dialog-background: light-dark(#ffffff, #222228);
   --acme-color-dialog-border: light-dark(#e2e2e8, #2c2c33);
   --acme-color-dialog-title: light-dark(#18181c, #f5f5f7);
@@ -315,6 +328,7 @@
   --acme-size-toast: 480px;
   --acme-size-sidebar: 240px;
   --acme-size-sidebar-rail: 72px;
+  --acme-size-calendar-day: 36px;
 }
 
 /* Fingers need larger controls than a mouse. This asks about the primary input, not the
@@ -356,6 +370,7 @@
     --acme-size-toast: 480px;
     --acme-size-sidebar: 240px;
     --acme-size-sidebar-rail: 72px;
+    --acme-size-calendar-day: 48px;
   }
 }
 

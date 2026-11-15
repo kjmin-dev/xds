@@ -220,6 +220,35 @@ const PAIRS: Pair[] = [
   ...on("tab-bar.text-selected", ["tab-bar.background"], TEXT),
   ...on("sheet.handle", ["sheet.background"], PART),
   ...["text.primary", "text.secondary"].flatMap((text) => on(text, ["sheet.background"], TEXT)),
+  // DatePicker: the days on the calendar's surface, on the sheet on touch, and under a pointer.
+  ...on(
+    "date-picker.day-text",
+    [
+      "date-picker.background",
+      "sheet.background",
+      "date-picker.day-background-hover",
+      "date-picker.day-background-pressed",
+    ],
+    TEXT,
+  ),
+  ...on(
+    "date-picker.today-text",
+    ["date-picker.background", "sheet.background", "date-picker.day-background-hover"],
+    TEXT,
+  ),
+  ...on("date-picker.today-border", ["date-picker.background", "sheet.background"], PART),
+  ...on(
+    "date-picker.selected-text",
+    [
+      "date-picker.selected-background",
+      "date-picker.selected-background-hover",
+      "date-picker.selected-background-pressed",
+    ],
+    TEXT,
+  ),
+  ...on("date-picker.selected-background", ["date-picker.background", "sheet.background"], PART),
+  ...on("date-picker.heading", ["date-picker.background", "sheet.background"], TEXT),
+  ...on("date-picker.weekday", ["date-picker.background", "sheet.background"], TEXT),
 ];
 
 function composite(top: Rgba, bottom: Rgba): Rgba {

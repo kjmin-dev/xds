@@ -563,6 +563,60 @@
         "$description": "Also while pressed. A neutral fill would not carry the danger text in dark mode."
       }
     },
+    "date-picker": {
+      "background": {
+        "$value": "{color.background.raised}",
+        "$description": "The calendar's surface where a pointer is used. On touch the calendar sits on the sheet, which is the same color."
+      },
+      "heading": {
+        "$value": "{color.text.primary}",
+        "$description": "The month and year above the days."
+      },
+      "weekday": {
+        "$value": "{color.text.secondary}",
+        "$description": "The initials of the days of the week, which are not pressed."
+      },
+      "day-text": {
+        "$value": "{color.text.primary}",
+        "$description": "A day that can be chosen."
+      },
+      "day-background-hover": {
+        "$value": "{color.control.default}",
+        "$description": "Under the pointer, and under the keyboard's focus."
+      },
+      "day-background-pressed": {
+        "$value": "{color.control.hover}",
+        "$description": "A day while it is pressed."
+      },
+      "today-text": {
+        "$value": "{color.text.accent}",
+        "$description": "Today, unless it is chosen. Also bolder, so it does not depend on color alone."
+      },
+      "today-border": {
+        "$value": "{color.accent.default}",
+        "$description": "A ring around today, the way Material and iOS mark it."
+      },
+      "selected-background": {
+        "$value": "{color.accent.default}",
+        "$description": "The chosen day: a filled circle, so the choice is shown by shape as well as color."
+      },
+      "selected-background-hover": {
+        "$value": "{color.accent.hover}",
+        "$description": "The chosen day under the pointer or the keyboard's focus."
+      },
+      "selected-background-pressed": {
+        "$value": "{color.accent.pressed}",
+        "$description": "The chosen day while it is pressed."
+      },
+      "selected-text": {
+        "$value": "{color.text.on-accent}",
+        "$description": "The number of the chosen day, on its circle."
+      },
+      "disabled-text": {
+        "$value": "{color.text.disabled}",
+        "$description": "A day outside the range the picker allows. Exempt from contrast rules, and meant to look unavailable."
+      }
+    },
     "dialog": {
       "background": {
         "$value": "{color.background.raised}"

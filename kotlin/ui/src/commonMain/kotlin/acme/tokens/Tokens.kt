@@ -206,6 +206,32 @@ interface Colors {
     val menuDangerText: Color
     /** Also while pressed. A neutral fill would not carry the danger text in dark mode. */
     val menuDangerBackgroundHover: Color
+    /** The calendar's surface where a pointer is used. On touch the calendar sits on the sheet, which is the same color. */
+    val datePickerBackground: Color
+    /** The month and year above the days. */
+    val datePickerHeading: Color
+    /** The initials of the days of the week, which are not pressed. */
+    val datePickerWeekday: Color
+    /** A day that can be chosen. */
+    val datePickerDayText: Color
+    /** Under the pointer, and under the keyboard's focus. */
+    val datePickerDayBackgroundHover: Color
+    /** A day while it is pressed. */
+    val datePickerDayBackgroundPressed: Color
+    /** Today, unless it is chosen. Also bolder, so it does not depend on color alone. */
+    val datePickerTodayText: Color
+    /** A ring around today, the way Material and iOS mark it. */
+    val datePickerTodayBorder: Color
+    /** The chosen day: a filled circle, so the choice is shown by shape as well as color. */
+    val datePickerSelectedBackground: Color
+    /** The chosen day under the pointer or the keyboard's focus. */
+    val datePickerSelectedBackgroundHover: Color
+    /** The chosen day while it is pressed. */
+    val datePickerSelectedBackgroundPressed: Color
+    /** The number of the chosen day, on its circle. */
+    val datePickerSelectedText: Color
+    /** A day outside the range the picker allows. Exempt from contrast rules, and meant to look unavailable. */
+    val datePickerDisabledText: Color
     val dialogBackground: Color
     val dialogBorder: Color
     val dialogTitle: Color
@@ -419,6 +445,19 @@ interface Colors {
         "menu-item-background-pressed" to menuItemBackgroundPressed,
         "menu-danger-text" to menuDangerText,
         "menu-danger-background-hover" to menuDangerBackgroundHover,
+        "date-picker-background" to datePickerBackground,
+        "date-picker-heading" to datePickerHeading,
+        "date-picker-weekday" to datePickerWeekday,
+        "date-picker-day-text" to datePickerDayText,
+        "date-picker-day-background-hover" to datePickerDayBackgroundHover,
+        "date-picker-day-background-pressed" to datePickerDayBackgroundPressed,
+        "date-picker-today-text" to datePickerTodayText,
+        "date-picker-today-border" to datePickerTodayBorder,
+        "date-picker-selected-background" to datePickerSelectedBackground,
+        "date-picker-selected-background-hover" to datePickerSelectedBackgroundHover,
+        "date-picker-selected-background-pressed" to datePickerSelectedBackgroundPressed,
+        "date-picker-selected-text" to datePickerSelectedText,
+        "date-picker-disabled-text" to datePickerDisabledText,
         "dialog-background" to dialogBackground,
         "dialog-border" to dialogBorder,
         "dialog-title" to dialogTitle,
@@ -613,6 +652,19 @@ object LightColors : Colors {
     override val menuItemBackgroundPressed = Color(0xFFE2E2E8)
     override val menuDangerText = Color(0xFFB42318)
     override val menuDangerBackgroundHover = Color(0xFFFEF3F2)
+    override val datePickerBackground = Color(0xFFFFFFFF)
+    override val datePickerHeading = Color(0xFF18181C)
+    override val datePickerWeekday = Color(0xFF5C5C66)
+    override val datePickerDayText = Color(0xFF18181C)
+    override val datePickerDayBackgroundHover = Color(0xFFECECF0)
+    override val datePickerDayBackgroundPressed = Color(0xFFE2E2E8)
+    override val datePickerTodayText = Color(0xFF4F46E5)
+    override val datePickerTodayBorder = Color(0xFF4F46E5)
+    override val datePickerSelectedBackground = Color(0xFF4F46E5)
+    override val datePickerSelectedBackgroundHover = Color(0xFF4338CA)
+    override val datePickerSelectedBackgroundPressed = Color(0xFF3730A3)
+    override val datePickerSelectedText = Color(0xFFFFFFFF)
+    override val datePickerDisabledText = Color(0xFFA9A9B4)
     override val dialogBackground = Color(0xFFFFFFFF)
     override val dialogBorder = Color(0xFFE2E2E8)
     override val dialogTitle = Color(0xFF18181C)
@@ -806,6 +858,19 @@ object DarkColors : Colors {
     override val menuItemBackgroundPressed = Color(0xFF2C2C33)
     override val menuDangerText = Color(0xFFF97066)
     override val menuDangerBackgroundHover = Color(0xFF55160C)
+    override val datePickerBackground = Color(0xFF222228)
+    override val datePickerHeading = Color(0xFFF5F5F7)
+    override val datePickerWeekday = Color(0xFFA9A9B4)
+    override val datePickerDayText = Color(0xFFF5F5F7)
+    override val datePickerDayBackgroundHover = Color(0xFF2C2C33)
+    override val datePickerDayBackgroundPressed = Color(0xFF44444C)
+    override val datePickerTodayText = Color(0xFFA5B4FC)
+    override val datePickerTodayBorder = Color(0xFF5B5EF0)
+    override val datePickerSelectedBackground = Color(0xFF5B5EF0)
+    override val datePickerSelectedBackgroundHover = Color(0xFF4F46E5)
+    override val datePickerSelectedBackgroundPressed = Color(0xFF4338CA)
+    override val datePickerSelectedText = Color(0xFFFFFFFF)
+    override val datePickerDisabledText = Color(0xFF5C5C66)
     override val dialogBackground = Color(0xFF222228)
     override val dialogBorder = Color(0xFF2C2C33)
     override val dialogTitle = Color(0xFFF5F5F7)
@@ -1037,6 +1102,8 @@ class Sizes(
     val sidebar: Dp,
     /** The width of a collapsed sidebar, which shows icons only. */
     val sidebarRail: Dp,
+    /** The side of a day of the calendar: as tall as control.md for a pointer and target-min for touch. The circle that marks a day is inset by space.0-5. On touch the seven columns share the width of the sheet, so on a phone narrower than about 370 points a day is a little narrower than this, as on iOS and Material. */
+    val calendarDay: Dp,
 )
 
 val PointerSizes = Sizes(
@@ -1075,6 +1142,7 @@ val PointerSizes = Sizes(
     toast = 480.dp,
     sidebar = 240.dp,
     sidebarRail = 72.dp,
+    calendarDay = 36.dp,
 )
 
 val TouchSizes = Sizes(
@@ -1113,6 +1181,7 @@ val TouchSizes = Sizes(
     toast = 480.dp,
     sidebar = 240.dp,
     sidebarRail = 72.dp,
+    calendarDay = 48.dp,
 )
 
 /** Icons as SVG path data on a 24 by 24 grid, stroked 2 wide with round caps and joins. */
@@ -1128,6 +1197,7 @@ enum class IconName(val paths: List<String>) {
     Bell(listOf("M10.268 21a2 2 0 0 0 3.464 0", "M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326")),
     Bookmark(listOf("M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z")),
     Bug(listOf("M12 20v-9", "M14 7a4 4 0 0 1 4 4v3a6 6 0 0 1-12 0v-3a4 4 0 0 1 4-4z", "M14.12 3.88 16 2", "M21 21a4 4 0 0 0-3.81-4", "M21 5a4 4 0 0 1-3.55 3.97", "M22 13h-4", "M3 21a4 4 0 0 1 3.81-4", "M3 5a4 4 0 0 0 3.55 3.97", "M6 13H2", "m8 2 1.88 1.88", "M9 7.13V6a3 3 0 1 1 6 0v1.13")),
+    Calendar(listOf("M8 2v4", "M16 2v4", "M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2z", "M3 10h18")),
     Camera(listOf("M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z", "M9 13a3 3 0 1 0 6 0a3 3 0 1 0 -6 0")),
     Captions(listOf("M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2z", "M7 15h4M15 15h2M7 11h2M13 11h4")),
     Cast(listOf("M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6", "M2 12a9 9 0 0 1 8 8", "M2 16a5 5 0 0 1 4 4", "M2 20L2.01 20")),

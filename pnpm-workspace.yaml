@@ -26,6 +26,10 @@ catalog:
   # Expo pins React exactly, and two copies of React in one bundle break hooks.
   "@types/react": ~19.3.0
   react: 19.3.0
+  # @if mobile-react-native
+  # The mobile app declares react-dom too, as Expo's own template does: expo-router's web tabs
+  # need it, and pnpm would otherwise install a react-dom newer than this react for them.
+  # @endif
   react-dom: 19.3.0
   # @endif
   # These two move together. tsrs, which type-checks and runs the type-aware lint rules on the

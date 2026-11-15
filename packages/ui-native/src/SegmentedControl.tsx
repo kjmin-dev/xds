@@ -28,8 +28,8 @@ export function SegmentedControl<Value extends string>({
   const colors = useColors();
   return (
     <View
-      accessibilityRole="tablist"
-      accessibilityLabel={accessibilityLabel}
+      role="tablist"
+      aria-label={accessibilityLabel}
       style={[
         styles.track,
         { backgroundColor: colors.segmentedTrack },
@@ -41,8 +41,8 @@ export function SegmentedControl<Value extends string>({
         return (
           <Pressable
             key={option.value}
-            accessibilityRole="tab"
-            accessibilityState={{ selected }}
+            role="tab"
+            aria-selected={selected}
             onPress={() => onChange(option.value)}
             style={[
               styles.segment,

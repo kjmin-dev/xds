@@ -46,7 +46,7 @@ export function FieldMessage({
   return (
     <View style={styles.below}>
       {error !== undefined ? (
-        <View accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.message}>
+        <View role="alert" aria-live="polite" style={styles.message}>
           <Text variant="detail" tone="danger">
             {error}
           </Text>
@@ -159,7 +159,8 @@ export function TextField({
         )}
         <TextInput
           {...input}
-          accessibilityLabel={label}
+          aria-label={label}
+          // React Native has no ARIA prop for a hint.
           accessibilityHint={error ?? description}
           aria-invalid={invalid}
           editable={!disabled}

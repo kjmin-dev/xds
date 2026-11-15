@@ -11,6 +11,8 @@ export function Spinner({ size = "md", label }: { size?: "sm" | "md"; label?: st
     <ActivityIndicator
       size={size === "sm" ? "small" : "large"}
       color={colors.textSecondary}
+      // ActivityIndicator hands its props to the native view as they are, and the native view
+      // reads no `aria-*` prop.
       {...(label
         ? { accessibilityLabel: label }
         : { accessible: false, importantForAccessibility: "no" as const })}

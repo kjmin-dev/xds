@@ -316,7 +316,7 @@ On the web, the React, Solid, Vue, and Svelte clients share their framework-free
 
 On desktop, `acme_ui::set_mode` applies the generated tokens to GPUI Component's theme. `button`, `switch`, and `checkbox` return GPUI Component controls configured with token values, while Badge, Banner, TextField, SegmentedControl, Avatar, ProgressBar, ListRow, `card`, `divider`, and `text` are rendered directly with GPUI primitives.
 
-On mobile, components are built directly on React Native's `Pressable` and `TextInput` without a third-party UI library, and text scales with the OS font size preference.
+On mobile, components are built directly on React Native's `Pressable` and `TextInput` without a third-party UI library, and text scales with the OS font size preference. They give their role, name, and state to VoiceOver and TalkBack with React Native's `role` and `aria-*` props, which react-native-web also renders as HTML. The older `accessibility*` props stay only where React Native has no ARIA equivalent: a hint, the `adjustable` and `text` roles, Android's drop-down list, and the modal flag of a sheet or dialog. They also stay on `ScrollView`, `ActivityIndicator`, and `react-native-svg`'s `Svg`, which pass their props to the native view without reading `aria-*`.
 
 The Kotlin client is a single Compose Multiplatform library targeting Android, iOS, and desktop. Like the React Native implementation, it builds on Compose foundation without Material components so that all styling comes directly from the tokens.
 

@@ -90,8 +90,10 @@ export function Dialog({
         <Animated.View
           role="dialog"
           aria-modal
+          // React Native 0.88 turns `aria-modal` into VoiceOver's modal flag on a Pressable only,
+          // not on a View, and has no ARIA prop for a hint.
           accessibilityViewIsModal
-          accessibilityLabel={title}
+          aria-label={title}
           {...(description ? { accessibilityHint: description } : {})}
           onAccessibilityEscape={dismiss}
           style={[

@@ -12,9 +12,11 @@ export function ProgressBar({ value, label }: { value: number; label: string }) 
   return (
     <View
       accessible
-      accessibilityRole="progressbar"
-      accessibilityLabel={label}
-      accessibilityValue={{ min: 0, max: 100, now: Math.round(fraction * 100) }}
+      role="progressbar"
+      aria-label={label}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(fraction * 100)}
       style={[styles.track, { backgroundColor: colors.progressTrack }]}
     >
       <View

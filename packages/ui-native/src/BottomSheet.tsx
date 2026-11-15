@@ -96,13 +96,15 @@ export function BottomSheet({
         ]}
       >
         <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={closeLabel}
+          role="button"
+          aria-label={closeLabel}
           onPress={onClose}
           style={StyleSheet.absoluteFill}
         />
       </Animated.View>
       <Animated.View
+        // React Native 0.88 turns `aria-modal` into VoiceOver's modal flag on a Pressable only,
+        // not on a View, so the sheet keeps the older prop.
         accessibilityViewIsModal
         onLayout={(event) => setHeight(event.nativeEvent.layout.height)}
         style={[
@@ -110,7 +112,6 @@ export function BottomSheet({
           {
             bottom: Math.max(insets.bottom, space[2]),
             backgroundColor: colors.sheetBackground,
-            shadowColor: shadow.overlay.color,
             transform: [
               {
                 translateY: Animated.add(
@@ -148,6 +149,8 @@ const styles = StyleSheet.create({
     left: space[2],
     right: space[2],
     borderRadius: radius.xl,
+    // The whole shadow in one object: react-native-web builds a box-shadow from each on its own.
+    shadowColor: shadow.overlay.color,
     shadowOffset: { width: shadow.overlay.offsetX, height: shadow.overlay.offsetY },
     shadowRadius: shadow.overlay.blur,
     shadowOpacity: 1,

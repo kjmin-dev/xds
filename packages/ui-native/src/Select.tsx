@@ -35,8 +35,12 @@ export type SelectProps<Value extends string> = {
 };
 
 // TalkBack says that a drop-down list opens from the field. iOS has no such trait: VoiceOver
-// says it is a button, and whether it is expanded.
-const ROLE = Platform.OS === "android" ? "dropdownlist" : "button";
+// says it is a button, and whether it is expanded. A drop-down list has no ARIA role, so
+// Android keeps the older prop.
+const ROLE =
+  Platform.OS === "android"
+    ? { accessibilityRole: "dropdownlist" as const }
+    : { role: "button" as const };
 
 /**
  * A field for choosing one option from a list too long to show at once. Closed it looks like a
@@ -69,11 +73,13 @@ export function Select<Value extends string>({
         {label}
       </Text>
       <Pressable
-        accessibilityRole={ROLE}
-        accessibilityLabel={label}
-        {...(shown === undefined ? {} : { accessibilityValue: { text: shown } })}
+        {...ROLE}
+        aria-label={label}
+        {...(shown === undefined ? {} : { "aria-valuetext": shown })}
+        // React Native has no ARIA prop for a hint.
         accessibilityHint={error ?? description}
-        accessibilityState={{ disabled, expanded: open }}
+        aria-disabled={disabled}
+        aria-expanded={open}
         disabled={disabled}
         onPress={() => setOpen(true)}
         style={[

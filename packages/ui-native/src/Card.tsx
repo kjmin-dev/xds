@@ -109,8 +109,8 @@ export function Card({
   if (!onPress) return <View style={[frame, style]}>{content}</View>;
   return (
     <Pressable
-      accessibilityRole="button"
-      {...(selected === undefined ? {} : { accessibilityState: { selected } })}
+      role="button"
+      {...(selected === undefined ? {} : { "aria-selected": selected })}
       onPress={onPress}
       style={({ pressed }) => [
         frame,

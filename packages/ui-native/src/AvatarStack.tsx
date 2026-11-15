@@ -45,8 +45,8 @@ export function AvatarStack({ people, max = 4, size = "md", label }: AvatarStack
   return (
     <View
       accessible
-      accessibilityRole="image"
-      accessibilityLabel={label ?? people.map((person) => person.name).join(", ")}
+      role="img"
+      aria-label={label ?? people.map((person) => person.name).join(", ")}
       // Sized outright, so the stack neither stretches across a column nor needs an alignment
       // of its own in a row: the first circle whole, and what shows of each one after it.
       style={{
@@ -56,8 +56,7 @@ export function AvatarStack({ people, max = 4, size = "md", label }: AvatarStack
     >
       <View
         // Each avatar is an image of its own; inside the stack they would be heard twice.
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
+        aria-hidden
         style={styles.row}
       >
         {shown.map((person, index) => (

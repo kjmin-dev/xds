@@ -42,7 +42,9 @@ export function Tabs<Value extends string>({
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        accessibilityRole="tablist"
+        role="tablist"
+        // ScrollView hands its props to the native view as they are, and only View, Pressable,
+        // Text, TextInput and Image turn `aria-label` into the label a screen reader reads.
         accessibilityLabel={label}
         contentContainerStyle={fullWidth && styles.fill}
       >
@@ -51,8 +53,8 @@ export function Tabs<Value extends string>({
           return (
             <Pressable
               key={item.value}
-              accessibilityRole="tab"
-              accessibilityState={{ selected }}
+              role="tab"
+              aria-selected={selected}
               onPress={() => onChange(item.value)}
               style={[styles.tab, fullWidth && styles.share]}
             >

@@ -85,7 +85,7 @@ export function Toast({
     >
       <Animated.View
         role="status"
-        accessibilityLiveRegion="polite"
+        aria-live="polite"
         style={[styles.toast, { backgroundColor: colors.toastBackground }]}
       >
         <Text variant="detail" tone="inherit" style={[styles.message, { color: colors.toastText }]}>
@@ -93,7 +93,7 @@ export function Toast({
         </Text>
         {action && (
           <Pressable
-            accessibilityRole="button"
+            role="button"
             onPress={() => {
               action.onPress();
               onClose();

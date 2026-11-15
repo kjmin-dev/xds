@@ -45,7 +45,7 @@ export function RadioGroup<Value extends string>({
   const descriptionColor = disabled ? colors.textDisabled : colors.textSecondary;
 
   return (
-    <View accessibilityRole="radiogroup" accessibilityLabel={label} style={styles.group}>
+    <View role="radiogroup" aria-label={label} style={styles.group}>
       <Text variant="label" tone={disabled ? "secondary" : "primary"}>
         {label}
       </Text>
@@ -55,11 +55,12 @@ export function RadioGroup<Value extends string>({
           return (
             <Pressable
               key={option.value}
-              accessibilityRole="radio"
-              accessibilityLabel={
+              role="radio"
+              aria-label={
                 option.description ? `${option.label}, ${option.description}` : option.label
               }
-              accessibilityState={{ checked, disabled }}
+              aria-checked={checked}
+              aria-disabled={disabled}
               disabled={disabled}
               onPress={() => {
                 if (!checked) onChange(option.value);

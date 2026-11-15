@@ -54,8 +54,8 @@ export function Banner({
   const urgent = tone === "danger" || tone === "warning";
   return (
     <View
-      {...(urgent ? { accessibilityRole: "alert" as const } : {})}
-      accessibilityLiveRegion={urgent ? "assertive" : "polite"}
+      {...(urgent ? { role: "alert" as const } : {})}
+      aria-live={urgent ? "assertive" : "polite"}
       style={[styles.banner, { backgroundColor: background }]}
     >
       <View style={[styles.mark, { backgroundColor: accent }]}>

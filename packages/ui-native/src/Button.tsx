@@ -164,14 +164,12 @@ export function Button({
   return (
     <Animated.View style={[fullWidth && styles.fullWidth, style, { transform: [{ scale }] }]}>
       <Pressable
-        accessibilityRole="button"
-        {...(accessibilityLabel ? { accessibilityLabel } : {})}
-        accessibilityState={{
-          disabled: disabled || loading,
-          busy: loading,
-          ...(selected === undefined ? {} : { selected }),
-          ...(menuOpen === undefined ? {} : { expanded: menuOpen }),
-        }}
+        role="button"
+        {...(accessibilityLabel ? { "aria-label": accessibilityLabel } : {})}
+        aria-disabled={disabled || loading}
+        aria-busy={loading}
+        {...(selected === undefined ? {} : { "aria-selected": selected })}
+        {...(menuOpen === undefined ? {} : { "aria-expanded": menuOpen })}
         disabled={disabled || loading}
         hitSlop={slop}
         onPressIn={() => setHeld(true)}

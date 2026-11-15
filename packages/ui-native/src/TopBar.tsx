@@ -26,8 +26,8 @@ export function TopBar({ title, onBack, backLabel = "Back", trailing }: TopBarPr
     <View style={[styles.bar, { backgroundColor: colors.topBarBackground }]}>
       {onBack && (
         <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={backLabel}
+          role="button"
+          aria-label={backLabel}
           onPress={onBack}
           // The circle is smaller than the smallest target, so the press area reaches past it.
           hitSlop={(control.targetMin - CONTROL_HEIGHT.sm) / 2}

@@ -28,14 +28,10 @@ export function TabBar<Key extends string>({ items, value, onChange }: TabBarPro
   const colors = useColors();
   return (
     <View
-      accessibilityRole="tablist"
+      role="tablist"
       style={[
         styles.bar,
-        {
-          backgroundColor: colors.tabBarBackground,
-          borderColor: colors.tabBarBorder,
-          shadowColor: shadow.raised.color,
-        },
+        { backgroundColor: colors.tabBarBackground, borderColor: colors.tabBarBorder },
       ]}
     >
       {items.map((item) => {
@@ -44,9 +40,9 @@ export function TabBar<Key extends string>({ items, value, onChange }: TabBarPro
         return (
           <Pressable
             key={item.key}
-            accessibilityRole="tab"
-            accessibilityLabel={item.label}
-            accessibilityState={{ selected }}
+            role="tab"
+            aria-label={item.label}
+            aria-selected={selected}
             onPress={() => onChange(item.key)}
             style={[styles.item, selected && { backgroundColor: colors.tabBarSelectedBackground }]}
           >
@@ -69,6 +65,8 @@ const styles = StyleSheet.create({
     padding: INSET,
     borderWidth: border.width.thin,
     borderRadius: radius.full,
+    // The whole shadow in one object: react-native-web builds a box-shadow from each on its own.
+    shadowColor: shadow.raised.color,
     shadowOffset: { width: shadow.raised.offsetX, height: shadow.raised.offsetY },
     shadowRadius: shadow.raised.blur,
     shadowOpacity: 1,

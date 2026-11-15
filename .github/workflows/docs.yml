@@ -29,6 +29,8 @@ on:
       # The demos take their classes and stylesheet from it, and the component pages link to the
       # design preview's sections by the titles in its src/preview/design.ts.
       - packages/ui-core/**
+      # The touch-only components' examples draw its components with react-native-web.
+      - packages/ui-native/**
       - packages/tokens/**
       - install.sh
       - .github/workflows/docs.yml

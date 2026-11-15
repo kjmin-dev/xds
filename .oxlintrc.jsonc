@@ -202,6 +202,17 @@
         "jsx-a11y/prefer-tag-over-role": "off",
       },
     },
+    // The touch-only examples are React Native code, which throws on a string outside a <Text>.
+    {
+      "files": ["apps/docs/src/demos/native.tsx"],
+      "jsPlugins": ["./tools/lint/react-native.ts"],
+      "rules": { "react-native/no-raw-text": "error" },
+    },
+    {
+      "files": ["apps/docs/test/**"],
+      "plugins": ["vitest"],
+      "rules": { "vitest/no-identical-title": "error" },
+    },
     // @endif
   ],
 }

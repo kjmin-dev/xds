@@ -25,7 +25,7 @@ const plain = (body: string) =>
     .replace(/^import .* from "(@astrojs\/starlight\/components|.*\.astro)";$/gm, "")
     .replace(/^The frame above shows .*$/gm, "")
     .replace(/^\{\/\*.*\*\/\}$/gm, "")
-    .replace(/^<(Demo|Platforms) .*\/>$/gm, "")
+    .replace(/^<(Demo|PhoneDemo|Platforms) .*\/>$/gm, "")
     .replace(/^<ComponentMatrix \/>$/gm, () => matrixMarkdown(data as Platforms))
     .replace(/<span class="swatch"[^>]*><\/span>/g, "")
     .replace(

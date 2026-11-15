@@ -1,0 +1,56 @@
+---
+// One live example of a touch-only component, in a page of its own that is the phone's screen.
+// It is drawn in the browser only: react-native-web writes its styles as it renders, and the
+// frame is lazy, so nothing would be seen of a server-rendered copy.
+import { NATIVE_DEMO_NAMES, type NativeDemoName } from "../../demos/native-names.ts";
+import { NativeDemo } from "../../demos/native.tsx";
+
+export function getStaticPaths() {
+  return NATIVE_DEMO_NAMES.map((name) => ({ params: { name } }));
+}
+
+const name = Astro.params.name as NativeDemoName;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>{name}</title>
+    <script is:inline>
+      // As in the web examples: the frame follows the mode of the page that embeds it, and
+      // `?theme=` picks it outside a frame.
+      const host = frameElement && parent.document.documentElement;
+      const apply = (theme) => {
+        if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+      };
+      apply(new URLSearchParams(location.search).get("theme") ?? host?.dataset.theme);
+      if (host) {
+        new MutationObserver(() => apply(host.dataset.theme)).observe(host, {
+          attributes: true,
+          attributeFilter: ["data-theme"],
+        });
+      }
+    </script>
+    <style is:inline>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      /* A phone's screen does not scroll as a whole; its lists scroll inside it. */
+      body {
+        overflow: hidden;
+      }
+      astro-island {
+        display: flex;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <NativeDemo name={name} client:only="react" />
+  </body>
+</html>

@@ -8,7 +8,7 @@ Compose Multiplatform implementation of the design system, paired with an app th
 | `shared` | Application screens. `App()` is the root composable shared across platforms; start in `shared/src/commonMain/kotlin/acme/app/Home.kt` |
 | `androidApp`, `desktopApp`, `iosApp` | Thin platform entry points |
 
-Components are built directly on `compose.foundation` without any Material library dependency, so all visual styling comes from the tokens. The one library beyond Compose is Coil 3, which loads the pictures of `Avatar`, with a Ktor engine per platform. Wrap screens in `AcmeTheme { }`: the color mode follows the OS setting, and control sizes adapt to the input device (pointer on desktop, touch on Android and iOS).
+Components are built directly on `compose.foundation` without any Material library dependency, so all visual styling comes from the tokens. Two libraries come beyond Compose: Coil 3, which loads the pictures of `Avatar`, with a Ktor engine per platform, and kotlinx-datetime, whose `LocalDate` is the value of `DatePicker`. kotlinx-datetime is `java.time` on Android, which phones have from API 26, so the Android app turns on core library desugaring for the older ones it supports. The names of months and days, and the day a week starts on, come from each platform's locale data: ICU on Android, `java.time` on the desktop, and `NSDateFormatter` and `NSCalendar` on iOS. Wrap screens in `AcmeTheme { }`: the color mode follows the OS setting, and control sizes adapt to the input device (pointer on desktop, touch on Android and iOS).
 
 ## Running the apps
 
@@ -28,7 +28,7 @@ On Android and iOS, tap the button on the home screen to open the design preview
 | | Command |
 | --- | --- |
 | Unit tests | `./gradlew :ui:jvmTest` |
-| Render preview images | `./gradlew :ui:renderPreview` writes PNG snapshots to `build/preview`, each in light and dark modes: the full preview at phone width and at desktop width with pointer sizes; a phone screen with the bottom sheet, the menu's sheet, the select's sheet, the dialog, or the toast open; a desktop window with the dialog or the toast open; and the full desktop-width preview with the menu's popup or the select's popup open |
+| Render preview images | `./gradlew :ui:renderPreview` writes PNG snapshots to `build/preview`, each in light and dark modes: the full preview at phone width and at desktop width with pointer sizes; a phone screen with the bottom sheet, the menu's sheet, the select's sheet, the date picker's sheet, the dialog, or the toast open; a desktop window with the dialog or the toast open; and the full desktop-width preview with the menu's popup, the select's popup, or the date picker's popup open. Dates are drawn in the `en-US` locale on every machine |
 | Linux CI suite | `mise run check`: runs the unit tests, desktop compilation, and Android debug build |
 | macOS iOS build | `mise run check:ios` |
 
@@ -39,19 +39,20 @@ Verified on macOS with Kotlin 2.4.21, Compose Multiplatform 1.12.2, Android Grad
 | | Status |
 | --- | --- |
 | Tests | Pass on the JVM and against the Android library build |
-| Rendered images | Inspected at phone width and at desktop width in light and dark modes, and with the bottom sheet, the menu (sheet and popup), the select's list (sheet and popup), the dialog, and the toast open |
+| Rendered images | Inspected at phone width and at desktop width in light and dark modes, and with the bottom sheet, the menu (sheet and popup), the select's list (sheet and popup), the date picker's calendar (sheet and popup), the dialog, and the toast open |
 | Desktop | Runs on macOS; design preview checked in a window in both light and dark modes |
 | Android | `assembleDebug` builds. Run on an API 36 emulator: checked the home screen, the design preview in both modes, a switch, and the bottom sheet with its scrim, drag, and Back |
 | iOS | Builds for the simulator in Xcode. Run on an iPhone 17 simulator: checked the home screen and the design preview in both modes. Interactive controls were not tapped, so the bottom sheet has not been checked on iOS |
 | Focus rings | Checked in an off-screen render driven by simulated Tab key events rather than in a running app |
 | Not checked | Screen readers on any platform, physical devices, Windows and Linux, text fields with a real keyboard, and larger system text sizes |
 
-The interactive desktop, emulator, and simulator runs were performed before capsule buttons, the floating tab bar, and the inset bottom sheet were added, and before IconButton, Chip, ChipBar, Tabs, Menu, Dialog, Toast, Skeleton, SearchField, RadioGroup, Select, Slider, Thumbnail, MediaCard, SectionHeader, EmptyState, and Accordion. Since those changes landed, the unit tests, rendered preview images, Android and desktop builds, and iOS framework linking have been re-run, but the apps have not been launched interactively again.
+The interactive desktop, emulator, and simulator runs were performed before capsule buttons, the floating tab bar, and the inset bottom sheet were added, and before IconButton, Chip, ChipBar, Tabs, Menu, Dialog, Toast, Skeleton, SearchField, RadioGroup, Select, Slider, Thumbnail, MediaCard, SectionHeader, EmptyState, Accordion, and DatePicker. Since those changes landed, the unit tests, rendered preview images, Android and desktop builds, and iOS framework linking have been re-run, but the apps have not been launched interactively again.
 
 ## Known limitations
 
 - Korean text wraps between syllables rather than at word boundaries. Compose does not support word-based line breaking outside Android 13 and later.
 - On desktop, the spinner always spins, skeletons always pulse, and presses, dialogs, and toasts always animate because the JVM cannot read the OS reduced-motion setting. The Android ("Remove animations") and iOS ("Reduce Motion") settings are read when the theme is first composed.
+- The desktop has no word for "today" in the system's language, so a screen reader there does not say which day is today; the calendar marks it with a ring and bolder figures. Android and iOS say it.
 - As on the other platforms, font files are not bundled in the repository, so text renders using the system default font.
 - The sample apps do not include app icons.
 - When the mode switch inside the design preview overrides the OS color scheme, the Android status bar icons remain in the OS mode's color.

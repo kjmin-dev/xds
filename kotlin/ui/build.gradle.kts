@@ -36,6 +36,8 @@ kotlin {
             // fetched, decoded and cached. Coil does that on every platform.
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
+            // A DatePicker's value is a day without a time or a zone.
+            api(libs.kotlinx.datetime)
         }
         // Coil fetches through Ktor, which needs an HTTP engine on each platform.
         androidMain.dependencies {

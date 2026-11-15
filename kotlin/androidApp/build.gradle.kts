@@ -8,6 +8,7 @@ plugins {
 dependencies {
     implementation(projects.shared)
     implementation(libs.androidx.activity.compose)
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 }
 
 android {
@@ -34,6 +35,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        // kotlinx-datetime, which the DatePicker uses, is java.time underneath, which Android has
+        // only from API 26. Below that the build brings its own copy.
+        isCoreLibraryDesugaringEnabled = true
     }
 }
 

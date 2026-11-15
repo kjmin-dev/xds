@@ -4,6 +4,9 @@ package acme.ui
 
 import acme.tokens.Sizes
 import androidx.compose.runtime.Composable
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.YearMonth
 
 /** The sizes for the platform's input device: pointer on the desktop, touch on Android and iOS. */
 expect val platformSizes: Sizes
@@ -19,3 +22,29 @@ internal expect fun systemReducedMotion(): Boolean
  */
 @Composable
 internal expect fun WindowLayer(onDismiss: () -> Unit, content: @Composable () -> Unit)
+
+/**
+ * The names and the week of the locale the app runs in, for a [DatePicker]. Each platform has
+ * them from its own locale data, so they read as the platform's own calendars do.
+ */
+internal interface CalendarLocale {
+    /** The day each week of the calendar starts on: Sunday in the United States, Monday in most of Europe. */
+    val firstDayOfWeek: DayOfWeek
+
+    /** The heading of a month: "March 2026", "2026년 3월". */
+    fun monthTitle(month: YearMonth): String
+
+    /** The heading of a weekday's column: "T", "화". */
+    fun weekdayInitial(day: DayOfWeek): String
+
+    /** A day as the field shows it: "Mar 10, 2026", "2026. 3. 10.". */
+    fun mediumDate(date: LocalDate): String
+
+    /**
+     * A day in full, for a screen reader: "Tuesday, March 10, 2026". With [today], the
+     * platform's word for today comes first where it has one.
+     */
+    fun longDate(date: LocalDate, today: Boolean): String
+}
+
+internal expect fun calendarLocale(): CalendarLocale

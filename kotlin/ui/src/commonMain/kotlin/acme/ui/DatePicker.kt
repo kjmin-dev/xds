@@ -308,12 +308,10 @@ private fun Calendar(
     val weeks = remember(month, locale) { monthWeeks(month, locale.firstDayOfWeek) }
     val requesters = remember(month) { List(month.numberOfDays) { FocusRequester() } }
 
-    // A button keeps the focus while it shows another month, unless the focus was on a day,
-    // whose cell goes away with its month.
     fun show(key: CalendarKey) {
         val wasOnDay = hasFocus
         focused = moveFocus(focused, key, min, max)
-        if (wasOnDay) focusRequests++
+        if (dayTakesFocus(wasOnDay, key, focused.yearMonth, min, max)) focusRequests++
     }
 
     BoxWithConstraints(modifier, contentAlignment = Alignment.TopCenter) {
@@ -336,7 +334,7 @@ private fun Calendar(
                     label = previousLabel,
                     onClick = { show(CalendarKey.PageUp) },
                     size = ControlSize.Sm,
-                    enabled = min == null || min.yearMonth < month,
+                    enabled = hasMonthBefore(month, min),
                 )
                 BasicText(
                     locale.monthTitle(month),
@@ -357,7 +355,7 @@ private fun Calendar(
                     label = nextLabel,
                     onClick = { show(CalendarKey.PageDown) },
                     size = ControlSize.Sm,
-                    enabled = max == null || max.yearMonth > month,
+                    enabled = hasMonthAfter(month, max),
                 )
             }
             Column {
@@ -576,6 +574,30 @@ internal fun moveFocus(day: LocalDate, key: CalendarKey, min: LocalDate?, max: L
         CalendarKey.End -> day.yearMonth.lastDay
     }
     return clamp(moved, min, max)
+}
+
+/** Whether the month before [month] has a day on or after [min], so its button is enabled. */
+internal fun hasMonthBefore(month: YearMonth, min: LocalDate?): Boolean = min == null || min.yearMonth < month
+
+/** Whether the month after [month] has a day on or before [max], so its button is enabled. */
+internal fun hasMonthAfter(month: YearMonth, max: LocalDate?): Boolean = max == null || max.yearMonth > month
+
+/**
+ * Whether the focus goes to the focused day once a month button has shown [shown]. The button
+ * keeps it, so that it can be pressed again, but for two cases: the focus was on a day, whose
+ * cell goes away with its month; or the press disabled the button, on reaching the month of
+ * [min] or [max], and a disabled button drops the focus, which would then leave the calendar.
+ */
+internal fun dayTakesFocus(
+    wasOnDay: Boolean,
+    key: CalendarKey,
+    shown: YearMonth,
+    min: LocalDate?,
+    max: LocalDate?,
+): Boolean = wasOnDay || when (key) {
+    CalendarKey.PageUp -> !hasMonthBefore(shown, min)
+    CalendarKey.PageDown -> !hasMonthAfter(shown, max)
+    else -> false
 }
 
 /** [day], or the nearer of [min] and [max] when it is outside them. */

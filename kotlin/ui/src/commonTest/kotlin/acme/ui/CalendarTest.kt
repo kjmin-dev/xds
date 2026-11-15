@@ -2,6 +2,8 @@ package acme.ui
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.YearMonth
@@ -56,6 +58,27 @@ class CalendarTest {
         val day = openingDay(value = null, today = LocalDate(2026, 11, 14), min = min, max = max)
         assertEquals(LocalDate(2026, 4, 20), day)
         assertEquals(YearMonth(2026, 4), day.yearMonth)
+    }
+
+    @Test
+    fun theMonthButtonsStopAtTheMonthsOfTheRange() {
+        assertFalse(hasMonthBefore(YearMonth(2026, 3), min))
+        assertTrue(hasMonthBefore(YearMonth(2026, 4), min))
+        assertTrue(hasMonthAfter(YearMonth(2026, 3), max))
+        assertFalse(hasMonthAfter(YearMonth(2026, 4), max))
+        assertTrue(hasMonthBefore(YearMonth(2026, 3), null))
+    }
+
+    @Test
+    fun aMonthButtonThatDisablesItselfHandsTheFocusToTheDay() {
+        // Next month from March shows April, which holds the maximum: the button goes off.
+        assertTrue(dayTakesFocus(wasOnDay = false, CalendarKey.PageDown, YearMonth(2026, 4), min, max))
+        // Previous month from April shows March, which holds the minimum.
+        assertTrue(dayTakesFocus(wasOnDay = false, CalendarKey.PageUp, YearMonth(2026, 3), min, max))
+        // Still enabled: the button keeps the focus, so it can be pressed again.
+        assertFalse(dayTakesFocus(wasOnDay = false, CalendarKey.PageDown, YearMonth(2026, 4), min, null))
+        // The focus was on a day, whose cell went away with its month.
+        assertTrue(dayTakesFocus(wasOnDay = true, CalendarKey.PageDown, YearMonth(2026, 4), min, null))
     }
 
     @Test

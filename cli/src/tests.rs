@@ -794,6 +794,47 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
                 let path = client["source"].as_str().expect("a path");
                 assert!(files.contains_key(path), "{selected:?}: {path} is missing");
             }
+            // A difference is kept only where it concerns a client of this project, and
+            // names no other.
+            assert!(
+                inspect::difference_problems(component).is_empty(),
+                "{selected:?}: {:?}",
+                inspect::difference_problems(component)
+            );
+            if let Some(differences) = component.get("differences") {
+                assert!(
+                    differences.as_array().is_some_and(|list| !list.is_empty()),
+                    "{selected:?}: {} keeps an empty list of differences",
+                    component["name"]
+                );
+            }
+        }
+        let original = |name: &Value| {
+            contract["components"]
+                .as_array()
+                .expect("a list")
+                .iter()
+                .find(|component| &component["name"] == name)
+                .expect("the template's component")
+        };
+        for component in components {
+            let inputs: BTreeSet<&str> = component["clients"]
+                .as_object()
+                .expect("clients")
+                .keys()
+                .map(|id| manifest().target(id).expect("a target").input.name())
+                .collect();
+            let expected = original(&component["name"])["differences"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .filter(|difference| match difference["clients"].as_array() {
+                    Some(ids) => ids.iter().any(|id| id.as_str().is_some_and(has)),
+                    None => inputs.contains(difference["input"].as_str().expect("an input")),
+                })
+                .count();
+            let kept = component["differences"].as_array().map_or(0, Vec::len);
+            assert_eq!(kept, expected, "{selected:?}: {}", component["name"]);
         }
     };
 
@@ -1997,6 +2038,8 @@ fn the_component_contract_matches_the_code() {
         for key in ["purpose", "accessibility"] {
             assert!(component[key].is_string(), "{name}: {key}");
         }
+        let problems = inspect::difference_problems(component);
+        assert!(problems.is_empty(), "{problems:?}");
         for (id, client) in component["clients"].as_object().expect("clients") {
             assert!(manifest().target(id).is_some(), "{name}: no target {id}");
             let path = client["source"].as_str().expect("a path");
@@ -2056,6 +2099,80 @@ fn the_component_contract_matches_the_code() {
                 );
             }
         }
+    }
+}
+
+#[test]
+fn differences_that_name_no_known_client_or_kind_are_problems() {
+    let component = |differences: Value| {
+        serde_json::json!({
+            "name": "Menu",
+            "options": { "variant": ["plain", "glass"], "fields": ["label"], "flags": ["open"] },
+            "clients": { (WEB): {}, (MOBILE): {}, (KOTLIN): {} },
+            "differences": differences,
+        })
+    };
+    let problems = |differences: Value| inspect::difference_problems(&component(differences));
+    let fine = serde_json::json!([
+        { "input": "touch", "kind": "adapts", "note": "A sheet." },
+        { "clients": [MOBILE], "kind": "system", "note": "The system draws it." },
+        { "clients": [MOBILE, KOTLIN], "option": "variant", "value": "glass", "kind": "only",
+          "status": "planned", "note": "Glass." },
+        { "clients": [WEB], "option": "open", "kind": "only", "note": "A flag." },
+    ]);
+    assert_eq!(problems(fine), Vec::<String>::new());
+
+    for (difference, expected) in [
+        (
+            serde_json::json!({ "clients": ["web-angular"], "kind": "only", "note": "x" }),
+            "not a client",
+        ),
+        (
+            serde_json::json!({ "clients": [DESKTOP], "kind": "only", "note": "x" }),
+            "which has no Menu",
+        ),
+        (
+            serde_json::json!({ "input": "touch", "kind": "differs", "note": "x" }),
+            "unknown kind",
+        ),
+        (
+            serde_json::json!({ "kind": "adapts", "note": "x" }),
+            "neither clients nor an input",
+        ),
+        (
+            serde_json::json!({ "input": "touch", "clients": [MOBILE], "kind": "adapts", "note": "x" }),
+            "both clients and an input",
+        ),
+        (
+            serde_json::json!({ "input": "mouse", "kind": "adapts", "note": "x" }),
+            "input is not",
+        ),
+        (
+            serde_json::json!({ "input": "touch", "option": "size", "kind": "only", "note": "x" }),
+            "no option",
+        ),
+        (
+            serde_json::json!({ "input": "touch", "option": "variant", "value": "solid", "kind": "only", "note": "x" }),
+            "is not a value",
+        ),
+        (
+            serde_json::json!({ "input": "touch", "kind": "only", "status": "done", "note": "x" }),
+            "status",
+        ),
+        (
+            serde_json::json!({ "input": "touch", "kind": "only" }),
+            "no note",
+        ),
+        (
+            serde_json::json!({ "client": [MOBILE], "kind": "only", "note": "x" }),
+            "unknown key",
+        ),
+    ] {
+        let found = problems(serde_json::json!([difference]));
+        assert!(
+            found.iter().any(|problem| problem.contains(expected)),
+            "{difference}: {found:?}"
+        );
     }
 }
 

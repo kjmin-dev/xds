@@ -2,14 +2,14 @@
 //! `components`, `contrast` and `doctor`. Each reads the project it is run in, or the template
 //! inside the binary when it is run anywhere else.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 use serde_json::{Map, Value, json};
 
 use crate::error::{Context, Error, Result};
-use crate::manifest::manifest;
+use crate::manifest::{Input, manifest};
 use crate::output::Out;
 use crate::render::{RECORD, Record};
 use crate::say;
@@ -415,6 +415,203 @@ fn clients(component: &Value) -> Vec<&String> {
         .unwrap_or_default()
 }
 
+/// What a `differences` entry says about the clients it names: an option or value only they
+/// have, a part their platform draws, or a different look or presentation for their input.
+const DIFFERENCE_KINDS: [&str; 3] = ["only", "system", "adapts"];
+const DIFFERENCE_KEYS: [&str; 7] = [
+    "clients", "input", "option", "value", "kind", "status", "note",
+];
+/// Option groups that hold names rather than values: each name in them is an option itself.
+const NAME_GROUPS: [&str; 2] = ["flags", "fields"];
+
+fn input_of(id: &str) -> Option<Input> {
+    manifest().target(id).map(|target| target.input)
+}
+
+/// The values an option takes, or an empty list for a flag or a field; `None` when the
+/// component has no such option.
+fn option_values<'a>(component: &'a Value, option: &str) -> Option<&'a [Value]> {
+    let options = component["options"].as_object()?;
+    if !NAME_GROUPS.contains(&option)
+        && let Some(Value::Array(values)) = options.get(option)
+    {
+        return Some(values);
+    }
+    NAME_GROUPS
+        .iter()
+        .filter_map(|group| options.get(*group)?.as_array())
+        .any(|names| names.iter().any(|name| name.as_str() == Some(option)))
+        .then_some(&[] as &[Value])
+}
+
+/// What is wrong with a component's `differences`, one sentence per mistake. The documentation
+/// site, `xds components` and the MCP server read the entries without checking them again.
+pub fn difference_problems(component: &Value) -> Vec<String> {
+    let name = component["name"].as_str().unwrap_or("a component");
+    let mut problems = Vec::new();
+    let differences = match component.get("differences") {
+        None => return problems,
+        Some(Value::Array(differences)) => differences,
+        Some(_) => return vec![format!("{name}: differences is not a list")],
+    };
+    let has: Vec<&String> = clients(component);
+    for (index, difference) in differences.iter().enumerate() {
+        let at = format!("{name}: differences[{index}]");
+        let Some(entry) = difference.as_object() else {
+            problems.push(format!("{at} is not an object"));
+            continue;
+        };
+        for key in entry.keys() {
+            if !DIFFERENCE_KEYS.contains(&key.as_str()) {
+                problems.push(format!("{at} has an unknown key \"{key}\""));
+            }
+        }
+        match entry.get("kind").and_then(Value::as_str) {
+            Some(kind) if DIFFERENCE_KINDS.contains(&kind) => {}
+            Some(kind) => problems.push(format!(
+                "{at} has an unknown kind \"{kind}\" (kinds: {})",
+                DIFFERENCE_KINDS.join(", ")
+            )),
+            None => problems.push(format!("{at} has no kind")),
+        }
+        match (entry.get("clients"), entry.get("input")) {
+            (None, None) => problems.push(format!("{at} names neither clients nor an input")),
+            (Some(_), Some(_)) => {
+                problems.push(format!("{at} names both clients and an input: give one"));
+            }
+            (Some(ids), None) => match ids.as_array() {
+                Some(ids) if !ids.is_empty() => {
+                    for id in ids {
+                        match id.as_str() {
+                            Some(id) if manifest().target(id).is_none() => problems.push(format!(
+                                "{at} names \"{id}\", which is not a client. Clients: {}",
+                                manifest().target_ids().join(", ")
+                            )),
+                            Some(id) if !has.iter().any(|client| *client == id) => {
+                                problems.push(format!("{at} names {id}, which has no {name}"));
+                            }
+                            Some(_) => {}
+                            None => problems.push(format!("{at}: {id} is not a client id")),
+                        }
+                    }
+                }
+                _ => problems.push(format!("{at}: clients is not a list of client ids")),
+            },
+            (None, Some(input)) => match input.as_str().and_then(Input::parse) {
+                Some(input) if !has.iter().any(|id| input_of(id) == Some(input)) => {
+                    problems.push(format!(
+                        "{at} is about {} clients, and none of them has {name}",
+                        input.name()
+                    ));
+                }
+                Some(_) => {}
+                None => problems.push(format!("{at}: input is not \"pointer\" or \"touch\"")),
+            },
+        }
+        let values = match entry.get("option") {
+            None => None,
+            Some(Value::String(option)) => {
+                let values = option_values(component, option);
+                if values.is_none() {
+                    problems.push(format!("{at}: {name} has no option \"{option}\""));
+                }
+                values
+            }
+            Some(_) => {
+                problems.push(format!("{at}: option is not a name"));
+                None
+            }
+        };
+        match (entry.get("value"), entry.get("option")) {
+            (None, _) => {}
+            (Some(_), None) => problems.push(format!("{at} has a value but no option")),
+            (Some(value), Some(option)) => {
+                if values.is_some_and(|values| !values.contains(value)) {
+                    problems.push(format!("{at}: {value} is not a value of {option}"));
+                }
+            }
+        }
+        if let Some(status) = entry.get("status")
+            && status.as_str() != Some("planned")
+        {
+            problems.push(format!(
+                "{at}: status is {status}; the only status is \"planned\""
+            ));
+        }
+        if !entry
+            .get("note")
+            .and_then(Value::as_str)
+            .is_some_and(|note| !note.trim().is_empty())
+        {
+            problems.push(format!("{at} has no note saying what changes"));
+        }
+    }
+    problems
+}
+
+/// Whether a `differences` entry is about the client `id`.
+fn applies_to(difference: &Value, id: &str) -> bool {
+    match (
+        difference["clients"].as_array(),
+        difference["input"].as_str(),
+    ) {
+        (Some(ids), _) => ids.iter().any(|candidate| candidate.as_str() == Some(id)),
+        (None, Some(input)) => input_of(id).map(Input::name) == Some(input),
+        (None, None) => false,
+    }
+}
+
+/// `adapts, touch clients: …`, or `only, mobile-react-native kotlin-compose, surface=glass,
+/// planned: …`.
+fn describe_difference(difference: &Value) -> String {
+    let mut parts = vec![difference["kind"].as_str().unwrap_or_default().to_owned()];
+    match (
+        difference["clients"].as_array(),
+        difference["input"].as_str(),
+    ) {
+        (Some(ids), _) => parts.push(
+            ids.iter()
+                .filter_map(Value::as_str)
+                .collect::<Vec<_>>()
+                .join(" "),
+        ),
+        (None, Some(input)) => parts.push(format!("{input} clients")),
+        (None, None) => {}
+    }
+    if let Some(option) = difference["option"].as_str() {
+        parts.push(match &difference["value"] {
+            Value::Null => option.to_owned(),
+            value => format!("{option}={}", show(value)),
+        });
+    }
+    if let Some(status) = difference["status"].as_str() {
+        parts.push(status.to_owned());
+    }
+    format!(
+        "{}: {}",
+        parts.join(", "),
+        difference["note"].as_str().unwrap_or_default()
+    )
+}
+
+/// Where a component is, said by input where that is the whole story: `touch only`, or
+/// `not on web-vue`. `None` when every client in `scope` has it.
+fn reach(component: &Value, scope: &BTreeSet<&str>) -> Option<String> {
+    let has: BTreeSet<&str> = clients(component).into_iter().map(String::as_str).collect();
+    let missing: Vec<&str> = scope.difference(&has).copied().collect();
+    if missing.is_empty() {
+        return None;
+    }
+    for input in Input::ALL {
+        let only_this = has.iter().all(|id| input_of(id) == Some(input));
+        let missing_others = missing.iter().all(|id| input_of(id) != Some(input));
+        if only_this && missing_others {
+            return Some(format!("{} only", input.name()));
+        }
+    }
+    Some(format!("not on {}", missing.join(", ")))
+}
+
 pub fn components(args: &ComponentsArgs, out: Out) -> Result<Value> {
     let style = out.style;
     let location = Location::find(args.project.as_deref())?;
@@ -427,6 +624,18 @@ pub fn components(args: &ComponentsArgs, out: Out) -> Result<Value> {
         )));
     }
     let mut all = load_components(&location)?;
+    // The clients this contract is about: every target in the template, a project's own in a
+    // project, whose contract `create` cut down to them.
+    let scope: BTreeSet<&str> = all.iter().flat_map(clients).map(String::as_str).collect();
+    let reaches: BTreeMap<String, String> = all
+        .iter()
+        .filter_map(|component| {
+            Some((
+                component["name"].as_str()?.to_owned(),
+                reach(component, &scope)?,
+            ))
+        })
+        .collect();
     if let Some(client) = &args.client {
         for component in &mut all {
             if let Some(Value::Object(clients)) = component.get_mut("clients") {
@@ -452,7 +661,11 @@ pub fn components(args: &ComponentsArgs, out: Out) -> Result<Value> {
                 component["purpose"].as_str().unwrap_or_default()
             );
             let ids: Vec<&str> = clients(component).into_iter().map(String::as_str).collect();
-            say!(out, "{:width$}  {}", "", style.dim(&ids.join(", ")));
+            let reach = reaches
+                .get(name)
+                .map(|reach| format!("  {}", style.yellow(&format!("({reach})"))))
+                .unwrap_or_default();
+            say!(out, "{:width$}  {}{reach}", "", style.dim(&ids.join(", ")));
         }
         say!(
             out,
@@ -527,6 +740,24 @@ pub fn components(args: &ComponentsArgs, out: Out) -> Result<Value> {
         style.cyan("a11y    "),
         component["accessibility"].as_str().unwrap_or_default()
     );
+    if let Some(reach) = component["name"]
+        .as_str()
+        .and_then(|name| reaches.get(name))
+    {
+        say!(out, "  {}  {reach}", style.cyan("reach   "));
+    }
+    let shown = clients(&component);
+    for difference in component["differences"].as_array().into_iter().flatten() {
+        // With --client, only what concerns that client.
+        if shown.iter().any(|id| applies_to(difference, id)) {
+            say!(
+                out,
+                "  {}  {}",
+                style.cyan("differs "),
+                describe_difference(difference)
+            );
+        }
+    }
     say!(out);
     if let Some(Value::Object(clients)) = component.get("clients") {
         let width = clients.keys().map(String::len).max().unwrap_or(0);
@@ -871,6 +1102,8 @@ pub fn doctor(args: &DoctorArgs, out: Out) -> Result<Value> {
         // The component contract points at files that exist.
         match load_components(&Location::Project(project.clone())) {
             Ok(components) => {
+                let problems: Vec<String> =
+                    components.iter().flat_map(difference_problems).collect();
                 let missing: Vec<String> = components
                     .iter()
                     .filter_map(|component| component["clients"].as_object())
@@ -879,13 +1112,7 @@ pub fn doctor(args: &DoctorArgs, out: Out) -> Result<Value> {
                     .filter(|path| !project.join(path).is_file())
                     .map(str::to_owned)
                     .collect();
-                if missing.is_empty() {
-                    check(
-                        "components",
-                        "ok",
-                        format!("{} components, every source file exists", components.len()),
-                    );
-                } else {
+                if !missing.is_empty() {
                     check(
                         "components",
                         "failed",
@@ -893,6 +1120,18 @@ pub fn doctor(args: &DoctorArgs, out: Out) -> Result<Value> {
                             "{COMPONENTS_PATH} names files that do not exist: {}",
                             missing.join(", ")
                         ),
+                    );
+                } else if !problems.is_empty() {
+                    check(
+                        "components",
+                        "failed",
+                        format!("{COMPONENTS_PATH}: {}", problems.join("; ")),
+                    );
+                } else {
+                    check(
+                        "components",
+                        "ok",
+                        format!("{} components, every source file exists", components.len()),
                     );
                 }
             }

@@ -146,7 +146,7 @@ impl Server {
         ))
     }
 
-    #[tool(description = "List the components and which clients have each.")]
+    #[tool(description = "List the components, which clients have each, and where they differ.")]
     fn components(&self, Parameters(request): Parameters<ComponentsRequest>) -> CallToolResult {
         reply(inspect::components(
             &ComponentsArgs {
@@ -159,7 +159,7 @@ impl Server {
         ))
     }
 
-    #[tool(description = "One component: options, states, tokens, source per client.")]
+    #[tool(description = "One component: options, states, tokens, source per client, differences.")]
     fn component(&self, Parameters(request): Parameters<ComponentRequest>) -> CallToolResult {
         reply(inspect::components(
             &ComponentsArgs {

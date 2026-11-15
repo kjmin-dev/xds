@@ -220,7 +220,7 @@ When run inside a project or a checkout of this repository, `tokens` reads the l
 
 ### `xds components [name]`
 
-Lists all components and the clients that implement them, or shows the details of a single component.
+Lists all components and the clients that implement them, or shows the details of a single component. The list marks a component that only touch or only pointer clients have (`touch only`, `pointer only`), and the details include each way the clients differ.
 
 ```sh
 xds components                              # all of them
@@ -230,6 +230,8 @@ xds components Button --code                # with the source code
 ```
 
 This information comes from `design/components.json`, the component contract, which records each component's purpose, options, states, accessibility notes, and the source file and symbol that implement it on each client. In a project created with `xds create`, the contract is filtered down to that project's clients.
+
+Where clients differ in a way the contract's names do not show, the component has a `differences` list. Each entry names the `clients` it concerns, or an `input` (`pointer` or `touch`, from the targets in `template.json`) for every client designed for it, and a `kind`: `only` (an option, or one `value` of it, that only those clients have), `system` (the platform draws part of it, out of the tokens' reach), or `adapts` (it looks or opens differently for that input). `option` and `value` narrow it to one option, `status: "planned"` marks one not built yet, and `note` says what changes. `--json` and the MCP server return the entries as they are written.
 
 ### `xds contrast <foreground> <background>`
 
@@ -256,7 +258,7 @@ Runs a set of health checks on a project and reports each one as `ok`, `warning`
 | `record` | `.xds.json` is valid and references known targets |
 | `tokens` | All token files parse cleanly and every alias resolves |
 | `theme` | The palette matches one of the themes in `design/themes`, and it matches the theme named in the project record |
-| `components` | Every component source file listed in `design/components.json` exists on disk |
+| `components` | Every component source file listed in `design/components.json` exists on disk, and every `differences` entry names known clients, a known kind, and clients or an input |
 | `node` | A Node version capable of running the token generator is available on `PATH` |
 | `generated` | The generated platform token files are up to date with the token sources |
 
@@ -390,7 +392,7 @@ If the token generator rejects a theme (for example, because a color pairing fal
 | `exclude` | Repository paths that stay in this template repository and are never embedded in the binary |
 | `common` | Paths included in every generated project |
 | `shared` | Named groups of paths shared by multiple targets, such as `js-workspace` |
-| `targets` | Per-stack definitions: `id`, `default` (`true` for a target that `create --yes` includes and the interactive list starts with selected; at least one target is a default), `title`, `stack`, `platforms`, `paths`, `requires` (names of `shared` groups), `outputs` (kinds of generated token files the stack reads, matching the keys of `design/build.json`), `format` (the command that formats its code, if any), and `run` (commands shown after `create`) |
+| `targets` | Per-stack definitions: `id`, `default` (`true` for a target that `create --yes` includes and the interactive list starts with selected; at least one target is a default), `title`, `stack`, `platforms`, `input` (`pointer` or `touch`: the input its components are designed for, which `differences` in the component contract can name), `paths`, `requires` (names of `shared` groups), `outputs` (kinds of generated token files the stack reads, matching the keys of `design/build.json`), `format` (the command that formats its code, if any), and `run` (commands shown after `create`) |
 
 Shared configuration files use conditional comment blocks to include lines only when specific targets are selected. A comment line `@if <names>` opens a block and `@endif` closes it. Each name is a target ID or the name of a `shared` group:
 
@@ -416,7 +418,7 @@ Within this repository, marker lines act as ordinary comments so every block rem
 
 Files under `cli/overlay` are written over the generated project root with the same conditional block filtering and placeholder renaming. That is where the generated project's `README.md`, `AGENTS.md`, and `CLAUDE.md` come from.
 
-`design/components.json` is cut down like `design/build.json`: a project gets the components its clients have, each with the source files of those clients only.
+`design/components.json` is cut down like `design/build.json`: a project gets the components its clients have, each with the source files of those clients only, and only the `differences` that concern one of them.
 
 Binary files (detected by a NUL byte within the first 8 KB) are copied verbatim.
 
@@ -424,7 +426,7 @@ Binary files (detected by a NUL byte within the first 8 KB) are copied verbatim.
 
 1. Add the client code, using the `acme` placeholder for names in both file contents and file paths.
 2. If the stack consumes a new format of generated token file, add an emitter to `tools/design-build` and an entry to `design/build.json`.
-3. Add a target entry to `template.json`: its `paths`, the `shared` groups it `requires`, the `outputs` it reads, and its `run` commands. Include a `format` command if the stack has a formatter enforced by `mise run check`.
+3. Add a target entry to `template.json`: its `input`, its `paths`, the `shared` groups it `requires`, the `outputs` it reads, and its `run` commands. Include a `format` command if the stack has a formatter enforced by `mise run check`.
 4. Wrap any stack-specific additions to the shared root files (`mise.toml`, `.github/workflows/ci.yml`, `.gitignore`, `.gitattributes`, `Cargo.toml`, `pnpm-workspace.yaml`, `cli/overlay/README.md`) in `@if <id>` blocks. Blocks marked with a `shared` group the stack requires, such as `@if js-workspace`, already include it.
 5. List the stack's components in `design/components.json`, with the source file and the symbol of each.
 6. Run `cargo test -p xds`. The tests fail if any repository file belongs to no target, shared group, `common`, or `exclude`; if any conditional marker is unbalanced or references an unknown target or shared group; or if `mise.toml` or `Cargo.toml` is not valid TOML for any combination of targets. Add the new target's expectations to `shared_files_are_valid_for_every_combination_of_targets` in `cli/src/tests.rs`.

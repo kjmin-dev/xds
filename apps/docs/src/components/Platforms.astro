@@ -1,0 +1,74 @@
+---
+// The line under a component page's title: where the component is, and a chip per client. A
+// client without it is told apart by a hollow mark, a dashed outline, a struck-through name and
+// a spoken "not available", not by color. The page's Platforms section says the same in words,
+// which is what the Markdown copy and llms.txt keep; this is left out of both.
+import { reach, state, type Platforms } from "../../scripts/platforms.ts";
+import data from "../generated/platforms.json";
+
+interface Props {
+  name: string;
+}
+const platforms = data as Platforms;
+const component = platforms.components.find(({ name }) => name === Astro.props.name);
+if (!component) throw new Error(`${Astro.props.name} is not in design/components.json`);
+const { label } = reach(platforms, component);
+const spoken = { available: "", differs: " (differs there)", missing: " (not available)" };
+---
+
+<div class="platforms not-content">
+  <p class="platforms__reach">{label}</p>
+  <ul class="platforms__list" aria-label="Clients">
+    {platforms.clients.map((client) => {
+      const has = state(component, client);
+      return (
+        <li class="platform" data-state={has} title={client.platforms.join(", ")}>
+          <span class="mark" data-state={has} aria-hidden="true" />
+          <span class="platform__name">{client.name}</span>
+          {spoken[has] && <span class="sr-only">{spoken[has]}</span>}
+        </li>
+      );
+    })}
+  </ul>
+</div>
+
+<style>
+  .platforms {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--acme-space-2) var(--acme-space-3);
+  }
+  .platforms__reach {
+    margin: 0;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    color: var(--sl-color-white);
+  }
+  .platforms__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--acme-space-1-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .platform {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--acme-space-1-5);
+    padding: var(--acme-space-0-5) var(--acme-space-2-5) var(--acme-space-0-5) var(--acme-space-2);
+    border: var(--acme-border-width-thin) solid var(--acme-color-border-default);
+    border-radius: var(--acme-radius-full);
+    font-size: var(--sl-text-xs);
+    line-height: 1.6;
+    color: var(--sl-color-white);
+  }
+  .platform[data-state="missing"] {
+    border-style: dashed;
+    color: var(--sl-color-gray-3);
+  }
+  .platform[data-state="missing"] .platform__name {
+    text-decoration: line-through;
+  }
+</style>

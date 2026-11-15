@@ -9,3 +9,5 @@ src/content/docs/design-system/
 src/content/docs/tokens/
 src/content/docs/components/
 public/install.sh
+# Written by scripts/generate.ts from design/components.json and template.json, for the pages.
+src/generated/

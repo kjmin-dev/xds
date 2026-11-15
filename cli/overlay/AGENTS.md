@@ -56,7 +56,7 @@ Acme is built around a shared design system: a single set of design tokens and a
 <!-- @if ui-core -->
 - `packages/ui-core` holds one copy of what the web libraries share, so it never imports a framework. Change a component's classes or CSS there, not in a library. Its CSS selects on its own part classes, native pseudo-classes, `aria-*` attributes, and Zag's state attributes.
 <!-- @endif -->
-- When adding a variant, size, or tone to a component, implement it under the same name across every client in this project, add it to each client's design preview, and record it in `design/components.json`.
+- When adding a variant, size, or tone to a component, implement it under the same name across every client in this project, add it to each client's design preview, and record it in `design/components.json`. A difference between clients that is not in the contract's names (an option only some clients have, a part the platform draws, a different presentation for touch) is listed in that component's `differences`.
 <!-- @if ui-core -->
 - The web design preview is written once, as typed data in `packages/ui-core/src/preview`, and each web library's renderer (its `src/preview` module) draws it at `/design`. Show a web component there, not in an app: its props go in `components.ts`, its examples in `sections.ts`, and the component into the `COMPONENTS` of each renderer, which fails to typecheck until it is there and takes every prop the data passes. The `README.md` there explains the data.
 <!-- @endif -->

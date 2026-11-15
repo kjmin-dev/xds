@@ -1,13 +1,14 @@
 // Writes the pages that have a source elsewhere in the repository, so they cannot drift from it:
 //
-//   docs/cli.md, docs/design-system.md   ->  src/content/docs/cli, design-system
-//   design/tokens, design/themes         ->  src/content/docs/tokens
-//   scripts/components.ts                ->  src/content/docs/components
-//   install.sh                           ->  public/install.sh
+//   docs/cli.md, docs/design-system.md     ->  src/content/docs/cli, design-system
+//   design/tokens, design/themes           ->  src/content/docs/tokens
+//   scripts/components.ts, template.json,
+//   design/components.json                 ->  src/content/docs/components, src/generated
+//   install.sh                             ->  public/install.sh
 //
 // Everything written here is ignored by git. Runs before `astro dev` and `astro build`.
 
-import { access, copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
   type ColorToken,
@@ -17,6 +18,7 @@ import {
 } from "../../../tools/design-build/src/model.ts";
 import { listThemes } from "../../../tools/design-build/src/themes.ts";
 import { COMPONENTS } from "./components.ts";
+import { loadPlatforms, optionPill, platformsSection, reach } from "./platforms.ts";
 import { previewAnchor, previewLink } from "./preview.ts";
 
 const root = join(import.meta.dirname, "../../..");
@@ -27,7 +29,7 @@ const NOTE = (source: string) =>
 
 async function page(
   path: string,
-  frontmatter: { title: string; description?: string; order?: number },
+  frontmatter: { title: string; description?: string; order?: number; badge?: string },
   body: string,
 ) {
   const file = join(content, path);
@@ -35,7 +37,11 @@ async function page(
   const lines = [`title: ${JSON.stringify(frontmatter.title)}`];
   if (frontmatter.description)
     lines.push(`description: ${JSON.stringify(frontmatter.description)}`);
-  if (frontmatter.order !== undefined) lines.push(`sidebar:\n  order: ${frontmatter.order}`);
+  if (frontmatter.order !== undefined || frontmatter.badge) lines.push("sidebar:");
+  if (frontmatter.order !== undefined) lines.push(`  order: ${frontmatter.order}`);
+  // Only on the pages of components that some clients lack: with one on every entry, none
+  // would stand out.
+  if (frontmatter.badge) lines.push(`  badge:\n    text: ${frontmatter.badge}\n    variant: note`);
   await writeFile(file, `---\n${lines.join("\n")}\n---\n\n${body.trim()}\n`);
 }
 
@@ -310,15 +316,7 @@ async function tokens() {
 
 // ---------------------------------------------------------------- components
 
-const PLATFORM = {
-  web: "Web (React)",
-  solid: "Web (Solid)",
-  vue: "Web (Vue)",
-  svelte: "Web (Svelte)",
-  gpui: "Desktop (GPUI)",
-  reactNative: "React Native",
-  compose: "Compose Multiplatform",
-};
+const generated = join(import.meta.dirname, "../src/generated");
 
 async function components() {
   // The sections of the web design preview, by title: each component page links to its own.
@@ -328,14 +326,19 @@ async function components() {
     [...preview.matchAll(/^ {2}\["([^"]+)", \w+\],$/gm)].map(([, title]) => title),
   );
   if (sections.size === 0) throw new Error("no sections found in the design preview");
+  const platforms = await loadPlatforms(
+    root,
+    new Map(COMPONENTS.map((component) => [component.name, component.slug])),
+  );
+  // The Astro components and the Markdown copies read it from here.
+  await mkdir(generated, { recursive: true });
+  await writeFile(join(generated, "platforms.json"), `${JSON.stringify(platforms, null, 2)}\n`);
+
   for (const [index, component] of COMPONENTS.entries()) {
-    const sources = Object.entries(component.sources) as [keyof typeof PLATFORM, string][];
-    for (const [, file] of sources) {
-      await access(join(root, file)).catch(() => {
-        throw new Error(`${component.name}: ${file} does not exist`);
-      });
-    }
-    if (component.sources.web && !component.preview) {
+    const contract = platforms.components.find(({ name }) => name === component.name);
+    if (!contract) throw new Error(`${component.name} is not in design/components.json`);
+    const has = (id: string) => contract.clients.includes(id);
+    if (has("web-react") && !component.preview) {
       throw new Error(`${component.name}: name the design preview section that shows it`);
     }
     if (component.preview && !sections.has(component.preview)) {
@@ -345,7 +348,10 @@ async function components() {
     }
     const link = component.preview && previewLink(previewAnchor(component.preview));
     const body = [
-      NOTE("apps/docs/scripts/components.ts"),
+      NOTE("apps/docs/scripts/components.ts and design/components.json"),
+      'import Platforms from "../../../components/Platforms.astro";',
+      `<Platforms name="${component.name}" />`,
+      component.summary,
       ...(component.demo
         ? [
             'import Demo from "../../../components/Demo.astro";',
@@ -365,7 +371,7 @@ async function components() {
             "## Options",
             !component.demo
               ? "The React Native component's props. Compose takes the same options under its own naming conventions."
-              : component.sources.reactNative || component.sources.compose
+              : platforms.clients.some((client) => has(client.id) && client.input === "touch")
                 ? "The web component's props. The other platforms take the same options under their own naming conventions."
                 : "The web component's props. GPUI takes the same options under its own naming conventions.",
             table(
@@ -373,23 +379,54 @@ async function components() {
               component.props.map((prop) => [
                 `\`${prop.name}\``,
                 `\`${cell(prop.type)}\``,
-                cell(prop.description),
+                optionPill(platforms, contract, prop.name) + cell(prop.description),
               ]),
             ),
           ]
         : []),
+      platformsSection(platforms, contract),
       "## Source",
       table(
-        ["Platform", "File"],
-        sources.map(([platform, file]) => [PLATFORM[platform], `[\`${file}\`](${REPO}/${file})`]),
+        ["Client", "File"],
+        platforms.clients
+          .filter((client) => has(client.id))
+          .map((client) => {
+            const file = contract.sources[client.id] ?? "";
+            return [
+              `${client.name} (${client.platforms.join(", ")})`,
+              `[\`${file}\`](${REPO}/${file})`,
+            ];
+          }),
       ),
     ].join("\n\n");
     await page(
       `components/${component.slug}.mdx`,
-      { title: component.name, description: component.summary, order: index + 1 },
-      `${component.summary}\n\n${body}`,
+      {
+        title: component.name,
+        description: component.summary,
+        order: index + 1,
+        badge: reach(platforms, contract).badge,
+      },
+      body,
     );
   }
+
+  await page(
+    "components/index.mdx",
+    {
+      title: "All components",
+      description: "Every component, and which clients have it.",
+      order: 0,
+    },
+    [
+      NOTE("design/components.json and template.json"),
+      'import ComponentMatrix from "../../../components/ComponentMatrix.astro";',
+      "Every client has the same components under the same names, with three kinds of exception. Navigation made for touch (TopBar, TabBar and BottomSheet) is only on the touch clients, and hover help and the app sidebar (Tooltip and Sidebar) only on the pointer clients. Some components also look or open differently on some clients, or have an option that only some clients have: each component's Platforms section says how.",
+      "A client is a touch or a pointer client by what its components are designed for, not by where it runs: Compose is a touch client, and takes the pointer sizes on the desktop.",
+      "<ComponentMatrix />",
+      "A desktop shell that wraps a web app, such as Electron or Tauri, has no column of its own: it has what the web library it wraps has.",
+    ].join("\n\n"),
+  );
 }
 
 // ---------------------------------------------------------------- run
@@ -488,7 +525,9 @@ await guide(
       take: ["Known limitations"],
     },
   ],
-  [],
+  // Every project made from the template has the file too, so it links to the deployed site;
+  // here the link stays on whichever site it is built for.
+  [[/https:\/\/xds\.studiocyf\.app\/components\//g, "/components/"]],
 );
 
 await tokens();

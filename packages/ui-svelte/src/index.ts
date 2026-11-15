@@ -24,6 +24,7 @@ export { default as Checkbox, type CheckboxProps } from "./Checkbox.svelte";
 export { default as Chip, type ChipProps } from "./Chip.svelte";
 export { default as ChipBar, type ChipBarProps } from "./ChipBar.svelte";
 export { default as CountBadge, type CountBadgeProps } from "./CountBadge.svelte";
+export { default as DatePicker, type DatePickerProps, type IsoDate } from "./DatePicker.svelte";
 export { default as Dialog, type DialogProps } from "./Dialog.svelte";
 export { default as Divider } from "./Divider.svelte";
 export { default as EmptyState, type EmptyStateProps } from "./EmptyState.svelte";

@@ -328,6 +328,27 @@ export const controls = () => [
       disabled: true,
     }),
   ),
+  // Fixed days, so that a capture of the open calendar shows the same month, March 2026,
+  // whatever day it is taken on, and in it no ring for today.
+  el(
+    "div",
+    { class: "grid gap-4 sm:grid-cols-2" },
+    ui.DatePicker({
+      label: "Due date",
+      ...bind("dueDate"),
+      min: "2026-03-05",
+      max: "2026-04-20",
+      description: "Within the current sprint.",
+    }),
+    ui.DatePicker({
+      label: "Start date",
+      placeholder: "Choose a day",
+      ...bind("startDate"),
+      error: (state) =>
+        state.startDate === undefined ? "Choose when the project starts." : undefined,
+    }),
+    ui.DatePicker({ label: "Locked", value: "2026-03-10", onChange: keep, disabled: true }),
+  ),
   el(
     "div",
     { class: "grid gap-x-8 gap-y-6 sm:grid-cols-2" },

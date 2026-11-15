@@ -1,0 +1,194 @@
+/*
+ * DatePicker: Zag's date-picker machine. Its field is a Select's, drawn by select.css; this
+ * draws the calendar, which is rendered into the body, always, hidden while closed once it has
+ * animated out.
+ *
+ * Parts: `.date-picker__underlay` (over the page while the calendar is open),
+ * `__positioner`, `__content` (the surface, a dialog), `__header`, `__nav` (the two month
+ * buttons, which button.css draws as small ghost IconButtons: DATE_PICKER_NAV_CLASS gives them
+ * both classes), `__heading` (the month and year), `__grid` (a table), `__weekday` (a column
+ * header), `__cell` (a grid cell), `__day` (the day in it, a button).
+ * States on a day: `:hover`, `:active`, `:focus-visible`, `[data-selected]`, `[data-today]`,
+ * `[data-disabled]` (outside `min`..`max`), `[data-outside-range]` (a day of the month before
+ * or after). On the content: `[data-side]`, and `[data-state="closed"]` while it animates out.
+ * The positioner stacks by `--layer-overlay` and Zag's `--layer-index`.
+ */
+@layer components {
+  /* Over the page and under the open calendar, as under a Select's list: a press outside only
+     closes the calendar, and the field under the pointer keeps its own border meanwhile. */
+  .date-picker__underlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--layer-overlay);
+  }
+
+  .date-picker__positioner {
+    z-index: calc(var(--layer-overlay) + var(--layer-index, 0));
+  }
+
+  /* A raised surface, as wide as seven days and its inset. */
+  .date-picker__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acme-space-2);
+    width: max-content;
+    padding: var(--acme-space-3);
+    border: var(--acme-border-width-thin) solid var(--acme-color-border-default);
+    border-radius: var(--acme-radius-lg);
+    background: var(--acme-color-date-picker-background);
+    box-shadow: var(--acme-shadow-raised);
+    outline: none;
+    transform-origin: var(--transform-origin);
+    /* A Select's list's entrance, from select.css. */
+    animation: acme-select-enter var(--acme-motion-duration-fast) var(--acme-motion-easing-enter);
+  }
+
+  .date-picker__content[data-side="top"] {
+    animation-name: acme-select-enter-above;
+  }
+
+  /* After the rules above, which it replaces. A closing calendar takes no more presses. */
+  .date-picker__content[data-state="closed"] {
+    animation: acme-overlay-exit var(--acme-motion-duration-fast) var(--acme-motion-easing-exit)
+      forwards;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .date-picker__content,
+    .date-picker__content[data-state="closed"] {
+      animation: none;
+    }
+  }
+
+  /* The month between its two buttons. */
+  .date-picker__header {
+    display: flex;
+    align-items: center;
+    gap: var(--acme-space-2);
+  }
+
+  .date-picker__heading {
+    flex: 1 1 0%;
+    min-width: 0;
+    text-align: center;
+    font-size: var(--acme-typography-body-strong-size);
+    font-weight: var(--acme-typography-body-strong-weight);
+    line-height: var(--acme-typography-body-strong-line-height);
+    letter-spacing: var(--acme-typography-body-strong-letter-spacing);
+    color: var(--acme-color-date-picker-heading);
+  }
+
+  /* Seven columns of one day's side; the rows of days are as tall. */
+  .date-picker__grid {
+    border-collapse: collapse;
+    border-spacing: 0;
+    table-layout: fixed;
+  }
+
+  .date-picker__weekday,
+  .date-picker__cell {
+    width: var(--acme-size-calendar-day);
+    height: var(--acme-size-calendar-day);
+    padding: 0;
+    text-align: center;
+  }
+
+  .date-picker__weekday {
+    font-size: var(--acme-typography-footnote-size);
+    font-weight: var(--acme-typography-footnote-weight);
+    line-height: var(--acme-typography-footnote-line-height);
+    color: var(--acme-color-date-picker-weekday);
+  }
+
+  /* A circle inset a little into its cell, so that two marked days side by side stay apart. */
+  .date-picker__day {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(var(--acme-size-calendar-day) - 2 * var(--acme-space-0-5));
+    height: calc(var(--acme-size-calendar-day) - 2 * var(--acme-space-0-5));
+    margin: var(--acme-space-0-5);
+    border-radius: var(--acme-radius-full);
+    font-size: var(--acme-typography-body-size);
+    font-weight: var(--acme-typography-body-weight);
+    line-height: var(--acme-typography-body-line-height);
+    font-variant-numeric: tabular-nums;
+    color: var(--acme-color-date-picker-day-text);
+    outline: none;
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition-property: background-color, color, box-shadow;
+    transition-duration: var(--acme-motion-duration-fast);
+    transition-timing-function: var(--acme-motion-easing-standard);
+  }
+
+  /* The days of the months around this one are not drawn; their cells keep the grid's shape. */
+  .date-picker__day[data-outside-range] {
+    visibility: hidden;
+  }
+
+  /* Bolder as well as in the accent, so that today does not depend on telling colors apart,
+     and ringed, as a phone's calendar marks it. */
+  .date-picker__day[data-today] {
+    font-weight: var(--acme-typography-body-strong-weight);
+    color: var(--acme-color-date-picker-today-text);
+    box-shadow: inset 0 0 0 var(--acme-border-width-thin) var(--acme-color-date-picker-today-border);
+  }
+
+  @media (hover: hover) {
+    .date-picker__day:hover {
+      background-color: var(--acme-color-date-picker-day-background-hover);
+    }
+  }
+
+  /* The keyboard's day: the pointer's fill, and the ring a gap away from the circle, in the
+     surface's color, as around a Button. */
+  .date-picker__day:focus-visible {
+    background-color: var(--acme-color-date-picker-day-background-hover);
+    box-shadow:
+      0 0 0 var(--acme-focus-offset) var(--acme-color-date-picker-background),
+      0 0 0 calc(var(--acme-focus-width) + var(--acme-focus-offset)) var(--acme-color-border-focus);
+  }
+
+  .date-picker__day[data-today]:focus-visible {
+    box-shadow:
+      inset 0 0 0 var(--acme-border-width-thin) var(--acme-color-date-picker-today-border),
+      0 0 0 var(--acme-focus-offset) var(--acme-color-date-picker-background),
+      0 0 0 calc(var(--acme-focus-width) + var(--acme-focus-offset)) var(--acme-color-border-focus);
+  }
+
+  .date-picker__day:active {
+    background-color: var(--acme-color-date-picker-day-background-pressed);
+  }
+
+  /* The chosen day: a filled circle, which today's ring would only repeat. */
+  .date-picker__day[data-selected] {
+    background-color: var(--acme-color-date-picker-selected-background);
+    color: var(--acme-color-date-picker-selected-text);
+  }
+
+  .date-picker__day[data-selected][data-today]:not(:focus-visible) {
+    box-shadow: none;
+  }
+
+  @media (hover: hover) {
+    .date-picker__day[data-selected]:hover {
+      background-color: var(--acme-color-date-picker-selected-background-hover);
+    }
+  }
+
+  .date-picker__day[data-selected]:active {
+    background-color: var(--acme-color-date-picker-selected-background-pressed);
+  }
+
+  /* Outside `min`..`max`: dimmed, and nothing under the pointer. Last, so it outranks the
+     states above. */
+  .date-picker__day[data-disabled] {
+    background-color: transparent;
+    color: var(--acme-color-date-picker-disabled-text);
+    cursor: default;
+  }
+}

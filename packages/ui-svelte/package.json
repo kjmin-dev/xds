@@ -14,8 +14,10 @@
   "dependencies": {
     "@acme/tokens": "workspace:*",
     "@acme/ui-core": "workspace:*",
+    "@internationalized/date": "catalog:",
     "@zag-js/accordion": "catalog:",
     "@zag-js/aria-hidden": "catalog:",
+    "@zag-js/date-picker": "catalog:",
     "@zag-js/dialog": "catalog:",
     "@zag-js/menu": "catalog:",
     "@zag-js/remove-scroll": "catalog:",

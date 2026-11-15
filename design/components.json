@@ -1596,6 +1596,56 @@
       ]
     },
     {
+      "name": "DatePicker",
+      "purpose": "A field for choosing one day. Closed, it looks like a Select. Pressed, it opens a calendar of one month in a popup under the field.",
+      "options": {
+        "fields": [
+          "label",
+          "value",
+          "min",
+          "max",
+          "placeholder",
+          "description",
+          "error",
+          "previousLabel",
+          "nextLabel"
+        ],
+        "flags": [
+          "disabled"
+        ]
+      },
+      "states": [
+        "focus",
+        "disabled",
+        "invalid"
+      ],
+      "accessibility": "The field is a button named by the chosen day and the label; it says that it opens a dialog and whether it is open, and the error describes it. The calendar is a grid of days, each named in full; the chosen day is selected and today is the current date. The arrow keys move a day or a week, Page Up and Page Down a month (with Shift a year), Home and End to the first and last day of the month, never past min or max. Enter or Space chooses and closes; Escape or Back closes without choosing. Focus returns to the field.",
+      "tokens": [
+        "color.field",
+        "color.date-picker",
+        "size.control",
+        "size.calendar-day"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/DatePicker.tsx",
+          "symbol": "DatePicker"
+        },
+        "web-solid": {
+          "source": "packages/ui-solid/src/DatePicker.tsx",
+          "symbol": "DatePicker"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/DatePicker.vue",
+          "symbol": "DatePicker"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/DatePicker.svelte",
+          "symbol": "DatePicker"
+        }
+      }
+    },
+    {
       "name": "Slider",
       "purpose": "Picks a number in a range by dragging, or with the arrow keys.",
       "options": {

@@ -98,6 +98,8 @@ export function designPreview(options: DesignPreviewOptions = {}): Screen {
     timeZone: undefined,
     volume: 60,
     fontSize: 16,
+    dueDate: "2026-03-10",
+    startDate: undefined,
     filters: ["open", "review"],
     page: "overview",
     dismissed: false,

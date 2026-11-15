@@ -5,6 +5,7 @@ import { defineConfig } from "astro/config";
 import starlightLlmsTxt from "starlight-llms-txt";
 import { demoFrames } from "./scripts/demo-frames.ts";
 import { previewLink } from "./scripts/preview.ts";
+import { reactNativeWebPlugin } from "./scripts/react-native-web.ts";
 
 // The public address of the site. `llms.txt`, the sitemap and canonical links are built from it,
 // so a deployment sets DOCS_SITE. Without it the links point at the local preview server.
@@ -85,5 +86,6 @@ export default defineConfig({
     react(),
     demoFrames(),
   ],
-  vite: { plugins: [tailwindcss()] },
+  // The touch-only components' examples draw @acme/ui-native with react-native-web.
+  vite: { plugins: [reactNativeWebPlugin(), tailwindcss()] },
 });

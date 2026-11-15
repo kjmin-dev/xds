@@ -352,13 +352,19 @@ async function components() {
       'import Platforms from "../../../components/Platforms.astro";',
       `<Platforms name="${component.name}" />`,
       component.summary,
-      ...(component.demo
+      ...(component.demo === "web"
         ? [
             'import Demo from "../../../components/Demo.astro";',
             `<Demo name="${component.slug}" title="${component.name} examples" />`,
             "The frame above shows the real web components, in the mode this site is in.",
           ]
-        : []),
+        : [
+            'import PhoneDemo from "../../../components/PhoneDemo.astro";',
+            `<PhoneDemo name="${component.slug}" title="${component.name} example" />`,
+            // What a reader could take for the app and is not. One line: the Markdown copy
+            // drops it with the frame.
+            "The frame above shows the real React Native component from `@acme/ui-native`, in the mode this site is in, drawn in this browser by react-native-web. It answers clicks, taps and the keyboard, but it is not a phone: the text is in the browser's system font, nothing that iOS or Android draws itself (the status bar, the home indicator, system animations) is there, and where a component takes one path on iOS and another on Android, here it takes neither. Pictures from the iOS and Android apps will follow.",
+          ]),
       ...(link
         ? [`The [design preview](${link}) shows it next to every other web component.`]
         : []),
@@ -369,7 +375,7 @@ async function components() {
       ...(component.props.length > 0
         ? [
             "## Options",
-            !component.demo
+            component.demo === "native"
               ? "The React Native component's props. Compose takes the same options under its own naming conventions."
               : platforms.clients.some((client) => has(client.id) && client.input === "touch")
                 ? "The web component's props. The other platforms take the same options under their own naming conventions."

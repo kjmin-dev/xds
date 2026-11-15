@@ -1,10 +1,13 @@
 import { colors, size } from "@acme/tokens";
-import { createContext } from "react";
+import { createContext, useContext } from "react";
 import { useColorScheme } from "react-native";
+import { ColorSchemeOverride } from "./scheme.ts";
 
-/** The color tokens for the system's color scheme. */
+/** The color tokens for the system's color scheme, or for the one a ColorSchemeOverride sets. */
 export function useColors() {
-  return colors[useColorScheme() === "dark" ? "dark" : "light"];
+  const forced = useContext(ColorSchemeOverride);
+  const system = useColorScheme();
+  return colors[(forced ?? system) === "dark" ? "dark" : "light"];
 }
 
 export type Colors = ReturnType<typeof useColors>;

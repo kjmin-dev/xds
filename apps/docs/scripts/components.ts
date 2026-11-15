@@ -16,8 +16,12 @@ export type Component = {
   example: string;
   exampleLanguage: "tsx";
   props: Prop[];
-  /** The live example at /demo/<slug>/. Touch-only components have none. */
-  demo: boolean;
+  /**
+   * The live example: the web components at /demo/<slug>/ (src/demos/index.tsx), or, for a
+   * touch-only component, the React Native one drawn by react-native-web at /demo-native/<slug>/
+   * (src/demos/native.tsx).
+   */
+  demo: "web" | "native";
   /**
    * The section of the web design preview (SECTIONS in packages/ui-core/src/preview/design.ts)
    * that shows it, by title. Every component with a web version names one; touch-only
@@ -95,7 +99,7 @@ export const COMPONENTS: Component[] = [
         description: "The label. Leave it out for a button that holds only an icon.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Buttons",
   },
   {
@@ -171,7 +175,7 @@ export const COMPONENTS: Component[] = [
       { name: "required", type: "boolean", description: "" },
       { name: "disabled", type: "boolean", description: "" },
     ],
-    demo: true,
+    demo: "web",
     preview: "Text fields",
   },
   {
@@ -201,7 +205,7 @@ export const COMPONENTS: Component[] = [
       { name: "as", type: "ElementType", description: "The element to render. Defaults to `p`." },
       { name: "className", type: "string", description: "" },
     ],
-    demo: true,
+    demo: "web",
     preview: "Typography",
   },
   {
@@ -233,7 +237,7 @@ export const COMPONENTS: Component[] = [
         description: "Drawn 12 pixels wide before the label, after the dot when there is one.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Badges",
   },
   {
@@ -262,7 +266,7 @@ export const COMPONENTS: Component[] = [
         description: "What the count belongs to. The badge sits on its top end corner.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Badges",
   },
   {
@@ -305,7 +309,7 @@ export const COMPONENTS: Component[] = [
         description: "What a screen reader says for the close control. Defaults to `Dismiss`.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Banners",
   },
   {
@@ -353,7 +357,7 @@ export const COMPONENTS: Component[] = [
       },
       { name: "className", type: "string", description: "" },
     ],
-    demo: true,
+    demo: "web",
     preview: "Card",
   },
   {
@@ -368,7 +372,7 @@ export const COMPONENTS: Component[] = [
 <Divider />`,
     exampleLanguage: "tsx",
     props: [],
-    demo: true,
+    demo: "web",
     preview: "List",
   },
   {
@@ -388,7 +392,7 @@ export const COMPONENTS: Component[] = [
       { name: "size", type: '"sm" | "md" | "lg"', description: "Defaults to `md`." },
       { name: "label", type: "string", description: "What a screen reader says." },
     ],
-    demo: true,
+    demo: "web",
     preview: "Card",
   },
   {
@@ -418,7 +422,7 @@ export const COMPONENTS: Component[] = [
       },
       { name: "disabled", type: "boolean", description: "" },
     ],
-    demo: true,
+    demo: "web",
     preview: "Selection",
   },
   {
@@ -446,7 +450,7 @@ export const COMPONENTS: Component[] = [
       { name: "name", type: "string", description: "" },
       { name: "disabled", type: "boolean", description: "" },
     ],
-    demo: true,
+    demo: "web",
     preview: "Selection",
   },
   {
@@ -484,7 +488,7 @@ export const COMPONENTS: Component[] = [
         description: "Stretches to the width of its container.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Selection",
   },
   {
@@ -514,7 +518,7 @@ export const COMPONENTS: Component[] = [
         description: "Defaults to `md`. 24, 32, 40 and 56 pixels.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Card",
   },
   {
@@ -551,7 +555,7 @@ export const COMPONENTS: Component[] = [
         description: "Replaces the list of names that a screen reader says.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Card",
   },
   {
@@ -571,7 +575,7 @@ export const COMPONENTS: Component[] = [
         description: "Required. A screen reader reads it with the percentage.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Card",
   },
   {
@@ -613,7 +617,7 @@ export const COMPONENTS: Component[] = [
         description: "`rtl:-scale-x-100` mirrors an arrow or a chevron in a right-to-left layout.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Icons",
   },
   {
@@ -656,7 +660,7 @@ export const COMPONENTS: Component[] = [
       { name: "onPress", type: "() => void", description: "Makes the whole row a button." },
       { name: "disabled", type: "boolean", description: "" },
     ],
-    demo: true,
+    demo: "web",
     preview: "List",
   },
   {
@@ -702,7 +706,7 @@ export const COMPONENTS: Component[] = [
       },
       { name: "onPress", type: "() => void", description: "" },
     ],
-    demo: true,
+    demo: "web",
     preview: "Buttons",
   },
   {
@@ -731,7 +735,7 @@ export const COMPONENTS: Component[] = [
       },
       { name: "disabled", type: "boolean", description: "" },
     ],
-    demo: true,
+    demo: "web",
     preview: "Chips",
   },
   {
@@ -755,7 +759,7 @@ export const COMPONENTS: Component[] = [
       { name: "label", type: "string", description: "Required. Says what the chips filter." },
       { name: "children", type: "ReactNode", description: "Required. The chips." },
     ],
-    demo: true,
+    demo: "web",
     preview: "Chips",
   },
   {
@@ -793,7 +797,7 @@ export const COMPONENTS: Component[] = [
       { name: "label", type: "string", description: "Required. Names the tab list." },
       { name: "fullWidth", type: "boolean", description: "The tabs share the width equally." },
     ],
-    demo: true,
+    demo: "web",
     preview: "Tabs",
   },
   {
@@ -839,7 +843,7 @@ export const COMPONENTS: Component[] = [
         description: "The edge of the trigger the menu lines up with. Defaults to `start`.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Menu",
   },
   {
@@ -893,7 +897,7 @@ export const COMPONENTS: Component[] = [
         description: "Defaults to `true`. When false, Escape and a press outside do nothing.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Dialog",
   },
   {
@@ -935,7 +939,7 @@ export const COMPONENTS: Component[] = [
         description: "In milliseconds. Defaults to 5000. `0` keeps the toast until it is closed.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Toast",
   },
   {
@@ -969,7 +973,7 @@ export const COMPONENTS: Component[] = [
         description: "Required. The control it describes: a Button or an IconButton.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Buttons",
   },
   {
@@ -1004,7 +1008,7 @@ export const COMPONENTS: Component[] = [
         description: "A `rect` needs one. A `circle` is as tall as it is wide.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Skeleton",
   },
   {
@@ -1040,7 +1044,7 @@ export const COMPONENTS: Component[] = [
         description: "Names the control that empties the field. Defaults to `Clear`.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Text fields",
   },
   {
@@ -1087,7 +1091,7 @@ export const COMPONENTS: Component[] = [
       },
       { name: "name", type: "string", description: "The name the choice is submitted under." },
     ],
-    demo: true,
+    demo: "web",
     preview: "Selection",
   },
   {
@@ -1137,7 +1141,7 @@ export const COMPONENTS: Component[] = [
       { name: "name", type: "string", description: "The name the choice is submitted under." },
       { name: "disabled", type: "boolean", description: "" },
     ],
-    demo: true,
+    demo: "web",
     preview: "Controls",
   },
   {
@@ -1169,7 +1173,7 @@ export const COMPONENTS: Component[] = [
         description: "Shows the current value at the end of the label's line.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Controls",
   },
   {
@@ -1205,7 +1209,7 @@ export const COMPONENTS: Component[] = [
         description: "From 0 to 1. 0 draws no bar. With a badge, the badge moves above the bar.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Media",
   },
   {
@@ -1264,7 +1268,7 @@ export const COMPONENTS: Component[] = [
       },
       { name: "onPress", type: "() => void", description: "Makes the whole card one button." },
     ],
-    demo: true,
+    demo: "web",
     preview: "Media",
   },
   {
@@ -1294,7 +1298,7 @@ export const COMPONENTS: Component[] = [
       },
       { name: "level", type: "1 | 2 | 3 | 4 | 5 | 6", description: "Defaults to 2." },
     ],
-    demo: true,
+    demo: "web",
     preview: "Media",
   },
   {
@@ -1321,7 +1325,7 @@ export const COMPONENTS: Component[] = [
       { name: "description", type: "string", description: "" },
       { name: "action", type: "ReactNode", description: "Usually a Button." },
     ],
-    demo: true,
+    demo: "web",
     preview: "Empty state",
   },
   {
@@ -1363,7 +1367,7 @@ export const COMPONENTS: Component[] = [
         description: "Lets several items be open at once. Defaults to `false`.",
       },
     ],
-    demo: true,
+    demo: "web",
     preview: "Accordion",
   },
   {
@@ -1403,7 +1407,7 @@ export const COMPONENTS: Component[] = [
       { name: "header", type: "ReactNode", description: "At the top, such as the app's name." },
       { name: "footer", type: "ReactNode", description: "At the bottom, such as an account row." },
     ],
-    demo: true,
+    demo: "web",
     preview: "Sidebar",
   },
   {
@@ -1436,7 +1440,7 @@ export const COMPONENTS: Component[] = [
         description: "An action at the far end, such as a ghost button.",
       },
     ],
-    demo: false,
+    demo: "native",
   },
   {
     slug: "tab-bar",
@@ -1467,7 +1471,7 @@ export const COMPONENTS: Component[] = [
       { name: "value", type: "Key", description: "Required." },
       { name: "onChange", type: "(key: Key) => void", description: "Required." },
     ],
-    demo: false,
+    demo: "native",
   },
   {
     slug: "bottom-sheet",
@@ -1498,6 +1502,6 @@ export const COMPONENTS: Component[] = [
           "What a screen reader says for the area outside the sheet. Defaults to `Close`.",
       },
     ],
-    demo: false,
+    demo: "native",
   },
 ];

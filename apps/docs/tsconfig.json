@@ -5,6 +5,6 @@
     "jsx": "react-jsx",
     "types": ["node"]
   },
-  "include": ["scripts", "src/**/*.ts", "src/**/*.tsx"],
+  "include": ["scripts", "src/**/*.ts", "src/**/*.tsx", "test", "vitest.config.ts"],
   "exclude": ["src/pages", "src/content.config.ts"]
 }

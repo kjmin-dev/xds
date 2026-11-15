@@ -14,6 +14,9 @@ A single set of design tokens drives a component library for each client, paired
 <!-- @if web-solid -->
 | Web | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js | `packages/ui-solid`, `packages/ui-core` | `apps/web-solid` |
 <!-- @endif -->
+<!-- @if web-vue -->
+| Web | Vue 3, Vite, Tailwind v4, Zag.js | `packages/ui-vue`, `packages/ui-core` | `apps/web-vue` |
+<!-- @endif -->
 <!-- @if desktop-gpui -->
 | Desktop (macOS) | Rust, GPUI, GPUI Component | `crates/acme-ui` | `apps/desktop` |
 <!-- @endif -->
@@ -48,6 +51,10 @@ The first run resolves dependencies and generates the lockfiles. Commit them to 
 | Start the Solid web app | `mise run //web-solid:dev`, then open `http://localhost:5174` |
 | Open the Solid design preview | Visit `http://localhost:5174/design` |
 <!-- @endif -->
+<!-- @if web-vue -->
+| Start the Vue web app | `mise run //web-vue:dev`, then open `http://localhost:5175` |
+| Open the Vue design preview | Visit `http://localhost:5175/design` |
+<!-- @endif -->
 <!-- @if desktop-gpui -->
 | Start the desktop app | `mise run //desktop:dev` |
 | Open the desktop design preview | `mise run //desktop:design` |
@@ -70,6 +77,10 @@ The first run resolves dependencies and generates the lockfiles. Commit them to 
 
 <!-- @if js-workspace -->
 On the command line, `mise run check:js` type-checks and runs oxlint's type-aware rules with [tsrs](https://github.com/oxc-project/tsrs), an experimental Rust port of TypeScript 7.1, pinned to an exact release. Editors keep TypeScript's own language server; point them at the root `typescript` package, the version tsrs is held to. Upgrade the two together in the catalog in `pnpm-workspace.yaml`, taking the tsrs release that ports the new TypeScript version (`pnpm view tsrs@<release> tsrs.typescriptVersion` shows the version a release ports); `mise run check:js` fails while they differ.
+
+<!-- @endif -->
+<!-- @if web-vue -->
+The Vue packages check their `.vue` files with vue-tsc instead, on [typescript-native-bridge](https://www.npmjs.com/package/typescript-native-bridge), which keeps the TypeScript 6 API that vue-tsc and Vite's compiler for `.vue` files need over the TypeScript 7 checker.
 
 <!-- @endif -->
 <!-- @if ui-core -->
@@ -109,6 +120,10 @@ packages/ui-core/       behavior tests of the web components; prop types, classe
 <!-- @if web-solid -->
 packages/ui-solid/      Solid web components
 apps/web-solid/         Solid app
+<!-- @endif -->
+<!-- @if web-vue -->
+packages/ui-vue/        Vue web components
+apps/web-vue/           Vue app
 <!-- @endif -->
 <!-- @if mobile-react-native -->
 packages/ui-native/     React Native components

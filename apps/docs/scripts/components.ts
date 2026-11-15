@@ -19,7 +19,14 @@ export type Component = {
    * Source file per platform. Touch-only components have no web or GPUI entry, and
    * pointer-only ones no React Native or Compose entry.
    */
-  sources: { web?: string; solid?: string; gpui?: string; reactNative?: string; compose?: string };
+  sources: {
+    web?: string;
+    solid?: string;
+    vue?: string;
+    gpui?: string;
+    reactNative?: string;
+    compose?: string;
+  };
   /** The live example at /demo/<slug>/. Touch-only components have none. */
   demo: boolean;
   /**
@@ -32,6 +39,7 @@ export type Component = {
 
 const web = (file: string) => `packages/ui/src/${file}.tsx`;
 const solid = (file: string) => `packages/ui-solid/src/${file}.tsx`;
+const vue = (file: string) => `packages/ui-vue/src/${file}.vue`;
 const native = (file: string) => `packages/ui-native/src/${file}.tsx`;
 const compose = (file: string) => `kotlin/ui/src/commonMain/kotlin/acme/ui/${file}.kt`;
 const GPUI_COMPONENTS = "crates/acme-ui/src/components.rs";
@@ -41,6 +49,7 @@ const GPUI_OVERLAYS = "crates/acme-ui/src/overlays.rs";
 const everywhere = (file: string, gpui: string) => ({
   web: web(file),
   solid: solid(file),
+  vue: vue(file),
   gpui,
   reactNative: native(file),
   compose: compose(file),
@@ -398,6 +407,7 @@ export const COMPONENTS: Component[] = [
     sources: {
       web: web("Divider"),
       solid: solid("Divider"),
+      vue: vue("Divider"),
       gpui: GPUI_COMPONENTS,
       reactNative: native("Card"),
       compose: compose("Card"),
@@ -1020,7 +1030,12 @@ export const COMPONENTS: Component[] = [
         description: "Required. The control it describes: a Button or an IconButton.",
       },
     ],
-    sources: { web: web("Tooltip"), solid: solid("Tooltip"), gpui: GPUI_OVERLAYS },
+    sources: {
+      web: web("Tooltip"),
+      solid: solid("Tooltip"),
+      vue: vue("Tooltip"),
+      gpui: GPUI_OVERLAYS,
+    },
     demo: true,
     preview: "Buttons",
   },
@@ -1468,6 +1483,7 @@ export const COMPONENTS: Component[] = [
     sources: {
       web: web("Sidebar"),
       solid: solid("Sidebar"),
+      vue: vue("Sidebar"),
       gpui: "crates/acme-ui/src/navigation.rs",
     },
     demo: true,

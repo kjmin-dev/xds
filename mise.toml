@@ -48,6 +48,9 @@ web = "apps/web"
 # @if web-solid
 web-solid = "apps/web-solid"
 # @endif
+# @if web-vue
+web-vue = "apps/web-vue"
+# @endif
 # @if template
 docs = "apps/docs"
 # @endif
@@ -146,6 +149,9 @@ run = [
   # @if web-solid
   "pnpm --filter @acme/web-solid build",
   # @endif
+  # @if web-vue
+  "pnpm --filter @acme/web-vue build",
+  # @endif
   # @if mobile-react-native
   # Neither is visible to the type checker: a native package that has moved off the version the
   # Expo SDK expects, and an import that Metro cannot resolve for iOS or Android.
@@ -166,15 +172,14 @@ OXLINT_TSGOLINT_PATH = "node_modules/.bin/tsrs-lint{% if os_family() == 'windows
 TSRS_FAST = "0"
 
 # @endif
-# @if web-react
-# @if web-solid
-# Only in a project with both web apps, whose design previews it compares with each other.
+# @if ui-core
+# It compares the design previews of every web app in the project with each other, and has
+# nothing to compare in a project with one.
 [tasks."compare:previews"]
 description = "Compare the design previews of the web apps pixel by pixel, in headless Google Chrome"
 depends = ["install"]
 run = "node packages/ui-core/scripts/compare-previews.ts"
 
-# @endif
 # @endif
 # @if desktop-gpui
 [tasks."check:rust"]

@@ -52,6 +52,10 @@
           "source": "packages/ui-solid/src/Button.tsx",
           "symbol": "Button"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Button.vue",
+          "symbol": "Button"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/components.rs",
           "symbol": "button"
@@ -102,6 +106,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/TextField.tsx",
+          "symbol": "TextField"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/TextField.vue",
           "symbol": "TextField"
         },
         "desktop-gpui": {
@@ -158,6 +166,10 @@
           "source": "packages/ui-solid/src/Text.tsx",
           "symbol": "Text"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Text.vue",
+          "symbol": "Text"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/components.rs",
           "symbol": "text"
@@ -205,6 +217,10 @@
           "source": "packages/ui-solid/src/Badge.tsx",
           "symbol": "Badge"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Badge.vue",
+          "symbol": "Badge"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/components.rs",
           "symbol": "Badge"
@@ -243,6 +259,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/CountBadge.tsx",
+          "symbol": "CountBadge"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/CountBadge.vue",
           "symbol": "CountBadge"
         },
         "desktop-gpui": {
@@ -288,6 +308,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/Banner.tsx",
+          "symbol": "Banner"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Banner.vue",
           "symbol": "Banner"
         },
         "desktop-gpui": {
@@ -342,6 +366,10 @@
           "source": "packages/ui-solid/src/Card.tsx",
           "symbol": "Card"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Card.vue",
+          "symbol": "Card"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/components.rs",
           "symbol": "card"
@@ -372,6 +400,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/Divider.tsx",
+          "symbol": "Divider"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Divider.vue",
           "symbol": "Divider"
         },
         "desktop-gpui": {
@@ -411,6 +443,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/Spinner.tsx",
+          "symbol": "Spinner"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Spinner.vue",
           "symbol": "Spinner"
         },
         "desktop-gpui": {
@@ -457,6 +493,10 @@
           "source": "packages/ui-solid/src/Switch.tsx",
           "symbol": "Switch"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Switch.vue",
+          "symbol": "Switch"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/controls.rs",
           "symbol": "switch"
@@ -499,6 +539,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/Checkbox.tsx",
+          "symbol": "Checkbox"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Checkbox.vue",
           "symbol": "Checkbox"
         },
         "desktop-gpui": {
@@ -544,6 +588,10 @@
           "source": "packages/ui-solid/src/SegmentedControl.tsx",
           "symbol": "SegmentedControl"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/SegmentedControl.vue",
+          "symbol": "SegmentedControl"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/controls.rs",
           "symbol": "SegmentedControl"
@@ -586,6 +634,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/Avatar.tsx",
+          "symbol": "Avatar"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Avatar.vue",
           "symbol": "Avatar"
         },
         "desktop-gpui": {
@@ -633,6 +685,10 @@
           "source": "packages/ui-solid/src/AvatarStack.tsx",
           "symbol": "AvatarStack"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/AvatarStack.vue",
+          "symbol": "AvatarStack"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/controls.rs",
           "symbol": "AvatarStack"
@@ -668,6 +724,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/ProgressBar.tsx",
+          "symbol": "ProgressBar"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/ProgressBar.vue",
           "symbol": "ProgressBar"
         },
         "desktop-gpui": {
@@ -715,6 +775,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/Icon.tsx",
+          "symbol": "Icon"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Icon.vue",
           "symbol": "Icon"
         },
         "desktop-gpui": {
@@ -768,6 +832,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/ListRow.tsx",
+          "symbol": "ListRow"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/ListRow.vue",
           "symbol": "ListRow"
         },
         "desktop-gpui": {
@@ -833,6 +901,10 @@
           "source": "packages/ui-solid/src/IconButton.tsx",
           "symbol": "IconButton"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/IconButton.vue",
+          "symbol": "IconButton"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/components.rs",
           "symbol": "icon_button"
@@ -881,6 +953,10 @@
           "source": "packages/ui-solid/src/Chip.tsx",
           "symbol": "Chip"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Chip.vue",
+          "symbol": "Chip"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/controls.rs",
           "symbol": "Chip"
@@ -916,6 +992,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/ChipBar.tsx",
+          "symbol": "ChipBar"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/ChipBar.vue",
           "symbol": "ChipBar"
         },
         "desktop-gpui": {
@@ -962,6 +1042,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/Tabs.tsx",
+          "symbol": "Tabs"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Tabs.vue",
           "symbol": "Tabs"
         },
         "desktop-gpui": {
@@ -1011,6 +1095,10 @@
           "source": "packages/ui-solid/src/Menu.tsx",
           "symbol": "Menu"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Menu.vue",
+          "symbol": "Menu"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/overlays.rs",
           "symbol": "Menu"
@@ -1058,6 +1146,10 @@
           "source": "packages/ui-solid/src/Dialog.tsx",
           "symbol": "Dialog"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Dialog.vue",
+          "symbol": "Dialog"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/overlays.rs",
           "symbol": "Dialog"
@@ -1102,6 +1194,10 @@
           "source": "packages/ui-solid/src/Toast.tsx",
           "symbol": "Toast"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Toast.vue",
+          "symbol": "Toast"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/overlays.rs",
           "symbol": "Toast"
@@ -1142,6 +1238,10 @@
           "source": "packages/ui-solid/src/Tooltip.tsx",
           "symbol": "Tooltip"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Tooltip.vue",
+          "symbol": "Tooltip"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/overlays.rs",
           "symbol": "tooltip"
@@ -1175,6 +1275,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/Skeleton.tsx",
+          "symbol": "Skeleton"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Skeleton.vue",
           "symbol": "Skeleton"
         },
         "desktop-gpui": {
@@ -1224,6 +1328,10 @@
           "source": "packages/ui-solid/src/SearchField.tsx",
           "symbol": "SearchField"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/SearchField.vue",
+          "symbol": "SearchField"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/components.rs",
           "symbol": "SearchField"
@@ -1269,6 +1377,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/RadioGroup.tsx",
+          "symbol": "RadioGroup"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/RadioGroup.vue",
           "symbol": "RadioGroup"
         },
         "desktop-gpui": {
@@ -1321,6 +1433,10 @@
           "source": "packages/ui-solid/src/Select.tsx",
           "symbol": "Select"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Select.vue",
+          "symbol": "Select"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/overlays.rs",
           "symbol": "Select"
@@ -1370,6 +1486,10 @@
           "source": "packages/ui-solid/src/Slider.tsx",
           "symbol": "Slider"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Slider.vue",
+          "symbol": "Slider"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/controls.rs",
           "symbol": "Slider"
@@ -1415,6 +1535,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/Thumbnail.tsx",
+          "symbol": "Thumbnail"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Thumbnail.vue",
           "symbol": "Thumbnail"
         },
         "desktop-gpui": {
@@ -1472,6 +1596,10 @@
           "source": "packages/ui-solid/src/MediaCard.tsx",
           "symbol": "MediaCard"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/MediaCard.vue",
+          "symbol": "MediaCard"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/components.rs",
           "symbol": "MediaCard"
@@ -1511,6 +1639,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/SectionHeader.tsx",
+          "symbol": "SectionHeader"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/SectionHeader.vue",
           "symbol": "SectionHeader"
         },
         "desktop-gpui": {
@@ -1564,6 +1696,10 @@
           "source": "packages/ui-solid/src/Sidebar.tsx",
           "symbol": "Sidebar"
         },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Sidebar.vue",
+          "symbol": "Sidebar"
+        },
         "desktop-gpui": {
           "source": "crates/acme-ui/src/navigation.rs",
           "symbol": "Sidebar"
@@ -1594,6 +1730,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/EmptyState.tsx",
+          "symbol": "EmptyState"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/EmptyState.vue",
           "symbol": "EmptyState"
         },
         "desktop-gpui": {
@@ -1640,6 +1780,10 @@
         },
         "web-solid": {
           "source": "packages/ui-solid/src/Accordion.tsx",
+          "symbol": "Accordion"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/Accordion.vue",
           "symbol": "Accordion"
         },
         "desktop-gpui": {

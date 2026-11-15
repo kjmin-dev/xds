@@ -70,6 +70,35 @@ fn last_of_month(day: NaiveDate) -> NaiveDate {
         .unwrap_or(day)
 }
 
+/// Whether the button that shows the month before (`months` -1) or after (+1) the month of
+/// `day` is enabled: it is not once that month holds `min` or `max`.
+pub(crate) fn month_button_enabled(
+    day: NaiveDate,
+    months: i32,
+    min: Option<NaiveDate>,
+    max: Option<NaiveDate>,
+) -> bool {
+    if months < 0 {
+        !min.is_some_and(|min| first_of_month(day) <= min)
+    } else {
+        !max.is_some_and(|max| last_of_month(day) >= max)
+    }
+}
+
+/// What pressing a month button does to the focused day `day`: the day it moves to, and
+/// whether that day takes the focus. It does when the move disables the button, which would
+/// otherwise keep a focus no key can use, as React Aria hands it to the day; otherwise the
+/// focus stays on the button, for the next press.
+pub(crate) fn press_month_button(
+    day: NaiveDate,
+    months: i32,
+    min: Option<NaiveDate>,
+    max: Option<NaiveDate>,
+) -> (NaiveDate, bool) {
+    let to = clamp(add_months(day, months), min, max);
+    (to, !month_button_enabled(to, months, min, max))
+}
+
 /// `day` moved by whole months. A day the shorter month lacks is held to its last day, as
 /// `@internationalized/date` adds months on the web: January 31 and a month is February 28.
 fn add_months(day: NaiveDate, months: i32) -> NaiveDate {
@@ -705,18 +734,19 @@ impl Calendar {
         let active = self.active();
         let month = first_of_month(active);
         let heading = self.locale.month_year(active);
-        let earlier = self.min.is_some_and(|min| month <= min);
-        let later = self.max.is_some_and(|max| last_of_month(active) >= max);
+        let earlier = !month_button_enabled(active, -1, self.min, self.max);
+        let later = !month_button_enabled(active, 1, self.min, self.max);
         let shift = |months: i32| {
             let calendar = self.clone();
-            move |_: &gpui_kit::ClickEvent, window: &mut Window, _: &mut App| {
-                let to = clamp(
-                    add_months(calendar.active(), months),
-                    calendar.min,
-                    calendar.max,
-                );
-                calendar.state.active.set(Some(to));
-                window.refresh();
+            move |_: &gpui_kit::ClickEvent, window: &mut Window, cx: &mut App| {
+                let (to, focus_day) =
+                    press_month_button(calendar.active(), months, calendar.min, calendar.max);
+                if focus_day {
+                    calendar.state.focus(to, window, cx);
+                } else {
+                    calendar.state.active.set(Some(to));
+                    window.refresh();
+                }
             }
         };
         // Small ghost buttons at the ends, each centered over its column of days, and the
@@ -1215,5 +1245,45 @@ mod tests {
         assert_eq!(unknown.first_weekday(), Weekday::Sun);
         assert_eq!(unknown.medium(date("2026-03-10")), "Mar 10, 2026");
         assert_eq!(CalendarLocale::from_tag("").first_weekday(), Weekday::Sun);
+    }
+
+    #[test]
+    fn a_month_button_that_disables_itself_hands_the_focus_to_the_day() {
+        // Next from March into April, which holds max: the button disables itself.
+        let (min, max) = range();
+        assert_eq!(
+            press_month_button(date("2026-03-10"), 1, min, max),
+            (date("2026-04-10"), true)
+        );
+        assert!(!month_button_enabled(date("2026-04-10"), 1, min, max));
+        // Previous from April into March, which holds min.
+        assert_eq!(
+            press_month_button(date("2026-04-10"), -1, min, max),
+            (date("2026-03-10"), true)
+        );
+        assert!(!month_button_enabled(date("2026-03-10"), -1, min, max));
+    }
+
+    #[test]
+    fn a_month_button_that_stays_enabled_keeps_the_focus() {
+        let (min, max) = (Some(date("2026-03-05")), Some(date("2026-06-30")));
+        assert_eq!(
+            press_month_button(date("2026-03-10"), 1, min, max),
+            (date("2026-04-10"), false)
+        );
+        assert!(month_button_enabled(date("2026-04-10"), 1, min, max));
+        assert_eq!(
+            press_month_button(date("2026-03-10"), 1, None, None),
+            (date("2026-04-10"), false)
+        );
+    }
+
+    #[test]
+    fn month_buttons_are_disabled_in_the_months_of_min_and_max() {
+        let (min, max) = range();
+        assert!(!month_button_enabled(date("2026-03-10"), -1, min, max));
+        assert!(month_button_enabled(date("2026-03-10"), 1, min, max));
+        assert!(month_button_enabled(date("2026-04-10"), -1, min, max));
+        assert!(!month_button_enabled(date("2026-04-10"), 1, min, max));
     }
 }

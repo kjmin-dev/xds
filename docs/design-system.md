@@ -328,6 +328,8 @@ Platform differences:
 
 Every platform includes a design preview screen that renders all tokens and components in the same order: colors, typography, spacing/radius/sizes, buttons, text fields, selection controls, badges, banners, cards, lists, and (on touch platforms) navigation components. This makes it easy to place two platforms side by side for visual comparison. Color swatches are generated directly from the token exports, so newly added color tokens appear in the preview automatically.
 
+The web apps share one preview. It is written once, as typed data in `packages/ui-core/src/preview`: its sections, each component by name with its props and children, plain elements with their classes, named state slots that the controls are bound to, and the token specimens built from the token data. Each web library draws that data with a small renderer of its own (`src/preview.tsx`, on its `./preview` subpath), so a web framework added later brings its renderer and none of the preview. The behavior tests draw their screens the same way. The data is checked against the components' shared prop types, so naming a component or a prop that does not exist is a type error, and each renderer is checked against its library, so a component there that lacks a prop the data passes, or takes it with another type, is one too.
+
 | | How to open it | Entry point | Light and dark |
 | --- | --- | --- | --- |
 | Web | `mise run //web:dev`, then `http://localhost:5173/design` | The button on the home screen | Follows the system. `?theme=light` and `?theme=dark` pin the mode |
@@ -366,7 +368,7 @@ Two intentional departures from those systems:
 | Token values | Generated files are committed, and CI regenerates and diffs them | Automated |
 | Contrast | The token build verifies every foreground/background pairing in both modes | Automated |
 | Component APIs | Component props and types on each platform are kept in sync manually rather than generated from a shared schema | Manual |
-| Visual appearance | Compare the design preview screens visually across platforms; there is no automated screenshot diffing | Manual |
+| Visual appearance | Compare the design preview screens visually across platforms. The web apps draw one preview from shared data, and `mise run compare:previews` compares them pixel by pixel; it is not part of CI | Manual; web on demand |
 
 ## Known limitations
 

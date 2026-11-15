@@ -584,7 +584,8 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
             js,
             "{selected:?}"
         );
-        // A package that type-checks does it with tsrs, which it declares as it declared
+        // A package that type-checks does it with tsrs, once for each of its TypeScript projects
+        // (ui-core's scripts, which Node runs, have their own), which it declares as it declared
         // typescript, and no other script of it type-checks again. typescript stays where
         // something runs it: at the root, for editors and the version check, and in the mobile
         // app, whose Expo CLI requires it and loads TypeScript config files with it.
@@ -602,7 +603,12 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
                 "{selected:?}: {path}"
             );
             if let Some(typecheck) = package["scripts"]["typecheck"].as_str() {
-                assert_eq!(typecheck, "tsrs --noEmit", "{selected:?}: {path}");
+                for command in typecheck.split(" && ") {
+                    assert!(
+                        command == "tsrs --noEmit" || command.starts_with("tsrs --noEmit -p "),
+                        "{selected:?}: {path}: {typecheck}"
+                    );
+                }
                 assert_eq!(
                     package["devDependencies"]["tsrs"], "catalog:",
                     "{selected:?}: {path}"
@@ -843,6 +849,9 @@ fn creates_a_web_project() {
             "packages/ui-core/src/button.ts",
             "packages/ui-core/test/behavior.ts",
             "packages/ui-core/test/scenarios.ts",
+            // The design preview as data, and the renderer that draws it with React.
+            "packages/ui-core/src/preview/design.ts",
+            "packages/ui/src/preview.tsx",
             "package.json",
             "pnpm-workspace.yaml",
             ".oxfmtrc.jsonc",
@@ -906,6 +915,13 @@ fn creates_a_web_project() {
     );
     assert!(text(&tree, "packages/tokens/src/generated/theme.css").contains("--orbit-color-"));
     assert!(text(&tree, "mise.toml").contains("pnpm --filter @orbit/web build"));
+    // The app draws the shared preview with its library's renderer, without the template's
+    // link to the documentation site.
+    let preview = text(&tree, "apps/web/src/DesignPreview.tsx");
+    assert!(preview.contains("from \"@orbit/ui/preview\""));
+    assert!(!preview.contains("VITE_DOCS_SITE"));
+    let note = text(&tree, "packages/ui-core/src/preview/README.md");
+    assert!(note.contains("packages/ui/src/preview.tsx") && !note.contains("ui-solid"));
 }
 
 #[test]
@@ -921,6 +937,8 @@ fn creates_a_solid_web_project() {
             "packages/ui-solid/package.json",
             "packages/ui-core/package.json",
             "packages/ui-core/src/styles/index.css",
+            "packages/ui-core/src/preview/design.ts",
+            "packages/ui-solid/src/preview.tsx",
             "packages/tokens/src/generated/theme.css",
             "packages/tokens/src/generated/tailwind.css",
             "pnpm-workspace.yaml",
@@ -929,6 +947,7 @@ fn creates_a_solid_web_project() {
         ],
         &[
             "apps/web",
+            "apps/web-solid/src/preview",
             "packages/ui",
             "apps/mobile",
             "packages/ui-native",
@@ -991,6 +1010,12 @@ fn creates_a_solid_web_project() {
         lint["settings"]["jsx-a11y"]["attributes"]["for"],
         serde_json::json!(["htmlFor", "for"])
     );
+    assert!(
+        text(&tree, "apps/web-solid/src/DesignPreview.tsx")
+            .contains("from \"@orbit/ui-solid/preview\"")
+    );
+    let note = text(&tree, "packages/ui-core/src/preview/README.md");
+    assert!(note.contains("packages/ui-solid/src/preview.tsx") && !note.contains("packages/ui/"));
 }
 
 #[test]
@@ -1024,14 +1049,20 @@ fn the_web_targets_coexist() {
             "{app}: {port}"
         );
     }
-    // Both libraries run the behavior checks of ui-core, under the project's name.
+    // Both libraries run the behavior checks of ui-core, under the project's name, on the
+    // screens ui-core writes as data, drawn by the library's preview renderer.
     for library in ["packages/ui", "packages/ui-solid"] {
         let test = text(&tree, &format!("{library}/test/behavior.test.tsx"));
         assert!(
-            test.contains("from \"@orbit/ui-core/test/behavior\""),
+            test.contains("from \"@orbit/ui-core/test/behavior\"")
+                && test.contains("from \"@orbit/ui-core/test/scenarios\"")
+                && test.contains("from \"../src/preview.tsx\""),
             "{library}"
         );
     }
+    let note = text(&tree, "packages/ui-core/src/preview/README.md");
+    assert!(note.contains("packages/ui/src/preview.tsx"));
+    assert!(note.contains("packages/ui-solid/src/preview.tsx"));
 }
 
 #[test]

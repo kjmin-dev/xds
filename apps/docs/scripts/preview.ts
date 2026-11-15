@@ -12,5 +12,5 @@ export function previewLink(section?: string): string | undefined {
   return `${site}/design${section ? `#${section}` : ""}`;
 }
 
-/** The anchor the design preview gives a section, as `anchor` in apps/web/src/DesignPreview.tsx. */
+/** The anchor the design preview gives a section, as `anchor` in packages/ui-core/src/preview. */
 export const previewAnchor = (title: string) => title.toLowerCase().replace(/[^a-z]+/g, "-");

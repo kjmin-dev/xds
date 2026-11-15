@@ -1,0 +1,9 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    // Node runs these scripts; the code passed to the browser needs the DOM's types.
+    "types": ["node"],
+    "lib": ["ES2024", "DOM", "DOM.Iterable"]
+  },
+  "include": ["."]
+}

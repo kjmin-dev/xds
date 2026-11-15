@@ -26,9 +26,10 @@ on:
       - docs/**
       - design/**
       - packages/ui/**
+      # The demos take their classes and stylesheet from it, and the component pages link to the
+      # design preview's sections by the titles in its src/preview/design.ts.
+      - packages/ui-core/**
       - packages/tokens/**
-      # The component pages link to the design preview's sections by name.
-      - apps/web/src/DesignPreview.tsx
       - install.sh
       - .github/workflows/docs.yml
 

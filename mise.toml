@@ -160,6 +160,16 @@ OXLINT_TSGOLINT_PATH = "node_modules/.bin/tsrs-lint{% if os_family() == 'windows
 TSRS_FAST = "0"
 
 # @endif
+# @if web-react
+# @if web-solid
+# Only in a project with both web apps, whose design previews it compares with each other.
+[tasks."compare:previews"]
+description = "Compare the design previews of the web apps pixel by pixel, in headless Google Chrome"
+depends = ["install"]
+run = "node packages/ui-core/scripts/compare-previews.ts"
+
+# @endif
+# @endif
 # @if desktop-gpui
 [tasks."check:rust"]
 description = "Format-check the Rust workspace, then lint and test the crates that build on any OS"

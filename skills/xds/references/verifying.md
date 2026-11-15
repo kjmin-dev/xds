@@ -8,7 +8,7 @@ There is no automated screenshot diffing in CI. After modifying design tokens or
 mise run //web:dev        # serves http://localhost:5173
 ```
 
-- The design preview is served at `/design`. Every section has an anchor ID: `#colors`, `#typography`, `#space-radius-size`, `#buttons`, `#text-fields`, `#selection`, `#controls`, `#chips`, `#tabs`, `#badges`, `#banners`, `#card`, `#media`, `#list`, `#sidebar`, `#accordion`, `#menu`, `#dialog`, `#toast`, `#skeleton`, `#empty-state`.
+- The design preview is served at `/design`. Every section has an anchor ID: `#colors`, `#typography`, `#space-radius-size`, `#icons`, `#buttons`, `#text-fields`, `#selection`, `#controls`, `#chips`, `#tabs`, `#badges`, `#banners`, `#card`, `#media`, `#list`, `#sidebar`, `#accordion`, `#menu`, `#dialog`, `#toast`, `#skeleton`, `#empty-state`.
 - Use `?theme=light` or `?theme=dark` to pin the color mode, for example `http://localhost:5173/design?theme=dark#buttons`.
 - Use `?open=menu`, `?open=select`, `?open=dialog`, `?open=toast`, or `?open=tooltip` to load the preview with that overlay showing.
 - To capture a screenshot with headless Chrome: `chrome --headless --screenshot=buttons.png --window-size=1200,900 "http://localhost:5173/design?theme=dark#buttons"`.
@@ -19,7 +19,7 @@ mise run //web:dev        # serves http://localhost:5173
 mise run //web-solid:dev  # serves http://localhost:5174
 ```
 
-The Solid preview at `/design` has the same sections, anchors, `?theme=` and `?open=` parameters as the React one. The web libraries share `packages/ui-core` and must look and behave the same: when both clients are in the project, capture the same section from both and compare them.
+The Solid preview at `/design` is the same preview as the React one, drawn from the same data in `packages/ui-core/src/preview` by the Solid library, with the same sections, anchors, `?theme=` and `?open=` parameters. The web libraries share `packages/ui-core` and must look and behave the same. When both clients are in the project, `mise run compare:previews` starts both apps and compares their previews pixel by pixel (every section and every `?open=` overlay, at 1280 and 390 px, in both modes), and writes both sides of any capture that differs to a temporary directory it names.
 
 ## Web behavior tests
 

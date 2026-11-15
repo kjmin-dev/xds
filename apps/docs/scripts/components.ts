@@ -23,8 +23,9 @@ export type Component = {
   /** The live example at /demo/<slug>/. Touch-only components have none. */
   demo: boolean;
   /**
-   * The section of the web design preview (apps/web/src/DesignPreview.tsx) that shows it, by
-   * title. Every component with a web version names one; touch-only components have none.
+   * The section of the web design preview (SECTIONS in packages/ui-core/src/preview/design.ts)
+   * that shows it, by title. Every component with a web version names one; touch-only
+   * components have none.
    */
   preview?: string;
 };

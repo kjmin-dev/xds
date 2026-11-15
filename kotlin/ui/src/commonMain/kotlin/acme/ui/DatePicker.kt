@@ -328,20 +328,8 @@ private fun Calendar(
         // A day's side, which the seven columns share on a narrow screen.
         val cell = minOf(sizes.calendarDay, maxWidth / 7)
         Column(Modifier.width(cell * 7), verticalArrangement = Arrangement.spacedBy(Space.s2)) {
+            // As the web libraries lay it out: the month between the buttons that change it.
             Row(verticalAlignment = Alignment.CenterVertically) {
-                BasicText(
-                    locale.monthTitle(month),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = Space.s2)
-                        .semantics {
-                            heading()
-                            // Said when it changes, so a screen reader hears which month is shown.
-                            liveRegion = LiveRegionMode.Polite
-                        },
-                    style = Typography.bodyStrong.resolved(colors.datePickerHeading),
-                    maxLines = 1,
-                )
                 IconButton(
                     // The chevrons point the way the months run, which is mirrored right to left.
                     icon = if (rtl) IconName.ChevronRight else IconName.ChevronLeft,
@@ -349,6 +337,20 @@ private fun Calendar(
                     onClick = { show(CalendarKey.PageUp) },
                     size = ControlSize.Sm,
                     enabled = min == null || min.yearMonth < month,
+                )
+                BasicText(
+                    locale.monthTitle(month),
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics {
+                            heading()
+                            // Said when it changes, so a screen reader hears which month is shown.
+                            liveRegion = LiveRegionMode.Polite
+                        },
+                    style = Typography.bodyStrong
+                        .resolved(colors.datePickerHeading)
+                        .copy(textAlign = TextAlign.Center),
+                    maxLines = 1,
                 )
                 IconButton(
                     icon = if (rtl) IconName.ChevronLeft else IconName.ChevronRight,

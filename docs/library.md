@@ -69,12 +69,12 @@ Decisions that hold for every channel:
 
 ## Names and ownership
 
-Checked on 2026-11-15 by querying the public registries. A name that is free today is not reserved until it is registered, and registering is the maintainer's action.
+Checked on 2026-11-15 by querying the public registries. A name marked free is not reserved until it is registered, and registering is the maintainer's action.
 
 | Channel | Proposed | State | Notes |
 | --- | --- | --- | --- |
-| npm scope | `@xds` | No public package exists under it. Whether the scope itself is registered cannot be seen from outside | First choice. Fallback: `@xds-ui` |
-| npm packages | `@xds/react`, `@xds/solid`, `@xds/vue`, `@xds/svelte`, `@xds/core`, `@xds/tokens`, `@xds/react-native` | Free | The unscoped name `xds` is taken by an unrelated Vue state library, so nothing is published unscoped |
+| npm scope | `@xds` | Registered on 2026-11-16 as an npm organization of the maintainer | Every npm package is published under it |
+| npm packages | `@xds/react`, `@xds/solid`, `@xds/vue`, `@xds/svelte`, `@xds/core`, `@xds/tokens`, `@xds/react-native` | Held by the scope | The unscoped name `xds` is taken by an unrelated Vue state library, so nothing is published unscoped |
 | crates.io | `xds-ui`, `xds-tokens` | Free | `xds` is taken by an unrelated crate |
 | Maven Central | group `io.github.kjmin-dev`, artifact `xds-ui` | The group is verified through the GitHub account that owns this repository | A group under a domain the maintainer controls is the alternative, verified through DNS |
 | pub.dev | `xds_ui`, `xds_tokens` | Free | A verified publisher needs a domain |

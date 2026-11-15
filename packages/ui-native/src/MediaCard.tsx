@@ -35,10 +35,7 @@ export type MediaCardProps = {
   onPress?: () => void;
 };
 
-const HIDDEN = {
-  accessibilityElementsHidden: true,
-  importantForAccessibility: "no-hide-descendants" as const,
-};
+const HIDDEN = { "aria-hidden": true };
 
 /**
  * A thumbnail with its title and details: a video in a feed, an article in a list. A pressable
@@ -80,7 +77,7 @@ export function MediaCard({
         )}
         <View
           // Without a button to speak for the card, the text does, as one element.
-          {...(under ? HIDDEN : { accessible: true, accessibilityLabel: name })}
+          {...(under ? HIDDEN : { accessible: true, "aria-label": name })}
           style={[styles.text, none]}
         >
           <Text variant="body-strong" numberOfLines={2}>
@@ -104,8 +101,8 @@ export function MediaCard({
       {/* The button lies under the content rather than around it: a screen reader takes what
           is inside a button as its name, and the action would be lost in it. */}
       <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={name}
+        role="button"
+        aria-label={name}
         onPress={onPress}
         style={({ pressed }) => [
           StyleSheet.absoluteFill,

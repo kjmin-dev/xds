@@ -32,9 +32,10 @@ export function Checkbox({
 
   return (
     <Pressable
-      accessibilityRole="checkbox"
-      accessibilityLabel={label ?? accessibilityLabel}
-      accessibilityState={{ checked, disabled }}
+      role="checkbox"
+      aria-label={label ?? accessibilityLabel}
+      aria-checked={checked}
+      aria-disabled={disabled}
       disabled={disabled}
       hitSlop={slop}
       onPress={() => onChange(!checked)}

@@ -43,9 +43,10 @@ export function Switch({
 
   return (
     <Pressable
-      accessibilityRole="switch"
-      accessibilityLabel={label ?? accessibilityLabel}
-      accessibilityState={{ checked, disabled }}
+      role="switch"
+      aria-label={label ?? accessibilityLabel}
+      aria-checked={checked}
+      aria-disabled={disabled}
       disabled={disabled}
       hitSlop={slop}
       onPress={() => onChange(!checked)}

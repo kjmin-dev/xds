@@ -81,7 +81,7 @@ export function Text({
   const color = tone ? toneColor(colors, tone) : (inherited ?? colors.textPrimary);
   return (
     <NativeText
-      {...(heading ? { accessibilityRole: "header" as const } : {})}
+      {...(heading ? { role: "heading" as const } : {})}
       {...(numberOfLines ? { numberOfLines } : {})}
       // Android has no equivalent yet.
       lineBreakStrategyIOS="hangul-word"

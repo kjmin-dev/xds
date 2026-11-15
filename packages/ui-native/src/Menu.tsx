@@ -114,7 +114,9 @@ export function MenuList({
   const { height } = useWindowDimensions();
   return (
     <ScrollView
-      accessibilityRole={role}
+      role={role}
+      // ScrollView hands its props to the native view as they are, and only View, Pressable,
+      // Text, TextInput and Image turn `aria-label` into the label a screen reader reads.
       accessibilityLabel={label}
       // A list shorter than its room stays put rather than rubber-banding under a finger.
       alwaysBounceVertical={false}
@@ -160,8 +162,9 @@ export function MenuRow({
   const iconColor = disabled || danger ? text : colors.menuIcon;
   return (
     <Pressable
-      accessibilityRole={role}
-      accessibilityState={{ disabled, selected }}
+      role={role}
+      aria-disabled={disabled}
+      aria-selected={selected}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [

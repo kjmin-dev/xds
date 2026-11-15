@@ -42,8 +42,8 @@ export function Avatar({
   return (
     <View
       accessible
-      accessibilityRole="image"
-      accessibilityLabel={name}
+      role="img"
+      aria-label={name}
       style={[
         styles.avatar,
         {

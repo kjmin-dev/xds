@@ -26,8 +26,9 @@ export function CountBadge({ count, max = 99, label, children }: CountBadgeProps
   const badge = count > 0 && (
     <View
       accessible
+      // `text` has no ARIA role: `role` would lose the static text trait VoiceOver reads.
       accessibilityRole="text"
-      {...(label ? { accessibilityLabel: label } : {})}
+      {...(label ? { "aria-label": label } : {})}
       style={[
         styles.badge,
         { backgroundColor: colors.badgeCountBackground },

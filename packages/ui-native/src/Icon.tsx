@@ -59,6 +59,8 @@ export function Icon({
       strokeLinejoin="round"
       style={directional && I18nManager.isRTL ? { transform: [{ scaleX: -1 }] } : undefined}
       accessible={label !== undefined}
+      // react-native-svg hands Svg's props to its native view as they are, and the native view
+      // reads no `aria-*` prop.
       {...(label ? { accessibilityRole: "image", accessibilityLabel: label } : {})}
     >
       {icons[name].map((path) => (

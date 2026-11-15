@@ -102,7 +102,7 @@ export function Slider({
         </Text>
         {showValue && (
           // The slider says its value itself; read here too, it would be heard twice.
-          <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <View aria-hidden>
             <Text variant="detail" tone="secondary" style={styles.number}>
               {shown}
             </Text>
@@ -111,17 +111,17 @@ export function Slider({
       </View>
       <View
         accessible
+        // Not `role="slider"`: in React Native 0.88 it loses VoiceOver's adjustable trait, and
+        // with it the swipe that changes the value; TalkBack reads out a new value only for this.
         accessibilityRole="adjustable"
-        accessibilityLabel={label}
-        accessibilityState={{ disabled }}
-        accessibilityValue={{
-          min,
-          max,
-          now: value,
-          // iOS reads a value without text as a percentage of the range, which is not the
-          // number shown unless the range is 0 to 100. Android reads the numbers as they are.
-          ...(Platform.OS === "ios" ? { text: shown } : {}),
-        }}
+        aria-label={label}
+        aria-disabled={disabled}
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={value}
+        // iOS reads a value without text as a percentage of the range, which is not the number
+        // shown unless the range is 0 to 100. Android reads the numbers as they are.
+        {...(Platform.OS === "ios" ? { "aria-valuetext": shown } : {})}
         accessibilityActions={disabled ? [] : ACTIONS}
         onAccessibilityAction={adjust}
         onLayout={(event) => {

@@ -17,6 +17,8 @@ export function ChipBar({ label, children }: ChipBarProps) {
       horizontal
       showsHorizontalScrollIndicator={false}
       role="group"
+      // ScrollView hands its props to the native view as they are, and only View, Pressable,
+      // Text, TextInput and Image turn `aria-label` into the label a screen reader reads.
       accessibilityLabel={label}
       style={styles.bar}
       contentContainerStyle={styles.chips}

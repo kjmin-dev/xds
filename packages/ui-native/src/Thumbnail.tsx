@@ -50,11 +50,8 @@ export function Thumbnail({ src, alt, ratio = "16:9", badge, progress }: Thumbna
         // The picture, apart from the badge: the badge is read as text of its own, as it would
         // be beside an image on the web.
         {...(alt === ""
-          ? {
-              accessibilityElementsHidden: true,
-              importantForAccessibility: "no-hide-descendants" as const,
-            }
-          : { accessible: true, accessibilityRole: "image" as const, accessibilityLabel: alt })}
+          ? { "aria-hidden": true }
+          : { accessible: true, role: "img" as const, "aria-label": alt })}
         style={[StyleSheet.absoluteFill, styles.center]}
       >
         {loaded !== true && <Icon name="image" size="lg" color={colors.thumbnailIcon} />}
@@ -72,8 +69,7 @@ export function Thumbnail({ src, alt, ratio = "16:9", badge, progress }: Thumbna
       {watched > 0 && (
         <View
           // How much was watched is not put in words, so it is drawn for the eye only.
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
+          aria-hidden
           style={[styles.progress, { backgroundColor: colors.overlayBackground }]}
         >
           <View

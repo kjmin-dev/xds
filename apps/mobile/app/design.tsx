@@ -943,7 +943,7 @@ export default function Design() {
     <Section key="skeleton" title="Skeleton">
       {/* The card says that it is loading; the shapes are hidden from a screen reader. */}
       <Card>
-        <View accessible accessibilityLabel="Loading" style={styles.loading}>
+        <View accessible aria-label="Loading" style={styles.loading}>
           <View style={styles.loadingHeader}>
             <Skeleton shape="circle" height={size.touch.avatarLg} />
             <View style={styles.loadingLines}>

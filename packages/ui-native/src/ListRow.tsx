@@ -56,7 +56,7 @@ export function ListRow({
       <View
         // Without a press the row is not one element to a screen reader, so the words carry
         // the state.
-        {...(selected && !onPress ? { accessible: true, accessibilityState: { selected } } : {})}
+        {...(selected && !onPress ? { accessible: true, "aria-selected": selected } : {})}
         style={styles.text}
       >
         <Text variant={titleVariant} tone={disabled ? "secondary" : "primary"}>
@@ -81,8 +81,9 @@ export function ListRow({
   }
   return (
     <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled, selected }}
+      role="button"
+      aria-disabled={disabled}
+      aria-selected={selected}
       disabled={disabled}
       {...(compact ? { hitSlop: { top: COMPACT_SLOP, bottom: COMPACT_SLOP } } : {})}
       onPress={onPress}

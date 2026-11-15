@@ -60,7 +60,7 @@ export function SearchField({
       <Icon name="search" size="sm" color={colors.fieldPlaceholder} />
       <TextInput
         ref={input}
-        accessibilityLabel={label}
+        aria-label={label}
         editable={!disabled}
         value={value}
         onChangeText={onChange}
@@ -80,8 +80,8 @@ export function SearchField({
       />
       {clearable && (
         <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={clearLabel}
+          role="button"
+          aria-label={clearLabel}
           // The outline is not part of the button; the press area takes it back.
           hitSlop={{ top: outline, bottom: outline, right: outline, left: outline }}
           onPress={() => {

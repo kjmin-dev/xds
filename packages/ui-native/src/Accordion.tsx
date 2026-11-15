@@ -98,8 +98,8 @@ function Entry<Value extends string>({
   return (
     <View>
       <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ expanded: open }}
+        role="button"
+        aria-expanded={open}
         onPress={onToggle}
         style={({ pressed }) => [
           styles.header,
@@ -132,8 +132,7 @@ function Entry<Value extends string>({
       <Animated.View
         // A closed body is still laid out, to be measured; it is hidden from touch and from
         // screen readers.
-        accessibilityElementsHidden={!open}
-        importantForAccessibility={open ? "auto" : "no-hide-descendants"}
+        aria-hidden={!open}
         style={[
           styles.clip,
           {

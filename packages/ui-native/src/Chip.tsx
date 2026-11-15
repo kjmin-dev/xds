@@ -39,8 +39,9 @@ export function Chip({ label, selected = false, onPress, iconStart, disabled = f
   const icon = selected ? "check" : iconStart;
   return (
     <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected, disabled }}
+      role="button"
+      aria-selected={selected}
+      aria-disabled={disabled}
       disabled={disabled}
       hitSlop={{ top: SLOP, bottom: SLOP }}
       {...(onPress ? { onPress } : {})}

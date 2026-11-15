@@ -72,8 +72,7 @@ export function Skeleton({ shape = "text", width, height }: SkeletonProps) {
   return (
     <View
       accessible={false}
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
+      aria-hidden
       style={[styles.skeleton, box, { backgroundColor: colors.skeletonBackground }]}
     >
       <Animated.View

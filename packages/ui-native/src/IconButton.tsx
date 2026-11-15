@@ -85,14 +85,12 @@ export function IconButton({
   return (
     <Animated.View style={[style, { transform: [{ scale }] }]}>
       <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={label}
-        accessibilityState={{
-          disabled: disabled || loading,
-          busy: loading,
-          ...(selected === undefined ? {} : { selected }),
-          ...(menuOpen === undefined ? {} : { expanded: menuOpen }),
-        }}
+        role="button"
+        aria-label={label}
+        aria-disabled={disabled || loading}
+        aria-busy={loading}
+        {...(selected === undefined ? {} : { "aria-selected": selected })}
+        {...(menuOpen === undefined ? {} : { "aria-expanded": menuOpen })}
         disabled={disabled || loading}
         hitSlop={slop}
         onPressIn={() => setHeld(true)}

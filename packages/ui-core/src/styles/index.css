@@ -11,6 +11,7 @@
 
 @import "./components/accordion.css";
 @import "./components/button.css";
+@import "./components/date-picker.css";
 @import "./components/dialog.css";
 @import "./components/menu.css";
 @import "./components/radio-group.css";

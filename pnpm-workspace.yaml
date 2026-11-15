@@ -51,6 +51,7 @@ catalog:
   # stylesheet of @acme/ui-core selects on.
   "@zag-js/accordion": 2.0.0-next.4
   "@zag-js/aria-hidden": 2.0.0-next.4
+  "@zag-js/date-picker": 2.0.0-next.4
   "@zag-js/dialog": 2.0.0-next.4
   "@zag-js/menu": 2.0.0-next.4
   "@zag-js/remove-scroll": 2.0.0-next.4
@@ -58,6 +59,9 @@ catalog:
   "@zag-js/slider": 2.0.0-next.4
   "@zag-js/tabs": 2.0.0-next.4
   "@zag-js/tooltip": 2.0.0-next.4
+  # The dates of the date picker's machine, which takes it as a peer. Exact, so that every web
+  # library and @acme/ui-core hand the machine the same date classes.
+  "@internationalized/date": 3.12.4
   # @endif
   # @if web-react
   "@zag-js/react": 2.0.0-next.4

@@ -13,6 +13,7 @@ export type Scenario =
   | "tabs"
   | "menu"
   | "select"
+  | "date-picker"
   | "dialog"
   | "slider"
   | "accordion"
@@ -52,6 +53,14 @@ export const COUNTRIES = ["Canada", "France", "Germany", "Japan", "Korea"].map((
 }));
 
 export const COUNTRY_PLACEHOLDER = "Choose a country";
+
+// Far from any day the tests run on, so that no cell is today; a Tuesday, with a minimum five
+// days earlier, in a month of 31 days.
+export const DUE = { value: "2026-03-10", min: "2026-03-05", max: "2026-04-20" } as const;
+
+export const START_PLACEHOLDER = "Choose a day";
+
+export const START_ERROR = "Choose when the project starts.";
 
 export const CONFIRM = {
   title: "Delete the weekly report?",
@@ -170,6 +179,33 @@ function select(): Screen {
   ]);
 }
 
+// The design preview's three date pickers, and one more with nothing chosen between DUE's min
+// and max, for what today does.
+function datePicker(): Screen {
+  const { ui, bind, screen } = builder<{
+    due: string;
+    start: string | undefined;
+    review: string | undefined;
+  }>();
+  return screen({ due: DUE.value, start: undefined, review: undefined }, [
+    ui.DatePicker({ label: "Due date", ...bind("due"), min: DUE.min, max: DUE.max }),
+    ui.DatePicker({
+      label: "Start date",
+      placeholder: START_PLACEHOLDER,
+      ...bind("start"),
+      error: (state) => (state.start === undefined ? START_ERROR : undefined),
+    }),
+    ui.DatePicker({ label: "Locked", value: DUE.value, onChange: keep, disabled: true }),
+    ui.DatePicker({
+      label: "Review date",
+      placeholder: START_PLACEHOLDER,
+      ...bind("review"),
+      min: DUE.min,
+      max: DUE.max,
+    }),
+  ]);
+}
+
 function dialog(): Screen {
   const { ui, screen } = builder<{ confirming: boolean; asking: boolean }>();
   return screen({ confirming: false, asking: false }, [
@@ -255,6 +291,7 @@ export const SCREENS: Record<Scenario, Screen> = {
   tabs: tabs(),
   menu: menu(),
   select: select(),
+  "date-picker": datePicker(),
   dialog: dialog(),
   slider: slider(),
   accordion: accordion(),

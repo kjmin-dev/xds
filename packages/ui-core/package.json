@@ -14,7 +14,9 @@
     "test": "node --test \"src/**/*.test.ts\""
   },
   "dependencies": {
-    "@acme/tokens": "workspace:*"
+    "@acme/tokens": "workspace:*",
+    "@internationalized/date": "catalog:",
+    "@zag-js/date-picker": "catalog:"
   },
   "peerDependencies": {
     "tailwindcss": "^4.3.5",

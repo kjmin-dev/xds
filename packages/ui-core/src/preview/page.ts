@@ -5,25 +5,29 @@
 import type { SectionTitle } from "./design.ts";
 
 /** The overlays `?open=` can name. */
-export type Overlay = "menu" | "select" | "tooltip" | "dialog" | "toast";
+export type Overlay = "menu" | "select" | "datepicker" | "tooltip" | "dialog" | "toast";
 
 /**
  * The overlays `?open=` shows as soon as the page loads, so that they can be captured without
- * a hand on the page. A menu, a select's list and a tooltip open beside their control, so for
- * those the page starts at the control's section: a capture of the top of the page then has
- * the overlay in it, and focusing the control does not scroll the page. The scripted mode
- * works that control the way a person would: `press` clicks the section's first button,
- * `focus` gives it keyboard focus. A dialog and a toast start open instead. The section is
- * named by its title, so renaming a section without changing it here is a type error.
+ * a hand on the page. A menu, a select's list, a date picker's calendar and a tooltip open
+ * beside their control, so for those the page starts at the control's section: a capture of
+ * the top of the page then has the overlay in it, and focusing the control does not scroll the
+ * page. The scripted mode works that control the way a person would: `press` clicks the
+ * section's first button, or its first element that matches `control`, and `focus` gives it
+ * keyboard focus. A dialog and a toast start open instead. The section is named by its title,
+ * so renaming a section without changing it here is a type error.
  */
 export const OVERLAYS: {
   readonly [O in Overlay]: {
     readonly section: SectionTitle | undefined;
     readonly press: "click" | "focus" | undefined;
+    readonly control?: string;
   };
 } = {
   menu: { section: "Menu", press: "click" },
   select: { section: "Controls", press: "click" },
+  // The first date picker's field, after the section's selects.
+  datepicker: { section: "Controls", press: "click", control: ".date-picker__trigger" },
   tooltip: { section: "Buttons", press: "focus" },
   dialog: { section: undefined, press: undefined },
   toast: { section: undefined, press: undefined },
@@ -54,7 +58,7 @@ export function scrollToHash(): void {
 export function openOnLoad(overlay: Overlay | undefined): (() => void) | undefined {
   const target = overlay && OVERLAYS[overlay];
   const section = target?.section && document.getElementById(anchor(target.section));
-  const control = section?.querySelector("button");
+  const control = section?.querySelector<HTMLElement>(target?.control ?? "button");
   if (!control) return undefined;
   const frame = requestAnimationFrame(() => {
     if (target?.press === "focus") {

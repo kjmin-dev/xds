@@ -16,6 +16,7 @@ import type { CheckboxBaseProps } from "../checkbox.ts";
 import type { ChipBarBaseProps } from "../chip-bar.ts";
 import type { ChipBaseProps } from "../chip.ts";
 import type { CountBadgeBaseProps } from "../count-badge.ts";
+import type { DatePickerBaseProps, IsoDate } from "../date-picker.ts";
 import type { DialogBaseProps } from "../dialog.ts";
 import type { EmptyStateBaseProps } from "../empty-state.ts";
 import type { IconBaseProps } from "../icon.ts";
@@ -70,6 +71,7 @@ export interface Components<N> {
   Chip: ChipBaseProps & { onPress?: () => void };
   ChipBar: ChipBarBaseProps & { children: N };
   CountBadge: CountBadgeBaseProps & { children?: N };
+  DatePicker: DatePickerBaseProps & { onChange: (value: IsoDate) => void };
   Dialog: DialogBaseProps & { onClose: () => void; actions?: N; children?: N };
   Divider: Record<never, never>;
   EmptyState: EmptyStateBaseProps & { action?: N };

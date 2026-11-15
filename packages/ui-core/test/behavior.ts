@@ -4,7 +4,7 @@
 // test/behavior.test.tsx mounts each scenario of scenarios.ts with its own components and calls
 // describeBehavior, imported from @acme/ui-core/test/behavior.
 
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
 import {
   CONFIRM,
@@ -15,6 +15,8 @@ import {
   QUESTIONS,
   type Scenario,
   SIZE_ERROR,
+  START_ERROR,
+  START_PLACEHOLDER,
   TOAST,
 } from "./scenarios.ts";
 
@@ -66,6 +68,34 @@ const sliderValue = (locator: Locator) => {
     ? element.value
     : element.getAttribute("aria-valuenow");
 };
+
+// The field of a date picker is a button named by the chosen day and the label, as a Select's
+// field is.
+const dateField = (label: string) => page.getByRole("button", { name: label, exact: false });
+
+// A day of the open calendar, by its long English name ("March 10, 2026"), which the weekday
+// comes before.
+const day = (name: string) => page.getByRole("grid").getByRole("button", { name, exact: false });
+
+/** The name of the day of the open calendar that has the focus, or null. */
+const focusedDay = () => {
+  const element = document.activeElement;
+  return element?.closest('[role="grid"]') ? element.getAttribute("aria-label") : null;
+};
+
+/**
+ * Runs `check` with the page's clock on `now` (local time), which `setNow` moves, so that what a
+ * check expects of today does not depend on the day it runs. Only the date is faked: timers run
+ * as they do.
+ */
+async function onDay(now: Date, check: (setNow: (now: Date) => void) => Promise<void>) {
+  vi.useFakeTimers({ now, toFake: ["Date"], shouldAdvanceTime: true });
+  try {
+    await check((next) => vi.setSystemTime(next));
+  } finally {
+    vi.useRealTimers();
+  }
+}
 
 export function describeBehavior(mount: Mount) {
   // A field or a switch is controlled: it shows the value its owner gives it, so one whose owner
@@ -324,6 +354,160 @@ export function describeBehavior(mount: Mount) {
       await expect.element(page.getByRole("listbox")).not.toBeInTheDocument();
       await expect.element(plan).toHaveTextContent("Team");
       await expect.element(plan).toHaveFocus();
+    });
+  });
+
+  describe("DatePicker", () => {
+    test("a press opens the month of the chosen day, and choosing a day shows it", async () => {
+      await mount("date-picker");
+      const due = dateField("Due date");
+      await expect.element(due).toHaveTextContent("Mar 10, 2026");
+      await expect.element(due).toHaveAttribute("aria-haspopup", "dialog");
+      await expect.element(due).toHaveAttribute("aria-expanded", "false");
+      const field = due.element();
+      await due.click();
+      const grid = page.getByRole("grid");
+      await expect.element(grid).toBeVisible();
+      await expect.element(grid).toHaveAccessibleName(/March 2026/);
+      await expect.element(page.getByRole("dialog", { name: "Due date" })).toBeVisible();
+      expect(field.getAttribute("aria-expanded")).toBe("true");
+      await expect
+        .element(page.getByRole("gridcell", { name: "March 10, 2026", exact: false }))
+        .toHaveAttribute("aria-selected", "true");
+      await day("March 20, 2026").click();
+      await expect.element(grid).not.toBeInTheDocument();
+      await expect.element(due).toHaveTextContent("Mar 20, 2026");
+      await expect.element(due).toHaveFocus();
+    });
+
+    test("the arrow keys, Page Up and Down, Home and End move the focused day", async () => {
+      await mount("date-picker");
+      const due = dateField("Due date");
+      await userEvent.tab();
+      await expect.element(due).toHaveFocus();
+      await userEvent.keyboard("{Enter}");
+      await expect.element(page.getByRole("grid")).toBeVisible();
+      await expect.poll(focusedDay).toMatch(/March 10, 2026/);
+      await userEvent.keyboard("{ArrowRight}");
+      await expect.poll(focusedDay).toMatch(/March 11, 2026/);
+      await userEvent.keyboard("{ArrowDown}");
+      await expect.poll(focusedDay).toMatch(/March 18, 2026/);
+      await userEvent.keyboard("{ArrowLeft}");
+      await expect.poll(focusedDay).toMatch(/March 17, 2026/);
+      await userEvent.keyboard("{ArrowUp}");
+      await expect.poll(focusedDay).toMatch(/March 10, 2026/);
+      await userEvent.keyboard("{PageDown}");
+      await expect.poll(focusedDay).toMatch(/April 10, 2026/);
+      await expect.element(page.getByRole("grid")).toHaveAccessibleName(/April 2026/);
+      await userEvent.keyboard("{PageUp}");
+      await expect.poll(focusedDay).toMatch(/March 10, 2026/);
+      await userEvent.keyboard("{End}");
+      await expect.poll(focusedDay).toMatch(/March 31, 2026/);
+      await userEvent.keyboard("{Home}");
+      // The first day of the month, held at the minimum.
+      await expect.poll(focusedDay).toMatch(/March 5, 2026/);
+      await userEvent.keyboard("{ArrowRight}");
+      await userEvent.keyboard("{Enter}");
+      await expect.element(page.getByRole("grid")).not.toBeInTheDocument();
+      await expect.element(due).toHaveTextContent("Mar 6, 2026");
+      await expect.element(due).toHaveFocus();
+    });
+
+    test("days before the minimum cannot be chosen, and Escape closes without choosing", async () => {
+      await mount("date-picker");
+      const due = dateField("Due date");
+      await due.click();
+      await expect
+        .element(page.getByRole("gridcell", { name: "March 4, 2026", exact: false }))
+        .toHaveAttribute("aria-disabled", "true");
+      // Forced: without it, the click waits for the day to take presses.
+      await day("March 4, 2026").click({ force: true });
+      await expect.element(page.getByRole("grid")).toBeVisible();
+      await userEvent.keyboard("{Escape}");
+      await expect.element(page.getByRole("grid")).not.toBeInTheDocument();
+      await expect.element(due).toHaveTextContent("Mar 10, 2026");
+      await expect.element(due).toHaveFocus();
+    });
+
+    test("the error describes the field until a day is chosen, and a disabled one stays shut", async () => {
+      await mount("date-picker");
+      const start = dateField("Start date");
+      await expect.element(start).toHaveTextContent(START_PLACEHOLDER);
+      await expect.element(start).toHaveAccessibleDescription(START_ERROR);
+      await start.click();
+      await expect.element(page.getByRole("grid")).toBeVisible();
+      // Today, whatever day the checks run on.
+      await expect.poll(focusedDay).not.toBeNull();
+      await userEvent.keyboard("{Enter}");
+      await expect.element(page.getByRole("grid")).not.toBeInTheDocument();
+      await expect.element(page.getByText(START_ERROR)).not.toBeInTheDocument();
+      await expect.element(start).not.toHaveTextContent(START_PLACEHOLDER);
+      await expect.element(dateField("Locked")).toBeDisabled();
+    });
+
+    test("Tab stays in the open calendar, and the page behind is hidden from assistive technology", async () => {
+      await mount("date-picker");
+      const due = dateField("Due date");
+      const behind = dateField("Start date").element();
+      await due.click();
+      const calendar = page.getByRole("dialog");
+      await expect.element(calendar).toBeVisible();
+      await expect.poll(() => holdsFocus(calendar)).toBe(true);
+      for (let step = 0; step < 4; step++) {
+        await userEvent.tab();
+        expect(holdsFocus(calendar)).toBe(true);
+      }
+      await userEvent.tab({ shift: true });
+      expect(holdsFocus(calendar)).toBe(true);
+      expect(hiddenFromAssistiveTechnology(behind)).toBe(true);
+      await userEvent.keyboard("{Escape}");
+      await expect.element(calendar).not.toBeInTheDocument();
+      await expect.poll(() => hiddenFromAssistiveTechnology(behind)).toBe(false);
+      await expect.element(due).toHaveFocus();
+    });
+
+    test("moves past min or max stop at them", async () => {
+      await mount("date-picker");
+      const due = dateField("Due date");
+      await due.click();
+      await expect.poll(focusedDay).toMatch(/March 10, 2026/);
+      await userEvent.keyboard("{ArrowUp}");
+      await expect.poll(focusedDay).toMatch(/March 5, 2026/);
+      await userEvent.keyboard("{ArrowLeft}");
+      await expect.poll(focusedDay).toMatch(/March 5, 2026/);
+      await userEvent.keyboard("{PageUp}");
+      await expect.poll(focusedDay).toMatch(/March 5, 2026/);
+      await userEvent.keyboard("{PageDown}");
+      await expect.poll(focusedDay).toMatch(/April 5, 2026/);
+      await userEvent.keyboard("{PageDown}");
+      await expect.poll(focusedDay).toMatch(/April 20, 2026/);
+      await userEvent.keyboard("{Shift>}{PageUp}{/Shift}");
+      await expect.poll(focusedDay).toMatch(/March 5, 2026/);
+    });
+
+    test("with nothing chosen, each opening starts on today, held between min and max", async () => {
+      await onDay(new Date(2026, 10, 14, 12), async (setNow) => {
+        await mount("date-picker");
+        const review = dateField("Review date");
+        const grid = page.getByRole("grid");
+        await review.click();
+        await expect.element(grid).toHaveAccessibleName(/April 2026/);
+        await expect.poll(focusedDay).toMatch(/April 20, 2026/);
+        await userEvent.keyboard("{Escape}");
+        await expect.element(grid).not.toBeInTheDocument();
+        setNow(new Date(2026, 0, 2, 12));
+        await review.click();
+        await expect.element(grid).toHaveAccessibleName(/March 2026/);
+        await expect.poll(focusedDay).toMatch(/March 5, 2026/);
+        await userEvent.keyboard("{Escape}");
+        await expect.element(grid).not.toBeInTheDocument();
+        setNow(new Date(2026, 2, 20, 12));
+        await review.click();
+        await expect.poll(focusedDay).toMatch(/March 20, 2026/);
+        await expect
+          .element(page.getByRole("gridcell", { name: "March 20, 2026", exact: false }))
+          .toHaveAttribute("aria-current", "date");
+      });
     });
   });
 

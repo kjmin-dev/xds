@@ -30,6 +30,8 @@ export type DesignState = {
   timeZone: string | undefined;
   volume: number;
   fontSize: number;
+  dueDate: string;
+  startDate: string | undefined;
   // Chips, Tabs, Banners, Card, Media, Sidebar, Accordion
   filters: readonly string[];
   page: string;

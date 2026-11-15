@@ -14,8 +14,12 @@ export default defineConfig({
       enabled: true,
       headless: true,
       // The Google Chrome installed on the machine, which GitHub's runners have too, so that
-      // nothing downloads a browser.
-      provider: playwright({ launchOptions: { channel: "chrome" } }),
+      // nothing downloads a browser. In English whatever the machine's language: the checks find
+      // a day of a calendar by its English name.
+      provider: playwright({
+        launchOptions: { channel: "chrome" },
+        contextOptions: { locale: "en-US" },
+      }),
       instances: [{ browser: "chromium" }],
       screenshotFailures: false,
     },

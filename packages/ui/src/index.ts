@@ -18,6 +18,7 @@ export { Checkbox, type CheckboxProps } from "./Checkbox.tsx";
 export { Chip, type ChipProps } from "./Chip.tsx";
 export { ChipBar, type ChipBarProps } from "./ChipBar.tsx";
 export { CountBadge, type CountBadgeProps } from "./CountBadge.tsx";
+export { DatePicker, type DatePickerProps, type IsoDate } from "./DatePicker.tsx";
 export { Dialog, type DialogProps } from "./Dialog.tsx";
 export { Divider } from "./Divider.tsx";
 export { EmptyState, type EmptyStateProps } from "./EmptyState.tsx";

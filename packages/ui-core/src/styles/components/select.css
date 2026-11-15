@@ -10,16 +10,22 @@
  * `[data-placeholder-shown]` on it while nothing is chosen; `[data-highlighted]` and `:active`
  * on an item; `[data-side]` on the content, and `[data-state="closed"]` while it animates out.
  * The positioner stacks by `--layer-overlay` and Zag's `--layer-index`.
+ *
+ * A DatePicker's field is this field, with the same parts under `.date-picker` (and its trigger
+ * inside a `.date-picker__control`, which its calendar is placed against), so the rules of the
+ * field name both; date-picker.css draws its calendar.
  */
 @layer components {
-  .select {
+  .select,
+  .date-picker {
     display: flex;
     flex-direction: column;
     gap: var(--acme-space-1);
     width: 100%;
   }
 
-  .select__label {
+  .select__label,
+  .date-picker__label {
     width: fit-content;
     font-size: var(--acme-typography-label-size);
     font-weight: var(--acme-typography-label-weight);
@@ -27,7 +33,8 @@
     color: var(--acme-color-text-primary);
   }
 
-  .select:has(.select__trigger:disabled) .select__label {
+  .select:has(.select__trigger:disabled) .select__label,
+  .date-picker:has(.date-picker__trigger:disabled) .date-picker__label {
     opacity: 0.5;
     cursor: not-allowed;
     pointer-events: none;
@@ -35,9 +42,10 @@
 
   /* ------------------------------------------------------------ the field */
 
-  /* A text field's box: the same height, inset, corners and type, with the chevrons a gap
-     away from the value. */
-  .select__trigger {
+  /* A text field's box: the same height, inset, corners and type, with the icon at the end
+     (the chevrons, or a DatePicker's calendar) a gap away from the value. */
+  .select__trigger,
+  .date-picker__trigger {
     position: relative;
     isolation: isolate;
     display: flex;
@@ -63,37 +71,43 @@
   }
 
   /* A text field's ring sits on its border, not a gap away from it. */
-  .select__trigger:focus-visible {
+  .select__trigger:focus-visible,
+  .date-picker__trigger:focus-visible {
     border-color: var(--acme-color-field-border-focus);
   }
 
   /* Invalid as a text field is: red, and thicker, so the state does not depend on telling
      colors apart. Focused, it stays red and the inner line goes. */
-  .select__trigger[data-invalid] {
+  .select__trigger[data-invalid],
+  .date-picker__trigger[data-invalid] {
     border-color: var(--acme-color-field-border-invalid);
     box-shadow: inset 0 0 0 var(--acme-border-width-thin) var(--acme-color-field-border-invalid);
     outline: var(--acme-border-width-thin) solid var(--acme-color-danger-default);
   }
 
-  .select__trigger[data-invalid]:focus {
+  .select__trigger[data-invalid]:focus,
+  .date-picker__trigger[data-invalid]:focus {
     box-shadow: none;
   }
 
   /* After focus and the error, which it outranks. */
   @media (hover: hover) {
-    .select__trigger:hover {
+    .select__trigger:hover,
+    .date-picker__trigger:hover {
       border-color: var(--acme-color-text-primary);
     }
   }
 
-  .select__trigger:disabled {
+  .select__trigger:disabled,
+  .date-picker__trigger:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     pointer-events: none;
   }
 
   /* One line, cut short with an ellipsis, so a long option does not make the field taller. */
-  .select__value {
+  .select__value,
+  .date-picker__value {
     flex: 1 1 0%;
     min-width: 0;
     overflow: hidden;
@@ -104,29 +118,35 @@
     line-height: var(--acme-typography-body-line-height);
   }
 
-  .select__trigger[data-placeholder-shown] .select__value {
+  .select__trigger[data-placeholder-shown] .select__value,
+  .date-picker__trigger[data-placeholder-shown] .date-picker__value {
     color: var(--acme-color-field-placeholder);
   }
 
   /* One line under the box, as under a TextField: the help or the error. */
-  .select__footer {
+  .select__footer,
+  .date-picker__footer {
     display: flex;
     align-items: baseline;
     gap: var(--acme-space-3);
   }
 
   .select__description,
-  .select__error {
+  .select__error,
+  .date-picker__description,
+  .date-picker__error {
     font-size: var(--acme-typography-detail-size);
     line-height: var(--acme-typography-detail-line-height);
     overflow-wrap: break-word;
   }
 
-  .select__description {
+  .select__description,
+  .date-picker__description {
     color: var(--acme-color-text-secondary);
   }
 
-  .select__error {
+  .select__error,
+  .date-picker__error {
     color: var(--acme-color-status-danger);
   }
 

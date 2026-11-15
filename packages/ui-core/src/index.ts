@@ -67,6 +67,24 @@ export {
   countBadgeClass,
   countBadgeText,
 } from "./count-badge.ts";
+export {
+  clampDay,
+  DATE_PICKER_NAV_CLASS,
+  type DatePickerBaseProps,
+  datePickerContentAttrs,
+  datePickerIds,
+  datePickerLocale,
+  datePickerMachineProps,
+  datePickerTranslations,
+  datePickerTriggerAttrs,
+  focusOpeningDay,
+  formatDay,
+  type IsoDate,
+  keepCalendarFocus,
+  keepDayFocused,
+  openingDay,
+  todayIso,
+} from "./date-picker.ts";
 export type { DialogBaseProps } from "./dialog.ts";
 export { dividerClass } from "./divider.ts";
 export { EMPTY_STATE_PARTS, type EmptyStateBaseProps } from "./empty-state.ts";

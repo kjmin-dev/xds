@@ -26,6 +26,9 @@ Acme is built around a shared design system: a single set of design tokens and a
 <!-- @if web-vue -->
 | `packages/ui-vue`, `apps/web-vue` | Web component library (Vue, Tailwind, Zag.js) and the Vue web app |
 <!-- @endif -->
+<!-- @if web-svelte -->
+| `packages/ui-svelte`, `apps/web-svelte` | Web component library (Svelte, Tailwind, Zag.js) and the Svelte web app |
+<!-- @endif -->
 <!-- @if ui-core -->
 | `packages/ui-core` | What the web libraries share: the prop types, class recipes, and stylesheet of their components, the DOM helpers their behavior needs, the web design preview as data (`src/preview`), and the behavior tests that each of them runs |
 <!-- @endif -->
@@ -55,7 +58,7 @@ Acme is built around a shared design system: a single set of design tokens and a
 <!-- @endif -->
 - When adding a variant, size, or tone to a component, implement it under the same name across every client in this project, add it to each client's design preview, and record it in `design/components.json`.
 <!-- @if ui-core -->
-- The web design preview is written once, as typed data in `packages/ui-core/src/preview`, and each web library's renderer (`src/preview.tsx`, or `src/preview.ts` in the Vue library) draws it at `/design`. Show a web component there, not in an app: its props go in `components.ts`, its examples in `sections.ts`, and the component into the `COMPONENTS` of each renderer, which fails to typecheck until it is there and takes every prop the data passes. The `README.md` there explains the data.
+- The web design preview is written once, as typed data in `packages/ui-core/src/preview`, and each web library's renderer (its `src/preview` module) draws it at `/design`. Show a web component there, not in an app: its props go in `components.ts`, its examples in `sections.ts`, and the component into the `COMPONENTS` of each renderer, which fails to typecheck until it is there and takes every prop the data passes. The `README.md` there explains the data.
 <!-- @endif -->
 - Switch color themes with `mise run theme <name>`. Do not edit the accent or neutral color ramps in `design/tokens/palette.json` by hand.
 <!-- @if js-workspace -->
@@ -64,6 +67,9 @@ Acme is built around a shared design system: a single set of design tokens and a
 <!-- @endif -->
 <!-- @if web-vue -->
 - The Vue packages are the exception: vue-tsc checks their `.vue` files (`vue-tsc --noEmit`), on the TypeScript 6 API that typescript-native-bridge keeps over the TypeScript 7 checker. They take that `typescript` from the `vue` catalog in `pnpm-workspace.yaml`, which Vite's compiler for `.vue` files needs too. oxlint lints only the script blocks of `.vue` files, and without its type-aware rules.
+<!-- @endif -->
+<!-- @if web-svelte -->
+- The Svelte packages type-check with svelte-check instead (`--tsgo-experimental-api`), which reads the components with a TypeScript 6 of its own, set in `.pnpmfile.cjs`, and checks them with TypeScript 7, which it finds as `@typescript/native` at the catalog's `typescript` version. Upgrade svelte-check together with TypeScript. oxlint lints a component's script but not with its type-aware rules, and leaves unused names to svelte-check.
 <!-- @endif -->
 <!-- @if mobile-react-native -->
 - Add a native package to the mobile app with `pnpm exec expo install <package>` in `apps/mobile`, not `pnpm add`, so that it gets the version the Expo SDK expects. See "Moving to the next Expo SDK" below.
@@ -87,6 +93,9 @@ Acme is built around a shared design system: a single set of design tokens and a
 <!-- @if web-vue -->
 | Start the Vue web app | `mise run //web-vue:dev` |
 <!-- @endif -->
+<!-- @if web-svelte -->
+| Start the Svelte web app | `mise run //web-svelte:dev` |
+<!-- @endif -->
 <!-- @if desktop-gpui -->
 | Start the desktop app | `mise run //desktop:dev` |
 <!-- @endif -->
@@ -105,6 +114,9 @@ Acme is built around a shared design system: a single set of design tokens and a
 <!-- @endif -->
 <!-- @if web-vue -->
 | Test how the Vue web components behave, in headless Google Chrome | `pnpm --filter @acme/ui-vue test` |
+<!-- @endif -->
+<!-- @if web-svelte -->
+| Test how the Svelte web components behave, in headless Google Chrome | `pnpm --filter @acme/ui-svelte test` |
 <!-- @endif -->
 | List all available tasks | `mise tasks --all` |
 
@@ -125,6 +137,9 @@ Inspect the design preview in both light and dark modes after making visual chan
 <!-- @if web-vue -->
 | Web (Vue) | Open `http://localhost:5175/design#buttons` while the Vue dev server is running. Each section has an anchor, `?theme=light` or `?theme=dark` pins the color mode, and `?open=menu`, `select`, `dialog`, `toast`, or `tooltip` opens that overlay |
 <!-- @endif -->
+<!-- @if web-svelte -->
+| Web (Svelte) | Open `http://localhost:5176/design#buttons` while the Svelte dev server is running. Each section has an anchor, `?theme=light` or `?theme=dark` pins the color mode, and `?open=menu`, `select`, `dialog`, `toast`, or `tooltip` opens that overlay |
+<!-- @endif -->
 <!-- @if desktop-gpui -->
 | Desktop | Run `mise run //desktop:design`. Pass `--light` or `--dark` to pin the mode, `--scroll <pixels>` to open at a vertical offset, and `--open menu`, `select`, `dialog`, `toast`, or `tooltip` to open with that overlay showing |
 <!-- @endif -->
@@ -136,7 +151,7 @@ Inspect the design preview in both light and dark modes after making visual chan
 <!-- @endif -->
 <!-- @if ui-core -->
 
-`mise run check:js` also tests how the interactive web components behave (keyboard, focus, and ARIA state) in the Google Chrome installed on the machine. The checks are in `packages/ui-core/test/behavior.ts`, and the screens they run against are written as data in `scenarios.ts`, the way the design preview is. Every web library runs them: its `test/behavior.test.tsx` (`.ts` in the Vue library) draws each screen with the library's preview renderer. When you add or change an interactive web component, add its scenario and its checks to `packages/ui-core/test`.
+`mise run check:js` also tests how the interactive web components behave (keyboard, focus, and ARIA state) in the Google Chrome installed on the machine. The checks are in `packages/ui-core/test/behavior.ts`, and the screens they run against are written as data in `scenarios.ts`, the way the design preview is. Every web library runs them: its `test/behavior.test` file draws each screen with the library's preview renderer. When you add or change an interactive web component, add its scenario and its checks to `packages/ui-core/test`.
 
 `mise run compare:previews` starts every web app in the project and compares their design previews pixel by pixel: every section and every `?open=` overlay, at 1280 and 390 px, in both modes. They draw the same data, so a difference is one library drawing a component differently. With one web app there is nothing to compare.
 <!-- @endif -->

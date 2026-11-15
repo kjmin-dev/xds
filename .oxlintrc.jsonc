@@ -175,6 +175,9 @@
         // @if web-vue
         "packages/ui-vue/test/**",
         // @endif
+        // @if web-svelte
+        "packages/ui-svelte/test/**",
+        // @endif
       ],
       "plugins": ["vitest"],
       "rules": { "vitest/no-identical-title": "error" },

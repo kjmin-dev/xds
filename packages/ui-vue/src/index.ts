@@ -2,12 +2,12 @@
 // underneath (Zag.js for behavior, @acme/ui-core for the classes and the stylesheet) can change
 // without touching a screen.
 //
-// The React components are in @acme/ui, the Solid ones in @acme/ui-solid, the React Native ones
-// in @acme/ui-native, the GPUI ones in the acme-ui crate and the Compose ones under kotlin/ui.
-// All of them take the same variants, sizes and tones, and draw them from the same design
-// tokens. Where the React components take an element, these take a slot of the same name
-// (`children` is the default slot), and where they take `onChange` with `value`, `checked` or
-// `expanded`, these take `v-model` of that name: `v-model:checked`.
+// The React components are in @acme/ui, the Solid ones in @acme/ui-solid, the Svelte ones in
+// @acme/ui-svelte, the React Native ones in @acme/ui-native, the GPUI ones in the acme-ui crate and
+// the Compose ones under kotlin/ui. All of them take the same variants, sizes and tones, and draw
+// them from the same design tokens. Where the React components take an element, these take a slot
+// of the same name (`children` is the default slot), and where they take `onChange` with `value`,
+// `checked` or `expanded`, these take `v-model` of that name: `v-model:checked`.
 
 export type { IconName, IconSize, TextTone, TextVariant } from "@acme/ui-core";
 export { default as Accordion, type AccordionItem, type AccordionProps } from "./Accordion.vue";

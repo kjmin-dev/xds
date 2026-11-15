@@ -23,6 +23,7 @@ export type Component = {
     web?: string;
     solid?: string;
     vue?: string;
+    svelte?: string;
     gpui?: string;
     reactNative?: string;
     compose?: string;
@@ -40,6 +41,7 @@ export type Component = {
 const web = (file: string) => `packages/ui/src/${file}.tsx`;
 const solid = (file: string) => `packages/ui-solid/src/${file}.tsx`;
 const vue = (file: string) => `packages/ui-vue/src/${file}.vue`;
+const svelte = (file: string) => `packages/ui-svelte/src/${file}.svelte`;
 const native = (file: string) => `packages/ui-native/src/${file}.tsx`;
 const compose = (file: string) => `kotlin/ui/src/commonMain/kotlin/acme/ui/${file}.kt`;
 const GPUI_COMPONENTS = "crates/acme-ui/src/components.rs";
@@ -50,6 +52,7 @@ const everywhere = (file: string, gpui: string) => ({
   web: web(file),
   solid: solid(file),
   vue: vue(file),
+  svelte: svelte(file),
   gpui,
   reactNative: native(file),
   compose: compose(file),
@@ -408,6 +411,7 @@ export const COMPONENTS: Component[] = [
       web: web("Divider"),
       solid: solid("Divider"),
       vue: vue("Divider"),
+      svelte: svelte("Divider"),
       gpui: GPUI_COMPONENTS,
       reactNative: native("Card"),
       compose: compose("Card"),
@@ -1034,6 +1038,7 @@ export const COMPONENTS: Component[] = [
       web: web("Tooltip"),
       solid: solid("Tooltip"),
       vue: vue("Tooltip"),
+      svelte: svelte("Tooltip"),
       gpui: GPUI_OVERLAYS,
     },
     demo: true,
@@ -1484,6 +1489,7 @@ export const COMPONENTS: Component[] = [
       web: web("Sidebar"),
       solid: solid("Sidebar"),
       vue: vue("Sidebar"),
+      svelte: svelte("Sidebar"),
       gpui: "crates/acme-ui/src/navigation.rs",
     },
     demo: true,

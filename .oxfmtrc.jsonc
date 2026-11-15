@@ -20,6 +20,11 @@
   // The documentation site's pages; Astro brings the compiler that formats them.
   "astro": true,
   // @endif
+  // @if web-svelte
+  // The Svelte components; svelte, a dependency of the web-svelte packages, brings the compiler
+  // that formats them.
+  "svelte": true,
+  // @endif
   // @if ui-core
   // Tailwind classes are sorted in the order of the stylesheet they come from. It has to bring
   // the tokens' @theme: with Tailwind's own theme, the acme-* utilities are unknown and sort
@@ -43,6 +48,10 @@
         "apps/web-vue/**",
         "packages/ui-vue/**",
         // @endif
+        // @if web-svelte
+        "apps/web-svelte/**",
+        "packages/ui-svelte/**",
+        // @endif
       ],
       "options": { "sortTailwindcss": { "stylesheet": "./packages/ui-core/src/styles/index.css" } },
     },
@@ -51,7 +60,6 @@
       "files": ["apps/docs/**"],
       "options": { "sortTailwindcss": { "stylesheet": "./apps/docs/src/styles/demo.css" } },
     },
-    // web-svelte adds its app and library to the files of the first override.
     // @endif
   ],
   // @endif

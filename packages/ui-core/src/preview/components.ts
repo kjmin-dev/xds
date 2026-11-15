@@ -106,6 +106,50 @@ export interface Components<N> {
 
 export type ComponentName = keyof Components<unknown>;
 
+// What stands for a node below: no other prop's type matches it.
+declare const NODE: unique symbol;
+type NodeMark = { readonly [NODE]: true };
+
+/** The props of component `N` that take a node, short of its children. */
+export type NodeProp<N extends ComponentName> = {
+  [K in keyof Components<NodeMark>[N]]-?: K extends "children"
+    ? never
+    : [NonNullable<Components<NodeMark>[N][K]>] extends [NodeMark]
+      ? K
+      : never;
+}[keyof Components<NodeMark>[N]];
+
+/**
+ * The props that take a node, short of the children, of each component that has any. A
+ * renderer that hands a component a node in a form of its own, such as a Svelte snippet or a Vue
+ * slot, tells such a prop by its name and not by its value, since the prop may hold text, or
+ * text that follows the state, as well as a node.
+ */
+export const NODE_PROPS = {
+  Card: ["actions", "media"],
+  Dialog: ["actions"],
+  EmptyState: ["action"],
+  ListRow: ["leading", "trailing"],
+  MediaCard: ["leading", "action"],
+  Menu: ["trigger"],
+  Sidebar: ["header", "footer"],
+  TextField: ["leading", "trailing"],
+} as const satisfies {
+  readonly [
+    N in ComponentName as [NodeProp<N>] extends [never] ? never : N
+  ]: readonly NodeProp<N>[];
+};
+
+// `satisfies` checks that every component with a node prop is listed and that each name listed
+// is a node prop; this names each component whose list misses one, with the props it misses.
+type Missed<N extends keyof typeof NODE_PROPS> = Exclude<
+  NodeProp<N>,
+  (typeof NODE_PROPS)[N][number]
+>;
+({}) satisfies {
+  [N in keyof typeof NODE_PROPS as [Missed<N>] extends [never] ? never : N]: Missed<N>;
+};
+
 /**
  * The props of component `N` that a library component lacks, given the names of the props it
  * takes, or `never` when it takes them all. A renderer requires `never` for every component: a

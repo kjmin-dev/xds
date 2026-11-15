@@ -23,6 +23,9 @@ const APPS = [
   // @if web-vue
   { name: "vue", dir: "apps/web-vue" },
   // @endif
+  // @if web-svelte
+  { name: "svelte", dir: "apps/web-svelte" },
+  // @endif
 ];
 const WIDTHS = [1280, 390];
 const THEMES = ["light", "dark"];

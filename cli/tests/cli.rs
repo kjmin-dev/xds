@@ -76,6 +76,7 @@ fn lists_targets_and_themes_without_color_when_piped() {
         "web-react",
         "web-solid",
         "web-vue",
+        "web-svelte",
         "desktop-gpui",
         "mobile-react-native",
         "kotlin-compose",
@@ -95,7 +96,7 @@ fn lists_targets_and_themes_without_color_when_piped() {
         .find(|line| line.trim_start().starts_with("web-react "))
         .expect("a line for web-react");
     assert!(web.ends_with(" (default)"), "{web}");
-    for id in ["web-solid", "web-vue"] {
+    for id in ["web-solid", "web-vue", "web-svelte"] {
         let line = stdout
             .lines()
             .find(|line| line.trim_start().starts_with(&format!("{id} ")))

@@ -59,6 +59,9 @@ Acme is built around a shared design system: a single set of design tokens and a
 - Fix what the linter reports. Where a rule is wrong for one deliberate line, disable it there with `// oxlint-disable-next-line <plugin>/<rule> -- <why>`; a directive that no longer suppresses anything fails `mise run check:js`.
 - On the command line, type checking (each package's `typecheck` script, `tsrs --noEmit`) and oxlint's type-aware rules (`tsrs-lint`) run on tsrs, an experimental Rust port of TypeScript 7.1. Editors keep TypeScript's own language server; the root `typescript` package is the version to point them at, and the one tsrs is held to. tsrs is built from one TypeScript commit, so the pnpm catalog pins both exactly and they move together: to upgrade TypeScript, change both, taking the tsrs release that ports the new version (`pnpm view tsrs@<release> tsrs.typescriptVersion` shows the version a release ports). `mise run check:js` fails while they differ. Build scripts do not type-check; `mise run check:js` does.
 <!-- @endif -->
+<!-- @if mobile-react-native -->
+- Add a native package to the mobile app with `pnpm exec expo install <package>` in `apps/mobile`, not `pnpm add`, so that it gets the version the Expo SDK expects. See "Moving to the next Expo SDK" below.
+<!-- @endif -->
 
 ## Commands
 
@@ -80,6 +83,7 @@ Acme is built around a shared design system: a single set of design tokens and a
 <!-- @endif -->
 <!-- @if mobile-react-native -->
 | Start the mobile app | `mise run //mobile:ios` or `mise run //mobile:android` |
+| Check the mobile app's native packages against its Expo SDK, and bundle it for iOS and Android (`mise run check:js` runs both) | `mise run //mobile:check`, `mise run //mobile:bundle` |
 <!-- @endif -->
 <!-- @if kotlin-compose -->
 | Start the Compose desktop app | `mise run //kotlin:desktop` |
@@ -124,4 +128,16 @@ Inspect the design preview in both light and dark modes after making visual chan
 `mise run compare:previews` starts both web apps and compares their design previews pixel by pixel: every section and every `?open=` overlay, at 1280 and 390 px, in both modes. Both draw the same data, so a difference is one library drawing a component differently.
 <!-- @endif -->
 <!-- @endif -->
+<!-- @endif -->
+<!-- @if mobile-react-native -->
+
+## Moving to the next Expo SDK
+
+The mobile app stays on the versions its Expo SDK expects: `mise run //mobile:check` fails when an installed native package differs from the list in the installed `expo` package. It reads only that list, offline, so it does not fail when Expo publishes a newer patch; moving to one is a change of its own.
+
+1. Wait until the `expo` release is a day old (pnpm's minimum release age) and, for a new SDK, until `https://api.expo.dev/v2/versions/latest` lists Expo Go for it: `mise run //mobile:ios` runs the app in Expo Go.
+2. In `apps/mobile`, run `pnpm add expo@~<sdk>.0.<patch>`, then `pnpm exec expo install --fix`, which moves every native package to the SDK's version. It leaves `typescript` alone: `expo.install.exclude` in `apps/mobile/package.json` keeps the catalog's version, which moves with tsrs.
+3. Give `packages/ui-native` the app's new versions in its peer and dev dependencies.
+4. Compare the React version the SDK pins with the catalog's in `pnpm-workspace.yaml`. If another package of the workspace cannot take the SDK's React, give the two mobile packages a named catalog of their own (`catalogs.native`) rather than versions of their own.
+5. Read the breaking changes of the SDK and of its React Native release, then run `mise run check:js` and open the design preview in Expo Go on iOS and Android, in both color modes.
 <!-- @endif -->

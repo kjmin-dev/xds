@@ -17,3 +17,12 @@ run = "pnpm exec expo start --android"
 description = "Bundle the mobile app for iOS and Android without a device, to prove it resolves"
 depends = ["//:install"]
 run = "pnpm exec expo export --platform ios --platform android --output-dir dist"
+
+[tasks.check]
+description = "Fail if a native package is not at the version the installed Expo SDK expects"
+depends = ["//:install"]
+run = "pnpm exec expo install --check"
+# Offline, Expo compares against the list shipped in the installed expo package instead of asking
+# its servers, so the check needs no network and does not fail when Expo publishes a patch.
+# Moving to that patch is a deliberate change: see "Moving to the next Expo SDK" in AGENTS.md.
+env = { EXPO_OFFLINE = "1" }

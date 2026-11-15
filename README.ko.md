@@ -103,6 +103,7 @@ mise run check          # CI가 돌리는 것 전부
 | GPUI 데스크톱 앱 실행 | `mise run //desktop:dev` |
 | GPUI 디자인 프리뷰 열기 | `mise run //desktop:design` |
 | React Native 앱 실행 | `mise run //mobile:ios` 또는 `mise run //mobile:android` |
+| React Native 앱을 Expo SDK 기준으로 검사 | `mise run //mobile:check`, `mise run //mobile:bundle` |
 | Compose 데스크톱 앱 실행 | `mise run //kotlin:desktop` |
 | Compose 디자인 프리뷰 열기 | `mise run //kotlin:design` |
 | Compose 앱을 Android에 설치 | `mise run //kotlin:android` |
@@ -115,6 +116,8 @@ mise run check          # CI가 돌리는 것 전부
 웹 컴포넌트 테스트는 Google Chrome에서 실행되므로 `mise run check`에는 Chrome이 설치되어 있어야 합니다. GPUI 데스크톱 앱은 macOS에서 빌드됩니다. Compose 앱을 빌드하려면 Android는 Android SDK, iOS는 Xcode가 필요합니다. 자세한 내용은 [kotlin/README.md](kotlin/README.md)(영문)를 참고하세요. 모바일 앱에서는 홈 화면의 버튼을 눌러 디자인 프리뷰를 열 수 있습니다.
 
 명령줄의 타입 검사와 oxlint의 타입 인식 규칙은 `mise run check:js`에서 [tsrs](https://github.com/oxc-project/tsrs)로 실행됩니다. tsrs는 TypeScript 7.1을 Rust로 옮긴 실험판으로, 정확한 버전에 고정되어 있습니다. 에디터는 TypeScript 자체의 언어 서버를 그대로 쓰므로, 루트의 `typescript` 패키지를 쓰도록 지정하세요. tsrs도 이 버전에 맞춰집니다. tsrs는 TypeScript의 특정 커밋에서 빌드되므로 둘은 `pnpm-workspace.yaml`의 카탈로그에서 함께 올립니다. `typescript`를 올릴 때 `tsrs`도 같은 버전을 옮긴 릴리스로 바꾸세요(릴리스가 옮긴 버전은 `pnpm view tsrs@<릴리스> tsrs.typescriptVersion`으로 확인합니다). 둘이 다르면 `mise run check:js`가 실패합니다.
+
+`mise run check:js`는 React Native 앱도 Expo SDK 기준으로 검사합니다. `mise run //mobile:check`는 네이티브 패키지가 설치된 SDK가 기대하는 버전과 다르면 실패하고, `mise run //mobile:bundle`은 앱을 iOS와 Android용으로 번들합니다. 네이티브 패키지는 `apps/mobile`에서 `pnpm exec expo install`로 추가하세요. 다음 SDK로 옮기는 방법은 [CONTRIBUTING.md](CONTRIBUTING.md)(영문)에 있습니다.
 
 ## 디자인 수정하기
 

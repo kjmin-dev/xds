@@ -527,12 +527,23 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
                 Some(true),
                 "{selected:?}"
             );
-            let steps: Vec<&str> = check["run"]
-                .as_array()
-                .expect("the steps of check:js")
+            let run = check["run"].as_array().expect("the steps of check:js");
+            let steps: Vec<&str> = run.iter().filter_map(|step| step.as_str()).collect();
+            // The other steps are tasks of the mobile app, whose checks need its own directory.
+            let app_tasks: Vec<&str> = run
                 .iter()
-                .map(|step| step.as_str().expect("a command"))
+                .filter(|step| !step.is_str())
+                .map(|step| step["task"].as_str().expect("a command or a task"))
                 .collect();
+            assert_eq!(
+                app_tasks,
+                if has(MOBILE) {
+                    vec!["//mobile:check", "//mobile:bundle"]
+                } else {
+                    vec![]
+                },
+                "{selected:?}"
+            );
             let step = |command: &str| {
                 steps
                     .iter()

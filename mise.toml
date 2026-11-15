@@ -146,6 +146,12 @@ run = [
   # @if web-solid
   "pnpm --filter @acme/web-solid build",
   # @endif
+  # @if mobile-react-native
+  # Neither is visible to the type checker: a native package that has moved off the version the
+  # Expo SDK expects, and an import that Metro cannot resolve for iOS or Android.
+  { task = "//mobile:check" },
+  { task = "//mobile:bundle" },
+  # @endif
 ]
 
 [tasks."check:js".env]

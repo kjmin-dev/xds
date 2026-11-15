@@ -37,6 +37,11 @@ export default defineConfig({
             "xds is a cross-platform design system template. Design tokens in DTCG format are compiled to CSS, Tailwind, TypeScript, Rust and Kotlin; the same components exist for React, Solid, Vue and Svelte (web), GPUI (desktop), React Native and Compose Multiplatform; and the `xds` CLI scaffolds a project with the chosen clients and color theme.",
           // The Korean pages translate the English ones; one language is enough for a model.
           exclude: ["ko/**"],
+          // A component page's chips repeat its Platforms section, which says it in words, and
+          // the index's filter buttons and legend mean nothing in text. Its table stays.
+          customSelectors: {
+            all: [".platforms", ".matrix__filter", ".matrix__count", ".matrix__legend"],
+          },
         }),
       ],
       sidebar: [

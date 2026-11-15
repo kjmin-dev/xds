@@ -51,6 +51,9 @@ pub struct Target {
     pub title: String,
     pub stack: String,
     pub platforms: Vec<String>,
+    /// What its components are designed for. `differences` in the component contract may name
+    /// it instead of listing clients.
+    pub input: Input,
     pub paths: Vec<String>,
     /// Names of `shared` units.
     #[serde(default)]
@@ -65,6 +68,30 @@ pub struct Target {
     /// How to start it, shown after `create` and `add`.
     #[serde(default)]
     pub run: Vec<RunCommand>,
+}
+
+/// The input device a client's components are designed for: a design distinction rather than a
+/// platform one, so Compose is a touch client although it also runs on the desktop.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Input {
+    Pointer,
+    Touch,
+}
+
+impl Input {
+    pub const ALL: [Self; 2] = [Self::Pointer, Self::Touch];
+
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Pointer => "pointer",
+            Self::Touch => "touch",
+        }
+    }
+
+    pub fn parse(name: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|input| input.name() == name)
+    }
 }
 
 #[derive(Debug, Deserialize)]

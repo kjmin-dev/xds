@@ -1,7 +1,10 @@
 //! The built binary, run the way a script or CI would run it: no terminal on either end.
 
+use std::fs;
 use std::path::Path;
 use std::process::{Command, Output, Stdio};
+
+use serde_json::Value;
 
 use tempfile::TempDir;
 
@@ -353,6 +356,37 @@ fn json_output_is_one_document_and_nothing_else() {
             .expect("code")
             .contains("export function Button")
     );
+
+    // Where a component is and how it differs come from the contract, as it is written there.
+    let (output, stdout, _) = run(xds()
+        .args(["components", "menu", "--json"])
+        .current_dir(temp.path()));
+    assert!(output.status.success());
+    let difference = &parse(&stdout)["component"]["differences"][0];
+    assert_eq!(difference["input"], "touch");
+    assert_eq!(difference["kind"], "adapts");
+    let (output, stdout, _) = run(xds().args(["components"]).current_dir(temp.path()));
+    assert!(output.status.success());
+    let line_after = |name: &str| {
+        let mut lines = stdout.lines();
+        lines
+            .find(|line| line.starts_with(&format!("{name} ")))
+            .and_then(|_| lines.next())
+            .unwrap_or_default()
+            .to_owned()
+    };
+    assert!(line_after("TopBar").ends_with("(touch only)"), "{stdout}");
+    assert!(
+        line_after("Tooltip").ends_with("(pointer only)"),
+        "{stdout}"
+    );
+    assert!(!line_after("Button").contains("only"), "{stdout}");
+    let (output, stdout, _) = run(xds().args(["components", "menu"]).current_dir(temp.path()));
+    assert!(output.status.success());
+    assert!(
+        stdout.contains("differs   adapts, touch clients: "),
+        "{stdout}"
+    );
 }
 
 #[test]
@@ -422,6 +456,31 @@ fn json_create_reports_the_files_and_reads_the_project_afterwards() {
     let added = parse(&stdout);
     assert_eq!(added["added"][0], "kotlin-compose");
     assert!(added["newFiles"].as_u64().expect("a count") > 0);
+
+    // A difference that names a client xds does not know fails the check of the contract.
+    let path = directory.join("design/components.json");
+    let mut contract: Value =
+        serde_json::from_str(&fs::read_to_string(&path).expect("the contract")).expect("JSON");
+    contract["components"][0]["differences"] =
+        serde_json::json!([{ "clients": ["web-angular"], "kind": "only", "note": "x" }]);
+    fs::write(&path, contract.to_string()).expect("written");
+    let (output, stdout, _) = run(xds().args(["doctor", "--json"]).current_dir(&directory));
+    assert!(!output.status.success());
+    let report = parse(&stdout);
+    let check = report["checks"]
+        .as_array()
+        .expect("checks")
+        .iter()
+        .find(|check| check["name"] == "components")
+        .expect("a components check");
+    assert_eq!(check["status"], "failed", "{stdout}");
+    assert!(
+        check["detail"]
+            .as_str()
+            .expect("a detail")
+            .contains("web-angular"),
+        "{stdout}"
+    );
 }
 
 #[test]

@@ -98,3 +98,57 @@
   border-color: var(--acme-color-button-primary-background);
   color: var(--acme-color-button-primary-text);
 }
+
+/*
+ * Where a component is. The same three marks under a component's title and in the components
+ * index: filled where a client has it, half filled where it differs there, hollow where it is
+ * missing. The shape carries the meaning, so the color only repeats it.
+ */
+.mark {
+  display: inline-block;
+  flex: none;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: var(--acme-radius-full);
+  vertical-align: middle;
+  background: var(--acme-color-status-success);
+}
+.mark[data-state="differs"] {
+  background: linear-gradient(90deg, var(--acme-color-status-success) 50%, transparent 50%);
+  box-shadow: inset 0 0 0 var(--acme-border-width-thick) var(--acme-color-status-success);
+}
+.mark[data-state="missing"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 var(--acme-border-width-thick) var(--acme-color-border-strong);
+}
+
+/* The kind of a platform difference, and an option only some clients have. */
+.pill {
+  display: inline-block;
+  padding: 0 var(--acme-space-2);
+  border-radius: var(--acme-radius-full);
+  background: var(--acme-color-accent-subtle);
+  color: var(--acme-color-text-accent);
+  font-size: var(--sl-text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pill[data-kind="system"] {
+  background: var(--acme-color-background-surface);
+  box-shadow: inset 0 0 0 var(--acme-border-width-thin) var(--acme-color-border-default);
+  color: var(--acme-color-text-primary);
+}
+/* Not built yet: outlined rather than filled. */
+.pill[data-status="planned"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 var(--acme-border-width-thin) var(--acme-color-border-strong);
+  color: var(--acme-color-text-secondary);
+}
+
+/* The sidebar's Touch and Pointer badges, in the accent pill's colors rather than Starlight's blue. */
+:root,
+:root[data-theme="light"] {
+  --sl-badge-note-bg: var(--acme-color-accent-subtle);
+  --sl-badge-note-border: var(--acme-color-accent-default);
+  --sl-badge-note-text: var(--acme-color-text-accent);
+}

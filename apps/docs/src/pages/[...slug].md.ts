@@ -4,6 +4,8 @@
 
 import type { APIRoute, GetStaticPaths } from "astro";
 import { getCollection } from "astro:content";
+import { matrixMarkdown, type Platforms } from "../../scripts/platforms.ts";
+import data from "../generated/platforms.json";
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const pages = await getCollection("docs", (entry) => !entry.id.startsWith("ko/"));
@@ -13,14 +15,24 @@ export const getStaticPaths: GetStaticPaths = async () => {
   }));
 };
 
-/** MDX to plain Markdown: without imports, comments and the components that only a browser can show. */
+/**
+ * MDX to plain Markdown: without imports, comments and the components that only a browser can
+ * show. A component page says in its Platforms section, in words, what its chips show; the
+ * index's table becomes a Markdown table. Pills keep their text.
+ */
 const plain = (body: string) =>
   body
     .replace(/^import .* from "(@astrojs\/starlight\/components|.*\.astro)";$/gm, "")
     .replace(/^The frame above shows .*$/gm, "")
     .replace(/^\{\/\*.*\*\/\}$/gm, "")
-    .replace(/^<Demo .*\/>$/gm, "")
+    .replace(/^<(Demo|Platforms) .*\/>$/gm, "")
+    .replace(/^<ComponentMatrix \/>$/gm, () => matrixMarkdown(data as Platforms))
     .replace(/<span class="swatch"[^>]*><\/span>/g, "")
+    .replace(
+      /<span class="pill pill--option"[^>]*>([^<]*)<span class="sr-only">\.<\/span><\/span> /g,
+      "$1: ",
+    )
+    .replace(/<span class="pill"[^>]*>([^<]*)<span class="sr-only">\.<\/span><\/span>/g, "$1")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 

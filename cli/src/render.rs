@@ -126,7 +126,7 @@ pub fn render(
                 filter_build_config(&file.contents, |kind| kinds.contains(kind))?.into_bytes();
         }
         if path == COMPONENTS_PATH {
-            file.contents = filter_components(&file.contents, is_selected)?.into_bytes();
+            file.contents = filter_components(&file.contents, manifest, is_selected)?.into_bytes();
         }
         files.insert(path, file);
     }
@@ -139,8 +139,13 @@ pub fn render(
 }
 
 /// The component contract with only the selected clients, and without the components that
-/// none of them has. Written the way the rest of `design/` is.
-fn filter_components(contents: &[u8], is_selected: impl Fn(&str) -> bool) -> Result<String> {
+/// none of them has, nor the differences that concern none of them. Written the way the rest of
+/// `design/` is.
+fn filter_components(
+    contents: &[u8],
+    manifest: &Manifest,
+    is_selected: impl Fn(&str) -> bool,
+) -> Result<String> {
     let mut document: Value = serde_json::from_slice(contents).context(COMPONENTS_PATH)?;
     let Some(Value::Array(components)) = document.get_mut("components") else {
         return Err(Error::Message(format!(
@@ -148,8 +153,37 @@ fn filter_components(contents: &[u8], is_selected: impl Fn(&str) -> bool) -> Res
         )));
     };
     for component in components.iter_mut() {
-        if let Some(Value::Object(clients)) = component.get_mut("clients") {
-            clients.retain(|id, _| is_selected(id));
+        let Some(Value::Object(clients)) = component.get_mut("clients") else {
+            continue;
+        };
+        clients.retain(|id, _| is_selected(id));
+        let inputs: Vec<&str> = clients
+            .keys()
+            .filter_map(|id| manifest.target(id))
+            .map(|target| target.input.name())
+            .collect();
+        let Some(Value::Array(differences)) = component.get_mut("differences") else {
+            continue;
+        };
+        for difference in differences.iter_mut() {
+            if let Some(Value::Array(ids)) = difference.get_mut("clients") {
+                ids.retain(|id| id.as_str().is_some_and(&is_selected));
+            }
+        }
+        differences.retain(|difference| {
+            match (
+                difference["clients"].as_array(),
+                difference["input"].as_str(),
+            ) {
+                (Some(ids), _) => !ids.is_empty(),
+                (None, Some(input)) => inputs.contains(&input),
+                (None, None) => true,
+            }
+        });
+        if differences.is_empty()
+            && let Value::Object(component) = component
+        {
+            component.shift_remove("differences");
         }
     }
     components.retain(|component| {

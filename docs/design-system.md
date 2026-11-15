@@ -285,6 +285,8 @@ Two components exist only on the pointer-oriented platforms (the web clients and
 | Tooltip | label, shortcut, placement | Shows after `motion.duration.tooltip-delay` of hover and at once on keyboard focus. It describes a control and never holds anything pressable; the control still needs a name of its own. A touch screen has no hover |
 | Sidebar | sections (title, items: value, label, icon, count), value, label, collapsed, header, footer | The top-level places of an app, the pointer counterpart of TabBar. Rows are compact list rows; the current one is selected and its icon filled. Collapsed, it is a rail of icons, each named by a Tooltip |
 
+These tables are written by hand. `design/components.json` is what decides which client has which component, and its `differences` say where clients differ in a way the names do not show; `xds components` prints both, and the documentation site's [components index](https://xds.studiocyf.app/components/) shows every component against every client.
+
 Icons are passed as slots: a TabBar item or a ListRow accepts any element, and `Icon` is the component the design system provides.
 
 Interactive states:

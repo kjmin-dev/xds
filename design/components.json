@@ -1,5 +1,5 @@
 {
-  "$description": "The component contract: what each component is for, the options it takes, and where it is implemented on each client. Keep it in step with the components.",
+  "$description": "The component contract: what each component is for, the options it takes, where it is implemented on each client, and where clients differ in a way its names do not show (`differences`: an option only some clients have, a part the platform draws, a different presentation for touch). Keep it in step with the components.",
   "components": [
     {
       "name": "Button",
@@ -72,7 +72,14 @@
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Button.kt",
           "symbol": "Button"
         }
-      }
+      },
+      "differences": [
+        {
+          "input": "touch",
+          "kind": "adapts",
+          "note": "A capsule instead of a rounded rectangle, at the touch control heights: `size.button-radius` and `size.control` take their touch values. The web clients switch to them on a touch screen too (`pointer: coarse`); Compose keeps the pointer values on the desktop."
+        }
+      ]
     },
     {
       "name": "TextField",
@@ -989,7 +996,14 @@
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/IconButton.kt",
           "symbol": "IconButton"
         }
-      }
+      },
+      "differences": [
+        {
+          "input": "touch",
+          "kind": "adapts",
+          "note": "A circle instead of a rounded square, at the touch control heights: it takes Button's corner, `size.button-radius`, and `size.control` at their touch values. The web clients switch to them on a touch screen too (`pointer: coarse`); Compose keeps the pointer values on the desktop."
+        }
+      ]
     },
     {
       "name": "Chip",
@@ -1199,7 +1213,14 @@
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Menu.kt",
           "symbol": "Menu"
         }
-      }
+      },
+      "differences": [
+        {
+          "input": "touch",
+          "kind": "adapts",
+          "note": "Opens as a BottomSheet titled with `label`, its items full list rows, instead of a popup of compact rows lined up with the trigger, so `align` changes nothing. A tap outside, a drag down or Back closes it without choosing. Compose on the desktop opens the popup, as the pointer clients do."
+        }
+      ]
     },
     {
       "name": "Dialog",
@@ -1565,7 +1586,14 @@
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Select.kt",
           "symbol": "Select"
         }
-      }
+      },
+      "differences": [
+        {
+          "input": "touch",
+          "kind": "adapts",
+          "note": "Its options open as full list rows of a BottomSheet titled with `label`, instead of a popup as wide as the field. A tap outside, a drag down or Back closes it without choosing. Compose on the desktop opens the popup, as the pointer clients do."
+        }
+      ]
     },
     {
       "name": "Slider",

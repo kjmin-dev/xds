@@ -1,0 +1,213 @@
+---
+// Every component against every client, for the components index, with buttons that narrow
+// it to one client (`?client=<id>` opens it that way) or to what is not the same everywhere.
+// The columns are the targets of template.json. llms.txt keeps the table and drops the buttons;
+// the Markdown copy of the page has the table as Markdown.
+import { state, type Platforms } from "../../scripts/platforms.ts";
+import data from "../generated/platforms.json";
+
+const platforms = data as Platforms;
+const words = { available: "Yes", differs: "Yes, differs there", missing: "No" };
+const rows = platforms.components.map((component) => {
+  const states = platforms.clients.map((client) => state(component, client));
+  return {
+    component,
+    states,
+    // Missing somewhere, or different somewhere, with a difference that is built.
+    uneven: states.some((has) => has !== "available"),
+  };
+});
+---
+
+<div class="matrix not-content" data-matrix>
+  <div class="matrix__filter" role="group" aria-label="Show components">
+    <button type="button" aria-pressed="true" data-show="">
+      All
+    </button>
+    <button type="button" aria-pressed="false" data-show="uneven">
+      Not the same everywhere
+    </button>
+    {platforms.clients.map((client) => (
+      <button type="button" aria-pressed="false" data-show={client.id}>
+        {client.name}
+      </button>
+    ))}
+  </div>
+  <p class="matrix__count" aria-live="polite">
+    {rows.length} components
+  </p>
+  <div class="matrix__scroll" tabindex="0" role="region" aria-label="Components by client">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Component</th>
+          {platforms.clients.map((client) => (
+            <th scope="col" title={client.platforms.join(", ")}>
+              {client.name}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map(({ component, states, uneven }) => (
+          <tr data-clients={component.clients.join(" ")} data-uneven={String(uneven)}>
+            <th scope="row">
+              <a href={`/components/${component.slug}/`}>{component.name}</a>
+            </th>
+            {states.map((has) => (
+              <td>
+                <span class="mark" data-state={has} aria-hidden="true" />
+                <span class="sr-only">{words[has]}</span>
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p class="matrix__legend">
+    <span>
+      <span class="mark" data-state="available"></span> Has it
+    </span>
+    <span>
+      <span class="mark" data-state="differs"></span> Has it, with a difference: see its Platforms
+      section
+    </span>
+    <span>
+      <span class="mark" data-state="missing"></span> Does not have it
+    </span>
+  </p>
+</div>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>("[data-matrix]")) {
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>("button[data-show]")];
+    const rows = [...root.querySelectorAll<HTMLTableRowElement>("tbody tr")];
+    const count = root.querySelector(".matrix__count");
+    const show = (filter: string) => {
+      let shown = 0;
+      for (const row of rows) {
+        const visible =
+          filter === "" ||
+          (filter === "uneven"
+            ? row.dataset.uneven === "true"
+            : (row.dataset.clients ?? "").split(" ").includes(filter));
+        row.hidden = !visible;
+        if (visible) shown++;
+      }
+      for (const button of buttons) {
+        button.setAttribute("aria-pressed", String(button.dataset.show === filter));
+      }
+      if (count) {
+        count.textContent =
+          shown === rows.length
+            ? `${rows.length} components`
+            : `${shown} of ${rows.length} components`;
+      }
+    };
+    for (const button of buttons) {
+      button.addEventListener("click", () => {
+        const filter = button.dataset.show ?? "";
+        show(filter);
+        // The address keeps the choice, so the narrowed table can be linked to.
+        const url = new URL(location.href);
+        if (filter) url.searchParams.set("client", filter);
+        else url.searchParams.delete("client");
+        history.replaceState(history.state, "", url);
+      });
+    }
+    const asked = new URLSearchParams(location.search).get("client") ?? "";
+    if (buttons.some((button) => button.dataset.show === asked)) show(asked);
+  }
+</script>
+
+<style>
+  .matrix {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acme-space-3);
+    margin-block-start: var(--acme-space-4);
+  }
+  .matrix__filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--acme-space-1-5);
+  }
+  .matrix__filter button {
+    padding: var(--acme-space-1) var(--acme-space-3);
+    border: var(--acme-border-width-thin) solid var(--acme-color-border-control);
+    border-radius: var(--acme-radius-full);
+    background: transparent;
+    color: var(--sl-color-white);
+    font: inherit;
+    font-size: var(--sl-text-sm);
+    cursor: pointer;
+  }
+  .matrix__filter button:hover {
+    background: var(--acme-color-control-hover);
+  }
+  .matrix__filter button[aria-pressed="true"] {
+    border-color: var(--acme-color-accent-default);
+    background: var(--acme-color-accent-subtle);
+    color: var(--acme-color-text-accent);
+    font-weight: 600;
+  }
+  .matrix__filter button:focus-visible,
+  .matrix__scroll:focus-visible {
+    outline: var(--acme-focus-width) solid var(--acme-color-border-focus);
+    outline-offset: var(--acme-focus-offset);
+  }
+  .matrix__count,
+  .matrix__legend {
+    margin: 0;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-2);
+  }
+  .matrix__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--acme-space-1) var(--acme-space-4);
+  }
+  .matrix__legend .mark {
+    margin-inline-end: var(--acme-space-1);
+  }
+  /* The table scrolls inside the page on a phone; the component names stay in view. */
+  .matrix__scroll {
+    /* Positioned, so that it also clips the cells' hidden words, which are positioned. */
+    position: relative;
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--sl-text-sm);
+  }
+  th,
+  td {
+    padding: var(--acme-space-1-5) var(--acme-space-2-5);
+    border-bottom: var(--acme-border-width-thin) solid var(--sl-color-hairline);
+    text-align: center;
+    white-space: nowrap;
+  }
+  thead th {
+    font-weight: 600;
+    color: var(--sl-color-white);
+  }
+  thead th:first-child {
+    text-align: start;
+  }
+  th[scope="row"] {
+    position: sticky;
+    left: 0;
+    background: var(--sl-color-bg);
+    text-align: start;
+  }
+  a {
+    color: var(--sl-color-text-accent);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+</style>

@@ -155,6 +155,7 @@ fn target_json(target: &Target) -> Value {
         "title": target.title,
         "stack": target.stack,
         "platforms": target.platforms,
+        "input": target.input.name(),
         "default": target.default,
         "paths": target.paths,
         "run": target

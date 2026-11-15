@@ -1,7 +1,8 @@
 // What the component pages say. The prop tables describe the web components in packages/ui;
-// the other platforms take the same options under their own naming. `generate.ts` checks that
-// every source file and design preview section named here exists, so a renamed or removed
-// component fails the build.
+// the other platforms take the same options under their own naming. Which clients have a
+// component, their source files, and how they differ come from design/components.json, the
+// contract the CLI reads too: `generate.ts` fails the build for a component it does not list,
+// and for a design preview section named here that does not exist.
 
 export type Prop = { name: string; type: string; description: string };
 
@@ -15,19 +16,6 @@ export type Component = {
   example: string;
   exampleLanguage: "tsx";
   props: Prop[];
-  /**
-   * Source file per platform. Touch-only components have no web or GPUI entry, and
-   * pointer-only ones no React Native or Compose entry.
-   */
-  sources: {
-    web?: string;
-    solid?: string;
-    vue?: string;
-    svelte?: string;
-    gpui?: string;
-    reactNative?: string;
-    compose?: string;
-  };
   /** The live example at /demo/<slug>/. Touch-only components have none. */
   demo: boolean;
   /**
@@ -38,26 +26,6 @@ export type Component = {
   preview?: string;
 };
 
-const web = (file: string) => `packages/ui/src/${file}.tsx`;
-const solid = (file: string) => `packages/ui-solid/src/${file}.tsx`;
-const vue = (file: string) => `packages/ui-vue/src/${file}.vue`;
-const svelte = (file: string) => `packages/ui-svelte/src/${file}.svelte`;
-const native = (file: string) => `packages/ui-native/src/${file}.tsx`;
-const compose = (file: string) => `kotlin/ui/src/commonMain/kotlin/acme/ui/${file}.kt`;
-const GPUI_COMPONENTS = "crates/acme-ui/src/components.rs";
-const GPUI_CONTROLS = "crates/acme-ui/src/controls.rs";
-const GPUI_OVERLAYS = "crates/acme-ui/src/overlays.rs";
-
-const everywhere = (file: string, gpui: string) => ({
-  web: web(file),
-  solid: solid(file),
-  vue: vue(file),
-  svelte: svelte(file),
-  gpui,
-  reactNative: native(file),
-  compose: compose(file),
-});
-
 export const COMPONENTS: Component[] = [
   {
     slug: "button",
@@ -66,7 +34,7 @@ export const COMPONENTS: Component[] = [
     guidance: [
       "Use `primary` for the one action a view is for, at most once per view. `secondary` is any other action, `ghost` one that should stay out of the way, and `danger` one that destroys something.",
       "Label it with a verb.",
-      "A button is a rounded rectangle for pointer input and a capsule for touch. Pressing it also scales it down slightly, so the feedback does not depend on color.",
+      "Pressing it scales it down slightly, so the feedback does not depend on color.",
       "A disabled button is recolored with its own tokens rather than faded. A loading button keeps its label and its colors, because the action was accepted.",
       "`iconStart` and `iconEnd` draw an icon beside the label, in the label's color. A button with an icon and no label is a square: name it with `aria-label`.",
       "Giving `selected` makes the button a toggle that reports its state to assistive technology. A selected `secondary` or `ghost` button is tinted and outlined and its `iconStart` is filled, so the state does not depend on color. `primary` and `danger` keep their look.",
@@ -127,7 +95,6 @@ export const COMPONENTS: Component[] = [
         description: "The label. Leave it out for a button that holds only an icon.",
       },
     ],
-    sources: everywhere("Button", GPUI_COMPONENTS),
     demo: true,
     preview: "Buttons",
   },
@@ -204,7 +171,6 @@ export const COMPONENTS: Component[] = [
       { name: "required", type: "boolean", description: "" },
       { name: "disabled", type: "boolean", description: "" },
     ],
-    sources: everywhere("TextField", GPUI_COMPONENTS),
     demo: true,
     preview: "Text fields",
   },
@@ -235,7 +201,6 @@ export const COMPONENTS: Component[] = [
       { name: "as", type: "ElementType", description: "The element to render. Defaults to `p`." },
       { name: "className", type: "string", description: "" },
     ],
-    sources: everywhere("Text", GPUI_COMPONENTS),
     demo: true,
     preview: "Typography",
   },
@@ -268,7 +233,6 @@ export const COMPONENTS: Component[] = [
         description: "Drawn 12 pixels wide before the label, after the dot when there is one.",
       },
     ],
-    sources: everywhere("Badge", GPUI_COMPONENTS),
     demo: true,
     preview: "Badges",
   },
@@ -298,7 +262,6 @@ export const COMPONENTS: Component[] = [
         description: "What the count belongs to. The badge sits on its top end corner.",
       },
     ],
-    sources: everywhere("CountBadge", GPUI_COMPONENTS),
     demo: true,
     preview: "Badges",
   },
@@ -342,7 +305,6 @@ export const COMPONENTS: Component[] = [
         description: "What a screen reader says for the close control. Defaults to `Dismiss`.",
       },
     ],
-    sources: everywhere("Banner", GPUI_COMPONENTS),
     demo: true,
     preview: "Banners",
   },
@@ -391,7 +353,6 @@ export const COMPONENTS: Component[] = [
       },
       { name: "className", type: "string", description: "" },
     ],
-    sources: everywhere("Card", GPUI_COMPONENTS),
     demo: true,
     preview: "Card",
   },
@@ -407,15 +368,6 @@ export const COMPONENTS: Component[] = [
 <Divider />`,
     exampleLanguage: "tsx",
     props: [],
-    sources: {
-      web: web("Divider"),
-      solid: solid("Divider"),
-      vue: vue("Divider"),
-      svelte: svelte("Divider"),
-      gpui: GPUI_COMPONENTS,
-      reactNative: native("Card"),
-      compose: compose("Card"),
-    },
     demo: true,
     preview: "List",
   },
@@ -436,7 +388,6 @@ export const COMPONENTS: Component[] = [
       { name: "size", type: '"sm" | "md" | "lg"', description: "Defaults to `md`." },
       { name: "label", type: "string", description: "What a screen reader says." },
     ],
-    sources: everywhere("Spinner", GPUI_CONTROLS),
     demo: true,
     preview: "Card",
   },
@@ -467,7 +418,6 @@ export const COMPONENTS: Component[] = [
       },
       { name: "disabled", type: "boolean", description: "" },
     ],
-    sources: everywhere("Switch", GPUI_CONTROLS),
     demo: true,
     preview: "Selection",
   },
@@ -496,7 +446,6 @@ export const COMPONENTS: Component[] = [
       { name: "name", type: "string", description: "" },
       { name: "disabled", type: "boolean", description: "" },
     ],
-    sources: everywhere("Checkbox", GPUI_CONTROLS),
     demo: true,
     preview: "Selection",
   },
@@ -535,7 +484,6 @@ export const COMPONENTS: Component[] = [
         description: "Stretches to the width of its container.",
       },
     ],
-    sources: everywhere("SegmentedControl", GPUI_CONTROLS),
     demo: true,
     preview: "Selection",
   },
@@ -566,7 +514,6 @@ export const COMPONENTS: Component[] = [
         description: "Defaults to `md`. 24, 32, 40 and 56 pixels.",
       },
     ],
-    sources: everywhere("Avatar", GPUI_CONTROLS),
     demo: true,
     preview: "Card",
   },
@@ -604,7 +551,6 @@ export const COMPONENTS: Component[] = [
         description: "Replaces the list of names that a screen reader says.",
       },
     ],
-    sources: everywhere("AvatarStack", GPUI_CONTROLS),
     demo: true,
     preview: "Card",
   },
@@ -625,7 +571,6 @@ export const COMPONENTS: Component[] = [
         description: "Required. A screen reader reads it with the percentage.",
       },
     ],
-    sources: everywhere("ProgressBar", GPUI_CONTROLS),
     demo: true,
     preview: "Card",
   },
@@ -668,7 +613,6 @@ export const COMPONENTS: Component[] = [
         description: "`rtl:-scale-x-100` mirrors an arrow or a chevron in a right-to-left layout.",
       },
     ],
-    sources: everywhere("Icon", GPUI_CONTROLS),
     demo: true,
     preview: "Icons",
   },
@@ -712,7 +656,6 @@ export const COMPONENTS: Component[] = [
       { name: "onPress", type: "() => void", description: "Makes the whole row a button." },
       { name: "disabled", type: "boolean", description: "" },
     ],
-    sources: everywhere("ListRow", GPUI_CONTROLS),
     demo: true,
     preview: "List",
   },
@@ -759,7 +702,6 @@ export const COMPONENTS: Component[] = [
       },
       { name: "onPress", type: "() => void", description: "" },
     ],
-    sources: everywhere("IconButton", GPUI_COMPONENTS),
     demo: true,
     preview: "Buttons",
   },
@@ -789,7 +731,6 @@ export const COMPONENTS: Component[] = [
       },
       { name: "disabled", type: "boolean", description: "" },
     ],
-    sources: everywhere("Chip", GPUI_CONTROLS),
     demo: true,
     preview: "Chips",
   },
@@ -814,7 +755,6 @@ export const COMPONENTS: Component[] = [
       { name: "label", type: "string", description: "Required. Says what the chips filter." },
       { name: "children", type: "ReactNode", description: "Required. The chips." },
     ],
-    sources: everywhere("ChipBar", GPUI_CONTROLS),
     demo: true,
     preview: "Chips",
   },
@@ -853,7 +793,6 @@ export const COMPONENTS: Component[] = [
       { name: "label", type: "string", description: "Required. Names the tab list." },
       { name: "fullWidth", type: "boolean", description: "The tabs share the width equally." },
     ],
-    sources: everywhere("Tabs", GPUI_CONTROLS),
     demo: true,
     preview: "Tabs",
   },
@@ -863,7 +802,6 @@ export const COMPONENTS: Component[] = [
     summary: "A list of actions that opens from a control.",
     guidance: [
       "Use it for actions that do not deserve a button of their own. Keep the most used action outside the menu.",
-      "With a pointer it is a popup under its trigger. With touch the same items open in a BottomSheet titled with `label`.",
       "Choosing an item calls its `onSelect` and closes the menu. A press outside, Escape or Back closes it too.",
       "Mark an action that destroys something with `danger` and put it last, after a separator.",
       "A `selected` item shows a check at its end, so the state does not depend on color.",
@@ -901,7 +839,6 @@ export const COMPONENTS: Component[] = [
         description: "The edge of the trigger the menu lines up with. Defaults to `start`.",
       },
     ],
-    sources: everywhere("Menu", GPUI_OVERLAYS),
     demo: true,
     preview: "Menu",
   },
@@ -956,7 +893,6 @@ export const COMPONENTS: Component[] = [
         description: "Defaults to `true`. When false, Escape and a press outside do nothing.",
       },
     ],
-    sources: everywhere("Dialog", GPUI_OVERLAYS),
     demo: true,
     preview: "Dialog",
   },
@@ -999,7 +935,6 @@ export const COMPONENTS: Component[] = [
         description: "In milliseconds. Defaults to 5000. `0` keeps the toast until it is closed.",
       },
     ],
-    sources: everywhere("Toast", GPUI_OVERLAYS),
     demo: true,
     preview: "Toast",
   },
@@ -1008,7 +943,7 @@ export const COMPONENTS: Component[] = [
     name: "Tooltip",
     summary: "Names a control when the pointer rests on it or the keyboard focuses it.",
     guidance: [
-      "Pointer clients only: web and GPUI. Touch input has no hover, so nothing may depend on a tooltip.",
+      "Touch input has no hover, so nothing may depend on a tooltip.",
       "Use it on a control that has no visible text, such as an IconButton, and say what the control does in a word or two.",
       "It describes the control and is not its name: an IconButton still needs its `label`.",
       "It appears after half a second under a pointer and at once on keyboard focus, and goes when the pointer leaves, focus leaves, or Escape is pressed.",
@@ -1034,13 +969,6 @@ export const COMPONENTS: Component[] = [
         description: "Required. The control it describes: a Button or an IconButton.",
       },
     ],
-    sources: {
-      web: web("Tooltip"),
-      solid: solid("Tooltip"),
-      vue: vue("Tooltip"),
-      svelte: svelte("Tooltip"),
-      gpui: GPUI_OVERLAYS,
-    },
     demo: true,
     preview: "Buttons",
   },
@@ -1076,7 +1004,6 @@ export const COMPONENTS: Component[] = [
         description: "A `rect` needs one. A `circle` is as tall as it is wide.",
       },
     ],
-    sources: everywhere("Skeleton", GPUI_CONTROLS),
     demo: true,
     preview: "Skeleton",
   },
@@ -1113,7 +1040,6 @@ export const COMPONENTS: Component[] = [
         description: "Names the control that empties the field. Defaults to `Clear`.",
       },
     ],
-    sources: everywhere("SearchField", GPUI_COMPONENTS),
     demo: true,
     preview: "Text fields",
   },
@@ -1161,7 +1087,6 @@ export const COMPONENTS: Component[] = [
       },
       { name: "name", type: "string", description: "The name the choice is submitted under." },
     ],
-    sources: everywhere("RadioGroup", GPUI_CONTROLS),
     demo: true,
     preview: "Selection",
   },
@@ -1171,7 +1096,7 @@ export const COMPONENTS: Component[] = [
     summary: "A field for choosing one option from a list too long to show at once.",
     guidance: [
       "Closed, it looks like a TextField: a visible label, a description or an error under the box.",
-      "Pressed, the list opens with a Menu's surface: on the web and GPUI under the field and as wide as it, on React Native and Compose in a bottom sheet titled with the label. The chosen option has a check.",
+      "Pressed, the list opens under the field and as wide as it. The chosen option has a check.",
       "Choosing an option calls `onChange` and closes the list. A press outside or Escape closes it too.",
       "The field says that it opens a list and whether the list is open; the list is a list box with a selected option. On the web the arrow keys move, typing jumps to an option, and Enter chooses.",
       "For two to about six options that should all be seen, use a RadioGroup.",
@@ -1212,7 +1137,6 @@ export const COMPONENTS: Component[] = [
       { name: "name", type: "string", description: "The name the choice is submitted under." },
       { name: "disabled", type: "boolean", description: "" },
     ],
-    sources: everywhere("Select", GPUI_OVERLAYS),
     demo: true,
     preview: "Controls",
   },
@@ -1245,7 +1169,6 @@ export const COMPONENTS: Component[] = [
         description: "Shows the current value at the end of the label's line.",
       },
     ],
-    sources: everywhere("Slider", GPUI_CONTROLS),
     demo: true,
     preview: "Controls",
   },
@@ -1282,7 +1205,6 @@ export const COMPONENTS: Component[] = [
         description: "From 0 to 1. 0 draws no bar. With a badge, the badge moves above the bar.",
       },
     ],
-    sources: everywhere("Thumbnail", GPUI_COMPONENTS),
     demo: true,
     preview: "Media",
   },
@@ -1342,7 +1264,6 @@ export const COMPONENTS: Component[] = [
       },
       { name: "onPress", type: "() => void", description: "Makes the whole card one button." },
     ],
-    sources: everywhere("MediaCard", GPUI_COMPONENTS),
     demo: true,
     preview: "Media",
   },
@@ -1373,7 +1294,6 @@ export const COMPONENTS: Component[] = [
       },
       { name: "level", type: "1 | 2 | 3 | 4 | 5 | 6", description: "Defaults to 2." },
     ],
-    sources: everywhere("SectionHeader", GPUI_COMPONENTS),
     demo: true,
     preview: "Media",
   },
@@ -1401,7 +1321,6 @@ export const COMPONENTS: Component[] = [
       { name: "description", type: "string", description: "" },
       { name: "action", type: "ReactNode", description: "Usually a Button." },
     ],
-    sources: everywhere("EmptyState", GPUI_COMPONENTS),
     demo: true,
     preview: "Empty state",
   },
@@ -1444,7 +1363,6 @@ export const COMPONENTS: Component[] = [
         description: "Lets several items be open at once. Defaults to `false`.",
       },
     ],
-    sources: everywhere("Accordion", GPUI_CONTROLS),
     demo: true,
     preview: "Accordion",
   },
@@ -1453,7 +1371,7 @@ export const COMPONENTS: Component[] = [
     name: "Sidebar",
     summary: "The top-level places of an app used with a pointer.",
     guidance: [
-      "Pointer clients only: web and GPUI. On touch, a TabBar holds the top-level places.",
+      "On touch, a TabBar holds the top-level places.",
       "The current place is selected: tinted, its title heavier and its icon filled, so the place does not depend on color. Give it icons made of closed shapes.",
       "`count` is how many things a place holds, in quiet text. For things waiting to be seen, put a CountBadge somewhere they are seen.",
       "`collapsed` turns it into a rail of icons, each named by a Tooltip. The app decides when and keeps the state; `header` and `footer` have to fit the rail themselves.",
@@ -1485,13 +1403,6 @@ export const COMPONENTS: Component[] = [
       { name: "header", type: "ReactNode", description: "At the top, such as the app's name." },
       { name: "footer", type: "ReactNode", description: "At the bottom, such as an account row." },
     ],
-    sources: {
-      web: web("Sidebar"),
-      solid: solid("Sidebar"),
-      vue: vue("Sidebar"),
-      svelte: svelte("Sidebar"),
-      gpui: "crates/acme-ui/src/navigation.rs",
-    },
     demo: true,
     preview: "Sidebar",
   },
@@ -1500,7 +1411,6 @@ export const COMPONENTS: Component[] = [
     name: "TopBar",
     summary: "The bar at the top of a screen: where you are, and the way back.",
     guidance: [
-      "Touch clients only: React Native and Compose.",
       "It has the page's background and no border, so content scrolls up to it without a line in between.",
       "It does not cover the status bar. Put it inside the safe area.",
     ],
@@ -1526,7 +1436,6 @@ export const COMPONENTS: Component[] = [
         description: "An action at the far end, such as a ghost button.",
       },
     ],
-    sources: { reactNative: native("TopBar"), compose: compose("TopBar") },
     demo: false,
   },
   {
@@ -1534,7 +1443,6 @@ export const COMPONENTS: Component[] = [
     name: "TabBar",
     summary: "Switches between the top-level places of an app.",
     guidance: [
-      "Touch clients only: React Native and Compose.",
       "Use it for three to five places.",
       "It is a capsule that floats over the bottom of the screen, so give it a margin at the sides and below, inside the safe area.",
       "The selected tab sits in a pill of its own, so the selection does not depend on color.",
@@ -1559,7 +1467,6 @@ export const COMPONENTS: Component[] = [
       { name: "value", type: "Key", description: "Required." },
       { name: "onChange", type: "(key: Key) => void", description: "Required." },
     ],
-    sources: { reactNative: native("TabBar"), compose: compose("TabBar") },
     demo: false,
   },
   {
@@ -1567,7 +1474,6 @@ export const COMPONENTS: Component[] = [
     name: "BottomSheet",
     summary: "A panel that slides up over the screen for a short task or a set of choices.",
     guidance: [
-      "Touch clients only: React Native and Compose.",
       "It floats: a margin separates it from the screen edges, and all four corners are rounded.",
       "It closes on a tap outside, a drag down, or the back button.",
     ],
@@ -1592,7 +1498,6 @@ export const COMPONENTS: Component[] = [
           "What a screen reader says for the area outside the sheet. Defaults to `Close`.",
       },
     ],
-    sources: { reactNative: native("BottomSheet"), compose: compose("BottomSheet") },
     demo: false,
   },
 ];

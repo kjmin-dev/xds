@@ -143,6 +143,19 @@
   --color-acme-menu-item-background-pressed: var(--acme-color-menu-item-background-pressed);
   --color-acme-menu-danger-text: var(--acme-color-menu-danger-text);
   --color-acme-menu-danger-background-hover: var(--acme-color-menu-danger-background-hover);
+  --color-acme-date-picker-background: var(--acme-color-date-picker-background);
+  --color-acme-date-picker-heading: var(--acme-color-date-picker-heading);
+  --color-acme-date-picker-weekday: var(--acme-color-date-picker-weekday);
+  --color-acme-date-picker-day-text: var(--acme-color-date-picker-day-text);
+  --color-acme-date-picker-day-background-hover: var(--acme-color-date-picker-day-background-hover);
+  --color-acme-date-picker-day-background-pressed: var(--acme-color-date-picker-day-background-pressed);
+  --color-acme-date-picker-today-text: var(--acme-color-date-picker-today-text);
+  --color-acme-date-picker-today-border: var(--acme-color-date-picker-today-border);
+  --color-acme-date-picker-selected-background: var(--acme-color-date-picker-selected-background);
+  --color-acme-date-picker-selected-background-hover: var(--acme-color-date-picker-selected-background-hover);
+  --color-acme-date-picker-selected-background-pressed: var(--acme-color-date-picker-selected-background-pressed);
+  --color-acme-date-picker-selected-text: var(--acme-color-date-picker-selected-text);
+  --color-acme-date-picker-disabled-text: var(--acme-color-date-picker-disabled-text);
   --color-acme-dialog-background: var(--acme-color-dialog-background);
   --color-acme-dialog-border: var(--acme-color-dialog-border);
   --color-acme-dialog-title: var(--acme-color-dialog-title);
@@ -285,4 +298,5 @@
   --spacing-acme-toast: var(--acme-size-toast);
   --spacing-acme-sidebar: var(--acme-size-sidebar);
   --spacing-acme-sidebar-rail: var(--acme-size-sidebar-rail);
+  --spacing-acme-calendar-day: var(--acme-size-calendar-day);
 }

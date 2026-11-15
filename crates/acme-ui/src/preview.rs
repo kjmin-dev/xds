@@ -36,7 +36,7 @@ use crate::{
 };
 
 /// Component colors are shown by the components that use them, not as swatches.
-const COMPONENT_COLORS: [&str; 27] = [
+const COMPONENT_COLORS: [&str; 28] = [
     "button-",
     "field-",
     "badge-",
@@ -54,6 +54,7 @@ const COMPONENT_COLORS: [&str; 27] = [
     "chip-",
     "tabs-",
     "menu-",
+    "date-picker-",
     "dialog-",
     "toast-",
     "tooltip-",
@@ -2334,6 +2335,7 @@ mod tests {
             "chip",
             "tabs",
             "menu",
+            "date-picker",
             "dialog",
             "toast",
             "tooltip",

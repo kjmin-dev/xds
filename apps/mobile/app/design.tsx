@@ -106,7 +106,7 @@ const kebab = (name: string) => name.replace(/[A-Z0-9]+/g, (match) => `-${match.
 
 /** Semantic colors by group. Component colors are shown by the components that use them. */
 const COMPONENT_COLORS =
-  /^(button|field|badge|banner|card|switch|checkbox|radio|segmented|avatar|progress|slider|listRow|topBar|tabBar|sheet|chip|tabs|menu|dialog|toast|tooltip|skeleton|thumbnail|sidebar|emptyState|accordion)/;
+  /^(button|field|badge|banner|card|switch|checkbox|radio|segmented|avatar|progress|slider|listRow|topBar|tabBar|sheet|chip|tabs|menu|datePicker|dialog|toast|tooltip|skeleton|thumbnail|sidebar|emptyState|accordion)/;
 
 // The preview works offline, so its picture ships with it: a 16 by 16 gradient, scaled up.
 const PICTURE =

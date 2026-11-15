@@ -145,6 +145,19 @@ export const colors = {
     "menuItemBackgroundPressed": "#e2e2e8",
     "menuDangerText": "#b42318",
     "menuDangerBackgroundHover": "#fef3f2",
+    "datePickerBackground": "#ffffff",
+    "datePickerHeading": "#18181c",
+    "datePickerWeekday": "#5c5c66",
+    "datePickerDayText": "#18181c",
+    "datePickerDayBackgroundHover": "#ececf0",
+    "datePickerDayBackgroundPressed": "#e2e2e8",
+    "datePickerTodayText": "#4f46e5",
+    "datePickerTodayBorder": "#4f46e5",
+    "datePickerSelectedBackground": "#4f46e5",
+    "datePickerSelectedBackgroundHover": "#4338ca",
+    "datePickerSelectedBackgroundPressed": "#3730a3",
+    "datePickerSelectedText": "#ffffff",
+    "datePickerDisabledText": "#a9a9b4",
     "dialogBackground": "#ffffff",
     "dialogBorder": "#e2e2e8",
     "dialogTitle": "#18181c",
@@ -337,6 +350,19 @@ export const colors = {
     "menuItemBackgroundPressed": "#2c2c33",
     "menuDangerText": "#f97066",
     "menuDangerBackgroundHover": "#55160c",
+    "datePickerBackground": "#222228",
+    "datePickerHeading": "#f5f5f7",
+    "datePickerWeekday": "#a9a9b4",
+    "datePickerDayText": "#f5f5f7",
+    "datePickerDayBackgroundHover": "#2c2c33",
+    "datePickerDayBackgroundPressed": "#44444c",
+    "datePickerTodayText": "#a5b4fc",
+    "datePickerTodayBorder": "#5b5ef0",
+    "datePickerSelectedBackground": "#5b5ef0",
+    "datePickerSelectedBackgroundHover": "#4f46e5",
+    "datePickerSelectedBackgroundPressed": "#4338ca",
+    "datePickerSelectedText": "#ffffff",
+    "datePickerDisabledText": "#5c5c66",
     "dialogBackground": "#222228",
     "dialogBorder": "#2c2c33",
     "dialogTitle": "#f5f5f7",
@@ -616,7 +642,8 @@ export const size = {
     "dialog": 480,
     "toast": 480,
     "sidebar": 240,
-    "sidebarRail": 72
+    "sidebarRail": 72,
+    "calendarDay": 36
   },
   "touch": {
     "controlSm": 40,
@@ -653,7 +680,8 @@ export const size = {
     "dialog": 480,
     "toast": 480,
     "sidebar": 240,
-    "sidebarRail": 72
+    "sidebarRail": 72,
+    "calendarDay": 48
   }
 } as const;
 
@@ -716,6 +744,12 @@ export const icons = {
     "M6 13H2",
     "m8 2 1.88 1.88",
     "M9 7.13V6a3 3 0 1 1 6 0v1.13"
+  ],
+  "calendar": [
+    "M8 2v4",
+    "M16 2v4",
+    "M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2z",
+    "M3 10h18"
   ],
   "camera": [
     "M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z",

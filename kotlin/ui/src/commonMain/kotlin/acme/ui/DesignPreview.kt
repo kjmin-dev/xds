@@ -71,6 +71,7 @@ private val ComponentColorGroups = setOf(
     "button", "field", "badge", "banner", "card", "switch", "checkbox", "radio", "segmented",
     "chip", "tabs", "menu", "dialog", "toast", "tooltip", "skeleton", "thumbnail", "sidebar",
     "empty", "accordion", "avatar", "progress", "slider", "list", "top", "tab", "sheet", "scrim",
+    "date",
 )
 
 // The preview has to work without a network, so the picture it shows is part of the code: a

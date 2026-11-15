@@ -199,6 +199,32 @@ pub struct Colors {
     pub menu_danger_text: Color,
     /// Also while pressed. A neutral fill would not carry the danger text in dark mode.
     pub menu_danger_background_hover: Color,
+    /// The calendar's surface where a pointer is used. On touch the calendar sits on the sheet, which is the same color.
+    pub date_picker_background: Color,
+    /// The month and year above the days.
+    pub date_picker_heading: Color,
+    /// The initials of the days of the week, which are not pressed.
+    pub date_picker_weekday: Color,
+    /// A day that can be chosen.
+    pub date_picker_day_text: Color,
+    /// Under the pointer, and under the keyboard's focus.
+    pub date_picker_day_background_hover: Color,
+    /// A day while it is pressed.
+    pub date_picker_day_background_pressed: Color,
+    /// Today, unless it is chosen. Also bolder, so it does not depend on color alone.
+    pub date_picker_today_text: Color,
+    /// A ring around today, the way Material and iOS mark it.
+    pub date_picker_today_border: Color,
+    /// The chosen day: a filled circle, so the choice is shown by shape as well as color.
+    pub date_picker_selected_background: Color,
+    /// The chosen day under the pointer or the keyboard's focus.
+    pub date_picker_selected_background_hover: Color,
+    /// The chosen day while it is pressed.
+    pub date_picker_selected_background_pressed: Color,
+    /// The number of the chosen day, on its circle.
+    pub date_picker_selected_text: Color,
+    /// A day outside the range the picker allows. Exempt from contrast rules, and meant to look unavailable.
+    pub date_picker_disabled_text: Color,
     pub dialog_background: Color,
     pub dialog_border: Color,
     pub dialog_title: Color,
@@ -271,7 +297,7 @@ pub struct Colors {
 
 impl Colors {
     /// Every color with its token name, in token order. For screens that list the colors.
-    pub const fn entries(&self) -> [(&'static str, Color); 190] {
+    pub const fn entries(&self) -> [(&'static str, Color); 203] {
         [
             ("scrim", self.scrim),
             ("background-base", self.background_base),
@@ -415,6 +441,19 @@ impl Colors {
             ("menu-item-background-pressed", self.menu_item_background_pressed),
             ("menu-danger-text", self.menu_danger_text),
             ("menu-danger-background-hover", self.menu_danger_background_hover),
+            ("date-picker-background", self.date_picker_background),
+            ("date-picker-heading", self.date_picker_heading),
+            ("date-picker-weekday", self.date_picker_weekday),
+            ("date-picker-day-text", self.date_picker_day_text),
+            ("date-picker-day-background-hover", self.date_picker_day_background_hover),
+            ("date-picker-day-background-pressed", self.date_picker_day_background_pressed),
+            ("date-picker-today-text", self.date_picker_today_text),
+            ("date-picker-today-border", self.date_picker_today_border),
+            ("date-picker-selected-background", self.date_picker_selected_background),
+            ("date-picker-selected-background-hover", self.date_picker_selected_background_hover),
+            ("date-picker-selected-background-pressed", self.date_picker_selected_background_pressed),
+            ("date-picker-selected-text", self.date_picker_selected_text),
+            ("date-picker-disabled-text", self.date_picker_disabled_text),
             ("dialog-background", self.dialog_background),
             ("dialog-border", self.dialog_border),
             ("dialog-title", self.dialog_title),
@@ -610,6 +649,19 @@ pub const LIGHT: Colors = Colors {
     menu_item_background_pressed: Color::rgba(226, 226, 232, 1.0),
     menu_danger_text: Color::rgba(180, 35, 24, 1.0),
     menu_danger_background_hover: Color::rgba(254, 243, 242, 1.0),
+    date_picker_background: Color::rgba(255, 255, 255, 1.0),
+    date_picker_heading: Color::rgba(24, 24, 28, 1.0),
+    date_picker_weekday: Color::rgba(92, 92, 102, 1.0),
+    date_picker_day_text: Color::rgba(24, 24, 28, 1.0),
+    date_picker_day_background_hover: Color::rgba(236, 236, 240, 1.0),
+    date_picker_day_background_pressed: Color::rgba(226, 226, 232, 1.0),
+    date_picker_today_text: Color::rgba(79, 70, 229, 1.0),
+    date_picker_today_border: Color::rgba(79, 70, 229, 1.0),
+    date_picker_selected_background: Color::rgba(79, 70, 229, 1.0),
+    date_picker_selected_background_hover: Color::rgba(67, 56, 202, 1.0),
+    date_picker_selected_background_pressed: Color::rgba(55, 48, 163, 1.0),
+    date_picker_selected_text: Color::rgba(255, 255, 255, 1.0),
+    date_picker_disabled_text: Color::rgba(169, 169, 180, 1.0),
     dialog_background: Color::rgba(255, 255, 255, 1.0),
     dialog_border: Color::rgba(226, 226, 232, 1.0),
     dialog_title: Color::rgba(24, 24, 28, 1.0),
@@ -803,6 +855,19 @@ pub const DARK: Colors = Colors {
     menu_item_background_pressed: Color::rgba(44, 44, 51, 1.0),
     menu_danger_text: Color::rgba(249, 112, 102, 1.0),
     menu_danger_background_hover: Color::rgba(85, 22, 12, 1.0),
+    date_picker_background: Color::rgba(34, 34, 40, 1.0),
+    date_picker_heading: Color::rgba(245, 245, 247, 1.0),
+    date_picker_weekday: Color::rgba(169, 169, 180, 1.0),
+    date_picker_day_text: Color::rgba(245, 245, 247, 1.0),
+    date_picker_day_background_hover: Color::rgba(44, 44, 51, 1.0),
+    date_picker_day_background_pressed: Color::rgba(68, 68, 76, 1.0),
+    date_picker_today_text: Color::rgba(165, 180, 252, 1.0),
+    date_picker_today_border: Color::rgba(91, 94, 240, 1.0),
+    date_picker_selected_background: Color::rgba(91, 94, 240, 1.0),
+    date_picker_selected_background_hover: Color::rgba(79, 70, 229, 1.0),
+    date_picker_selected_background_pressed: Color::rgba(67, 56, 202, 1.0),
+    date_picker_selected_text: Color::rgba(255, 255, 255, 1.0),
+    date_picker_disabled_text: Color::rgba(92, 92, 102, 1.0),
     dialog_background: Color::rgba(34, 34, 40, 1.0),
     dialog_border: Color::rgba(44, 44, 51, 1.0),
     dialog_title: Color::rgba(245, 245, 247, 1.0),
@@ -1026,6 +1091,8 @@ pub struct Sizes {
     pub sidebar: f32,
     /// The width of a collapsed sidebar, which shows icons only.
     pub sidebar_rail: f32,
+    /// The side of a day of the calendar: as tall as control.md for a pointer and target-min for touch. The circle that marks a day is inset by space.0-5. On touch the seven columns share the width of the sheet, so on a phone narrower than about 370 points a day is a little narrower than this, as on iOS and Material.
+    pub calendar_day: f32,
 }
 
 pub const POINTER: Sizes = Sizes {
@@ -1064,6 +1131,7 @@ pub const POINTER: Sizes = Sizes {
     toast: 480.0,
     sidebar: 240.0,
     sidebar_rail: 72.0,
+    calendar_day: 36.0,
 };
 
 pub const TOUCH: Sizes = Sizes {
@@ -1102,6 +1170,7 @@ pub const TOUCH: Sizes = Sizes {
     toast: 480.0,
     sidebar: 240.0,
     sidebar_rail: 72.0,
+    calendar_day: 48.0,
 };
 
 /// The icons of the design system. `name` is the icon's file name in design/icons.
@@ -1118,6 +1187,7 @@ pub enum Icon {
     Bell,
     Bookmark,
     Bug,
+    Calendar,
     Camera,
     Captions,
     Cast,
@@ -1240,7 +1310,7 @@ pub enum Icon {
 }
 
 impl Icon {
-    pub const ALL: [Icon; 130] = [
+    pub const ALL: [Icon; 131] = [
         Icon::ArrowDown,
         Icon::ArrowLeft,
         Icon::ArrowRight,
@@ -1252,6 +1322,7 @@ impl Icon {
         Icon::Bell,
         Icon::Bookmark,
         Icon::Bug,
+        Icon::Calendar,
         Icon::Camera,
         Icon::Captions,
         Icon::Cast,
@@ -1386,6 +1457,7 @@ impl Icon {
             Icon::Bell => "bell",
             Icon::Bookmark => "bookmark",
             Icon::Bug => "bug",
+            Icon::Calendar => "calendar",
             Icon::Camera => "camera",
             Icon::Captions => "captions",
             Icon::Cast => "cast",
@@ -1522,6 +1594,7 @@ impl Icon {
             Icon::Bell => r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>"#,
             Icon::Bookmark => r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"/></svg>"#,
             Icon::Bug => r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-9"/><path d="M14 7a4 4 0 0 1 4 4v3a6 6 0 0 1-12 0v-3a4 4 0 0 1 4-4z"/><path d="M14.12 3.88 16 2"/><path d="M21 21a4 4 0 0 0-3.81-4"/><path d="M21 5a4 4 0 0 1-3.55 3.97"/><path d="M22 13h-4"/><path d="M3 21a4 4 0 0 1 3.81-4"/><path d="M3 5a4 4 0 0 0 3.55 3.97"/><path d="M6 13H2"/><path d="m8 2 1.88 1.88"/><path d="M9 7.13V6a3 3 0 1 1 6 0v1.13"/></svg>"#,
+            Icon::Calendar => r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2z"/><path d="M3 10h18"/></svg>"#,
             Icon::Camera => r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><path d="M9 13a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/></svg>"#,
             Icon::Captions => r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2z"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/></svg>"#,
             Icon::Cast => r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/><path d="M2 12a9 9 0 0 1 8 8"/><path d="M2 16a5 5 0 0 1 4 4"/><path d="M2 20L2.01 20"/></svg>"#,
@@ -1658,6 +1731,7 @@ impl Icon {
             Icon::Bell => r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>"#,
             Icon::Bookmark => r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"/></svg>"#,
             Icon::Bug => r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-9"/><path d="M14 7a4 4 0 0 1 4 4v3a6 6 0 0 1-12 0v-3a4 4 0 0 1 4-4z"/><path d="M14.12 3.88 16 2"/><path d="M21 21a4 4 0 0 0-3.81-4"/><path d="M21 5a4 4 0 0 1-3.55 3.97"/><path d="M22 13h-4"/><path d="M3 21a4 4 0 0 1 3.81-4"/><path d="M3 5a4 4 0 0 0 3.55 3.97"/><path d="M6 13H2"/><path d="m8 2 1.88 1.88"/><path d="M9 7.13V6a3 3 0 1 1 6 0v1.13"/></svg>"#,
+            Icon::Calendar => r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2z"/><path d="M3 10h18"/></svg>"#,
             Icon::Camera => r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><path d="M9 13a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/></svg>"#,
             Icon::Captions => r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2z"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/></svg>"#,
             Icon::Cast => r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/><path d="M2 12a9 9 0 0 1 8 8"/><path d="M2 16a5 5 0 0 1 4 4"/><path d="M2 20L2.01 20"/></svg>"#,

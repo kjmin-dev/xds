@@ -174,6 +174,7 @@ On the web, the Tailwind configuration generates utility classes for typographic
 | `size.slider-track`, `size.slider-thumb` | 4, 16 | 4, 24 |
 | `size.sidebar`, `size.sidebar-rail` | 240, 72 | 240, 72 |
 | `size.progress` | 8 | 8 |
+| `size.calendar-day` | 36 | 48 |
 
 On the web, `@media (pointer: coarse)` switches between the pointer and touch scales. Keying off the input device rather than viewport width avoids common edge cases: a narrow browser window on a laptop is still used with a mouse, and a large tablet is still used with touch. The GPUI desktop app always uses pointer sizes, the React Native app always uses touch sizes, and the Compose client uses touch sizes on Android and iOS and pointer sizes on desktop.
 
@@ -181,14 +182,14 @@ Even when a control is visually smaller than `target-min`, its hit area expands 
 
 ### Icons
 
-`design/icons` holds one SVG file per icon, drawn on a 24 by 24 grid with a 2px stroke and no fill. The 130 icons included with the template come from [Lucide](https://lucide.dev) (under the ISC license in `design/icons/LICENSE`). To add an icon, place its SVG file in that directory and run `mise run tokens`.
+`design/icons` holds one SVG file per icon, drawn on a 24 by 24 grid with a 2px stroke and no fill. The 131 icons included with the template come from [Lucide](https://lucide.dev) (under the ISC license in `design/icons/LICENSE`). To add an icon, place its SVG file in that directory and run `mise run tokens`.
 
 | Group | Icons |
 | --- | --- |
 | Navigation | `house`, `menu`, `search`, `compass`, `history`, `layout-grid`, `list`, the arrows and chevrons, `chevrons-up-down`, `chevron-first`, `chevron-last`, `ellipsis`, `ellipsis-vertical`, `external-link`, `log-out` |
 | Actions | `plus`, `minus`, `x`, `check`, `pencil`, `trash`, `copy`, `share-2`, `download`, `upload`, `cloud-upload`, `link`, `list-filter`, `sliders-horizontal`, `arrow-up-down`, `rotate-cw`, `undo-2`, `pin`, `flag`, `ban`, `grip-vertical`, `circle-plus`, `circle-minus`, `circle-x` |
 | Feedback | `thumbs-up`, `thumbs-down`, `heart`, `star`, `bookmark`, `message-square`, `smile`, `bell`, `bell-ring`, `bell-off` |
-| Status | `info`, `circle-alert`, `triangle-alert`, `circle-check`, `circle-help`, `check-check`, `square-check`, `lock`, `shield`, `eye`, `eye-off`, `clock`, `timer`, `sparkles`, `lightbulb`, `trending-up` |
+| Status | `info`, `circle-alert`, `triangle-alert`, `circle-check`, `circle-help`, `check-check`, `square-check`, `lock`, `shield`, `eye`, `eye-off`, `clock`, `calendar`, `timer`, `sparkles`, `lightbulb`, `trending-up` |
 | People | `user`, `users`, `circle-user`, `user-plus`, `user-check`, `user-x` |
 | Objects | `settings`, `image`, `camera`, `mic`, `mail`, `globe`, `map-pin`, `file-text`, `keyboard`, `smartphone`, `laptop`, `tv`, `qr-code`, `bug`, `megaphone`, `palette`, `chart-column`, `sun-moon` |
 | Commerce | `shopping-cart`, `shopping-bag`, `credit-card`, `tag` |

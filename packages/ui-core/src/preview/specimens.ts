@@ -8,7 +8,7 @@ import { el, kebab, row, ui } from "./kit.ts";
 
 /** Semantic colors by group. Component colors are shown by the components that use them. */
 const COMPONENT_COLORS =
-  /^(button|field|badge|banner|card|switch|checkbox|radio|segmented|avatar|progress|slider|listRow|topBar|tabBar|sheet|chip|tabs|menu|dialog|toast|tooltip|skeleton|thumbnail|sidebar|emptyState|accordion)/;
+  /^(button|field|badge|banner|card|switch|checkbox|radio|segmented|avatar|progress|slider|listRow|topBar|tabBar|sheet|chip|tabs|menu|datePicker|dialog|toast|tooltip|skeleton|thumbnail|sidebar|emptyState|accordion)/;
 
 const COLOR_GROUPS = Object.entries(
   Object.groupBy(

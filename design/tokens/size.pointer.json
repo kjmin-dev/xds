@@ -244,6 +244,13 @@
         "unit": "px"
       },
       "$description": "The width of a collapsed sidebar, which shows icons only."
+    },
+    "calendar-day": {
+      "$value": {
+        "value": 36,
+        "unit": "px"
+      },
+      "$description": "The side of a day of the calendar: as tall as control.md for a pointer and target-min for touch. The circle that marks a day is inset by space.0-5. On touch the seven columns share the width of the sheet, so on a phone narrower than about 370 points a day is a little narrower than this, as on iOS and Material."
     }
   }
 }

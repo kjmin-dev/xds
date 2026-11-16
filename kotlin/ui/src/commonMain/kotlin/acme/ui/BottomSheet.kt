@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
@@ -36,16 +37,24 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.semantics.dismiss
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 
 // How far down the sheet has to be dragged, as a share of its height, to dismiss it.
 private const val DismissAt = 0.25f
+
+// How much of the screen's height a tall sheet takes.
+private const val TallShare = 0.9f
 
 /**
  * A panel that slides up over the screen for a short task or a choice, and dims what is behind
@@ -58,6 +67,22 @@ fun BottomSheet(
     open: Boolean,
     onDismiss: () -> Unit,
     title: String? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    BottomSheet(open, onDismiss, title, tall = false, content)
+}
+
+/**
+ * @param tall Takes most of the screen's height whatever the content's, for a list that scrolls
+ *   inside it: give the list `Modifier.weight(1f)`. Dragged down, the list scrolls until it is at
+ *   its top, and then the sheet follows the finger; the handle and the title drag the sheet at once.
+ */
+@Composable
+internal fun BottomSheet(
+    open: Boolean,
+    onDismiss: () -> Unit,
+    title: String?,
+    tall: Boolean,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     // How much of the sheet is off the bottom of the screen: 1 is all of it, 0 is none. One
@@ -88,6 +113,44 @@ fun BottomSheet(
         var dragged by remember { mutableStateOf(0f) }
         // Everything that draws reads this, so the sheet and the scrim move together.
         fun hiddenNow(): Float = if (travel > 0) (hidden.value + dragged / travel).coerceIn(0f, 1f) else hidden.value
+
+        // Where a drag lets go: far enough down closes the sheet, and otherwise it goes back up.
+        suspend fun settle() {
+            val far = dragged > height * DismissAt
+            hidden.snapTo(hiddenNow())
+            dragged = 0f
+            if (far) {
+                requestDismiss()
+            } else {
+                hidden.animateTo(0f, tween(Motion.durationFast, easing = Motion.easingStandard))
+            }
+        }
+
+        // A list inside a tall sheet scrolls first. What it leaves of a drag down, once at its
+        // top, moves the sheet, and a drag up lifts a sheet that was pulled down before the list
+        // scrolls again.
+        val scrolling = remember {
+            object : NestedScrollConnection {
+                override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                    if (available.y >= 0f || dragged <= 0f) return Offset.Zero
+                    val lifted = available.y.coerceAtLeast(-dragged)
+                    dragged += lifted
+                    return Offset(0f, lifted)
+                }
+
+                override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                    if (available.y <= 0f || source != NestedScrollSource.UserInput) return Offset.Zero
+                    dragged += available.y
+                    return Offset(0f, available.y)
+                }
+
+                override suspend fun onPreFling(available: Velocity): Velocity {
+                    if (dragged <= 0f) return Velocity.Zero
+                    settle()
+                    return available
+                }
+            }
+        }
         val shape = RoundedCornerShape(Radius.xl)
         Box(Modifier.fillMaxSize()) {
             Box(
@@ -113,6 +176,7 @@ fun BottomSheet(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .then(if (tall) Modifier.fillMaxHeight(TallShare).nestedScroll(scrolling) else Modifier)
                         .onSizeChanged { height = it.height }
                         .shadow(Shadow.overlay, shape)
                         .background(colors.sheetBackground, shape)
@@ -121,16 +185,7 @@ fun BottomSheet(
                             orientation = Orientation.Vertical,
                             // Only downward: the sheet does not lift off its place.
                             state = rememberDraggableState { delta -> dragged = (dragged + delta).coerceAtLeast(0f) },
-                            onDragStopped = {
-                                val far = dragged > height * DismissAt
-                                hidden.snapTo(hiddenNow())
-                                dragged = 0f
-                                if (far) {
-                                    requestDismiss()
-                                } else {
-                                    hidden.animateTo(0f, tween(Motion.durationFast, easing = Motion.easingStandard))
-                                }
-                            },
+                            onDragStopped = { settle() },
                         )
                         .semantics {
                             if (title != null) paneTitle = title
@@ -144,7 +199,10 @@ fun BottomSheet(
                             .size(36.dp, 4.dp)
                             .background(colors.sheetHandle, CircleShape),
                     )
-                    Column(Modifier.padding(Space.s4), verticalArrangement = Arrangement.spacedBy(Space.s3)) {
+                    Column(
+                        (if (tall) Modifier.weight(1f) else Modifier).padding(Space.s4),
+                        verticalArrangement = Arrangement.spacedBy(Space.s3),
+                    ) {
                         if (title != null) Text(title, style = Typography.heading, tone = TextTone.Primary, heading = true)
                         content()
                     }

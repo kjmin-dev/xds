@@ -16,10 +16,13 @@ import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -62,6 +65,7 @@ import androidx.compose.ui.semantics.collapse
 import androidx.compose.ui.semantics.collectionInfo
 import androidx.compose.ui.semantics.collectionItemInfo
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.expand
 import androidx.compose.ui.semantics.heading
@@ -147,9 +151,59 @@ internal fun DatePicker(
     nextLabel: String,
     initiallyOpen: Boolean,
 ) {
+    val locale = remember { calendarLocale() }
+    CalendarField(
+        label, value?.let(locale::mediumDate), placeholder, description, error, enabled, initiallyOpen, modifier,
+    ) { open, byKeyboard, close ->
+        val calendar = @Composable { calendarModifier: Modifier ->
+            Calendar(
+                chosen = value,
+                min = min,
+                max = max,
+                locale = locale,
+                previousLabel = previousLabel,
+                nextLabel = nextLabel,
+                byKeyboard = byKeyboard,
+                marks = { DayMarks.chosen(it == value) },
+                onChoose = { day, _ ->
+                    onValueChange(day)
+                    close()
+                    null
+                },
+                modifier = calendarModifier,
+            )
+        }
+        // The form goes with the sizes, as a Select's list does.
+        if (LocalSizes.current.forPointer) {
+            if (open) CalendarPopup(label, onClose = close) { calendar(Modifier) }
+        } else {
+            BottomSheet(open = open, onDismiss = close, title = label) { calendar(Modifier.fillMaxWidth()) }
+        }
+    }
+}
+
+/**
+ * What DatePicker and DateRangePicker share: the label, a box like a [Select]'s that opens the
+ * calendar on a press, Enter or Space, and the description or the error under it.
+ *
+ * @param shown What the box shows, the chosen day or range, or null for the placeholder.
+ * @param calendar Draws the calendar while [open][calendar] says so, opened by the keyboard or
+ *   not, and calls `close` to close it. The focus goes back to the box once it is closed.
+ */
+@Composable
+internal fun CalendarField(
+    label: String,
+    shown: String?,
+    placeholder: String?,
+    description: String?,
+    error: String?,
+    enabled: Boolean,
+    initiallyOpen: Boolean,
+    modifier: Modifier,
+    calendar: @Composable (open: Boolean, byKeyboard: Boolean, close: () -> Unit) -> Unit,
+) {
     val colors = LocalColors.current
     val sizes = LocalSizes.current
-    val locale = remember { calendarLocale() }
     var open by remember { mutableStateOf(initiallyOpen) }
     // Opened from the keyboard, the calendar shows where the focus is in it from the start.
     // Opened by a press it does so once a key is used, as a focus ring on the web does.
@@ -168,15 +222,10 @@ internal fun DatePicker(
             returnFocus = false
         }
     }
-    val choose = { day: LocalDate ->
-        onValueChange(day)
-        close()
-    }
     val interactions = remember { MutableInteractionSource() }
     val focused by interactions.collectIsFocusedAsState()
-    val shown = value?.let(locale::mediumDate) ?: placeholder.orEmpty()
     val textColor = when {
-        value == null -> colors.fieldPlaceholder
+        shown == null -> colors.fieldPlaceholder
         enabled -> colors.fieldText
         else -> colors.textDisabled
     }
@@ -217,7 +266,7 @@ internal fun DatePicker(
                     // field draws: the chosen day is said as the field's state, after its name.
                     .clearAndSetSemantics {
                         contentDescription = label
-                        if (value != null) stateDescription = locale.mediumDate(value)
+                        if (shown != null) stateDescription = shown
                         // A screen reader calls the field collapsed or expanded.
                         if (open) collapse { close(); true } else expand { open = true; true }
                         if (error != null) error(error)
@@ -227,7 +276,7 @@ internal fun DatePicker(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 BasicText(
-                    text = shown,
+                    text = shown ?: placeholder.orEmpty(),
                     modifier = Modifier.weight(1f),
                     style = Typography.body.resolved(textColor),
                     overflow = TextOverflow.Ellipsis,
@@ -235,15 +284,7 @@ internal fun DatePicker(
                 )
                 Icon(IconName.Calendar, size = IconSize.Sm, color = colors.fieldPlaceholder)
             }
-            val calendar = @Composable { calendarModifier: Modifier ->
-                Calendar(value, min, max, locale, previousLabel, nextLabel, byKeyboard, choose, calendarModifier)
-            }
-            // The form goes with the sizes, as a Select's list does.
-            if (sizes.forPointer) {
-                if (open) CalendarPopup(label, onClose = close) { calendar(Modifier) }
-            } else {
-                BottomSheet(open = open, onDismiss = close, title = label) { calendar(Modifier.fillMaxWidth()) }
-            }
+            calendar(open, byKeyboard, close)
         }
         FieldHelp(error, description)
     }
@@ -251,7 +292,7 @@ internal fun DatePicker(
 
 /** The calendar on the menu's surface, under the field, lined up with its start. */
 @Composable
-private fun CalendarPopup(label: String, onClose: () -> Unit, content: @Composable () -> Unit) {
+internal fun CalendarPopup(label: String, onClose: () -> Unit, content: @Composable () -> Unit) {
     val colors = LocalColors.current
     val gap = with(LocalDensity.current) { Space.s1.roundToPx() }
     val position = remember(gap) { MenuPosition(MenuAlign.Start, gap) }
@@ -276,42 +317,77 @@ private fun CalendarPopup(label: String, onClose: () -> Unit, content: @Composab
 }
 
 /**
- * One month, with buttons for the months before and after it. The focus moves over its days
- * with the keys; only the focused day takes Tab, so Tab goes from it to the two buttons and back.
+ * One month or more side by side, each with its heading, with buttons for the months before and
+ * after them at the ends. The focus moves over the days with the keys; only the focused day takes
+ * Tab, so Tab goes from it to the two buttons and back. DatePicker shows one month and
+ * DateRangePicker one or two, each drawing its days with [marks].
  *
+ * @param chosen The day the calendar opens on, held between [min] and [max]: today without one.
  * @param byKeyboard Shows the focused day from the start, not only once a key is used.
+ * @param count How many months are shown side by side. The month buttons move by as many.
+ * @param marks How each day is drawn: chosen, an end of a range, in its band.
+ * @param choosable Whether a press on a day between [min] and [max] does anything. The keys
+ *   still move over a day that cannot be chosen.
+ * @param dayName A day's name for a screen reader, from its marks and its name in full.
+ * @param onPoint The day with the keyboard's focus, after a key moved it there.
+ * @param onChoose A press or Enter on a day. Returns the day the focus goes on to while the
+ *   calendar stays open, or null where it stays where it is.
  */
 @Composable
-private fun Calendar(
-    value: LocalDate?,
+internal fun Calendar(
+    chosen: LocalDate?,
     min: LocalDate?,
     max: LocalDate?,
     locale: CalendarLocale,
     previousLabel: String,
     nextLabel: String,
     byKeyboard: Boolean,
-    onChoose: (LocalDate) -> Unit,
+    marks: (LocalDate) -> DayMarks,
+    onChoose: (day: LocalDate, byKeyboard: Boolean) -> LocalDate?,
     modifier: Modifier,
+    count: Int = 1,
+    choosable: (LocalDate) -> Boolean = { true },
+    dayName: (day: LocalDate, marks: DayMarks, name: String) -> String = { _, _, name -> name },
+    onPoint: (LocalDate) -> Unit = {},
+    onHover: ((day: LocalDate, hovered: Boolean) -> Unit)? = null,
 ) {
     val colors = LocalColors.current
     val sizes = LocalSizes.current
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
-    // The day that has the focus, or would have it once the calendar has; the month shown is its.
-    var focused by remember { mutableStateOf(openingDay(value, today, min, max)) }
+    // The day that has the focus, or would have it once the calendar has; the months shown hold it.
+    var focused by remember { mutableStateOf(openingDay(chosen, today, min, max)) }
+    var first by remember { mutableStateOf(focused.yearMonth) }
     var showFocus by remember { mutableStateOf(byKeyboard) }
     // Each increase puts the input focus on `focused`, once its cell is there. The first does so
     // as the calendar opens.
     var focusRequests by remember { mutableIntStateOf(1) }
-    var hasFocus by remember { mutableStateOf(false) }
-    val month = focused.yearMonth
-    val weeks = remember(month, locale) { monthWeeks(month, locale.firstDayOfWeek) }
-    val requesters = remember(month) { List(month.numberOfDays) { FocusRequester() } }
+    // The month whose grid holds the focus, if one does.
+    var focusedGrid by remember { mutableStateOf<YearMonth?>(null) }
+    val months = visibleMonths(first, count)
+    val requesters = remember(months) { months.associateWith { month -> List(month.numberOfDays) { FocusRequester() } } }
 
-    fun show(key: CalendarKey) {
-        val wasOnDay = hasFocus
-        focused = moveFocus(focused, key, min, max)
-        if (dayTakesFocus(wasOnDay, key, focused.yearMonth, min, max)) focusRequests++
+    fun moveTo(day: LocalDate) {
+        focused = day
+        first = keepInView(first, day, count)
+    }
+
+    // The buttons show the months before or after the ones shown, and the focused day goes along.
+    fun page(direction: Int) {
+        val wasOnDay = focusedGrid != null
+        val months = direction * count
+        val to = clamp(focused.plus(months, DateTimeUnit.MONTH), min, max)
+        first = keepInView(first.plus(months, DateTimeUnit.MONTH), to, count)
+        focused = to
+        val (key, edge) = if (direction < 0) CalendarKey.PageUp to first else CalendarKey.PageDown to first.plus(count - 1, DateTimeUnit.MONTH)
+        if (dayTakesFocus(wasOnDay, key, edge, min, max)) focusRequests++
+    }
+
+    fun choose(day: LocalDate, byKey: Boolean) {
+        val next = onChoose(day, byKey) ?: return
+        moveTo(next)
+        focusRequests++
+        if (byKey) onPoint(next)
     }
 
     BoxWithConstraints(modifier, contentAlignment = Alignment.TopCenter) {
@@ -321,100 +397,173 @@ private fun Calendar(
             // A frame later as well: a popup takes the focus for itself as it appears, which
             // would undo a request made before.
             withFrameNanos {}
-            requesters[focused.day - 1].requestFocus()
+            requesters[focused.yearMonth]?.get(focused.day - 1)?.requestFocus()
         }
         // A day's side, which the seven columns share on a narrow screen.
-        val cell = minOf(sizes.calendarDay, maxWidth / 7)
-        Column(Modifier.width(cell * 7), verticalArrangement = Arrangement.spacedBy(Space.s2)) {
-            // As the web libraries lay it out: the month between the buttons that change it.
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(
-                    // The chevrons point the way the months run, which is mirrored right to left.
-                    icon = if (rtl) IconName.ChevronRight else IconName.ChevronLeft,
-                    label = previousLabel,
-                    onClick = { show(CalendarKey.PageUp) },
-                    size = ControlSize.Sm,
-                    enabled = hasMonthBefore(month, min),
-                )
-                BasicText(
-                    locale.monthTitle(month),
-                    modifier = Modifier
-                        .weight(1f)
-                        .semantics {
-                            heading()
-                            // Said when it changes, so a screen reader hears which month is shown.
-                            liveRegion = LiveRegionMode.Polite
-                        },
-                    style = Typography.bodyStrong
-                        .resolved(colors.datePickerHeading)
-                        .copy(textAlign = TextAlign.Center),
-                    maxLines = 1,
-                )
-                IconButton(
-                    icon = if (rtl) IconName.ChevronLeft else IconName.ChevronRight,
-                    label = nextLabel,
-                    onClick = { show(CalendarKey.PageDown) },
-                    size = ControlSize.Sm,
-                    enabled = hasMonthAfter(month, max),
-                )
-            }
-            Column {
-                // Every day's name says its weekday, so a screen reader skips the initials.
-                Row(Modifier.clearAndSetSemantics {}) {
-                    for (column in 0 until 7) {
-                        val weekday = DayOfWeek((locale.firstDayOfWeek.isoDayNumber - 1 + column) % 7 + 1)
-                        BasicText(
-                            locale.weekdayInitial(weekday),
-                            Modifier.width(cell).padding(vertical = Space.s1),
-                            style = Typography.footnote
-                                .resolved(colors.datePickerWeekday)
-                                .copy(textAlign = TextAlign.Center),
-                            maxLines = 1,
+        val cell = minOf(sizes.calendarDay, (maxWidth - Space.s4 * (count - 1)) / (7 * count))
+        Row(horizontalArrangement = Arrangement.spacedBy(Space.s4)) {
+            months.forEachIndexed { index, month ->
+                Column(Modifier.width(cell * 7), verticalArrangement = Arrangement.spacedBy(Space.s2)) {
+                    // As the web libraries lay it out: the months between the buttons that change them.
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (index == 0) {
+                            IconButton(
+                                // The chevrons point the way the months run, which is mirrored right to left.
+                                icon = if (rtl) IconName.ChevronRight else IconName.ChevronLeft,
+                                label = previousLabel,
+                                onClick = { page(-1) },
+                                size = ControlSize.Sm,
+                                enabled = hasMonthBefore(month, min),
+                            )
+                        } else {
+                            Spacer(Modifier.size(sizes.controlSm))
+                        }
+                        MonthHeading(locale.monthTitle(month), Modifier.weight(1f))
+                        if (index == months.lastIndex) {
+                            IconButton(
+                                icon = if (rtl) IconName.ChevronLeft else IconName.ChevronRight,
+                                label = nextLabel,
+                                onClick = { page(1) },
+                                size = ControlSize.Sm,
+                                enabled = hasMonthAfter(month, max),
+                            )
+                        } else {
+                            Spacer(Modifier.size(sizes.controlSm))
+                        }
+                    }
+                    Column {
+                        WeekdayInitials(locale, cell)
+                        MonthDays(
+                            month = month,
+                            cell = cell,
+                            locale = locale,
+                            today = today,
+                            min = min,
+                            max = max,
+                            marks = marks,
+                            choosable = choosable,
+                            dayName = dayName,
+                            tabStop = { it == focused },
+                            showFocus = showFocus,
+                            requesters = requesters[month],
+                            onPress = { choose(it, byKey = false) },
+                            onHover = onHover,
+                            modifier = Modifier
+                                .onFocusChanged {
+                                    if (it.hasFocus) focusedGrid = month else if (focusedGrid == month) focusedGrid = null
+                                }
+                                .onPreviewKeyEvent { event ->
+                                    if (event.isChoice()) {
+                                        // Both halves of the press, so that the key coming up does not
+                                        // press what has the focus once the calendar is gone.
+                                        if (event.type == KeyEventType.KeyDown) choose(focused, byKey = true)
+                                        return@onPreviewKeyEvent true
+                                    }
+                                    val key = calendarKey(event, rtl) ?: return@onPreviewKeyEvent false
+                                    if (event.type == KeyEventType.KeyDown) {
+                                        showFocus = true
+                                        moveTo(moveFocus(focused, key, min, max))
+                                        focusRequests++
+                                        onPoint(focused)
+                                    }
+                                    true
+                                },
                         )
                     }
                 }
-                Column(
-                    Modifier
-                        .onFocusChanged { hasFocus = it.hasFocus }
-                        .onPreviewKeyEvent { event ->
-                            if (event.isChoice()) {
-                                // Both halves of the press, so that the key coming up does not
-                                // press what has the focus once the calendar is gone.
-                                if (event.type == KeyEventType.KeyDown) onChoose(focused)
-                                return@onPreviewKeyEvent true
-                            }
-                            val key = calendarKey(event, rtl) ?: return@onPreviewKeyEvent false
-                            if (event.type == KeyEventType.KeyDown) {
-                                showFocus = true
-                                focused = moveFocus(focused, key, min, max)
-                                focusRequests++
-                            }
-                            true
-                        }
-                        .semantics { collectionInfo = CollectionInfo(rowCount = weeks.size, columnCount = 7) },
-                ) {
-                    weeks.forEachIndexed { row, week ->
-                        Row {
-                            week.forEachIndexed { column, day ->
-                                if (day == null) {
-                                    Box(Modifier.size(cell, sizes.calendarDay))
-                                } else {
-                                    Day(
-                                        day = day,
-                                        name = locale.longDate(day, today = day == today),
-                                        width = cell,
-                                        selected = day == value,
-                                        today = day == today,
-                                        choosable = inRange(day, min, max),
-                                        tabStop = day == focused,
-                                        showFocus = showFocus,
-                                        requester = requesters[day.day - 1],
-                                        position = CollectionItemInfo(row, rowSpan = 1, column, columnSpan = 1),
-                                        onClick = { onChoose(day) },
-                                    )
-                                }
-                            }
-                        }
+            }
+        }
+    }
+}
+
+/** A month's name over its days, said by a screen reader when it changes. */
+@Composable
+internal fun MonthHeading(title: String, modifier: Modifier = Modifier) {
+    BasicText(
+        title,
+        modifier = modifier.semantics {
+            heading()
+            // Said when it changes, so a screen reader hears which month is shown.
+            liveRegion = LiveRegionMode.Polite
+        },
+        style = Typography.bodyStrong
+            .resolved(LocalColors.current.datePickerHeading)
+            .copy(textAlign = TextAlign.Center),
+        maxLines = 1,
+    )
+}
+
+/** The initials of the days of the week over the columns of a month, each [cell] wide. */
+@Composable
+internal fun WeekdayInitials(locale: CalendarLocale, cell: Dp, modifier: Modifier = Modifier) {
+    val colors = LocalColors.current
+    // Every day's name says its weekday, so a screen reader skips the initials.
+    Row(modifier.clearAndSetSemantics {}) {
+        for (column in 0 until 7) {
+            val weekday = DayOfWeek((locale.firstDayOfWeek.isoDayNumber - 1 + column) % 7 + 1)
+            BasicText(
+                locale.weekdayInitial(weekday),
+                Modifier.width(cell).padding(vertical = Space.s1),
+                style = Typography.footnote
+                    .resolved(colors.datePickerWeekday)
+                    .copy(textAlign = TextAlign.Center),
+                maxLines = 1,
+            )
+        }
+    }
+}
+
+/**
+ * The days of [month] in rows of a week, [cell] wide each, as a grid for a screen reader. Both
+ * pickers draw their days with it, in the popup's months and in the touch sheet's list.
+ *
+ * @param tabStop Whether the focus may rest on a day: on one only, the one the keys move.
+ * @param requesters One for each day of the month, to put the focus on it.
+ */
+@Composable
+internal fun MonthDays(
+    month: YearMonth,
+    cell: Dp,
+    locale: CalendarLocale,
+    today: LocalDate,
+    min: LocalDate?,
+    max: LocalDate?,
+    marks: (LocalDate) -> DayMarks,
+    choosable: (LocalDate) -> Boolean,
+    dayName: (day: LocalDate, marks: DayMarks, name: String) -> String,
+    tabStop: (LocalDate) -> Boolean,
+    showFocus: Boolean,
+    requesters: List<FocusRequester>?,
+    onPress: (LocalDate) -> Unit,
+    onHover: ((day: LocalDate, hovered: Boolean) -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    val sizes = LocalSizes.current
+    val weeks = remember(month, locale) { monthWeeks(month, locale.firstDayOfWeek) }
+    Column(modifier.semantics { collectionInfo = CollectionInfo(rowCount = weeks.size, columnCount = 7) }) {
+        weeks.forEachIndexed { row, week ->
+            Row {
+                week.forEachIndexed { column, day ->
+                    if (day == null) {
+                        Box(Modifier.size(cell, sizes.calendarDay))
+                    } else {
+                        val dayMarks = marks(day)
+                        val reachable = inRange(day, min, max)
+                        Day(
+                            day = day,
+                            name = dayName(day, dayMarks, locale.longDate(day, today = day == today)),
+                            width = cell,
+                            marks = dayMarks,
+                            today = day == today,
+                            reachable = reachable,
+                            choosable = reachable && choosable(day),
+                            tabStop = tabStop(day),
+                            showFocus = showFocus,
+                            requester = requesters?.get(day.day - 1),
+                            position = CollectionItemInfo(row, rowSpan = 1, column, columnSpan = 1),
+                            onClick = { onPress(day) },
+                            onHover = onHover?.let { hover -> { hovered: Boolean -> hover(day, hovered) } },
+                        )
                     }
                 }
             }
@@ -424,10 +573,12 @@ private fun Calendar(
 
 /**
  * A day of the calendar: its number on a circle that marks it chosen, today, under the pointer
- * or focused.
+ * or focused, over its piece of a range's band.
  *
  * @param name The day in full, for a screen reader.
- * @param choosable False for a day outside the range, which is shown and cannot be chosen.
+ * @param reachable False for a day outside the range, which is shown and cannot be chosen.
+ * @param choosable False also for a day a range's length does not allow as its end, over which
+ *   the keys still move.
  * @param tabStop Whether the focus may rest here: on one day only, the one the keys move.
  * @param showFocus Whether a focused day shows it, which it does once the keyboard is in use.
  */
@@ -436,14 +587,16 @@ private fun Day(
     day: LocalDate,
     name: String,
     width: Dp,
-    selected: Boolean,
+    marks: DayMarks,
     today: Boolean,
+    reachable: Boolean,
     choosable: Boolean,
     tabStop: Boolean,
     showFocus: Boolean,
-    requester: FocusRequester,
+    requester: FocusRequester?,
     position: CollectionItemInfo,
     onClick: () -> Unit,
+    onHover: ((Boolean) -> Unit)?,
 ) {
     val colors = LocalColors.current
     val height = LocalSizes.current.calendarDay
@@ -451,22 +604,30 @@ private fun Day(
     val hovered by interactions.collectIsHoveredAsState()
     val pressed by interactions.collectIsPressedAsState()
     val focused by interactions.collectIsFocusedAsState()
+    if (onHover != null) LaunchedEffect(hovered) { onHover(hovered) }
     val ring = focused && showFocus
     // The keyboard moves the same highlight as the pointer, with the focus ring around it.
-    val highlighted = hovered || ring
+    val highlighted = (hovered || ring) && choosable
+    val pushed = pressed && choosable
+    // A range's start stays a filled circle while it waits for its end, though pressing it again
+    // does nothing when the range has to be longer.
+    val end = (marks.start || marks.end) && reachable
+    val inBand = marks.band != null && !end && choosable
     val fill = when {
-        !choosable -> Color.Transparent
-        selected && pressed -> colors.datePickerSelectedBackgroundPressed
-        selected && highlighted -> colors.datePickerSelectedBackgroundHover
-        selected -> colors.datePickerSelectedBackground
-        pressed -> colors.datePickerDayBackgroundPressed
+        end && pushed -> colors.datePickerSelectedBackgroundPressed
+        end && highlighted -> colors.datePickerSelectedBackgroundHover
+        end -> colors.datePickerSelectedBackground
+        inBand && pushed -> colors.datePickerRangeBackgroundPressed
+        inBand && highlighted -> colors.datePickerRangeBackgroundHover
+        pushed -> colors.datePickerDayBackgroundPressed
         highlighted -> colors.datePickerDayBackgroundHover
         else -> Color.Transparent
     }
     val text = when {
+        end -> colors.datePickerSelectedText
         !choosable -> colors.datePickerDisabledText
-        selected -> colors.datePickerSelectedText
         today -> colors.datePickerTodayText
+        inBand -> colors.datePickerRangeText
         else -> colors.datePickerDayText
     }
     // Today is bolder as well as ringed, so that it is not told by color alone.
@@ -476,31 +637,33 @@ private fun Day(
     Box(
         Modifier
             .size(width, height)
-            .focusRequester(requester)
-            .focusProperties { canFocus = tabStop }
+            .then(if (requester != null) Modifier.focusRequester(requester) else Modifier)
+            .focusProperties { canFocus = tabStop && reachable }
             .clickable(
                 interactionSource = interactions,
                 // No ripple or overlay: the pressed and hover colors are tokens.
                 indication = null,
-                enabled = choosable,
+                enabled = reachable,
                 role = Role.Button,
-                onClick = onClick,
+                onClick = { if (choosable) onClick() },
             )
             // Inside the press handling, so that the day is said by its full name, not its number.
             .clearAndSetSemantics {
                 contentDescription = name
-                if (selected) this.selected = true
+                if (marks.selected) this.selected = true
                 collectionItemInfo = position
+                if (!choosable) disabled()
             },
         contentAlignment = Alignment.Center,
     ) {
+        marks.band?.let { band -> BandPiece(band, height = minOf(width, height), color = colors.datePickerRangeBackground) }
         Box(
             Modifier
                 .size(circle)
                 .focusRingAround(ring, colors.borderFocus)
                 .background(fill, CircleShape)
                 .then(
-                    if (today && !selected) {
+                    if (today && !end) {
                         Modifier.border(Border.widthThin, colors.datePickerTodayBorder, CircleShape)
                     } else {
                         Modifier
@@ -511,6 +674,34 @@ private fun Day(
             BasicText(day.day.toString(), style = style.resolved(text), maxLines = 1)
         }
     }
+}
+
+/**
+ * A day's piece of a range's band: from its middle where an end's circle lies on it, to the
+ * cell's edge, square where the band goes on and rounded where a week's row ends it.
+ */
+@Composable
+private fun BoxScope.BandPiece(band: Band, height: Dp, color: Color) {
+    val leading = if (band.leading == BandEdge.Round) 50 else 0
+    val trailing = if (band.trailing == BandEdge.Round) 50 else 0
+    val shape = RoundedCornerShape(
+        topStartPercent = leading,
+        topEndPercent = trailing,
+        bottomEndPercent = trailing,
+        bottomStartPercent = leading,
+    )
+    val (alignment, share) = when {
+        band.leading == BandEdge.Middle -> Alignment.CenterEnd to 0.5f
+        band.trailing == BandEdge.Middle -> Alignment.CenterStart to 0.5f
+        else -> Alignment.Center to 1f
+    }
+    Box(
+        Modifier
+            .align(alignment)
+            .fillMaxWidth(share)
+            .height(height)
+            .background(color, shape),
+    )
 }
 
 /**

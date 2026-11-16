@@ -22,6 +22,9 @@ import platform.Foundation.NSDateFormatter
 import platform.Foundation.NSDateFormatterFullStyle
 import platform.Foundation.NSDateFormatterMediumStyle
 import platform.Foundation.NSDateFormatterNoStyle
+import platform.Foundation.NSDateIntervalFormatter
+import platform.Foundation.NSDateIntervalFormatterMediumStyle
+import platform.Foundation.NSDateIntervalFormatterNoStyle
 import platform.Foundation.NSLocale
 import platform.Foundation.currentLocale
 
@@ -71,6 +74,13 @@ private class AppleCalendarLocale : CalendarLocale {
     }
     // From Sunday.
     private val initials = month.veryShortStandaloneWeekdaySymbols
+    // The medium form of both days, leaving out what they share: "Mar 10 – 14, 2026".
+    private val interval = NSDateIntervalFormatter().apply {
+        locale = NSLocale.currentLocale
+        calendar = gregorian
+        dateStyle = NSDateIntervalFormatterMediumStyle
+        timeStyle = NSDateIntervalFormatterNoStyle
+    }
 
     override fun monthTitle(month: YearMonth): String = this.month.stringFromDate(at(month.year, month.month.number, 1))
 
@@ -82,6 +92,9 @@ private class AppleCalendarLocale : CalendarLocale {
         val name = full.stringFromDate(at(date))
         return if (today) "${relative.stringFromDate(at(date))}, $name" else name
     }
+
+    override fun formatRange(start: LocalDate, end: LocalDate): String =
+        interval.stringFromDate(at(start), toDate = at(end))
 
     private fun formatter(setUp: NSDateFormatter.() -> Unit) = NSDateFormatter().apply {
         locale = NSLocale.currentLocale

@@ -73,6 +73,7 @@ fun main(args: Array<String>) {
     screen("menu-touch", PreviewOverlay.Menu, TouchSizes)
     screen("select-touch", PreviewOverlay.Select, TouchSizes)
     screen("datepicker-touch", PreviewOverlay.DatePicker, TouchSizes)
+    screen("daterange-touch", PreviewOverlay.DateRange, TouchSizes)
     screen("dialog-touch", PreviewOverlay.Dialog, TouchSizes)
     screen("dialog-pointer", PreviewOverlay.Dialog, PointerSizes)
     screen("toast-touch", PreviewOverlay.Toast, TouchSizes)
@@ -82,6 +83,7 @@ fun main(args: Array<String>) {
         page("menu-pointer-${mode.name.lowercase()}.png", 900, mode, PointerSizes, open = PreviewOverlay.Menu)
         page("select-pointer-${mode.name.lowercase()}.png", 900, mode, PointerSizes, open = PreviewOverlay.Select)
         page("datepicker-pointer-${mode.name.lowercase()}.png", 900, mode, PointerSizes, open = PreviewOverlay.DatePicker)
+        page("daterange-pointer-${mode.name.lowercase()}.png", 900, mode, PointerSizes, open = PreviewOverlay.DateRange)
     }
 }
 

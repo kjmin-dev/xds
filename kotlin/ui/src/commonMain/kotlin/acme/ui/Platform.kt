@@ -24,7 +24,8 @@ internal expect fun systemReducedMotion(): Boolean
 internal expect fun WindowLayer(onDismiss: () -> Unit, content: @Composable () -> Unit)
 
 /**
- * The names and the week of the locale the app runs in, for a [DatePicker]. Each platform has
+ * The names and the week of the locale the app runs in, for a [DatePicker] and a
+ * [DateRangePicker]. Each platform has
  * them from its own locale data, so they read as the platform's own calendars do.
  */
 internal interface CalendarLocale {
@@ -45,6 +46,12 @@ internal interface CalendarLocale {
      * platform's word for today comes first where it has one.
      */
     fun longDate(date: LocalDate, today: Boolean): String
+
+    /**
+     * A range of days as a [DateRangePicker]'s field shows it, in the medium form: "Mar 10 – 14,
+     * 2026" where the platform formats an interval and leaves out what the two days share.
+     */
+    fun formatRange(start: LocalDate, end: LocalDate): String
 }
 
 internal expect fun calendarLocale(): CalendarLocale

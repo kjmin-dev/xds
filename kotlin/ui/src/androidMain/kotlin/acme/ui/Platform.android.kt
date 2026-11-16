@@ -13,7 +13,9 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import android.icu.text.DateFormat
 import android.icu.text.DateFormatSymbols
+import android.icu.text.DateIntervalFormat
 import android.icu.util.Calendar
+import android.icu.util.DateInterval
 import android.icu.util.GregorianCalendar
 import android.text.format.DateUtils
 import java.util.Date
@@ -64,6 +66,8 @@ private class IcuCalendarLocale(private val locale: Locale) : CalendarLocale {
     private val month = DateFormat.getInstanceForSkeleton("yMMMM", locale)
     private val medium = DateFormat.getDateInstance(DateFormat.MEDIUM, locale)
     private val full = DateFormat.getDateInstance(DateFormat.FULL, locale)
+    // The skeleton of the medium form: "Mar 10 – 14, 2026", "2026. 3. 10. ~ 14.".
+    private val interval = DateIntervalFormat.getInstance("yMMMd", locale)
     // Counted from Sunday, at 1.
     private val initials = DateFormatSymbols.getInstance(locale)
         .getWeekdays(DateFormatSymbols.STANDALONE, DateFormatSymbols.NARROW)
@@ -81,6 +85,9 @@ private class IcuCalendarLocale(private val locale: Locale) : CalendarLocale {
         val now = System.currentTimeMillis()
         return "${DateUtils.getRelativeTimeSpanString(now, now, DateUtils.DAY_IN_MILLIS)}, $name"
     }
+
+    override fun formatRange(start: LocalDate, end: LocalDate): String =
+        interval.format(DateInterval(at(start).time, at(end).time))
 
     private fun at(date: LocalDate): Date = at(date.year, date.month.number, date.day)
 

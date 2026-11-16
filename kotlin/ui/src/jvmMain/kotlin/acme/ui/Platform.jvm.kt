@@ -70,6 +70,9 @@ private class JavaCalendarLocale(private val locale: Locale) : CalendarLocale {
 
     // The JVM has no word for today in the locale's language: the ring around the day marks it.
     override fun longDate(date: LocalDate, today: Boolean): String = full.format(date.toJavaLocalDate())
+
+    // The JVM has no formatter for an interval, so both days are written out in full.
+    override fun formatRange(start: LocalDate, end: LocalDate): String = "${mediumDate(start)} \u2013 ${mediumDate(end)}"
 }
 
 /**

@@ -612,6 +612,22 @@
         "$value": "{color.text.on-accent}",
         "$description": "The number of the chosen day, on its circle."
       },
+      "range-background": {
+        "$value": "{color.accent.subtle}",
+        "$description": "The band between the two ends of a range, and, while the end is being chosen, between the start and the day under the pointer or the keyboard's focus. A fill that shows the span, as a selected Chip's is: the ends, drawn as the chosen day, carry the choice."
+      },
+      "range-background-hover": {
+        "$value": "{color.accent.subtle-hover}",
+        "$description": "A day inside the band under the pointer or the keyboard's focus."
+      },
+      "range-background-pressed": {
+        "$value": "{color.accent.subtle-pressed}",
+        "$description": "A day inside the band while it is pressed."
+      },
+      "range-text": {
+        "$value": "{color.text.primary}",
+        "$description": "The number of a day inside the band."
+      },
       "disabled-text": {
         "$value": "{color.text.disabled}",
         "$description": "A day outside the range the picker allows. Exempt from contrast rules, and meant to look unavailable."

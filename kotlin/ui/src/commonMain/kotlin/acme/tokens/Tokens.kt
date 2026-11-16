@@ -230,6 +230,14 @@ interface Colors {
     val datePickerSelectedBackgroundPressed: Color
     /** The number of the chosen day, on its circle. */
     val datePickerSelectedText: Color
+    /** The band between the two ends of a range, and, while the end is being chosen, between the start and the day under the pointer or the keyboard's focus. A fill that shows the span, as a selected Chip's is: the ends, drawn as the chosen day, carry the choice. */
+    val datePickerRangeBackground: Color
+    /** A day inside the band under the pointer or the keyboard's focus. */
+    val datePickerRangeBackgroundHover: Color
+    /** A day inside the band while it is pressed. */
+    val datePickerRangeBackgroundPressed: Color
+    /** The number of a day inside the band. */
+    val datePickerRangeText: Color
     /** A day outside the range the picker allows. Exempt from contrast rules, and meant to look unavailable. */
     val datePickerDisabledText: Color
     val dialogBackground: Color
@@ -457,6 +465,10 @@ interface Colors {
         "date-picker-selected-background-hover" to datePickerSelectedBackgroundHover,
         "date-picker-selected-background-pressed" to datePickerSelectedBackgroundPressed,
         "date-picker-selected-text" to datePickerSelectedText,
+        "date-picker-range-background" to datePickerRangeBackground,
+        "date-picker-range-background-hover" to datePickerRangeBackgroundHover,
+        "date-picker-range-background-pressed" to datePickerRangeBackgroundPressed,
+        "date-picker-range-text" to datePickerRangeText,
         "date-picker-disabled-text" to datePickerDisabledText,
         "dialog-background" to dialogBackground,
         "dialog-border" to dialogBorder,
@@ -664,6 +676,10 @@ object LightColors : Colors {
     override val datePickerSelectedBackgroundHover = Color(0xFF4338CA)
     override val datePickerSelectedBackgroundPressed = Color(0xFF3730A3)
     override val datePickerSelectedText = Color(0xFFFFFFFF)
+    override val datePickerRangeBackground = Color(0xFFEEF2FF)
+    override val datePickerRangeBackgroundHover = Color(0xFFE0E7FF)
+    override val datePickerRangeBackgroundPressed = Color(0xFFC7D2FE)
+    override val datePickerRangeText = Color(0xFF18181C)
     override val datePickerDisabledText = Color(0xFFA9A9B4)
     override val dialogBackground = Color(0xFFFFFFFF)
     override val dialogBorder = Color(0xFFE2E2E8)
@@ -870,6 +886,10 @@ object DarkColors : Colors {
     override val datePickerSelectedBackgroundHover = Color(0xFF4F46E5)
     override val datePickerSelectedBackgroundPressed = Color(0xFF4338CA)
     override val datePickerSelectedText = Color(0xFFFFFFFF)
+    override val datePickerRangeBackground = Color(0xFF1E1B4B)
+    override val datePickerRangeBackgroundHover = Color(0xFF312E81)
+    override val datePickerRangeBackgroundPressed = Color(0xFF3730A3)
+    override val datePickerRangeText = Color(0xFFF5F5F7)
     override val datePickerDisabledText = Color(0xFF5C5C66)
     override val dialogBackground = Color(0xFF222228)
     override val dialogBorder = Color(0xFF2C2C33)

@@ -223,6 +223,14 @@ pub struct Colors {
     pub date_picker_selected_background_pressed: Color,
     /// The number of the chosen day, on its circle.
     pub date_picker_selected_text: Color,
+    /// The band between the two ends of a range, and, while the end is being chosen, between the start and the day under the pointer or the keyboard's focus. A fill that shows the span, as a selected Chip's is: the ends, drawn as the chosen day, carry the choice.
+    pub date_picker_range_background: Color,
+    /// A day inside the band under the pointer or the keyboard's focus.
+    pub date_picker_range_background_hover: Color,
+    /// A day inside the band while it is pressed.
+    pub date_picker_range_background_pressed: Color,
+    /// The number of a day inside the band.
+    pub date_picker_range_text: Color,
     /// A day outside the range the picker allows. Exempt from contrast rules, and meant to look unavailable.
     pub date_picker_disabled_text: Color,
     pub dialog_background: Color,
@@ -297,7 +305,7 @@ pub struct Colors {
 
 impl Colors {
     /// Every color with its token name, in token order. For screens that list the colors.
-    pub const fn entries(&self) -> [(&'static str, Color); 203] {
+    pub const fn entries(&self) -> [(&'static str, Color); 207] {
         [
             ("scrim", self.scrim),
             ("background-base", self.background_base),
@@ -453,6 +461,10 @@ impl Colors {
             ("date-picker-selected-background-hover", self.date_picker_selected_background_hover),
             ("date-picker-selected-background-pressed", self.date_picker_selected_background_pressed),
             ("date-picker-selected-text", self.date_picker_selected_text),
+            ("date-picker-range-background", self.date_picker_range_background),
+            ("date-picker-range-background-hover", self.date_picker_range_background_hover),
+            ("date-picker-range-background-pressed", self.date_picker_range_background_pressed),
+            ("date-picker-range-text", self.date_picker_range_text),
             ("date-picker-disabled-text", self.date_picker_disabled_text),
             ("dialog-background", self.dialog_background),
             ("dialog-border", self.dialog_border),
@@ -661,6 +673,10 @@ pub const LIGHT: Colors = Colors {
     date_picker_selected_background_hover: Color::rgba(67, 56, 202, 1.0),
     date_picker_selected_background_pressed: Color::rgba(55, 48, 163, 1.0),
     date_picker_selected_text: Color::rgba(255, 255, 255, 1.0),
+    date_picker_range_background: Color::rgba(238, 242, 255, 1.0),
+    date_picker_range_background_hover: Color::rgba(224, 231, 255, 1.0),
+    date_picker_range_background_pressed: Color::rgba(199, 210, 254, 1.0),
+    date_picker_range_text: Color::rgba(24, 24, 28, 1.0),
     date_picker_disabled_text: Color::rgba(169, 169, 180, 1.0),
     dialog_background: Color::rgba(255, 255, 255, 1.0),
     dialog_border: Color::rgba(226, 226, 232, 1.0),
@@ -867,6 +883,10 @@ pub const DARK: Colors = Colors {
     date_picker_selected_background_hover: Color::rgba(79, 70, 229, 1.0),
     date_picker_selected_background_pressed: Color::rgba(67, 56, 202, 1.0),
     date_picker_selected_text: Color::rgba(255, 255, 255, 1.0),
+    date_picker_range_background: Color::rgba(30, 27, 75, 1.0),
+    date_picker_range_background_hover: Color::rgba(49, 46, 129, 1.0),
+    date_picker_range_background_pressed: Color::rgba(55, 48, 163, 1.0),
+    date_picker_range_text: Color::rgba(245, 245, 247, 1.0),
     date_picker_disabled_text: Color::rgba(92, 92, 102, 1.0),
     dialog_background: Color::rgba(34, 34, 40, 1.0),
     dialog_border: Color::rgba(44, 44, 51, 1.0),

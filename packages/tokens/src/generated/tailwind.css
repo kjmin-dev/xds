@@ -155,6 +155,10 @@
   --color-acme-date-picker-selected-background-hover: var(--acme-color-date-picker-selected-background-hover);
   --color-acme-date-picker-selected-background-pressed: var(--acme-color-date-picker-selected-background-pressed);
   --color-acme-date-picker-selected-text: var(--acme-color-date-picker-selected-text);
+  --color-acme-date-picker-range-background: var(--acme-color-date-picker-range-background);
+  --color-acme-date-picker-range-background-hover: var(--acme-color-date-picker-range-background-hover);
+  --color-acme-date-picker-range-background-pressed: var(--acme-color-date-picker-range-background-pressed);
+  --color-acme-date-picker-range-text: var(--acme-color-date-picker-range-text);
   --color-acme-date-picker-disabled-text: var(--acme-color-date-picker-disabled-text);
   --color-acme-dialog-background: var(--acme-color-dialog-background);
   --color-acme-dialog-border: var(--acme-color-dialog-border);

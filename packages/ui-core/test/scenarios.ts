@@ -3,6 +3,7 @@
 // options with the renderer of its design preview, and runs behavior.ts against them. They
 // follow the design preview of the web apps.
 
+import type { DateRange } from "../src/date-range-picker.ts";
 import { builder, type Screen } from "../src/preview/model.ts";
 
 /** The screens behavior.ts checks; SCREENS, at the end, says what each one draws. */
@@ -14,6 +15,7 @@ export type Scenario =
   | "menu"
   | "select"
   | "date-picker"
+  | "date-range-picker"
   | "dialog"
   | "slider"
   | "accordion"
@@ -61,6 +63,18 @@ export const DUE = { value: "2026-03-10", min: "2026-03-05", max: "2026-04-20" }
 export const START_PLACEHOLDER = "Choose a day";
 
 export const START_ERROR = "Choose when the project starts.";
+
+// A stay of four nights in DUE's month, of two nights at least and fourteen at most, between
+// DUE's min and max.
+export const STAY = { start: "2026-03-10", end: "2026-03-14" } as const;
+
+export const STAY_BOUNDS = { min: DUE.min, max: DUE.max } as const;
+
+export const STAY_LENGTH = { min: 2, max: 14 } as const;
+
+export const LEAVE_PLACEHOLDER = "Choose the days";
+
+export const LEAVE_ERROR = "Choose the days of your leave.";
 
 export const CONFIRM = {
   title: "Delete the weekly report?",
@@ -206,6 +220,35 @@ function datePicker(): Screen {
   ]);
 }
 
+// The design preview's three date range pickers, and a DatePicker that stands for the page
+// behind the calendar.
+function dateRangePicker(): Screen {
+  const { ui, bind, screen } = builder<{
+    stay: DateRange;
+    leave: DateRange | undefined;
+    other: string;
+  }>();
+  return screen({ stay: STAY, leave: undefined, other: DUE.value }, [
+    ui.DateRangePicker({
+      label: "Stay",
+      ...bind("stay"),
+      ...STAY_BOUNDS,
+      minLength: STAY_LENGTH.min,
+      maxLength: STAY_LENGTH.max,
+      startLabel: "Check-in",
+      endLabel: "Check-out",
+    }),
+    ui.DateRangePicker({
+      label: "Leave",
+      placeholder: LEAVE_PLACEHOLDER,
+      ...bind("leave"),
+      error: (state) => (state.leave === undefined ? LEAVE_ERROR : undefined),
+    }),
+    ui.DateRangePicker({ label: "Locked range", value: STAY, onChange: keep, disabled: true }),
+    ui.DatePicker({ label: "Other field", ...bind("other") }),
+  ]);
+}
+
 function dialog(): Screen {
   const { ui, screen } = builder<{ confirming: boolean; asking: boolean }>();
   return screen({ confirming: false, asking: false }, [
@@ -292,6 +335,7 @@ export const SCREENS: Record<Scenario, Screen> = {
   menu: menu(),
   select: select(),
   "date-picker": datePicker(),
+  "date-range-picker": dateRangePicker(),
   dialog: dialog(),
   slider: slider(),
   accordion: accordion(),

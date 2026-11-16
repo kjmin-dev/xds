@@ -11,6 +11,8 @@ import {
   COUNTRY_PLACEHOLDER,
   KEPT,
   KEPT_NOTES,
+  LEAVE_ERROR,
+  LEAVE_PLACEHOLDER,
   QUESTION,
   QUESTIONS,
   type Scenario,
@@ -82,6 +84,46 @@ const focusedDay = () => {
   const element = document.activeElement;
   return element?.closest('[role="grid"]') ? element.getAttribute("aria-label") : null;
 };
+
+// A day of the open range calendar by its long English name, in whichever month's grid holds
+// it.
+const rangeDay = (name: string) =>
+  page.getByRole("dialog").getByRole("button", { name, exact: false });
+
+const rangeCell = (name: string) => page.getByRole("gridcell", { name, exact: false });
+
+/** The names of the grids of the open calendar, one for each month it shows. */
+const gridNames = () =>
+  [...document.querySelectorAll('[role="grid"]')]
+    .filter((grid) => grid.checkVisibility())
+    .map((grid) => grid.getAttribute("aria-label"));
+
+/**
+ * The numbers of the selected days in the open calendar's grid of `month`. The days of the
+ * months around it are in its grid too, hidden, and left out.
+ */
+const selectedDays = (month = "March 2026") => {
+  const grid = [...document.querySelectorAll('[role="grid"]')].find(
+    (element) => element.checkVisibility() && element.getAttribute("aria-label") === month,
+  );
+  return [...(grid?.querySelectorAll('[role="gridcell"][aria-selected="true"]') ?? [])]
+    .filter((cell) => cell.firstElementChild?.checkVisibility({ visibilityProperty: true }))
+    .map((cell) => Number(cell.textContent));
+};
+
+/**
+ * Runs `check` in a window wide enough for a calendar of two months side by side, and puts the
+ * window back after it.
+ */
+async function wide(check: () => Promise<void>) {
+  const { innerWidth, innerHeight } = window;
+  await page.viewport(1024, 768);
+  try {
+    await check();
+  } finally {
+    await page.viewport(innerWidth, innerHeight);
+  }
+}
 
 /**
  * Runs `check` with the page's clock on `now` (local time), which `setNow` moves, so that what a
@@ -534,6 +576,253 @@ export function describeBehavior(mount: Mount) {
         await expect
           .element(page.getByRole("gridcell", { name: "March 20, 2026", exact: false }))
           .toHaveAttribute("aria-current", "date");
+      });
+    });
+  });
+
+  describe("DateRangePicker", () => {
+    test("a press opens the start's month and shows the range, its ends named", async () => {
+      await mount("date-range-picker");
+      const stay = dateField("Stay");
+      await expect.element(stay).toHaveTextContent("Mar 10 – 14, 2026");
+      await expect.element(stay).toHaveAttribute("aria-haspopup", "dialog");
+      await stay.click();
+      const grid = page.getByRole("grid");
+      await expect.element(grid).toHaveAccessibleName("March 2026");
+      await expect.element(grid).toHaveAttribute("aria-multiselectable", "true");
+      await expect.element(page.getByRole("dialog", { name: "Stay" })).toBeVisible();
+      expect(selectedDays()).toEqual([10, 11, 12, 13, 14]);
+      await expect.element(rangeCell("Check-in, Tuesday, March 10, 2026")).toBeVisible();
+      await expect.element(rangeCell("Check-out, Saturday, March 14, 2026")).toBeVisible();
+      await expect.element(page.getByText("Check-in: Mar 10, 2026")).toBeVisible();
+      await expect.element(page.getByText("Check-out: Mar 14, 2026")).toBeVisible();
+      await expect.poll(focusedDay).toMatch(/March 10, 2026/);
+    });
+
+    test("the first press sets the start, a hover previews the range, the second press ends it", async () => {
+      await mount("date-range-picker");
+      const stay = dateField("Stay");
+      const field = stay.element();
+      await stay.click();
+      const grid = page.getByRole("grid");
+      await rangeDay("March 20, 2026").click();
+      // The calendar stays, with the start alone; the field keeps the range until the end.
+      await expect.element(grid).toBeVisible();
+      expect(selectedDays()).toEqual([20]);
+      await expect.element(rangeCell("Check-in, Friday, March 20, 2026")).toBeVisible();
+      await expect.element(page.getByText("Check-out: –")).toBeVisible();
+      expect(field.textContent).toMatch(/Mar 10\s–\s14, 2026/);
+      await userEvent.hover(rangeDay("March 25, 2026"));
+      await expect.poll(() => selectedDays()).toEqual([20, 21, 22, 23, 24, 25]);
+      // A day before the start previews nothing: a press there starts again.
+      await userEvent.hover(rangeDay("March 16, 2026"));
+      await expect.poll(() => selectedDays()).toEqual([20]);
+      await userEvent.hover(rangeDay("March 25, 2026"));
+      await expect.poll(() => selectedDays()).toEqual([20, 21, 22, 23, 24, 25]);
+      await rangeDay("March 25, 2026").click();
+      await expect.element(grid).not.toBeInTheDocument();
+      await expect.element(stay).toHaveTextContent("Mar 20 – 25, 2026");
+      await expect.element(stay).toHaveFocus();
+    });
+
+    test("a press before the start starts again from there", async () => {
+      await mount("date-range-picker");
+      const stay = dateField("Stay");
+      await stay.click();
+      await rangeDay("March 20, 2026").click();
+      await rangeDay("March 15, 2026").click();
+      await expect.element(page.getByRole("grid")).toBeVisible();
+      expect(selectedDays()).toEqual([15]);
+      await expect.element(rangeCell("Check-in, Sunday, March 15, 2026")).toBeVisible();
+      await rangeDay("March 18, 2026").click();
+      await expect.element(page.getByRole("grid")).not.toBeInTheDocument();
+      await expect.element(stay).toHaveTextContent("Mar 15 – 18, 2026");
+    });
+
+    test("an end shorter than minLength or longer than maxLength cannot be chosen", async () => {
+      await mount("date-range-picker");
+      const stay = dateField("Stay");
+      await stay.click();
+      // Over the whole range, a press starts a new one.
+      await rangeDay("March 10, 2026").click();
+      expect(selectedDays()).toEqual([10]);
+      // The start itself and one night are too short, fifteen nights too long.
+      for (const name of [
+        "Check-in, Tuesday, March 10, 2026",
+        "March 11, 2026",
+        "March 25, 2026",
+      ]) {
+        await expect.element(rangeCell(name)).toHaveAttribute("aria-disabled", "true");
+      }
+      for (const name of ["March 12, 2026", "March 24, 2026"]) {
+        await expect.element(rangeCell(name)).not.toHaveAttribute("aria-disabled", "true");
+      }
+      // Forced: without it, the click waits for the day to take presses.
+      for (const name of ["March 10, 2026", "March 11, 2026", "March 25, 2026"]) {
+        await rangeDay(name).click({ force: true });
+      }
+      await expect.element(page.getByRole("grid")).toBeVisible();
+      expect(selectedDays()).toEqual([10]);
+      await rangeDay("March 12, 2026").click();
+      await expect.element(page.getByRole("grid")).not.toBeInTheDocument();
+      await expect.element(stay).toHaveTextContent("Mar 10 – 12, 2026");
+    });
+
+    test("without a minimum length, the same day twice is a range of one day", async () => {
+      await onDay(new Date(2026, 10, 16, 12), async () => {
+        await mount("date-range-picker");
+        const leave = dateField("Leave");
+        await expect.element(leave).toHaveTextContent(LEAVE_PLACEHOLDER);
+        await expect.element(leave).toHaveAccessibleDescription(LEAVE_ERROR);
+        await leave.click();
+        await expect.poll(focusedDay).toMatch(/November 16, 2026/);
+        await userEvent.keyboard("{Enter}");
+        // The focus moves on from the start, as after any start; back to it.
+        await expect.poll(focusedDay).toMatch(/November 17, 2026/);
+        await userEvent.keyboard("{ArrowLeft}");
+        await expect.poll(focusedDay).toBe("Start, Monday, November 16, 2026");
+        await userEvent.keyboard("{Enter}");
+        await expect.element(page.getByRole("grid")).not.toBeInTheDocument();
+        await expect.element(leave).toHaveTextContent("Nov 16, 2026");
+        await expect.element(page.getByText(LEAVE_ERROR)).not.toBeInTheDocument();
+        await expect.element(dateField("Locked range")).toBeDisabled();
+      });
+    });
+
+    test("Enter sets the start, the keys preview the end, and Enter ends the range", async () => {
+      await mount("date-range-picker");
+      const stay = dateField("Stay");
+      await userEvent.tab();
+      await expect.element(stay).toHaveFocus();
+      await userEvent.keyboard("{Enter}");
+      await expect.poll(focusedDay).toMatch(/March 10, 2026/);
+      await userEvent.keyboard("{ArrowDown}");
+      await expect.poll(focusedDay).toMatch(/March 17, 2026/);
+      await userEvent.keyboard("{Enter}");
+      // The focus moves on to the next day, and the preview with it.
+      await expect.poll(focusedDay).toMatch(/March 18, 2026/);
+      await expect.poll(() => selectedDays()).toEqual([17, 18]);
+      await userEvent.keyboard("{ArrowRight}{ArrowRight}");
+      await expect.poll(focusedDay).toMatch(/March 20, 2026/);
+      await expect.poll(() => selectedDays()).toEqual([17, 18, 19, 20]);
+      await userEvent.keyboard("{PageDown}");
+      await expect.element(page.getByRole("grid")).toHaveAccessibleName("April 2026");
+      await expect.poll(focusedDay).toMatch(/April 20, 2026/);
+      await userEvent.keyboard("{PageUp}");
+      await expect.poll(focusedDay).toMatch(/March 20, 2026/);
+      await userEvent.keyboard("{Enter}");
+      await expect.element(page.getByRole("grid")).not.toBeInTheDocument();
+      await expect.element(stay).toHaveTextContent("Mar 17 – 20, 2026");
+      await expect.element(stay).toHaveFocus();
+    });
+
+    test("the keys move as in a DatePicker, and stop at min and max", async () => {
+      await mount("date-range-picker");
+      await dateField("Stay").click();
+      await expect.poll(focusedDay).toMatch(/March 10, 2026/);
+      await userEvent.keyboard("{ArrowUp}");
+      await expect.poll(focusedDay).toMatch(/March 5, 2026/);
+      await userEvent.keyboard("{ArrowLeft}");
+      await expect.poll(focusedDay).toMatch(/March 5, 2026/);
+      await userEvent.keyboard("{End}");
+      await expect.poll(focusedDay).toMatch(/March 31, 2026/);
+      await userEvent.keyboard("{Home}");
+      await expect.poll(focusedDay).toMatch(/March 5, 2026/);
+      await userEvent.keyboard("{PageDown}");
+      await expect.poll(focusedDay).toMatch(/April 5, 2026/);
+      await userEvent.keyboard("{PageDown}");
+      await expect.poll(focusedDay).toMatch(/April 20, 2026/);
+      await userEvent.keyboard("{Shift>}{PageUp}{/Shift}");
+      await expect.poll(focusedDay).toMatch(/March 5, 2026/);
+      await expect.element(rangeCell("March 4, 2026")).toHaveAttribute("aria-disabled", "true");
+    });
+
+    test("Escape drops a start alone, and the range opens again as it was", async () => {
+      await mount("date-range-picker");
+      const stay = dateField("Stay");
+      const grid = page.getByRole("grid");
+      await stay.click();
+      await rangeDay("March 20, 2026").click();
+      await userEvent.keyboard("{Escape}");
+      await expect.element(grid).not.toBeInTheDocument();
+      await expect.element(stay).toHaveTextContent("Mar 10 – 14, 2026");
+      await expect.element(stay).toHaveFocus();
+      await stay.click();
+      expect(selectedDays()).toEqual([10, 11, 12, 13, 14]);
+      // Over the whole range a hover previews nothing: the next press starts anew.
+      await userEvent.hover(rangeDay("March 25, 2026"));
+      await expect.poll(() => selectedDays()).toEqual([10, 11, 12, 13, 14]);
+      await rangeDay("March 25, 2026").click();
+      await expect.element(grid).toBeVisible();
+      expect(selectedDays()).toEqual([25]);
+      await userEvent.keyboard("{Escape}");
+      await expect.element(grid).not.toBeInTheDocument();
+      // The same with the keyboard, whose preview is gone too.
+      await userEvent.keyboard("{Enter}");
+      await expect.poll(focusedDay).toMatch(/March 10, 2026/);
+      await userEvent.keyboard("{ArrowDown}{Enter}");
+      await expect.poll(() => selectedDays()).toEqual([17, 18]);
+      await userEvent.keyboard("{Escape}");
+      await expect.element(grid).not.toBeInTheDocument();
+      await expect.element(stay).toHaveFocus();
+      await userEvent.keyboard("{Enter}");
+      await expect.poll(focusedDay).toMatch(/March 10, 2026/);
+      expect(selectedDays()).toEqual([10, 11, 12, 13, 14]);
+    });
+
+    test("Tab stays in the open calendar, and the page behind is hidden from assistive technology", async () => {
+      await mount("date-range-picker");
+      const stay = dateField("Stay");
+      const behind = dateField("Other field").element();
+      await stay.click();
+      const calendar = page.getByRole("dialog");
+      await expect.poll(() => holdsFocus(calendar)).toBe(true);
+      for (let step = 0; step < 4; step++) {
+        await userEvent.tab();
+        expect(holdsFocus(calendar)).toBe(true);
+      }
+      expect(hiddenFromAssistiveTechnology(behind)).toBe(true);
+      await userEvent.keyboard("{Escape}");
+      await expect.element(calendar).not.toBeInTheDocument();
+      await expect.element(stay).toHaveFocus();
+    });
+
+    test("where the window is wide, two months: each its own grid, a range across both", async () => {
+      await wide(async () => {
+        await mount("date-range-picker");
+        const stay = dateField("Stay");
+        await stay.click();
+        await expect.poll(gridNames).toEqual(["March 2026", "April 2026"]);
+        await rangeDay("March 28, 2026").click();
+        await userEvent.hover(rangeDay("April 3, 2026"));
+        await expect.poll(() => selectedDays("April 2026")).toEqual([1, 2, 3]);
+        expect(selectedDays("March 2026")).toEqual([28, 29, 30, 31]);
+        await rangeDay("April 3, 2026").click();
+        await expect.element(page.getByRole("dialog")).not.toBeInTheDocument();
+        await expect.element(stay).toHaveTextContent("Mar 28 – Apr 3, 2026");
+        await stay.click();
+        await expect.poll(focusedDay).toMatch(/March 28, 2026/);
+        expect(selectedDays("March 2026")).toEqual([28, 29, 30, 31]);
+        expect(selectedDays("April 2026")).toEqual([1, 2, 3]);
+      });
+    });
+
+    test("with two months, Page Down moves a month and a month button both months", async () => {
+      await onDay(new Date(2026, 10, 16, 12), async () => {
+        await wide(async () => {
+          await mount("date-range-picker");
+          await dateField("Leave").click();
+          await expect.poll(gridNames).toEqual(["November 2026", "December 2026"]);
+          await expect.poll(focusedDay).toMatch(/November 16, 2026/);
+          await userEvent.keyboard("{PageDown}");
+          await expect.poll(focusedDay).toMatch(/December 16, 2026/);
+          expect(gridNames()).toEqual(["November 2026", "December 2026"]);
+          await userEvent.keyboard("{PageDown}");
+          await expect.poll(focusedDay).toMatch(/January 16, 2027/);
+          await expect.poll(gridNames).toEqual(["January 2027", "February 2027"]);
+          await page.getByRole("button", { name: "Next month" }).click();
+          await expect.poll(gridNames).toEqual(["March 2027", "April 2027"]);
+        });
       });
     });
   });

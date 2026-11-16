@@ -25,6 +25,11 @@ export { default as Chip, type ChipProps } from "./Chip.svelte";
 export { default as ChipBar, type ChipBarProps } from "./ChipBar.svelte";
 export { default as CountBadge, type CountBadgeProps } from "./CountBadge.svelte";
 export { default as DatePicker, type DatePickerProps, type IsoDate } from "./DatePicker.svelte";
+export {
+  type DateRange,
+  default as DateRangePicker,
+  type DateRangePickerProps,
+} from "./DateRangePicker.svelte";
 export { default as Dialog, type DialogProps } from "./Dialog.svelte";
 export { default as Divider } from "./Divider.svelte";
 export { default as EmptyState, type EmptyStateProps } from "./EmptyState.svelte";

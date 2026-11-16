@@ -60,7 +60,7 @@ How the interactive web components behave (keyboard, focus, and ARIA state) is t
 
 | Client | How to open a specific section directly |
 | --- | --- |
-| Web (React) | Run `mise run //web:dev`, then open `http://localhost:5173/design#buttons` (each section has an anchor; `?theme=light` or `?theme=dark` pins the color mode; `?open=menu`, `select`, `datepicker`, `dialog`, `toast`, or `tooltip` opens that overlay) |
+| Web (React) | Run `mise run //web:dev`, then open `http://localhost:5173/design#buttons` (each section has an anchor; `?theme=light` or `?theme=dark` pins the color mode; `?open=menu`, `select`, `datepicker`, `daterange`, `dialog`, `toast`, or `tooltip` opens that overlay) |
 | Web (Solid) | Run `mise run //web-solid:dev`, then open `http://localhost:5174/design#buttons` (the same preview, anchors, and parameters as the React app's, drawn by the Solid library; it must look the same) |
 | Web (Vue) | Run `mise run //web-vue:dev`, then open `http://localhost:5175/design#buttons` (the same preview, anchors, and parameters as the React app's, drawn by the Vue library; it must look the same) |
 | Web (Svelte) | Run `mise run //web-svelte:dev`, then open `http://localhost:5176/design#buttons` (the same preview, anchors, and parameters as the React app's, drawn by the Svelte library; it must look the same) |

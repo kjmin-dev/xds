@@ -5,7 +5,14 @@
 import type { SectionTitle } from "./design.ts";
 
 /** The overlays `?open=` can name. */
-export type Overlay = "menu" | "select" | "datepicker" | "tooltip" | "dialog" | "toast";
+export type Overlay =
+  | "menu"
+  | "select"
+  | "datepicker"
+  | "daterange"
+  | "tooltip"
+  | "dialog"
+  | "toast";
 
 /**
  * The overlays `?open=` shows as soon as the page loads, so that they can be captured without
@@ -28,6 +35,12 @@ export const OVERLAYS: {
   select: { section: "Controls", press: "click" },
   // The first date picker's field, after the section's selects.
   datepicker: { section: "Controls", press: "click", control: ".date-picker__trigger" },
+  // The first date range picker's field, Stay.
+  daterange: {
+    section: "Controls",
+    press: "click",
+    control: ".date-range-picker .date-picker__trigger",
+  },
   tooltip: { section: "Buttons", press: "focus" },
   dialog: { section: undefined, press: undefined },
   toast: { section: undefined, press: undefined },

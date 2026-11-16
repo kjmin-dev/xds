@@ -1683,6 +1683,67 @@
       ]
     },
     {
+      "name": "DateRangePicker",
+      "purpose": "A field for choosing a range of days, a start and an end, as for a stay or a trip. Closed, it looks like a DatePicker and shows both days. Pressed, it opens a calendar where the first day pressed starts the range and the second ends it: a popup of two months side by side where a pointer is used, a tall bottom sheet of months scrolling down where fingers are.",
+      "options": {
+        "fields": [
+          "label",
+          "value",
+          "min",
+          "max",
+          "minLength",
+          "maxLength",
+          "placeholder",
+          "description",
+          "error",
+          "startLabel",
+          "endLabel",
+          "previousLabel",
+          "nextLabel"
+        ],
+        "flags": [
+          "disabled"
+        ]
+      },
+      "states": [
+        "focus",
+        "disabled",
+        "invalid"
+      ],
+      "accessibility": "The field is a button named by the chosen range and the label; it says that it opens a dialog and whether it is open, and the error describes it. The calendar is a grid of days for each month shown, named by its month and allowing more than one selected day; each day is named in full, the two ends after startLabel and endLabel, and every day of the range is selected. The keys are DatePicker's. Enter or Space on a day sets the start and moves to the next day, and the moves after it preview the range; Enter or Space again sets the end. A day before the start starts again from there. Days the length does not allow as the end cannot be chosen. Escape or Back closes and drops an unfinished range. Focus returns to the field.",
+      "tokens": [
+        "color.field",
+        "color.date-picker",
+        "size.control",
+        "size.calendar-day"
+      ],
+      "clients": {
+        "web-react": {
+          "source": "packages/ui/src/DateRangePicker.tsx",
+          "symbol": "DateRangePicker"
+        },
+        "web-solid": {
+          "source": "packages/ui-solid/src/DateRangePicker.tsx",
+          "symbol": "DateRangePicker"
+        },
+        "web-vue": {
+          "source": "packages/ui-vue/src/DateRangePicker.vue",
+          "symbol": "DateRangePicker"
+        },
+        "web-svelte": {
+          "source": "packages/ui-svelte/src/DateRangePicker.svelte",
+          "symbol": "DateRangePicker"
+        }
+      },
+      "differences": [
+        {
+          "input": "pointer",
+          "kind": "adapts",
+          "note": "The popup shows one month instead of two where two do not fit beside each other (a window narrower than about 640 px)."
+        }
+      ]
+    },
+    {
       "name": "Slider",
       "purpose": "Picks a number in a range by dragging, or with the arrow keys.",
       "options": {

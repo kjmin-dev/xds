@@ -349,6 +349,35 @@ export const controls = () => [
     }),
     ui.DatePicker({ label: "Locked", value: "2026-03-10", onChange: keep, disabled: true }),
   ),
+  // The same days for the ranges. Leave has no bounds and no minimum length, so the same day
+  // pressed twice is a range of one day.
+  el(
+    "div",
+    { class: "grid gap-4 sm:grid-cols-2" },
+    ui.DateRangePicker({
+      label: "Stay",
+      ...bind("stay"),
+      min: "2026-03-05",
+      max: "2026-04-20",
+      minLength: 2,
+      maxLength: 14,
+      startLabel: "Check-in",
+      endLabel: "Check-out",
+      description: "Two nights at least.",
+    }),
+    ui.DateRangePicker({
+      label: "Leave",
+      placeholder: "Choose the days",
+      ...bind("leave"),
+      error: (state) => (state.leave === undefined ? "Choose the days of your leave." : undefined),
+    }),
+    ui.DateRangePicker({
+      label: "Locked range",
+      value: { start: "2026-03-10", end: "2026-03-14" },
+      onChange: keep,
+      disabled: true,
+    }),
+  ),
   el(
     "div",
     { class: "grid gap-x-8 gap-y-6 sm:grid-cols-2" },

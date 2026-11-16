@@ -96,10 +96,11 @@ export type Screen = {
 
 // The props of the data are derived from Components, with a mark standing for the framework
 // node: a slot takes children, a callback (a prop named `on` and a capital, as isCallback reads
-// it) takes an On, and any other prop a Live value. A wrong name or a wrong value is a type
-// error where the screen is written. A node is a prop of the component itself or a child, never
-// a field of a list item or of an object: Svelte hands a component a node only as a snippet
-// prop, and a snippet that draws components can only be written in a template.
+// it) takes an On, and any other prop a Live value, an object such as a date range as a whole
+// or field by field. A wrong name or a wrong value is a type error where the screen is written.
+// A node is a prop of the component itself or a child, never a field of a list item or of an
+// object: Svelte hands a component a node only as a snippet prop, and a snippet that draws
+// components can only be written in a template.
 declare const SLOT: unique symbol;
 type SlotMark = { readonly [SLOT]: true };
 type Args<F> = F extends (...args: infer A) => unknown ? A : never;
@@ -115,7 +116,7 @@ type Field<T, S, Top extends boolean> = [NonNullable<T>] extends [SlotMark]
   : [NonNullable<T>] extends [readonly (infer E)[]]
     ? Live<readonly Item<E, S>[], S>
     : [NonNullable<T>] extends [object]
-      ? Fields<NonNullable<T>, S, false>
+      ? Fields<NonNullable<T>, S, false> | ((state: S) => T)
       : Live<T, S>;
 type Item<E, S> = E extends object ? Fields<E, S, false> : E;
 

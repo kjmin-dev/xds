@@ -23,6 +23,11 @@ export { default as Chip, type ChipProps } from "./Chip.vue";
 export { default as ChipBar, type ChipBarProps } from "./ChipBar.vue";
 export { default as CountBadge, type CountBadgeProps } from "./CountBadge.vue";
 export { default as DatePicker, type DatePickerProps, type IsoDate } from "./DatePicker.vue";
+export {
+  type DateRange,
+  default as DateRangePicker,
+  type DateRangePickerProps,
+} from "./DateRangePicker.vue";
 export { default as Dialog, type DialogProps } from "./Dialog.vue";
 export { default as Divider } from "./Divider.vue";
 export { default as EmptyState, type EmptyStateProps } from "./EmptyState.vue";

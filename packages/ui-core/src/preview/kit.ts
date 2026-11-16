@@ -1,5 +1,6 @@
 // The state of the design preview, and the functions its sections are written with.
 
+import type { DateRange } from "../date-range-picker.ts";
 import { builder, type Child } from "./model.ts";
 
 /** Every value the design preview's controls hold, by slot. */
@@ -32,6 +33,8 @@ export type DesignState = {
   fontSize: number;
   dueDate: string;
   startDate: string | undefined;
+  stay: DateRange;
+  leave: DateRange | undefined;
   // Chips, Tabs, Banners, Card, Media, Sidebar, Accordion
   filters: readonly string[];
   page: string;

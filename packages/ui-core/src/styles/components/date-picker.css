@@ -12,6 +12,16 @@
  * `[data-disabled]` (outside `min`..`max`), `[data-outside-range]` (a day of the month before
  * or after). On the content: `[data-side]`, and `[data-state="closed"]` while it animates out.
  * The positioner stacks by `--layer-overlay` and Zag's `--layer-index`.
+ *
+ * DateRangePicker draws the same calendar under `.date-range-picker` (its root, beside
+ * `.date-picker`) and `.date-range-picker__content`, with more parts: `__summary` (the two ends
+ * named), `__months` (the months side by side), `__month` (one month: its header and its grid),
+ * and `__nav-space` (where the other month has a month button). States on a day, from Zag's
+ * range mode: `[data-in-range]` (in the range, or in the preview of one), `[data-range-start]`
+ * and `[data-range-end]` (the ends, which are `[data-selected]` too), and
+ * `[data-hover-range-start]` and `[data-hover-range-end]` (the ends of the preview to the day
+ * under the pointer or the keyboard's focus while the end is chosen), and `[data-unavailable]`
+ * (a day the length rules out as the end, which is `[data-disabled]` too).
  */
 @layer components {
   /* Over the page and under the open calendar, as under a Select's list: a press outside only
@@ -184,11 +194,153 @@
     background-color: var(--acme-color-date-picker-selected-background-pressed);
   }
 
+  /* DateRangePicker. A day in the band: its number in the band's text color, and the band's own
+     fills under the pointer and the keyboard. The ends keep the chosen day's circle. */
+  .date-picker__day[data-in-range]:not(
+      [data-selected],
+      [data-hover-range-end],
+      [data-disabled],
+      [data-today]
+    ) {
+    color: var(--acme-color-date-picker-range-text);
+  }
+
+  @media (hover: hover) {
+    .date-picker__day[data-in-range]:not(
+        [data-selected],
+        [data-hover-range-end],
+        [data-disabled]
+      ):hover {
+      background-color: var(--acme-color-date-picker-range-background-hover);
+    }
+  }
+
+  .date-picker__day[data-in-range]:not(
+      [data-selected],
+      [data-hover-range-end],
+      [data-disabled]
+    ):focus-visible {
+    background-color: var(--acme-color-date-picker-range-background-hover);
+  }
+
+  .date-picker__day[data-in-range]:not(
+      [data-selected],
+      [data-hover-range-end],
+      [data-disabled]
+    ):active {
+    background-color: var(--acme-color-date-picker-range-background-pressed);
+  }
+
+  /* The day a preview runs to is drawn as the end it would be. */
+  .date-picker__day[data-hover-range-end] {
+    background-color: var(--acme-color-date-picker-selected-background);
+    color: var(--acme-color-date-picker-selected-text);
+  }
+
+  .date-picker__day[data-hover-range-end][data-today]:not(:focus-visible) {
+    box-shadow: none;
+  }
+
+  @media (hover: hover) {
+    .date-picker__day[data-hover-range-end]:hover {
+      background-color: var(--acme-color-date-picker-selected-background-hover);
+    }
+  }
+
+  .date-picker__day[data-hover-range-end]:active {
+    background-color: var(--acme-color-date-picker-selected-background-pressed);
+  }
+
   /* Outside `min`..`max`: dimmed, and nothing under the pointer. Last, so it outranks the
-     states above. */
-  .date-picker__day[data-disabled] {
+     states above. A range's start alone is unavailable as its own end while the length rules
+     it out, and stays the start's circle. */
+  .date-picker__day[data-disabled]:not([data-selected][data-unavailable]) {
     background-color: transparent;
     color: var(--acme-color-date-picker-disabled-text);
     cursor: default;
+  }
+
+  .date-picker__day[data-selected][data-unavailable] {
+    background-color: var(--acme-color-date-picker-selected-background);
+    cursor: default;
+  }
+}
+
+/*
+ * DateRangePicker's surface and its band. The band is drawn under the days of each cell in the
+ * range, as tall as a day's circle, and runs from the middle of the start's cell to the middle
+ * of the end's: the ends are circles on it. It is rounded at the ends of each week, and runs to
+ * the edge of a cell elsewhere, so that a range into the next month runs on across its grid.
+ * The days of the months around are hidden, and so is the band under them. Logical insets and
+ * corners, so that a right-to-left calendar mirrors it.
+ */
+@layer components {
+  /* As wide as the months, which it does not widen: the two ends go on two lines over one. */
+  .date-range-picker__summary {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    column-gap: var(--acme-space-3);
+    contain: inline-size;
+    font-size: var(--acme-typography-footnote-size);
+    font-weight: var(--acme-typography-footnote-weight);
+    line-height: var(--acme-typography-footnote-line-height);
+    letter-spacing: var(--acme-typography-footnote-letter-spacing);
+    color: var(--acme-color-date-picker-weekday);
+  }
+
+  .date-range-picker__months {
+    display: flex;
+    gap: var(--acme-space-4);
+  }
+
+  .date-range-picker__month {
+    display: flex;
+    flex-direction: column;
+    gap: var(--acme-space-2);
+  }
+
+  /* As wide as a month button, so that each heading is centered over its grid. */
+  .date-range-picker__nav-space {
+    flex: none;
+    width: var(--acme-size-control-sm);
+  }
+
+  /* Above the band, which is positioned. */
+  .date-range-picker__content .date-picker__day {
+    position: relative;
+  }
+
+  .date-range-picker__content .date-picker__cell {
+    position: relative;
+  }
+
+  .date-picker__cell:has(> [data-in-range]:not([data-outside-range]))::before {
+    content: "";
+    position: absolute;
+    inset-block: var(--acme-space-0-5);
+    inset-inline: 0;
+    background: var(--acme-color-date-picker-range-background);
+  }
+
+  /* A range of one day has both, and no band. */
+  .date-picker__cell:has(
+      > [data-in-range]:is([data-range-start], [data-hover-range-start])
+    )::before {
+    inset-inline-start: 50%;
+  }
+
+  .date-picker__cell:has(> [data-in-range]:is([data-range-end], [data-hover-range-end]))::before {
+    inset-inline-end: 50%;
+  }
+
+  .date-picker__cell:first-child::before {
+    border-start-start-radius: var(--acme-radius-full);
+    border-end-start-radius: var(--acme-radius-full);
+  }
+
+  .date-picker__cell:last-child::before {
+    border-start-end-radius: var(--acme-radius-full);
+    border-end-end-radius: var(--acme-radius-full);
   }
 }

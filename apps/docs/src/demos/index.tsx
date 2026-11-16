@@ -16,6 +16,8 @@ import {
   ChipBar,
   CountBadge,
   DatePicker,
+  type DateRange,
+  DateRangePicker,
   Dialog,
   Divider,
   EmptyState,
@@ -882,6 +884,41 @@ function DatePickerDemo() {
   );
 }
 
+function DateRangePickerDemo() {
+  const [stay, setStay] = useState<DateRange>({ start: "2026-03-10", end: "2026-03-14" });
+  const [leave, setLeave] = useState<DateRange>();
+  return (
+    // Tall enough for the open calendar, which would otherwise be cut off by the frame.
+    <div className="grid min-h-128 content-start gap-4 sm:grid-cols-2">
+      <DateRangePicker
+        label="Stay"
+        value={stay}
+        onChange={setStay}
+        min="2026-03-05"
+        max="2026-04-20"
+        minLength={2}
+        maxLength={14}
+        startLabel="Check-in"
+        endLabel="Check-out"
+        description="Two nights at least."
+      />
+      <DateRangePicker
+        label="Leave"
+        placeholder="Choose the days"
+        value={leave}
+        onChange={setLeave}
+        error={leave === undefined ? "Choose the days of your leave." : undefined}
+      />
+      <DateRangePicker
+        label="Locked range"
+        value={{ start: "2026-03-10", end: "2026-03-14" }}
+        onChange={() => {}}
+        disabled
+      />
+    </div>
+  );
+}
+
 function SliderDemo() {
   const [volume, setVolume] = useState(60);
   const [size, setSize] = useState(16);
@@ -1111,6 +1148,7 @@ const DEMOS = {
   "radio-group": RadioGroupDemo,
   select: SelectDemo,
   "date-picker": DatePickerDemo,
+  "date-range-picker": DateRangePickerDemo,
   slider: SliderDemo,
   thumbnail: ThumbnailDemo,
   "media-card": MediaCardDemo,

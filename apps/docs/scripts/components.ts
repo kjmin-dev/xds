@@ -1153,7 +1153,7 @@ export const COMPONENTS: Component[] = [
       "Pressed, a calendar of one month opens under the field, on the chosen day, or on today while none is. Days before `min` or after `max` are dimmed and cannot be chosen. Today has a ring; the chosen day is a filled circle.",
       "Choosing a day calls `onChange` with it as `YYYY-MM-DD` and closes the calendar. A press outside or Escape closes it without a choice, and the focus goes back to the field.",
       "The field is a button that says it opens a dialog and whether it is open. In the calendar the arrow keys move a day or a week, Page Up and Page Down a month (a year with Shift), and Home and End to the first and the last day of the month, never past `min` or `max`. Tab goes round the month buttons and the focused day.",
-      "The names of the months and days, the form of the day and the first day of the week follow the language of the page, and on GPUI and Compose the system's. One day only: there is no typing a date, no range, and no month or year view.",
+      "The names of the months and days, the form of the day and the first day of the week follow the language of the page, and on GPUI, Compose and React Native the system's. One day only: there is no typing a date, no range, and no month or year view.",
     ],
     example: `import { DatePicker } from "@acme/ui";
 

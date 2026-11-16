@@ -4,6 +4,8 @@
 //
 //   navigation  TopBar and TabBar: the design preview's Navigation section at the top of a phone
 //   sheet       BottomSheet: the same screen with the sheet open, and on iOS a clip of it rising
+//   datepicker  DatePicker: the preview's first date picker with its calendar open, which on iOS
+//               and Android is the system's
 //
 // Besides ffmpeg and cwebp (`brew install ffmpeg webp`), each platform needs:
 //
@@ -44,22 +46,23 @@ const docs = join(import.meta.dirname, "..");
 const build = join(docs, ".capture");
 const manifestFile = join(docs, "captures.json");
 
+/** The same words for iOS and Android, where React Native draws the same thing on both. */
+const reactNative = (alt: string) => ({ ios: alt, android: alt });
+
 /**
  * What each capture shows. React Native and Compose word their samples differently, so each
- * describes its own.
+ * describes its own, and where the system draws a part, iOS and Android differ too.
  */
-const NAMES: Record<
-  CaptureName,
-  { components: string[]; alt: { "mobile-react-native": string; "kotlin-compose": string } }
-> = {
+const NAMES: Record<CaptureName, { components: string[]; alt: Record<CapturePlatform, string> }> = {
   navigation: {
     components: ["TopBar", "TabBar"],
     alt: {
-      "mobile-react-native":
+      ...reactNative(
         "A phone screen showing the Navigation section of the design preview: a top bar titled " +
-        "Settings with a back button and an Edit button, a button labeled Open a bottom sheet, " +
-        "and a floating tab bar with Home, Search and Profile, Home selected.",
-      "kotlin-compose":
+          "Settings with a back button and an Edit button, a button labeled Open a bottom " +
+          "sheet, and a floating tab bar with Home, Search and Profile, Home selected.",
+      ),
+      compose:
         "A phone screen showing the Navigation section of the design preview: a top bar titled " +
         "Settings with a back button and an Edit button, a floating tab bar with Home, Search " +
         "and Profile, Home selected, and a button labeled Open the sheet.",
@@ -68,14 +71,32 @@ const NAMES: Record<
   sheet: {
     components: ["BottomSheet"],
     alt: {
-      "mobile-react-native":
+      ...reactNative(
         "A bottom sheet risen from the bottom of a phone screen over the dimmed design preview, " +
-        "with a handle, the title Share report, a line of text, a Copy link button and a Cancel " +
-        "button.",
-      "kotlin-compose":
+          "with a handle, the title Share report, a line of text, a Copy link button and a " +
+          "Cancel button.",
+      ),
+      compose:
         "A bottom sheet risen from the bottom of a phone screen over the dimmed design preview, " +
         "with a handle, the title Share the report, a line of text, a Copy the link button and a " +
         "Cancel button.",
+    },
+  },
+  datepicker: {
+    components: ["DatePicker"],
+    alt: {
+      ios:
+        "A bottom sheet titled Due date over the dimmed design preview, holding the iOS " +
+        "calendar for March 2026 with the 10th chosen and the days before the 5th greyed out, " +
+        "and a Done button under it.",
+      android:
+        "Material's date dialog over the dimmed design preview: the title Select date, the " +
+        "chosen day Mar 10, 2026, the calendar for March 2026 with the 10th chosen and the days " +
+        "before the 5th greyed out, and Cancel and OK buttons.",
+      compose:
+        "A bottom sheet titled Due date over the dimmed design preview, holding the calendar " +
+        "for March 2026 drawn from the tokens, with the 10th chosen and the days before the 5th " +
+        "greyed out.",
     },
   },
 };
@@ -85,7 +106,7 @@ const TAKE: Record<
   (names: CaptureName[], workspace: Workspace) => Promise<Taken>
 > = { ios: takeIos, android: takeAndroid, compose: takeCompose };
 
-const CLIENT: Record<CapturePlatform, keyof (typeof NAMES)[CaptureName]["alt"]> = {
+const CLIENT: Record<CapturePlatform, string> = {
   ios: "mobile-react-native",
   android: "mobile-react-native",
   compose: "kotlin-compose",
@@ -161,7 +182,7 @@ async function record(platform: CapturePlatform, taken: Taken) {
       client,
       source: taken.source,
       date,
-      alt: NAMES[name].alt[client],
+      alt: NAMES[name].alt[platform],
       ...(raw.clip ? { clip: true } : {}),
     };
     const capture: Capture = {

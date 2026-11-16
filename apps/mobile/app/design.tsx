@@ -5,7 +5,8 @@
 // `/design?section=navigation` starts at the section with that key, and `/design?from=3` at the
 // third section, for taking screenshots from a script, which can neither scroll nor tap. For the
 // same reason `/design?sheet=1` opens the bottom sheet, `?menu=1` the menu, `?select=1` the
-// select's list, `?dialog=1` the dialog and `?toast=1` the toast, which then stays.
+// select's list, `?datepicker=1` the system's calendar on the first date picker, `?dialog=1` the
+// dialog and `?toast=1` the toast, which then stays.
 
 import {
   border,
@@ -35,6 +36,7 @@ import {
   ChipBar,
   type ControlSize,
   CountBadge,
+  DatePicker,
   Dialog,
   Divider,
   EmptyState,
@@ -42,6 +44,7 @@ import {
   IconButton,
   type IconName,
   type IconSize,
+  type IsoDate,
   ListRow,
   MediaCard,
   Menu,
@@ -291,6 +294,10 @@ export default function Design() {
   const [country, setCountry] = useState<(typeof COUNTRIES)[number]["value"]>();
   const [zone, setZone] = useState<(typeof TIME_ZONES)[number]["value"]>("seoul");
   const [language, setLanguage] = useState<(typeof LANGUAGES)[number]["value"]>();
+  // Fixed days, in a month that is over: the system's calendars mark today, and a picture of
+  // them must not change from one day to the next.
+  const [due, setDue] = useState<IsoDate>("2026-03-10");
+  const [starts, setStarts] = useState<IsoDate>();
   const [volume, setVolume] = useState(40);
   const [speed, setSpeed] = useState(1.25);
   const [question, setQuestion] = useState<readonly string[]>(["refund"]);
@@ -301,6 +308,7 @@ export default function Design() {
     sheet?: string;
     menu?: string;
     select?: string;
+    datepicker?: string;
     dialog?: string;
     toast?: string;
   }>();
@@ -585,6 +593,25 @@ export default function Design() {
         error={language === undefined ? "Choose a language to continue." : undefined}
       />
       <Select label="Currency" options={CURRENCIES} value="krw" onChange={() => {}} disabled />
+      {/* The calendar is the system's, through Expo UI. A development or release build shows
+          it as the installed @expo/ui draws it; Expo Go carries its own, older copy. */}
+      <DatePicker
+        label="Due date"
+        description="Within the current sprint."
+        value={due}
+        onChange={setDue}
+        min="2026-03-05"
+        max="2026-04-20"
+        defaultOpen={params.datepicker === "1"}
+      />
+      <DatePicker
+        label="Start date"
+        placeholder="Choose a day"
+        value={starts}
+        onChange={setStarts}
+        error={starts === undefined ? "Choose when the project starts." : undefined}
+      />
+      <DatePicker label="Locked" value="2026-03-10" onChange={() => {}} disabled />
       <Slider label="Volume" value={volume} onChange={setVolume} showValue />
       <Slider
         label="Playback speed"

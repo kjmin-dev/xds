@@ -86,17 +86,23 @@ fun main(args: Array<String>) {
 }
 
 /**
- * The pictures of the touch-only components on their documentation pages, which
- * `mise run docs:capture` takes from here: a phone's screen with the Navigation section at the top,
- * where React Native's preview starts with `?section=navigation`, and with the sheet open over it.
+ * The pictures on the components' documentation pages, which `mise run docs:capture` takes from
+ * here, of a phone's screen: the Navigation section at the top, where React Native's preview
+ * starts with `?section=navigation`, the sheet open over it, and the Controls section with the
+ * calendar of its first date picker open, as `?section=controls&datepicker=1` shows it there.
  */
 private fun captures(directory: File) {
+    val screens = listOf(
+        Triple("navigation", "navigation", null),
+        Triple("sheet", "navigation", PreviewOverlay.Sheet),
+        Triple("datepicker", "controls", PreviewOverlay.DatePicker),
+    )
     for (mode in Mode.entries) {
-        for ((name, open) in listOf("navigation" to null, "sheet" to PreviewOverlay.Sheet)) {
+        for ((name, from, open) in screens) {
             val file = File(directory, "$name-${mode.name.lowercase()}.png")
             draw(file, 390, 844) {
                 AcmeTheme(mode, TouchSizes) {
-                    DesignPreviewScreen(onBack = {}, scrolls = true, open = open, from = "navigation")
+                    DesignPreviewScreen(onBack = {}, scrolls = true, open = open, from = from)
                 }
             }
             println(file)

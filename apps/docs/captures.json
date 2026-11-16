@@ -1,6 +1,36 @@
 {
   "captures": [
     {
+      "name": "datepicker",
+      "components": ["DatePicker"],
+      "platform": "ios",
+      "client": "mobile-react-native",
+      "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
+      "date": "2026-11-15",
+      "alt": "A bottom sheet titled Due date over the dimmed design preview, holding the iOS calendar for March 2026 with the 10th chosen and the days before the 5th greyed out, and a Done button under it.",
+      "inputs": "sha256:15e0577629a2cf4cac934afb248eaf712b0bef0341822fea94d1d919b4c2d144"
+    },
+    {
+      "name": "datepicker",
+      "components": ["DatePicker"],
+      "platform": "android",
+      "client": "mobile-react-native",
+      "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
+      "date": "2026-11-15",
+      "alt": "Material's date dialog over the dimmed design preview: the title Select date, the chosen day Mar 10, 2026, the calendar for March 2026 with the 10th chosen and the days before the 5th greyed out, and Cancel and OK buttons.",
+      "inputs": "sha256:15e0577629a2cf4cac934afb248eaf712b0bef0341822fea94d1d919b4c2d144"
+    },
+    {
+      "name": "datepicker",
+      "components": ["DatePicker"],
+      "platform": "compose",
+      "client": "kotlin-compose",
+      "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
+      "date": "2026-11-16",
+      "alt": "A bottom sheet titled Due date over the dimmed design preview, holding the calendar for March 2026 drawn from the tokens, with the 10th chosen and the days before the 5th greyed out.",
+      "inputs": "sha256:072e4dc3b9e6642cf460605b91f46f3fdada9209da4202931cd7f7bc479e5f53"
+    },
+    {
       "name": "navigation",
       "components": ["TopBar", "TabBar"],
       "platform": "ios",

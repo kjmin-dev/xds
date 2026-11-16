@@ -144,7 +144,7 @@ Inspect the design preview in both light and dark modes after making visual chan
 | Web (Svelte) | Open `http://localhost:5176/design#buttons` while the Svelte dev server is running. Each section has an anchor, `?theme=light` or `?theme=dark` pins the color mode, and `?open=menu`, `select`, `datepicker`, `daterange`, `dialog`, `toast`, or `tooltip` opens that overlay |
 <!-- @endif -->
 <!-- @if desktop-gpui -->
-| Desktop | Run `mise run //desktop:design`. Pass `--light` or `--dark` to pin the mode, `--scroll <pixels>` to open at a vertical offset, and `--open menu`, `select`, `datepicker`, `dialog`, `toast`, or `tooltip` to open with that overlay showing |
+| Desktop | Run `mise run //desktop:design`. Pass `--light` or `--dark` to pin the mode, `--scroll <pixels>` to open at a vertical offset, and `--open menu`, `select`, `datepicker`, `daterange`, `dialog`, `toast`, or `tooltip` to open with that overlay showing |
 <!-- @endif -->
 <!-- @if mobile-react-native -->
 | Mobile | Tap the preview button on the home screen, or navigate to the design route with `?section=<key>` (`navigation`), `?from=<section number>`, `?sheet=1`, `?menu=1`, `?select=1`, `?datepicker=1`, `?dialog=1`, or `?toast=1` |

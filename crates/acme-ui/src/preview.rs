@@ -27,13 +27,13 @@ use gpui_kit::{
 
 use crate::{
     Accordion, AccordionItem, Avatar, AvatarSize, AvatarStack, Badge, BadgeTone, Banner,
-    BannerTone, ButtonVariant, Chip, ChipBar, ControlSize, CountBadge, DatePicker, Dialog,
-    EmptyState, IconSize, ListRow, MediaCard, MediaCardLayout, Menu, MenuAlign, MenuItem, Person,
-    ProgressBar, RadioGroup, RadioOption, SearchField, SectionHeader, SegmentedControl, Select,
-    SelectOption, Sidebar, SidebarItem, SidebarSection, Skeleton, SkeletonShape, Slider,
-    SpinnerSize, TabItem, Tabs, TextField, Thumbnail, ThumbnailRatio, Toast, TooltipPlacement,
-    TypographyExt, button, card, checkbox, color, divider, icon, icon_button, icon_filled, mode,
-    palette, set_mode, spinner, switch, text, tooltip,
+    BannerTone, ButtonVariant, Chip, ChipBar, ControlSize, CountBadge, DatePicker, DateRange,
+    DateRangePicker, Dialog, EmptyState, IconSize, ListRow, MediaCard, MediaCardLayout, Menu,
+    MenuAlign, MenuItem, Person, ProgressBar, RadioGroup, RadioOption, SearchField, SectionHeader,
+    SegmentedControl, Select, SelectOption, Sidebar, SidebarItem, SidebarSection, Skeleton,
+    SkeletonShape, Slider, SpinnerSize, TabItem, Tabs, TextField, Thumbnail, ThumbnailRatio, Toast,
+    TooltipPlacement, TypographyExt, button, card, checkbox, color, divider, icon, icon_button,
+    icon_filled, mode, palette, set_mode, spinner, switch, text, tooltip,
 };
 
 /// Component colors are shown by the components that use them, not as swatches.
@@ -75,6 +75,7 @@ pub enum PreviewOverlay {
     Menu,
     Select,
     DatePicker,
+    DateRange,
     Dialog,
     Toast,
     Tooltip,
@@ -88,12 +89,13 @@ impl FromStr for PreviewOverlay {
             "menu" => Ok(Self::Menu),
             "select" => Ok(Self::Select),
             "datepicker" => Ok(Self::DatePicker),
+            "daterange" => Ok(Self::DateRange),
             "dialog" => Ok(Self::Dialog),
             "toast" => Ok(Self::Toast),
             "tooltip" => Ok(Self::Tooltip),
             _ => Err(format!(
-                "there is no overlay called `{name}`: use menu, select, datepicker, dialog, toast \
-                 or tooltip"
+                "there is no overlay called `{name}`: use menu, select, datepicker, daterange, \
+                 dialog, toast or tooltip"
             )),
         }
     }
@@ -397,6 +399,8 @@ pub struct DesignPreview {
     time_zone: SharedString,
     due_date: NaiveDate,
     start_date: Option<NaiveDate>,
+    stay: DateRange,
+    leave: Option<DateRange>,
     volume: f32,
     speed: f32,
     faq: Vec<SharedString>,
@@ -495,6 +499,8 @@ impl DesignPreview {
             time_zone: "seoul".into(),
             due_date: day(2026, 3, 10),
             start_date: None,
+            stay: DateRange::new(day(2026, 3, 10), day(2026, 3, 14)),
+            leave: None,
             volume: 60.0,
             speed: 1.25,
             faq: vec!["cancel".into()],
@@ -548,6 +554,7 @@ impl DesignPreview {
                             PreviewOverlay::Menu
                                 | PreviewOverlay::Select
                                 | PreviewOverlay::DatePicker
+                                | PreviewOverlay::DateRange
                                 | PreviewOverlay::Tooltip
                         )
                     );
@@ -1218,6 +1225,61 @@ impl Render for DesignPreview {
                     ),
             ),
         );
+        // The same fixed days as the date pickers': a stay inside March, and a leave with no
+        // bounds and no minimum, where the same day twice is a range of one day.
+        let date_range_pickers = self.mark_overlay(
+            PreviewOverlay::DateRange,
+            labelled("date range picker", secondary)
+                .items_start()
+                .child(
+                    div()
+                        .flex_1()
+                        .flex()
+                        .flex_wrap()
+                        .gap(px(tokens::SPACE_4))
+                        .child(
+                            div().w(px(300.0)).child(
+                                DateRangePicker::new("stay", "Stay")
+                                    .value(self.stay)
+                                    .min(day(2026, 3, 5))
+                                    .max(day(2026, 4, 20))
+                                    .min_length(2)
+                                    .max_length(14)
+                                    .start_label("Check-in")
+                                    .end_label("Check-out")
+                                    .description("Two nights at least.")
+                                    .default_open(self.overlay == Some(PreviewOverlay::DateRange))
+                                    .on_change(cx.listener(|this, value: &DateRange, _, cx| {
+                                        this.stay = *value;
+                                        cx.notify();
+                                    })),
+                            ),
+                        )
+                        .child(
+                            div().w(px(300.0)).child(
+                                DateRangePicker::new("leave", "Leave")
+                                    .when_some(self.leave, |picker, value| picker.value(value))
+                                    .placeholder("Choose the days")
+                                    .error(
+                                        self.leave
+                                            .is_none()
+                                            .then_some("Choose the days of your leave."),
+                                    )
+                                    .on_change(cx.listener(|this, value: &DateRange, _, cx| {
+                                        this.leave = Some(*value);
+                                        cx.notify();
+                                    })),
+                            ),
+                        )
+                        .child(
+                            div().w(px(300.0)).child(
+                                DateRangePicker::new("locked-range", "Locked range")
+                                    .value(DateRange::new(day(2026, 3, 10), day(2026, 3, 14)))
+                                    .disabled(true),
+                            ),
+                        ),
+                ),
+        );
         let sliders = labelled("slider", secondary)
             .items_start()
             .child(
@@ -1816,6 +1878,7 @@ impl Render for DesignPreview {
                 section("Controls")
                     .child(selects)
                     .child(date_pickers)
+                    .child(date_range_pickers)
                     .child(sliders),
             )
             .child(
@@ -2392,6 +2455,8 @@ mod tests {
     fn an_overlay_is_named_as_on_the_web() {
         assert_eq!("menu".parse(), Ok(PreviewOverlay::Menu));
         assert_eq!("select".parse(), Ok(PreviewOverlay::Select));
+        assert_eq!("datepicker".parse(), Ok(PreviewOverlay::DatePicker));
+        assert_eq!("daterange".parse(), Ok(PreviewOverlay::DateRange));
         assert_eq!("dialog".parse(), Ok(PreviewOverlay::Dialog));
         assert_eq!("toast".parse(), Ok(PreviewOverlay::Toast));
         assert_eq!("tooltip".parse(), Ok(PreviewOverlay::Tooltip));

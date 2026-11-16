@@ -249,6 +249,27 @@ const PAIRS: Pair[] = [
   ...on("date-picker.selected-background", ["date-picker.background", "sheet.background"], PART),
   ...on("date-picker.heading", ["date-picker.background", "sheet.background"], TEXT),
   ...on("date-picker.weekday", ["date-picker.background", "sheet.background"], TEXT),
+  // DateRangePicker: what is drawn on the band between the ends. The band is not checked against
+  // the calendar's surface: it is a fill that shows the span, as a selected Chip's is, and in dark
+  // mode it differs from the surface by hue more than by lightness. The ends, drawn as the chosen
+  // day, carry the choice, so their circle must stand off the band.
+  ...on(
+    "date-picker.range-text",
+    [
+      "date-picker.range-background",
+      "date-picker.range-background-hover",
+      "date-picker.range-background-pressed",
+    ],
+    TEXT,
+  ),
+  ...on(
+    "date-picker.today-text",
+    ["date-picker.range-background", "date-picker.range-background-hover"],
+    TEXT,
+  ),
+  ...on("date-picker.today-border", ["date-picker.range-background"], PART),
+  ...on("date-picker.selected-background", ["date-picker.range-background"], PART),
+  ...on("border.focus", ["date-picker.range-background"], PART),
 ];
 
 function composite(top: Rgba, bottom: Rgba): Rgba {

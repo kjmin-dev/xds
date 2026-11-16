@@ -4,7 +4,7 @@ A single set of token files serves as the source of truth, and each platform ren
 
 - Platforms share design decisions rather than component code. Token names and values are shared across targets, along with each component's variants, sizes, and tones, while each platform implements the rendering natively in its own stack.
 - Color tokens are organized into three tiers: a raw palette, semantic colors tied to UI roles, and component-specific colors. Application screens never reference the raw palette directly.
-- Accessibility contrast is verified at build time. Every token build checks 110 color pairings across both light and dark modes.
+- Accessibility contrast is verified at build time. Every token build checks 249 color pairings across both light and dark modes.
 - Control heights scale with the input device (mouse pointer vs. touch) rather than screen width.
 - Applications import only the design system package, never the underlying UI libraries directly (Zag.js on the web clients, GPUI Component on desktop, React Native primitives on mobile, and Compose foundation in the Kotlin client).
 - Accent and neutral colors are defined as themes. Five themes ship with the template, and switching between them swaps two color ramps in the palette without changing anything else.

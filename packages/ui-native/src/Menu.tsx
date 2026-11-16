@@ -1,7 +1,14 @@
 import { border, radius, space } from "@acme/tokens";
-import { cloneElement, type ReactElement, type ReactNode, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
-import { BottomSheet } from "./BottomSheet.tsx";
+import { cloneElement, type ReactElement, type ReactNode, useRef, useState } from "react";
+import {
+  PanResponder,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from "react-native";
+import { BottomSheet, DRAG_SLOP } from "./BottomSheet.tsx";
 import { Icon, type IconName } from "./Icon.tsx";
 import { Text } from "./Text.tsx";
 import { control, MenuOpen, useColors } from "./theme.ts";
@@ -112,6 +119,20 @@ export function MenuList({
   children: ReactNode;
 }) {
   const { height } = useWindowDimensions();
+  const list = useRef({ viewport: 0, content: 0 }).current;
+  const scrolls = () => list.content > list.viewport + 1;
+  // The sheet around the list moves with any drag down, a drag that starts on a row included.
+  // A list that scrolls keeps the drags that start on it instead, even at its top: Android's
+  // scroll view takes them for itself before the sheet could ask, and both systems then agree.
+  const keep = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: scrolls,
+      onMoveShouldSetPanResponder: (_, gesture) => scrolls() && Math.abs(gesture.dy) > DRAG_SLOP,
+      onPanResponderTerminationRequest: () => !scrolls(),
+      // The scroll view scrolls by itself; this only keeps the drag from the sheet.
+      onShouldBlockNativeResponder: () => false,
+    }),
+  ).current;
   return (
     <ScrollView
       role={role}
@@ -121,8 +142,14 @@ export function MenuList({
       // A list shorter than its room stays put rather than rubber-banding under a finger.
       alwaysBounceVertical={false}
       style={[styles.items, { maxHeight: height / 2 }]}
+      onLayout={(event) => {
+        list.viewport = event.nativeEvent.layout.height;
+      }}
+      onContentSizeChange={(_, contentHeight) => {
+        list.content = contentHeight;
+      }}
     >
-      {children}
+      <View {...keep.panHandlers}>{children}</View>
     </ScrollView>
   );
 }

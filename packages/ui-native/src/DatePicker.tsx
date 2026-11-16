@@ -57,7 +57,8 @@ export type DatePickerProps = {
  *
  * On Android, OK chooses the day and closes the dialog, and Cancel, Back or a tap outside
  * closes it without choosing. On iOS a press on a day chooses it at once and the sheet stays
- * for another; Done, a drag down or a tap outside closes it.
+ * for another; Done, a drag down or a tap outside closes it. A drag that starts on the calendar
+ * stays the calendar's, so the sheet is dragged by its handle, its title or the space around.
  */
 export function DatePicker({
   label,

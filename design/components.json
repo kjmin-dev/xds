@@ -1699,7 +1699,8 @@
           "startLabel",
           "endLabel",
           "previousLabel",
-          "nextLabel"
+          "nextLabel",
+          "doneLabel"
         ],
         "flags": [
           "disabled"
@@ -1733,13 +1734,42 @@
         "web-svelte": {
           "source": "packages/ui-svelte/src/DateRangePicker.svelte",
           "symbol": "DateRangePicker"
+        },
+        "desktop-gpui": {
+          "source": "crates/acme-ui/src/date_range_picker.rs",
+          "symbol": "DateRangePicker"
+        },
+        "kotlin-compose": {
+          "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/DateRangePicker.kt",
+          "symbol": "DateRangePicker"
         }
       },
       "differences": [
         {
+          "input": "touch",
+          "kind": "adapts",
+          "note": "The calendar opens in a BottomSheet titled with `label` that takes most of the screen, with the months from `min` to `max` scrolling down, the two ends named at the top and a Done button at the bottom. Pressing the end calls the callback and the sheet stays, so the range can be seen and changed; Done, a drag down, a tap outside or Back closes it, and drops a start without an end. Compose on the desktop opens the popup, as the pointer clients do. The web clients keep the popup on a touch screen."
+        },
+        {
           "input": "pointer",
           "kind": "adapts",
           "note": "The popup shows one month instead of two where two do not fit beside each other (a window narrower than about 640 px)."
+        },
+        {
+          "option": "doneLabel",
+          "clients": [
+            "kotlin-compose"
+          ],
+          "kind": "only",
+          "note": "Names the button at the bottom of the touch sheet that closes it; `Done` unless it is given. The popup has no such button."
+        },
+        {
+          "clients": [
+            "desktop-gpui",
+            "kotlin-compose"
+          ],
+          "kind": "adapts",
+          "note": "Where the platform has no formatter for a range of days (GPUI, and Compose on the desktop JVM), the field shows both days in the medium form joined by an en dash, \"Mar 10, 2026 – Mar 14, 2026\", where the others shorten what the two share, \"Mar 10 – 14, 2026\"."
         }
       ]
     },

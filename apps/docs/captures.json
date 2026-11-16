@@ -6,9 +6,9 @@
       "platform": "ios",
       "client": "mobile-react-native",
       "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
-      "date": "2026-11-15",
-      "alt": "A bottom sheet titled Due date over the dimmed design preview, holding the iOS calendar for March 2026 with the 10th chosen and the days before the 5th greyed out, and a Done button under it.",
-      "inputs": "sha256:15e0577629a2cf4cac934afb248eaf712b0bef0341822fea94d1d919b4c2d144"
+      "date": "2026-11-17",
+      "alt": "A bottom sheet titled Due date over the dimmed design preview, holding the calendar for March 2026 drawn from the tokens between buttons for the months before and after, with the 10th chosen and the days before the 5th greyed out.",
+      "inputs": "sha256:23333230bde024c32d911a3967f938f673d71fb330f8d24cd838bc7a96b1968d"
     },
     {
       "name": "datepicker",
@@ -16,9 +16,9 @@
       "platform": "android",
       "client": "mobile-react-native",
       "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
-      "date": "2026-11-15",
-      "alt": "Material's date dialog over the dimmed design preview: the title Select date, the chosen day Mar 10, 2026, the calendar for March 2026 with the 10th chosen and the days before the 5th greyed out, and Cancel and OK buttons.",
-      "inputs": "sha256:15e0577629a2cf4cac934afb248eaf712b0bef0341822fea94d1d919b4c2d144"
+      "date": "2026-11-17",
+      "alt": "A bottom sheet titled Due date over the dimmed design preview, holding the calendar for March 2026 drawn from the tokens between buttons for the months before and after, with the 10th chosen and the days before the 5th greyed out.",
+      "inputs": "sha256:23333230bde024c32d911a3967f938f673d71fb330f8d24cd838bc7a96b1968d"
     },
     {
       "name": "datepicker",
@@ -26,9 +26,39 @@
       "platform": "compose",
       "client": "kotlin-compose",
       "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
-      "date": "2026-11-16",
-      "alt": "A bottom sheet titled Due date over the dimmed design preview, holding the calendar for March 2026 drawn from the tokens, with the 10th chosen and the days before the 5th greyed out.",
-      "inputs": "sha256:072e4dc3b9e6642cf460605b91f46f3fdada9209da4202931cd7f7bc479e5f53"
+      "date": "2026-11-17",
+      "alt": "A bottom sheet titled Due date over the dimmed design preview, holding the calendar for March 2026 drawn from the tokens between buttons for the months before and after, with the 10th chosen and the days before the 5th greyed out.",
+      "inputs": "sha256:6fd5c95bdcbd522ffe4a24a0fd7bd07cc491221a1e928c98bc12e30a2a1f1bf9"
+    },
+    {
+      "name": "daterange",
+      "components": ["DateRangePicker"],
+      "platform": "ios",
+      "client": "mobile-react-native",
+      "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
+      "date": "2026-11-17",
+      "alt": "A tall bottom sheet titled Stay over the dimmed design preview: Check-in Mar 10, 2026 and Check-out Mar 14, 2026 at the top, the weekday initials, March 2026 with a band from the 10th to the 14th between two filled circles and the days before the 5th greyed out, April 2026 under it with the days after the 20th greyed out, and a Done button at the bottom.",
+      "inputs": "sha256:cb034a821ada10daa0fe5eab131726316256d52242ba7b8954c505e3672dae2b"
+    },
+    {
+      "name": "daterange",
+      "components": ["DateRangePicker"],
+      "platform": "android",
+      "client": "mobile-react-native",
+      "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
+      "date": "2026-11-17",
+      "alt": "A tall bottom sheet titled Stay over the dimmed design preview: Check-in Mar 10, 2026 and Check-out Mar 14, 2026 at the top, the weekday initials, March 2026 with a band from the 10th to the 14th between two filled circles and the days before the 5th greyed out, April 2026 under it with the days after the 20th greyed out, and a Done button at the bottom.",
+      "inputs": "sha256:cb034a821ada10daa0fe5eab131726316256d52242ba7b8954c505e3672dae2b"
+    },
+    {
+      "name": "daterange",
+      "components": ["DateRangePicker"],
+      "platform": "compose",
+      "client": "kotlin-compose",
+      "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
+      "date": "2026-11-17",
+      "alt": "A tall bottom sheet titled Stay over the dimmed design preview: Check-in Mar 10, 2026 and Check-out Mar 14, 2026 at the top, the weekday initials, March 2026 with a band from the 10th to the 14th between two filled circles and the days before the 5th greyed out, April 2026 under it with the days after the 20th greyed out, and a Done button at the bottom.",
+      "inputs": "sha256:6fd5c95bdcbd522ffe4a24a0fd7bd07cc491221a1e928c98bc12e30a2a1f1bf9"
     },
     {
       "name": "navigation",

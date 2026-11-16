@@ -159,8 +159,8 @@ async function maestro(
  * Takes the stills (and, where the device records, the clips) of every name in `names`, in both
  * modes. `navigation` and `sheet` start from the preview's Navigation section: `navigation` is a
  * picture of it, and `sheet` presses its button and records the sheet rising over it, so that
- * the clip ends on the sheet's still. `datepicker` starts the preview at Controls with the
- * calendar of its first date picker open.
+ * the clip ends on the sheet's still. `datepicker` and `daterange` start the preview at Controls
+ * with the calendar of its first date picker, or of its first date range picker, open.
  */
 export async function shoot(
   device: Device,
@@ -174,16 +174,18 @@ export async function shoot(
   await mkdir(context.raw, { recursive: true });
   for (const mode of MODES) {
     await device.setMode(mode);
-    if (names.includes("datepicker")) {
+    for (const name of ["datepicker", "daterange"] as const) {
+      if (!names.includes(name)) continue;
       await maestro(
         device,
         "open.yaml",
-        // The month the picker's day is in, which both systems' calendars write out. It is
-        // long over, so neither marks today in it, and the picture is the same every day.
-        { LINK: `${scheme}://design?section=controls&datepicker=1`, TEXT: "March 2026" },
+        // The month of the picker's day, or of its range's start, which the calendar heads with
+        // its name. It is long over, so no day in it is today, and the picture is the same every
+        // day.
+        { LINK: `${scheme}://design?section=controls&${name}=1`, TEXT: "March 2026" },
         context,
       );
-      await device.screenshot(file("datepicker", mode, "png"));
+      await device.screenshot(file(name, mode, "png"));
     }
     if (!names.includes("navigation") && !names.includes("sheet")) continue;
     await maestro(

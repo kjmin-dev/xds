@@ -49,15 +49,40 @@ const TOKEN_FILES: Record<string, string[]> = {
   "kotlin-compose": ["kotlin/ui/src/commonMain/kotlin/acme/tokens/Tokens.kt"],
 };
 
+const NATIVE_CALENDAR = [
+  "packages/ui-native/src/BottomSheet.tsx",
+  "packages/ui-native/src/Calendar.tsx",
+  "packages/ui-native/src/datePicker.ts",
+  "packages/ui-native/src/dateRange.ts",
+];
+const COMPOSE_CALENDAR = [
+  "kotlin/ui/src/commonMain/kotlin/acme/ui/BottomSheet.kt",
+  "kotlin/ui/src/commonMain/kotlin/acme/ui/DatePicker.kt",
+  "kotlin/ui/src/commonMain/kotlin/acme/ui/DateRangePicker.kt",
+];
+
+/**
+ * The files a component's source draws its picture with besides itself, where they are not in
+ * the contract: the calendar and the sheet the two date pickers share. A change to the calendar
+ * then marks the pictures of both stale.
+ */
+const PARTS: Record<string, string[]> = {
+  "packages/ui-native/src/DatePicker.tsx": NATIVE_CALENDAR,
+  "packages/ui-native/src/DateRangePicker.tsx": NATIVE_CALENDAR,
+  "kotlin/ui/src/commonMain/kotlin/acme/ui/DatePicker.kt": COMPOSE_CALENDAR,
+  "kotlin/ui/src/commonMain/kotlin/acme/ui/DateRangePicker.kt": COMPOSE_CALENDAR,
+};
+
 type Contract = {
   components: { name: string; clients: Record<string, { source: string }> }[];
 };
 
 /**
  * The files a capture depends on: the sources of the components it shows, on the client it was
- * taken from, and that client's tokens. The design preview screen that holds them is left out on
- * purpose: nearly every change to a component also changes that screen, and a picture flagged
- * after every change would teach readers to ignore the flag.
+ * taken from, the parts those sources draw with (PARTS), and that client's tokens. The design
+ * preview screen that holds them is left out on purpose: nearly every change to a component
+ * also changes that screen, and a picture flagged after every change would teach readers to
+ * ignore the flag.
  */
 export function captureInputs(capture: Capture, contract: Contract): string[] {
   const tokens = TOKEN_FILES[capture.client];
@@ -68,7 +93,8 @@ export function captureInputs(capture: Capture, contract: Contract): string[] {
     if (!source) throw new Error(`captures.json: ${name} has no ${capture.client} source`);
     return source;
   });
-  return [...new Set([...sources, ...tokens])].sort();
+  const parts = sources.flatMap((source) => PARTS[source] ?? []);
+  return [...new Set([...sources, ...parts, ...tokens])].sort();
 }
 
 /**

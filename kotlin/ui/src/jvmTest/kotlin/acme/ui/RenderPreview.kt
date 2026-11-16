@@ -91,13 +91,15 @@ fun main(args: Array<String>) {
  * The pictures on the components' documentation pages, which `mise run docs:capture` takes from
  * here, of a phone's screen: the Navigation section at the top, where React Native's preview
  * starts with `?section=navigation`, the sheet open over it, and the Controls section with the
- * calendar of its first date picker open, as `?section=controls&datepicker=1` shows it there.
+ * calendar of its first date picker open, as `?section=controls&datepicker=1` shows it there,
+ * or of its first date range picker, as `?section=controls&daterange=1` does.
  */
 private fun captures(directory: File) {
     val screens = listOf(
         Triple("navigation", "navigation", null),
         Triple("sheet", "navigation", PreviewOverlay.Sheet),
         Triple("datepicker", "controls", PreviewOverlay.DatePicker),
+        Triple("daterange", "controls", PreviewOverlay.DateRange),
     )
     for (mode in Mode.entries) {
         for ((name, from, open) in screens) {

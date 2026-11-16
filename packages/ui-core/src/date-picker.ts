@@ -221,16 +221,19 @@ export function keepCalendarFocus(
  * where it is.
  */
 export function keepDayFocused(open: boolean, content: HTMLElement | null | undefined): void {
-  const grid = open ? content?.querySelector('[role="grid"]') : undefined;
-  if (!content || !grid) return;
+  // A DateRangePicker shows a grid for each month.
+  const grids = open && content ? [...content.querySelectorAll('[role="grid"]')] : [];
+  if (!content || grids.length === 0) return;
   const active = document.activeElement;
   const lost =
     active === null ||
     active === document.body ||
-    grid.contains(active) ||
+    grids.some((grid) => grid.contains(active)) ||
     (active instanceof HTMLButtonElement && active.disabled && content.contains(active));
   if (!lost) return;
-  const day = grid.querySelector<HTMLElement>("[data-focus]:not([data-outside-range])");
+  const day = content.querySelector<HTMLElement>(
+    '[role="grid"] [data-focus]:not([data-outside-range])',
+  );
   if (day && day !== active) day.focus({ preventScroll: true });
 }
 

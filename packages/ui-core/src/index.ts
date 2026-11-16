@@ -85,6 +85,26 @@ export {
   openingDay,
   todayIso,
 } from "./date-picker.ts";
+export {
+  type DateRange,
+  type DateRangePickerBaseProps,
+  dateRangeMachineProps,
+  dateRangeTranslations,
+  daysBetween,
+  endRangeChoiceOnClose,
+  formatRange,
+  keepRangePreview,
+  type RangeDraft,
+  type RangeMonth,
+  rangeDayChoice,
+  rangeDayClick,
+  rangeGridKeyDown,
+  rangeMonths,
+  rangeMonthViews,
+  rangeSummary,
+  restartRange,
+  shownRange,
+} from "./date-range-picker.ts";
 export type { DialogBaseProps } from "./dialog.ts";
 export { dividerClass } from "./divider.ts";
 export { EMPTY_STATE_PARTS, type EmptyStateBaseProps } from "./empty-state.ts";

@@ -142,7 +142,7 @@ fun DesignPreview(onBack: () -> Unit) {
 }
 
 /** What the preview can start with open, so that it can be drawn into an image open. */
-internal enum class PreviewOverlay { Sheet, Menu, Select, DatePicker, Dialog, Toast }
+internal enum class PreviewOverlay { Sheet, Menu, Select, DatePicker, DateRange, Dialog, Toast }
 
 /**
  * @param scrolls False lays the whole page out at its full height, for drawing it into one image.
@@ -195,6 +195,7 @@ internal fun DesignPreviewScreen(onBack: () -> Unit, scrolls: Boolean, open: Pre
                         ControlsSection(
                             selectOpen = open == PreviewOverlay.Select,
                             datePickerOpen = open == PreviewOverlay.DatePicker,
+                            dateRangeOpen = open == PreviewOverlay.DateRange,
                         )
                     },
                     "chips" to { ChipsSection() },
@@ -592,9 +593,10 @@ private val Languages = listOf(
 /**
  * @param selectOpen Starts with the list of the select that has a value open.
  * @param datePickerOpen Starts with the calendar of the first date picker open.
+ * @param dateRangeOpen Starts with the calendar of the first date range picker open.
  */
 @Composable
-private fun ControlsSection(selectOpen: Boolean, datePickerOpen: Boolean) {
+private fun ControlsSection(selectOpen: Boolean, datePickerOpen: Boolean, dateRangeOpen: Boolean) {
     Section("Controls") {
         // Empty, chosen, with an error, and disabled.
         var country by remember { mutableStateOf<String?>(null) }
@@ -663,6 +665,44 @@ private fun ControlsSection(selectOpen: Boolean, datePickerOpen: Boolean) {
             error = if (start == null) "Choose when the project starts." else null,
         )
         DatePicker(label = "Locked", value = LocalDate(2026, 3, 10), onValueChange = {}, enabled = false)
+
+        // A stay of two nights at least inside March and April, a leave with no bounds and no
+        // minimum, where the same day twice is a range of one day, and a locked range.
+        var stay by remember { mutableStateOf<DateRange?>(DateRange(LocalDate(2026, 3, 10), LocalDate(2026, 3, 14))) }
+        DateRangePicker(
+            label = "Stay",
+            value = stay,
+            onValueChange = { stay = it },
+            modifier = Modifier,
+            min = LocalDate(2026, 3, 5),
+            max = LocalDate(2026, 4, 20),
+            minLength = 2,
+            maxLength = 14,
+            placeholder = null,
+            description = "Two nights at least.",
+            error = null,
+            enabled = true,
+            startLabel = "Check-in",
+            endLabel = "Check-out",
+            previousLabel = "Previous month",
+            nextLabel = "Next month",
+            doneLabel = "Done",
+            initiallyOpen = dateRangeOpen,
+        )
+        var leave by remember { mutableStateOf<DateRange?>(null) }
+        DateRangePicker(
+            label = "Leave",
+            value = leave,
+            onValueChange = { leave = it },
+            placeholder = "Choose the days",
+            error = if (leave == null) "Choose the days of your leave." else null,
+        )
+        DateRangePicker(
+            label = "Locked range",
+            value = DateRange(LocalDate(2026, 3, 10), LocalDate(2026, 3, 14)),
+            onValueChange = {},
+            enabled = false,
+        )
 
         var volume by remember { mutableStateOf(40f) }
         Slider(label = "Volume", value = volume, onValueChange = { volume = it }, showValue = true)

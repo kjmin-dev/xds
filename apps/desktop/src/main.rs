@@ -4,8 +4,9 @@
 //!   acme --design [--light | --dark]   the design preview: every token and component
 //!   acme --design --scroll <pixels>    the preview, scrolled down, for scripted screenshots
 //!   acme --design --open <overlay>     the preview with `menu`, `select`, `datepicker`,
-//!                                      `dialog`, `toast` or `tooltip` open, for scripted
-//!                                      screenshots of what only opens on a press or a hover
+//!                                      `daterange`, `dialog`, `toast` or `tooltip` open, for
+//!                                      scripted screenshots of what only opens on a press or
+//!                                      a hover
 //!
 //! Without `--light` or `--dark` the app follows the system appearance.
 

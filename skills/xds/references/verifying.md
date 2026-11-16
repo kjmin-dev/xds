@@ -60,7 +60,7 @@ The checks in `packages/ui-core/test/behavior.ts` drive each component with the 
 cargo run --package acme-desktop -- --design --dark --scroll 800 --exit-after 5
 ```
 
-`--scroll <pixels>` opens the preview at a vertical scroll offset, `--light` and `--dark` pin the color mode, `--open menu|select|datepicker|dialog|toast|tooltip` opens the preview with that overlay showing, and `--exit-after <seconds>` closes the window automatically after the given delay. Capture the window while it is open using a tool such as `screencapture`.
+`--scroll <pixels>` opens the preview at a vertical scroll offset, `--light` and `--dark` pin the color mode, `--open menu|select|datepicker|daterange|dialog|toast|tooltip` opens the preview with that overlay showing, and `--exit-after <seconds>` closes the window automatically after the given delay. Capture the window while it is open using a tool such as `screencapture`.
 
 ## React Native
 
@@ -79,7 +79,7 @@ On the iOS simulator, navigate to a specific section with `xcrun simctl openurl 
 mise run //kotlin:render
 ```
 
-This task renders the Compose preview headlessly without launching a window and writes PNG screenshots to `kotlin/build/preview`, each in a `-light` and a `-dark` version: the whole preview (`preview-touch`, `preview-pointer`), the open bottom sheet (`sheet-touch`), the open menu (`menu-touch` as a sheet, `menu-pointer` as a popup), the open select list (`select-touch`, `select-pointer`), the open calendar (`datepicker-touch` as a sheet, `datepicker-pointer` as a popup), the open dialog (`dialog-touch`, `dialog-pointer`), and the toast (`toast-touch`, `toast-pointer`). Because it runs on any OS without an emulator, it is the fastest way to visually check token changes.
+This task renders the Compose preview headlessly without launching a window and writes PNG screenshots to `kotlin/build/preview`, each in a `-light` and a `-dark` version: the whole preview (`preview-touch`, `preview-pointer`), the open bottom sheet (`sheet-touch`), the open menu (`menu-touch` as a sheet, `menu-pointer` as a popup), the open select list (`select-touch`, `select-pointer`), the open calendar (`datepicker-touch` as a sheet, `datepicker-pointer` as a popup), the open range calendar (`daterange-touch` as a tall sheet of months, `daterange-pointer` as a popup of two months), the open dialog (`dialog-touch`, `dialog-pointer`), and the toast (`toast-touch`, `toast-pointer`). Because it runs on any OS without an emulator, it is the fastest way to visually check token changes.
 
 ## What to look for
 

@@ -8,6 +8,7 @@
 mod components;
 mod controls;
 mod date_picker;
+mod date_range_picker;
 mod navigation;
 mod overlays;
 mod preview;
@@ -24,6 +25,7 @@ pub use controls::{
     Slider, SpinnerSize, TabItem, Tabs, checkbox, icon, icon_filled, initials, spinner, switch,
 };
 pub use date_picker::DatePicker;
+pub use date_range_picker::{DateRange, DateRangePicker};
 pub use navigation::{Sidebar, SidebarItem, SidebarSection};
 pub use overlays::{
     Dialog, Menu, MenuAlign, MenuItem, Select, SelectOption, Toast, Tooltip, TooltipPlacement,
@@ -32,5 +34,5 @@ pub use overlays::{
 pub use preview::{DesignPreview, PreviewOverlay};
 pub use theme::{TypographyExt, color, font, init, mode, palette, set_mode};
 
-/// The date a [`DatePicker`] takes and gives, so an app needs no chrono of its own.
+/// The date a [`DatePicker`] and a [`DateRangePicker`] take and give, so an app needs no chrono of its own.
 pub use chrono::NaiveDate;

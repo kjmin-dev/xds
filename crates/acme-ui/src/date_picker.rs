@@ -1,4 +1,5 @@
-//! The date picker: a field that opens a calendar of one month.
+//! The date picker: a field that opens a calendar of one month. The calendar is shared with
+//! the date range picker, which shows one month or two and marks a range on them.
 //!
 //! The field is a select's box, and GPUI Component's popover holds the calendar as it holds a
 //! select's list: it places it under the field, moves the focus into it, closes it on Escape
@@ -24,7 +25,7 @@ use gpui_kit::component::{
 };
 use gpui_kit::prelude::FluentBuilder;
 use gpui_kit::{
-    Anchor, AnyElement, App, Bounds, Element, ElementId, Entity, FocusHandle, GlobalElementId,
+    Anchor, AnyElement, App, Bounds, Div, Element, ElementId, Entity, FocusHandle, GlobalElementId,
     InspectorElementId, InteractiveElement, IntoElement, KeyDownEvent, LayoutId, MouseButton,
     ParentElement, Pixels, RenderOnce, Role, SharedString, StatefulInteractiveElement,
     StyleRefinement, Styled, Window, accesskit, div, px,
@@ -34,6 +35,10 @@ use crate::components::{
     ControlSize, field_frame, field_label, field_note, field_outline, icon_button, shadow,
 };
 use crate::controls::{IconSize, focus_handle, icon};
+use crate::date_range_picker::{
+    BandEdge, DateRange, DayMarks, RangeChoice, RangeChoosing, day_marks, months_for_width,
+    range_day_choice,
+};
 use crate::theme::{TypographyExt, color, palette};
 
 // ---------------------------------------------------------------- dates
@@ -85,18 +90,50 @@ pub(crate) fn month_button_enabled(
     }
 }
 
-/// What pressing a month button does to the focused day `day`: the day it moves to, and
-/// whether that day takes the focus. It does when the move disables the button, which would
-/// otherwise keep a focus no key can use, as React Aria hands it to the day; otherwise the
-/// focus stays on the button, for the next press.
-pub(crate) fn press_month_button(
+/// What pressing a month button does while `count` months are shown from the month of
+/// `first` and `day` has the focus: the button before (`direction` -1) or after (+1) moves both
+/// by `count` months, as Zag's `pageBehavior: "visible"` does. It gives the first month shown,
+/// the day moved to, and whether that day takes the focus. It does when the move disables the
+/// button, which would otherwise keep a focus no key can use, as React Aria hands it to the
+/// day; otherwise the focus stays on the button, for the next press.
+pub(crate) fn page_months(
+    first: NaiveDate,
     day: NaiveDate,
-    months: i32,
+    direction: i32,
+    count: u32,
     min: Option<NaiveDate>,
     max: Option<NaiveDate>,
-) -> (NaiveDate, bool) {
+) -> (NaiveDate, NaiveDate, bool) {
+    let months = direction * count as i32;
     let to = clamp(add_months(day, months), min, max);
-    (to, !month_button_enabled(to, months, min, max))
+    let first = keep_in_view(add_months(first_of_month(first), months), to, count);
+    let edge = if direction < 0 {
+        first
+    } else {
+        add_months(first, count as i32 - 1)
+    };
+    (first, to, !month_button_enabled(edge, direction, min, max))
+}
+
+/// The first month shown: the month of `first`, unless `day` is outside the `count` months
+/// from it, when the view moves as little as it takes to show `day`.
+pub(crate) fn keep_in_view(first: NaiveDate, day: NaiveDate, count: u32) -> NaiveDate {
+    let (first, month) = (first_of_month(first), first_of_month(day));
+    let behind = count.max(1) as i32 - 1;
+    if month < first {
+        month
+    } else if month > add_months(first, behind) {
+        add_months(month, -behind)
+    } else {
+        first
+    }
+}
+
+/// The first day of each of the `count` months shown from the month of `first`.
+pub(crate) fn visible_months(first: NaiveDate, count: u32) -> Vec<NaiveDate> {
+    (0..count.max(1) as i32)
+        .map(|index| add_months(first_of_month(first), index))
+        .collect()
 }
 
 /// `day` moved by whole months. A day the shorter month lacks is held to its last day, as
@@ -356,21 +393,40 @@ impl CalendarLocale {
     }
 }
 
-// ---------------------------------------------------------------- disabled
+// ---------------------------------------------------------------- accessibility
 
-/// Marks an element's accessibility node disabled. GPUI has no setter for it, and GPUI Base
-/// keeps its own wrapper to itself; this one adds no layout node, focus stop or node of its
-/// own.
-struct Disabled<E> {
+/// What an accessibility node says that GPUI has no setter for: that it is disabled, that it is
+/// a grid where more than one day can be selected, and that it is read out when it changes.
+/// GPUI Base keeps its own wrapper to itself.
+#[derive(Debug, Clone, Copy, Default)]
+pub(crate) struct NodeFlags {
+    pub(crate) disabled: bool,
+    pub(crate) multiselectable: bool,
+    pub(crate) polite: bool,
+}
+
+/// An element with [`NodeFlags`] written onto its node. It adds no layout node, focus stop or
+/// node of its own.
+pub(crate) struct Flagged<E> {
     inner: E,
-    disabled: bool,
+    flags: NodeFlags,
 }
 
-fn a11y_disabled<E: Element>(inner: E, disabled: bool) -> Disabled<E> {
-    Disabled { inner, disabled }
+pub(crate) fn a11y_flags<E: Element>(inner: E, flags: NodeFlags) -> Flagged<E> {
+    Flagged { inner, flags }
 }
 
-impl<E: Element> IntoElement for Disabled<E> {
+pub(crate) fn a11y_disabled<E: Element>(inner: E, disabled: bool) -> Flagged<E> {
+    a11y_flags(
+        inner,
+        NodeFlags {
+            disabled,
+            ..NodeFlags::default()
+        },
+    )
+}
+
+impl<E: Element> IntoElement for Flagged<E> {
     type Element = Self;
 
     fn into_element(self) -> Self {
@@ -378,7 +434,7 @@ impl<E: Element> IntoElement for Disabled<E> {
     }
 }
 
-impl<E: Element> Element for Disabled<E> {
+impl<E: Element> Element for Flagged<E> {
     type RequestLayoutState = E::RequestLayoutState;
     type PrepaintState = E::PrepaintState;
 
@@ -433,8 +489,14 @@ impl<E: Element> Element for Disabled<E> {
 
     fn write_a11y_info(&self, node: &mut accesskit::Node) {
         self.inner.write_a11y_info(node);
-        if self.disabled {
+        if self.flags.disabled {
             node.set_disabled();
+        }
+        if self.flags.multiselectable {
+            node.set_multiselectable();
+        }
+        if self.flags.polite {
+            node.set_live(accesskit::Live::Polite);
         }
     }
 
@@ -449,7 +511,7 @@ impl<E: Element> Element for Disabled<E> {
 
 // ---------------------------------------------------------------- date picker
 
-type DateHandler = Rc<dyn Fn(&NaiveDate, &mut Window, &mut App)>;
+pub(crate) type DateHandler = Rc<dyn Fn(&NaiveDate, &mut Window, &mut App)>;
 
 /// A field for choosing one day. Closed, it looks like a select: the same label, box,
 /// description and error, with the chosen day in the locale's medium form. Pressed, or on
@@ -644,17 +706,37 @@ impl RenderOnce for DateField {
     }
 }
 
-/// What a calendar keeps while it is open: the day with the focus, and a focus handle for
-/// each day it shows. The handles are made outside the calendar, where the field is built, so
-/// the popover can give the focus to the day it opens on.
+/// What a calendar keeps while it is open: the day with the focus, the months it shows, a
+/// range being chosen, and a focus handle for each day it shows. The handles are made outside
+/// the calendar, where the field is built, so the popover can give the focus to the day it
+/// opens on.
 #[derive(Default)]
-struct CalendarState {
+pub(crate) struct CalendarState {
     /// Unset until a key or a month button moves away from the day the calendar opened on.
     active: Cell<Option<NaiveDate>>,
+    /// The first month shown, once the calendar has been drawn.
+    first: Cell<Option<NaiveDate>>,
+    /// How many months are shown side by side, counted once when the calendar opens, so that
+    /// resizing the window does not rearrange it under the pointer.
+    count: Cell<Option<u32>>,
     days: RefCell<HashMap<NaiveDate, FocusHandle>>,
+    /// The start of a range chosen without its end yet. Unset while the calendar shows the
+    /// range that was given.
+    draft: RefCell<Option<Vec<NaiveDate>>>,
+    /// The end of the range a press would make, under the pointer or the keyboard's focus.
+    preview: Cell<Option<NaiveDate>>,
 }
 
 impl CalendarState {
+    /// Each opening starts again from what was chosen, and drops a start without an end.
+    fn reset(&self) {
+        self.active.set(None);
+        self.first.set(None);
+        self.count.set(None);
+        self.draft.replace(None);
+        self.preview.set(None);
+    }
+
     fn handle(&self, day: NaiveDate, cx: &mut App) -> FocusHandle {
         self.days
             .borrow_mut()
@@ -663,15 +745,25 @@ impl CalendarState {
             .clone()
     }
 
-    /// Keeps the handles of the month of `shown` and of the day the calendar opens on, and
-    /// drops the rest.
-    fn keep(&self, shown: NaiveDate, opening: NaiveDate, cx: &mut App) {
-        let (first, last) = (first_of_month(shown), last_of_month(shown));
+    /// Keeps the handles of the months shown, each given by a day in it, and of the day the
+    /// calendar opens on, and drops the rest.
+    fn keep(&self, months: &[NaiveDate], opening: NaiveDate, cx: &mut App) {
+        let shown = |day: &NaiveDate| {
+            months
+                .iter()
+                .any(|month| (first_of_month(*month)..=last_of_month(*month)).contains(day))
+        };
         self.days
             .borrow_mut()
-            .retain(|day, _| (first..=last).contains(day) || *day == opening);
-        for day in first.iter_days().take_while(|day| *day <= last) {
-            self.handle(day, cx);
+            .retain(|day, _| shown(day) || *day == opening);
+        for month in months {
+            let last = last_of_month(*month);
+            for day in first_of_month(*month)
+                .iter_days()
+                .take_while(|day| *day <= last)
+            {
+                self.handle(day, cx);
+            }
         }
         self.handle(opening, cx);
     }
@@ -685,11 +777,21 @@ impl CalendarState {
     }
 }
 
+/// What the calendar chooses, and what it calls with it.
+pub(crate) enum Choosing {
+    Day {
+        value: Option<NaiveDate>,
+        on_change: Option<DateHandler>,
+    },
+    Range(RangeChoosing),
+}
+
 /// What the calendar is drawn from, shared with the popover, which draws it whenever it draws.
+/// DatePicker and DateRangePicker draw the same calendar: one month or more, each a grid of
+/// days, which a range marks with a band between its ends.
 struct Calendar {
     id: ElementId,
     label: SharedString,
-    value: Option<NaiveDate>,
     min: Option<NaiveDate>,
     max: Option<NaiveDate>,
     today: NaiveDate,
@@ -697,7 +799,7 @@ struct Calendar {
     locale: CalendarLocale,
     previous_label: SharedString,
     next_label: SharedString,
-    on_change: Option<DateHandler>,
+    choosing: Choosing,
     state: Rc<CalendarState>,
 }
 
@@ -706,11 +808,86 @@ impl Calendar {
         self.state.active.get().unwrap_or(self.opening)
     }
 
-    /// Calls `on_change` with `day` and closes the calendar, which gives the focus back to
-    /// the field.
-    fn choose(
+    /// How many months are shown: one for a day, and for a range two where the window has
+    /// room for them when the calendar opens.
+    fn count(&self, window: &Window) -> u32 {
+        match &self.choosing {
+            Choosing::Day { .. } => 1,
+            Choosing::Range(_) => self.state.count.get().unwrap_or_else(|| {
+                let count = months_for_width(f32::from(window.viewport_size().width));
+                self.state.count.set(Some(count));
+                count
+            }),
+        }
+    }
+
+    /// The first day of each month shown: from the opening one, moved as little as it takes
+    /// to show the day with the focus.
+    fn months(&self, window: &Window) -> Vec<NaiveDate> {
+        let count = self.count(window);
+        let first = keep_in_view(
+            self.state.first.get().unwrap_or(self.opening),
+            self.active(),
+            count,
+        );
+        self.state.first.set(Some(first));
+        visible_months(first, count)
+    }
+
+    /// The days the calendar shows chosen: the day, the range, or a start alone.
+    fn draft(&self) -> Vec<NaiveDate> {
+        match &self.choosing {
+            Choosing::Day { value, .. } => value.iter().copied().collect(),
+            Choosing::Range(range) => self
+                .state
+                .draft
+                .borrow()
+                .clone()
+                .unwrap_or_else(|| range.committed()),
+        }
+    }
+
+    fn marks(&self, day: NaiveDate, draft: &[NaiveDate]) -> DayMarks {
+        match &self.choosing {
+            Choosing::Day { value, .. } => DayMarks::chosen(*value == Some(day)),
+            Choosing::Range(_) => day_marks(
+                day,
+                draft,
+                self.state.preview.get(),
+                self.locale.first_weekday(),
+            ),
+        }
+    }
+
+    /// Whether a press on `day`, which is inside `min`..`max`, does anything. While a range
+    /// has its start alone, the days after it that the length does not allow do not.
+    fn choosable(&self, day: NaiveDate, draft: &[NaiveDate]) -> bool {
+        match &self.choosing {
+            Choosing::Day { .. } => true,
+            Choosing::Range(range) => {
+                range_day_choice(draft, day, range.min_length, range.max_length)
+                    != RangeChoice::None
+            }
+        }
+    }
+
+    /// Moves the focus to `day`; while a range has its start alone, the range the focused day
+    /// would end is shown, as under the pointer.
+    fn move_to(&self, day: NaiveDate, window: &mut Window, cx: &mut App) {
+        if let Choosing::Range(range) = &self.choosing {
+            self.state.preview.set(range.preview(&self.draft(), day));
+        }
+        self.state.focus(day, window, cx);
+    }
+
+    /// A press on `day`, by the pointer or by Enter or Space. A day calls `on_change` and
+    /// closes the calendar, which gives the focus back to the field. A range's first press
+    /// keeps the start and the calendar open, and its second calls `on_change` with the range
+    /// and closes it.
+    fn press(
         &self,
         day: NaiveDate,
+        keyboard: bool,
         popover: &Entity<PopoverState>,
         window: &mut Window,
         cx: &mut App,
@@ -718,8 +895,36 @@ impl Calendar {
         if clamp(day, self.min, self.max) != day {
             return;
         }
-        if let Some(on_change) = &self.on_change {
-            on_change(&day, window, cx);
+        match &self.choosing {
+            Choosing::Day { on_change, .. } => {
+                if let Some(on_change) = on_change {
+                    on_change(&day, window, cx);
+                }
+            }
+            Choosing::Range(range) => {
+                let draft = self.draft();
+                match range_day_choice(&draft, day, range.min_length, range.max_length) {
+                    RangeChoice::None => return,
+                    RangeChoice::Start => {
+                        self.state.draft.replace(Some(vec![day]));
+                        self.state.preview.set(None);
+                        // From the keyboard the focus goes on to the next day, so that the
+                        // range it would make shows at once, as on the web.
+                        let next = if keyboard {
+                            move_focus(day, CalendarKey::Right, self.min, self.max)
+                        } else {
+                            day
+                        };
+                        self.move_to(next, window, cx);
+                        return;
+                    }
+                    RangeChoice::End => {
+                        if let (Some(on_change), Some(start)) = (&range.on_change, draft.first()) {
+                            on_change(&DateRange::new(*start, day), window, cx);
+                        }
+                    }
+                }
+            }
         }
         popover.update(cx, |popover, cx| popover.dismiss(window, cx));
     }
@@ -731,23 +936,132 @@ impl Calendar {
         cx: &mut App,
     ) -> AnyElement {
         let c = palette(cx);
-        let active = self.active();
-        let month = first_of_month(active);
-        let heading = self.locale.month_year(active);
-        let earlier = !month_button_enabled(active, -1, self.min, self.max);
-        let later = !month_button_enabled(active, 1, self.min, self.max);
-        let shift = |months: i32| {
+        let months = self.months(window);
+        let count = months.len() as u32;
+        let (first, last) = (months[0], months[months.len() - 1]);
+        let earlier = !month_button_enabled(first, -1, self.min, self.max);
+        let later = !month_button_enabled(last, 1, self.min, self.max);
+        // The buttons move the view by as many months as it shows, and the focused day with it.
+        let shift = |direction: i32| {
             let calendar = self.clone();
             move |_: &gpui_kit::ClickEvent, window: &mut Window, cx: &mut App| {
-                let (to, focus_day) =
-                    press_month_button(calendar.active(), months, calendar.min, calendar.max);
+                let (first, to, focus_day) = page_months(
+                    calendar.state.first.get().unwrap_or(calendar.opening),
+                    calendar.active(),
+                    direction,
+                    count,
+                    calendar.min,
+                    calendar.max,
+                );
+                calendar.state.first.set(Some(first));
                 if focus_day {
-                    calendar.state.focus(to, window, cx);
+                    calendar.move_to(to, window, cx);
                 } else {
                     calendar.state.active.set(Some(to));
                     window.refresh();
                 }
             }
+        };
+        let previous = icon_button(
+            (self.id.clone(), "previous"),
+            tokens::Icon::ChevronLeft,
+            self.previous_label.clone(),
+            cx,
+        )
+        .control_size(ControlSize::Sm)
+        .disabled(earlier)
+        .on_click(shift(-1))
+        .into_any_element();
+        let next = icon_button(
+            (self.id.clone(), "next"),
+            tokens::Icon::ChevronRight,
+            self.next_label.clone(),
+            cx,
+        )
+        .control_size(ControlSize::Sm)
+        .disabled(later)
+        .on_click(shift(1))
+        .into_any_element();
+        let (mut previous, mut next) = (Some(previous), Some(next));
+        let draft = self.draft();
+        let active = self.active();
+        let columns = months
+            .iter()
+            .enumerate()
+            .map(|(index, month)| {
+                let before = if index == 0 { previous.take() } else { None };
+                let after = if index + 1 == months.len() {
+                    next.take()
+                } else {
+                    None
+                };
+                self.month(*month, before, after, &draft, active, &popover, window, cx)
+            })
+            .collect::<Vec<_>>();
+
+        let trap = focus_handle(&(self.id.clone(), "trap").into(), window, cx);
+        div()
+            .id((self.id.clone(), "calendar"))
+            // GPUI Base makes the popover's content a dialog, which it does not let us name;
+            // this names what is inside it.
+            .role(Role::Group)
+            .aria_label(self.label.clone())
+            .flex()
+            .flex_col()
+            .gap(px(tokens::SPACE_2))
+            .p(px(tokens::SPACE_3))
+            .rounded(px(tokens::RADIUS_LG))
+            .border(px(tokens::BORDER_WIDTH_THIN))
+            .border_color(color(c.border_default))
+            .bg(color(c.date_picker_background))
+            .shadow(shadow(tokens::SHADOW_RAISED))
+            .when_some(
+                match &self.choosing {
+                    Choosing::Range(range) => {
+                        Some(range.summary(&self.id, &draft, &self.locale, c))
+                    }
+                    Choosing::Day { .. } => None,
+                },
+                |calendar, summary| calendar.child(summary),
+            )
+            .child(
+                div()
+                    .flex()
+                    .items_start()
+                    .gap(px(tokens::SPACE_4))
+                    .children(columns),
+            )
+            // The popover lets Tab leave for the page behind, which would leave the calendar
+            // open with nothing in it focused.
+            .focus_trap((self.id.clone(), "trap"), &trap)
+            .into_any_element()
+    }
+
+    /// One month: its heading between the month buttons that sit at the ends of the calendar,
+    /// and its grid of days.
+    #[allow(clippy::too_many_arguments)]
+    fn month(
+        self: &Rc<Self>,
+        month: NaiveDate,
+        previous: Option<AnyElement>,
+        next: Option<AnyElement>,
+        draft: &[NaiveDate],
+        active: NaiveDate,
+        popover: &Entity<PopoverState>,
+        window: &mut Window,
+        cx: &mut App,
+    ) -> AnyElement {
+        let c = palette(cx);
+        let heading = self.locale.month_year(month);
+        let key: SharedString = format!("{}-{}", month.year(), month.month()).into();
+        // A gap as wide as a button where a month has none, so the heading stays centered.
+        let button_or_gap = |button: Option<AnyElement>| {
+            button.unwrap_or_else(|| {
+                div()
+                    .flex_none()
+                    .size(px(tokens::POINTER.control_sm))
+                    .into_any_element()
+            })
         };
         // Small ghost buttons at the ends, each centered over its column of days, and the
         // month between them, as the web libraries lay it out.
@@ -758,47 +1072,27 @@ impl Calendar {
             .px(px((tokens::POINTER.calendar_day
                 - tokens::POINTER.control_sm)
                 / 2.0))
-            .child(
-                icon_button(
-                    (self.id.clone(), "previous"),
-                    tokens::Icon::ChevronLeft,
-                    self.previous_label.clone(),
-                    cx,
-                )
-                .control_size(ControlSize::Sm)
-                .disabled(earlier)
-                .on_click(shift(-1)),
-            )
+            .child(button_or_gap(previous))
             .child(
                 div()
-                    .id((self.id.clone(), "heading"))
+                    .id((self.id.clone(), format!("heading-{key}")))
                     .role(Role::Heading)
                     .aria_label(heading.clone())
                     .typography(tokens::TYPOGRAPHY_BODY_STRONG)
                     .text_color(color(c.date_picker_heading))
                     .child(heading.clone()),
             )
-            .child(
-                icon_button(
-                    (self.id.clone(), "next"),
-                    tokens::Icon::ChevronRight,
-                    self.next_label.clone(),
-                    cx,
-                )
-                .control_size(ControlSize::Sm)
-                .disabled(later)
-                .on_click(shift(1)),
-            );
+            .child(button_or_gap(next));
 
         let side = px(tokens::POINTER.calendar_day);
         let weekdays = div()
-            .id((self.id.clone(), "weekdays"))
+            .id((self.id.clone(), format!("weekdays-{key}")))
             .role(Role::Row)
             .flex()
             .children(self.locale.weekdays().into_iter().enumerate().map(
                 |(column, (initial, name))| {
                     div()
-                        .id((self.id.clone(), format!("weekday-{column}")))
+                        .id((self.id.clone(), format!("weekday-{key}-{column}")))
                         .role(Role::ColumnHeader)
                         .aria_label(name)
                         .flex()
@@ -813,17 +1107,17 @@ impl Calendar {
         let weeks = month_weeks(month.year(), month.month(), self.locale.first_weekday());
         let rows = weeks.iter().enumerate().map(|(row, week)| {
             div()
-                .id((self.id.clone(), format!("week-{row}")))
+                .id((self.id.clone(), format!("week-{key}-{row}")))
                 .role(Role::Row)
                 .flex()
                 .children(week.iter().enumerate().map(|(column, day)| match day {
-                    Some(day) => self.day(*day, active, row, column, &popover, window, cx),
+                    Some(day) => self.day(*day, draft, active, row, column, popover, window, cx),
                     None => div().flex_none().size(side).into_any_element(),
                 }))
         });
         let calendar = self.clone();
         let grid = div()
-            .id((self.id.clone(), "grid"))
+            .id((self.id.clone(), format!("grid-{key}")))
             .role(Role::Grid)
             .aria_label(heading)
             .aria_row_count(weeks.len() + 1)
@@ -853,30 +1147,18 @@ impl Calendar {
                 };
                 cx.stop_propagation();
                 let to = move_focus(calendar.active(), key, calendar.min, calendar.max);
-                calendar.state.focus(to, window, cx);
+                calendar.move_to(to, window, cx);
             });
-
-        let trap = focus_handle(&(self.id.clone(), "trap").into(), window, cx);
+        let flags = NodeFlags {
+            multiselectable: matches!(self.choosing, Choosing::Range(_)),
+            ..NodeFlags::default()
+        };
         div()
-            .id((self.id.clone(), "calendar"))
-            // GPUI Base makes the popover's content a dialog, which it does not let us name;
-            // this names what is inside it.
-            .role(Role::Group)
-            .aria_label(self.label.clone())
             .flex()
             .flex_col()
             .gap(px(tokens::SPACE_2))
-            .p(px(tokens::SPACE_3))
-            .rounded(px(tokens::RADIUS_LG))
-            .border(px(tokens::BORDER_WIDTH_THIN))
-            .border_color(color(c.border_default))
-            .bg(color(c.date_picker_background))
-            .shadow(shadow(tokens::SHADOW_RAISED))
             .child(header)
-            .child(grid)
-            // The popover lets Tab leave for the page behind, which would leave the calendar
-            // open with nothing in it focused.
-            .focus_trap((self.id.clone(), "trap"), &trap)
+            .child(a11y_flags(grid, flags))
             .into_any_element()
     }
 
@@ -884,6 +1166,7 @@ impl Calendar {
     fn day(
         self: &Rc<Self>,
         day: NaiveDate,
+        draft: &[NaiveDate],
         active: NaiveDate,
         row: usize,
         column: usize,
@@ -892,19 +1175,37 @@ impl Calendar {
         cx: &mut App,
     ) -> AnyElement {
         let c = palette(cx);
-        let enabled = clamp(day, self.min, self.max) == day;
-        let selected = self.value == Some(day);
+        // Outside `min`..`max` a day is out of reach. Inside, a range's start alone makes the
+        // days the length forbids look disabled, while the keys still move over them.
+        let reachable = clamp(day, self.min, self.max) == day;
+        let enabled = reachable && self.choosable(day, draft);
+        let marks = self.marks(day, draft);
+        let end = marks.start || marks.end;
+        let in_band = marks.band.is_some() && !end;
         let today = day == self.today;
         let focus = self.state.handle(day, cx);
-        let focused = enabled && focus.is_focused(window);
-        let (text, rest, hover, pressed) = if !enabled {
-            (c.date_picker_disabled_text, None, None, None)
-        } else if selected {
+        let focused = reachable && focus.is_focused(window);
+        // A range's start stays a filled circle while it waits for its end, though pressing it
+        // again does nothing when the range has to be longer.
+        let (text, rest, hover, pressed) = if end && reachable {
             (
                 c.date_picker_selected_text,
                 Some(c.date_picker_selected_background),
-                Some(c.date_picker_selected_background_hover),
-                Some(c.date_picker_selected_background_pressed),
+                enabled.then_some(c.date_picker_selected_background_hover),
+                enabled.then_some(c.date_picker_selected_background_pressed),
+            )
+        } else if !enabled {
+            (c.date_picker_disabled_text, None, None, None)
+        } else if in_band {
+            (
+                if today {
+                    c.date_picker_today_text
+                } else {
+                    c.date_picker_range_text
+                },
+                None,
+                Some(c.date_picker_range_background_hover),
+                Some(c.date_picker_range_background_pressed),
             )
         } else {
             (
@@ -919,6 +1220,7 @@ impl Calendar {
             )
         };
         let group: SharedString = format!("day-{day}").into();
+        let side = tokens::POINTER.calendar_day;
         let inset = px(tokens::SPACE_0_5);
         let circle = div()
             .id("circle")
@@ -934,7 +1236,7 @@ impl Calendar {
                 tokens::TYPOGRAPHY_BODY
             })
             .text_color(color(text))
-            .when(today && !selected, |circle| {
+            .when(today && !end, |circle| {
                 circle
                     .border(px(tokens::BORDER_WIDTH_THIN))
                     .border_color(color(c.date_picker_today_border))
@@ -952,39 +1254,115 @@ impl Calendar {
             })
             .when(focused, |circle| circle.focus_ring_style(window, cx))
             .child(day.day().to_string());
+        // The band runs under the circles from the middle of the start's cell to the middle of
+        // the end's, and is rounded where a week's row ends it.
+        let band = marks.band.map(|band| {
+            let half = px(side / 2.0);
+            let round = px(tokens::RADIUS_FULL);
+            div()
+                .absolute()
+                .top_0()
+                .bottom_0()
+                .left(if band.leading == BandEdge::Middle {
+                    half
+                } else {
+                    px(0.0)
+                })
+                .right(if band.trailing == BandEdge::Middle {
+                    half
+                } else {
+                    px(0.0)
+                })
+                .when(band.leading == BandEdge::Round, |band| {
+                    band.rounded_l(round)
+                })
+                .when(band.trailing == BandEdge::Round, |band| {
+                    band.rounded_r(round)
+                })
+                .bg(color(c.date_picker_range_background))
+        });
+        let name = match &self.choosing {
+            Choosing::Range(range) => range.day_name(&marks, self.locale.long(day)),
+            Choosing::Day { .. } => self.locale.long(day).into(),
+        };
         let cell = div()
             .id((self.id.clone(), day.to_string()))
             .group(group)
             .role(Role::GridCell)
-            .aria_label(self.locale.long(day))
-            .aria_selected(selected)
+            .aria_label(name)
+            .aria_selected(marks.selected())
             .aria_row_index(row + 2)
             .aria_column_index(column + 1)
+            .relative()
             .flex_none()
-            .size(px(tokens::POINTER.calendar_day))
+            .size(px(side))
             .p(inset)
+            .children(band)
             .child(circle)
+            .when(reachable, |cell| {
+                cell.track_focus(&focus.tab_index(0).tab_stop(day == active))
+            })
             .when(enabled, |cell| {
                 let calendar = self.clone();
                 let popover = popover.clone();
-                cell.track_focus(&focus.tab_index(0).tab_stop(day == active))
-                    // A press chooses and closes, so the day does not take the focus first.
-                    .on_mouse_down(MouseButton::Left, |_, window, _| window.prevent_default())
-                    .on_click(move |_, window, cx| calendar.choose(day, &popover, window, cx))
-            });
+                // A press chooses, so the day does not take the focus before it.
+                cell.on_mouse_down(MouseButton::Left, |_, window, _| window.prevent_default())
+                    .on_click(move |event, window, cx| {
+                        calendar.press(day, event.is_keyboard(), &popover, window, cx);
+                    })
+            })
+            .when(
+                reachable && matches!(self.choosing, Choosing::Range(_)),
+                |cell| {
+                    let calendar = self.clone();
+                    cell.on_hover(move |hovered, window, _| {
+                        let Choosing::Range(range) = &calendar.choosing else {
+                            return;
+                        };
+                        let preview = &calendar.state.preview;
+                        if *hovered {
+                            preview.set(range.preview(&calendar.draft(), day));
+                        } else if preview.get() == Some(day) {
+                            preview.set(None);
+                        }
+                        window.refresh();
+                    })
+                },
+            );
         a11y_disabled(cell, !enabled).into_any_element()
     }
 }
 
-impl RenderOnce for DatePicker {
-    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+/// What DatePicker and DateRangePicker share: the label, the field, the popover with the
+/// calendar, and the description or the error.
+pub(crate) struct CalendarField {
+    pub(crate) id: ElementId,
+    pub(crate) label: SharedString,
+    /// The field's text, or None for the placeholder.
+    pub(crate) shown: Option<SharedString>,
+    /// The day the calendar opens on when nothing moved it: the chosen day, or the start.
+    pub(crate) chosen: Option<NaiveDate>,
+    pub(crate) min: Option<NaiveDate>,
+    pub(crate) max: Option<NaiveDate>,
+    pub(crate) placeholder: Option<SharedString>,
+    pub(crate) description: Option<SharedString>,
+    pub(crate) error: Option<SharedString>,
+    pub(crate) disabled: bool,
+    pub(crate) previous_label: SharedString,
+    pub(crate) next_label: SharedString,
+    pub(crate) default_open: bool,
+    pub(crate) choosing: Choosing,
+}
+
+impl CalendarField {
+    pub(crate) fn render(self, window: &mut Window, cx: &mut App) -> Div {
         let c = palette(cx);
         let locale = CalendarLocale::system();
         let today = Local::now().date_naive();
         let field = DateField {
             id: (self.id.clone(), "field").into(),
             label: self.label.clone(),
-            shown: self.value.map(|day| locale.medium(day).into()),
+            shown: self.shown,
             placeholder: self.placeholder,
             note: self.error.clone().or(self.description.clone()),
             invalid: self.error.is_some(),
@@ -1000,13 +1378,10 @@ impl RenderOnce for DatePicker {
                 })
                 .read(cx)
                 .clone();
-            let opening = initial_month(self.value, today, self.min, self.max);
-            state.keep(state.active.get().unwrap_or(opening), opening, cx);
-            let focus = state.handle(opening, cx);
+            let opening = initial_month(self.chosen, today, self.min, self.max);
             let calendar = Rc::new(Calendar {
                 id: self.id.clone(),
                 label: self.label.clone(),
-                value: self.value,
                 min: self.min,
                 max: self.max,
                 today,
@@ -1014,9 +1389,11 @@ impl RenderOnce for DatePicker {
                 locale,
                 previous_label: self.previous_label,
                 next_label: self.next_label,
-                on_change: self.on_change,
+                choosing: self.choosing,
                 state: state.clone(),
             });
+            state.keep(&calendar.months(window), opening, cx);
+            let focus = state.handle(opening, cx);
             Popover::new(self.id.clone())
                 // The surface is drawn by the calendar, from its own tokens.
                 .appearance(false)
@@ -1025,8 +1402,8 @@ impl RenderOnce for DatePicker {
                 .default_open(self.default_open)
                 .trigger_style(StyleRefinement::default().w_full())
                 .track_focus(&focus)
-                // Each opening starts again from the chosen day.
-                .on_open_change(move |_, _, _| state.active.set(None))
+                // Each opening starts again from what was chosen.
+                .on_open_change(move |_, _, _| state.reset())
                 .trigger(field)
                 .content(move |_, window, cx| {
                     let popover = cx.entity();
@@ -1042,6 +1419,32 @@ impl RenderOnce for DatePicker {
             .child(field_label(self.label, self.disabled, c))
             .child(control)
             .children(field_note(self.error, self.description, c))
+    }
+}
+
+impl RenderOnce for DatePicker {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let locale = CalendarLocale::system();
+        CalendarField {
+            id: self.id,
+            label: self.label,
+            shown: self.value.map(|day| locale.medium(day).into()),
+            chosen: self.value,
+            min: self.min,
+            max: self.max,
+            placeholder: self.placeholder,
+            description: self.description,
+            error: self.error,
+            disabled: self.disabled,
+            previous_label: self.previous_label,
+            next_label: self.next_label,
+            default_open: self.default_open,
+            choosing: Choosing::Day {
+                value: self.value,
+                on_change: self.on_change,
+            },
+        }
+        .render(window, cx)
     }
 }
 
@@ -1247,6 +1650,16 @@ mod tests {
         assert_eq!(CalendarLocale::from_tag("").first_weekday(), Weekday::Sun);
     }
 
+    fn press_month_button(
+        day: NaiveDate,
+        direction: i32,
+        min: Option<NaiveDate>,
+        max: Option<NaiveDate>,
+    ) -> (NaiveDate, bool) {
+        let (_, to, focus_day) = page_months(day, day, direction, 1, min, max);
+        (to, focus_day)
+    }
+
     #[test]
     fn a_month_button_that_disables_itself_hands_the_focus_to_the_day() {
         // Next from March into April, which holds max: the button disables itself.
@@ -1275,6 +1688,48 @@ mod tests {
         assert_eq!(
             press_month_button(date("2026-03-10"), 1, None, None),
             (date("2026-04-10"), false)
+        );
+    }
+
+    #[test]
+    fn with_two_months_a_button_moves_both_by_two() {
+        // March and April shown; next shows May and June, previous January and February.
+        let first = date("2026-03-01");
+        assert_eq!(
+            page_months(first, date("2026-03-10"), 1, 2, None, None),
+            (date("2026-05-01"), date("2026-05-10"), false)
+        );
+        assert_eq!(
+            page_months(first, date("2026-04-02"), -1, 2, None, None),
+            (date("2026-01-01"), date("2026-02-02"), false)
+        );
+        // Up to max in June: the button is off once June is shown, and the day takes the focus.
+        let max = Some(date("2026-06-15"));
+        assert_eq!(
+            page_months(first, date("2026-03-20"), 1, 2, None, max),
+            (date("2026-05-01"), date("2026-05-20"), true)
+        );
+    }
+
+    #[test]
+    fn the_view_moves_only_as_far_as_the_focus_needs() {
+        let first = date("2026-03-01");
+        assert_eq!(keep_in_view(first, date("2026-04-30"), 2), first);
+        assert_eq!(
+            keep_in_view(first, date("2026-05-01"), 2),
+            date("2026-04-01")
+        );
+        assert_eq!(
+            keep_in_view(first, date("2026-02-28"), 2),
+            date("2026-02-01")
+        );
+        assert_eq!(
+            keep_in_view(first, date("2026-04-01"), 1),
+            date("2026-04-01")
+        );
+        assert_eq!(
+            visible_months(date("2026-12-10"), 2),
+            vec![date("2026-12-01"), date("2027-01-01")]
         );
     }
 

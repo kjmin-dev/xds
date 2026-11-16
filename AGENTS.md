@@ -64,9 +64,9 @@ How the interactive web components behave (keyboard, focus, and ARIA state) is t
 | Web (Solid) | Run `mise run //web-solid:dev`, then open `http://localhost:5174/design#buttons` (the same preview, anchors, and parameters as the React app's, drawn by the Solid library; it must look the same) |
 | Web (Vue) | Run `mise run //web-vue:dev`, then open `http://localhost:5175/design#buttons` (the same preview, anchors, and parameters as the React app's, drawn by the Vue library; it must look the same) |
 | Web (Svelte) | Run `mise run //web-svelte:dev`, then open `http://localhost:5176/design#buttons` (the same preview, anchors, and parameters as the React app's, drawn by the Svelte library; it must look the same) |
-| GPUI desktop | `cargo run --package acme-desktop -- --design --dark --scroll 800` (`--open menu`, `select`, `datepicker`, `dialog`, `toast`, or `tooltip` opens that overlay) |
+| GPUI desktop | `cargo run --package acme-desktop -- --design --dark --scroll 800` (`--open menu`, `select`, `datepicker`, `daterange`, `dialog`, `toast`, or `tooltip` opens that overlay) |
 | React Native | Pass `?section=<key>` (`navigation`), `?from=<section number>`, `?sheet=1`, `?menu=1`, `?select=1`, `?datepicker=1`, `?dialog=1`, or `?toast=1` to the design screen route |
-| Compose | `mise run //kotlin:render` renders PNG screenshots to `kotlin/build/preview`: the whole preview, and each overlay open (`menu-*`, `select-*`, `datepicker-*`, `sheet-*`, `dialog-*`, `toast-*`) |
+| Compose | `mise run //kotlin:render` renders PNG screenshots to `kotlin/build/preview`: the whole preview, and each overlay open (`menu-*`, `select-*`, `datepicker-*`, `daterange-*`, `sheet-*`, `dialog-*`, `toast-*`) |
 
 ## Changing the CLI
 

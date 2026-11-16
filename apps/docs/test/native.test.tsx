@@ -127,7 +127,54 @@ describe("BottomSheet", () => {
     await expect.element(page.getByRole("dialog")).not.toBeInTheDocument();
     await expect.element(share).toHaveFocus();
   });
+
+  test("A drag down on its title closes it; a short one leaves it open, and a press still works", async () => {
+    mount("bottom-sheet");
+    await userEvent.click(page.getByRole("button", { name: "Share" }));
+    const title = page.getByRole("heading", { name: "Share report" });
+    await expect.element(title).toBeVisible();
+    // The sheet slides in first; a drag that starts while it moves starts from where it is.
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    await drag(title.element(), 20);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    await expect.element(page.getByRole("dialog")).toBeVisible();
+
+    await drag(title.element(), 200);
+    await expect.element(page.getByRole("dialog")).not.toBeInTheDocument();
+
+    await userEvent.click(page.getByRole("button", { name: "Share" }));
+    await userEvent.click(page.getByRole("button", { name: "Copy link" }));
+    await expect.element(page.getByRole("dialog")).not.toBeInTheDocument();
+  });
 });
+
+/**
+ * A mouse drag straight down from the middle of `element`, slowly enough not to be a flick.
+ * react-native-web reads mouse events on the document to build the touches React Native's
+ * responders get.
+ */
+async function drag(element: Element, distance: number) {
+  const box = element.getBoundingClientRect();
+  const x = box.left + box.width / 2;
+  const y = box.top + box.height / 2;
+  const mouse = (type: string, target: EventTarget, dy: number) =>
+    target.dispatchEvent(
+      new MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        clientX: x,
+        clientY: y + dy,
+        buttons: 1,
+      }),
+    );
+  mouse("mousedown", element, 0);
+  for (let step = 1; step <= 10; step++) {
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    mouse("mousemove", document, (distance * step) / 10);
+  }
+  mouse("mouseup", document, distance);
+}
 
 /** `#rrggbb` as getComputedStyle writes it. */
 function hexToRgb(hex: string): string {

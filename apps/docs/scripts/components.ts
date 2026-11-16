@@ -1153,7 +1153,7 @@ export const COMPONENTS: Component[] = [
       "Pressed, a calendar of one month opens under the field, on the chosen day, or on today while none is. Days before `min` or after `max` are dimmed and cannot be chosen. Today has a ring; the chosen day is a filled circle.",
       "Choosing a day calls `onChange` with it as `YYYY-MM-DD` and closes the calendar. A press outside or Escape closes it without a choice, and the focus goes back to the field.",
       "The field is a button that says it opens a dialog and whether it is open. In the calendar the arrow keys move a day or a week, Page Up and Page Down a month (a year with Shift), and Home and End to the first and the last day of the month, never past `min` or `max`. Tab goes round the month buttons and the focused day.",
-      "The names of the months and days, the form of the day and the first day of the week follow the language of the page, and on GPUI, Compose and React Native the system's. One day only: there is no typing a date, no range, and no month or year view.",
+      "The names of the months and days, the form of the day and the first day of the week follow the language of the page, and on GPUI, Compose and React Native the system's. One day only, for a range there is DateRangePicker: there is no typing a date, and no month or year view.",
     ],
     example: `import { DatePicker } from "@acme/ui";
 
@@ -1193,6 +1193,103 @@ export const COMPONENTS: Component[] = [
         description: "The name the day is submitted under, as `YYYY-MM-DD`.",
       },
       { name: "disabled", type: "boolean", description: "" },
+      {
+        name: "previousLabel",
+        type: "string",
+        description:
+          "Names the button to the month before for assistive technology. Defaults to `Previous month`.",
+      },
+      {
+        name: "nextLabel",
+        type: "string",
+        description:
+          "Names the button to the month after for assistive technology. Defaults to `Next month`.",
+      },
+    ],
+    demo: "web",
+    preview: "Controls",
+  },
+  {
+    slug: "date-range-picker",
+    name: "DateRangePicker",
+    summary: "A field for choosing a range of days, a start and an end.",
+    guidance: [
+      "Use it for a stay, a trip or a leave, where both ends are chosen together. Closed, it looks like a DatePicker and shows both days, saying what they share once: Mar 10 – 14, 2026.",
+      "Pressed, a calendar opens under the field on the start's month, or on today's while nothing is chosen: two months side by side where the window has room, one where it does not. A summary above the months names the two ends after `startLabel` and `endLabel`.",
+      "The first day pressed starts the range, and the band shows it to the day under the pointer or the keyboard's focus. The second day ends it: `onChange` gets both days as `YYYY-MM-DD` and the calendar closes. A day before the start starts again from there, as booking sites do. Over a chosen range, a press starts a new one.",
+      "`minLength` and `maxLength` count the days from the start to the end, the nights of a stay. While the end is chosen, the days they rule out cannot be chosen. With no `minLength`, the same day twice is a range of one day.",
+      "Escape or a press outside closes the calendar and drops a start without an end; the field keeps the chosen range. The keys are DatePicker's, and Page Up and Page Down move a month whether one or two are shown. Each month is a grid of its own, every day of the range is selected, and the ends are named by their labels.",
+      "Unavailable days inside the bounds, typing the dates and presets such as next week are not part of it.",
+    ],
+    example: `import { DateRangePicker } from "@acme/ui";
+
+<DateRangePicker
+  label="Stay"
+  value={stay}
+  onChange={setStay}
+  min="2026-03-05"
+  max="2026-04-20"
+  minLength={2}
+  maxLength={14}
+  startLabel="Check-in"
+  endLabel="Check-out"
+/>`,
+    exampleLanguage: "tsx",
+    props: [
+      { name: "label", type: "string", description: "Required. Always visible." },
+      {
+        name: "value",
+        type: "{ start: string; end: string } | undefined",
+        description:
+          "The chosen range, both days as `YYYY-MM-DD`. Leave it out while none is chosen.",
+      },
+      {
+        name: "onChange",
+        type: "(value: { start: string; end: string }) => void",
+        description: "Required. Gets the range once its end is chosen, not the start alone.",
+      },
+      { name: "min", type: "string", description: "The first day that can be chosen." },
+      { name: "max", type: "string", description: "The last day that can be chosen." },
+      {
+        name: "minLength",
+        type: "number",
+        description:
+          "The fewest days from the start to the end. Defaults to 0, a range of one day.",
+      },
+      {
+        name: "maxLength",
+        type: "number",
+        description: "The most days from the start to the end. No limit unless it is given.",
+      },
+      { name: "placeholder", type: "string", description: "Shown while no range is chosen." },
+      {
+        name: "description",
+        type: "string",
+        description: "Help under the field, replaced by `error` while there is one.",
+      },
+      { name: "error", type: "string | undefined", description: "" },
+      {
+        name: "startName",
+        type: "string",
+        description: "The name the first day is submitted under, as `YYYY-MM-DD`.",
+      },
+      {
+        name: "endName",
+        type: "string",
+        description: "The name the last day is submitted under, as `YYYY-MM-DD`.",
+      },
+      { name: "disabled", type: "boolean", description: "" },
+      {
+        name: "startLabel",
+        type: "string",
+        description:
+          "Names the first day in the summary and for assistive technology. Defaults to `Start`.",
+      },
+      {
+        name: "endLabel",
+        type: "string",
+        description: "Names the last day, as `startLabel` does the first. Defaults to `End`.",
+      },
       {
         name: "previousLabel",
         type: "string",

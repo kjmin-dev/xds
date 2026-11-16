@@ -67,7 +67,7 @@ cargo run --package acme-desktop -- --design --dark --scroll 800 --exit-after 5
 Start the app with `mise run //mobile:ios`. The design preview lives at the `/design` route and accepts query parameters:
 
 - `?section=<key>` jumps directly to the section with that key, such as `navigation`, and `?from=<n>` to the n-th section.
-- `?sheet=1` opens the bottom sheet on launch, and `?menu=1`, `?select=1`, `?datepicker=1`, `?dialog=1`, and `?toast=1` open the menu, the select list, the system's calendar on the first date picker, the dialog, and the toast.
+- `?sheet=1` opens the bottom sheet on launch, and `?menu=1`, `?select=1`, `?datepicker=1`, `?daterange=1`, `?dialog=1`, and `?toast=1` open the menu, the select list, the calendar of the first date picker, the calendar of the first date range picker, the dialog, and the toast.
 
 `mise run check:js` bundles the app for iOS and Android (`mise run //mobile:bundle`), which shows an import Metro cannot resolve without a device, and checks its native packages against the Expo SDK (`mise run //mobile:check`).
 

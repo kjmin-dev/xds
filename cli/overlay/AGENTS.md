@@ -48,9 +48,6 @@ Acme is built around a shared design system: a single set of design tokens and a
 - Build app screens from the design system's components. Application code must import the project's component library, never the UI library underneath it.
 - Design tokens are the source of truth. To change a color, size, or text style, edit the files in `design/tokens`, run `mise run tokens`, and commit both the token sources and the generated files. Never edit a generated file directly.
 - Do not hardcode hex colors in screens or components. Use semantic color tokens (`text.secondary`, `border.default`, `status.danger`); colors needed by a single component belong in that component's group in both `color.light.json` and `color.dark.json`.
-<!-- @if mobile-react-native -->
-- DatePicker on React Native is the one exception to drawing from tokens: its calendar is the system's, shown through Expo UI (Material 3's date dialog on Android, in the `date-picker` colors; the iOS calendar in our BottomSheet, tinted with the accent), while its field, label, description, and error follow the tokens like Select's.
-<!-- @endif -->
 - Every foreground and background color pair rendered together must have an entry in `tools/design-build/src/contrast.ts`. `mise run tokens` fails and reports the offending pair if any combination falls below its required contrast ratio.
 - Always use a typographic role (`body`, `label`, `heading`) for text rather than a raw font size.
 <!-- @if ui-core -->
@@ -147,7 +144,7 @@ Inspect the design preview in both light and dark modes after making visual chan
 | Desktop | Run `mise run //desktop:design`. Pass `--light` or `--dark` to pin the mode, `--scroll <pixels>` to open at a vertical offset, and `--open menu`, `select`, `datepicker`, `daterange`, `dialog`, `toast`, or `tooltip` to open with that overlay showing |
 <!-- @endif -->
 <!-- @if mobile-react-native -->
-| Mobile | Tap the preview button on the home screen, or navigate to the design route with `?section=<key>` (`navigation`), `?from=<section number>`, `?sheet=1`, `?menu=1`, `?select=1`, `?datepicker=1`, `?dialog=1`, or `?toast=1` |
+| Mobile | Tap the preview button on the home screen, or navigate to the design route with `?section=<key>` (`navigation`), `?from=<section number>`, `?sheet=1`, `?menu=1`, `?select=1`, `?datepicker=1`, `?daterange=1`, `?dialog=1`, or `?toast=1` |
 <!-- @endif -->
 <!-- @if kotlin-compose -->
 | Compose | Run `mise run //kotlin:render` to render PNG screenshots into `kotlin/build/preview` (the whole preview, and each overlay open: `menu-*`, `select-*`, `datepicker-*`, `daterange-*`, `sheet-*`, `dialog-*`, `toast-*`), or `mise run //kotlin:design` to open the interactive preview window |

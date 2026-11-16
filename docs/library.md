@@ -43,7 +43,7 @@ The two are the same components at the same version. A team may start with the l
 | Channel | Serves | Packages | What the app does | Platform peers |
 | --- | --- | --- | --- | --- |
 | npm, web | React, Solid, Vue and Svelte apps | One per framework, one for what they share, one for tokens | Installs its framework's package, imports components, and loads one stylesheet | The framework |
-| npm, React Native | React Native and Expo apps | One | Installs it, wraps the app in the theme provider, imports components | React Native; the safe-area and SVG libraries; Expo UI, optional, for DatePicker |
+| npm, React Native | React Native and Expo apps | One | Installs it, wraps the app in the theme provider, imports components | React Native; the safe-area and SVG libraries |
 | crates.io | GPUI desktop apps | Components, tokens | Adds the dependency and registers the theme at startup | The GPUI component kit, at one exact version per release |
 | Maven Central | Compose Multiplatform apps (Android, iOS, desktop JVM) | One multiplatform library | Adds the dependency and wraps content in the theme | Compose Multiplatform, Kotlin |
 | pub.dev | Flutter apps (when the Flutter client exists) | Components, tokens | Adds the dependency and wraps the app in the theme | Flutter |
@@ -109,7 +109,7 @@ Rules that make the layers hold together:
 - **Themes can change while the app runs.** Switching mode or theme does not need a rebuild or a restart.
 - **Parts are the stable handle.** Layer 7 addresses a component through its documented parts and states. What is not a documented part is internal and may change in any release.
 - **Not offered inside the library:** new variants, sizes or tones for an existing component, and changes to a component's structure or behavior. An app wraps the component, or ejects. Keeping these out is what lets the contract promise the same component on every client.
-- **System-drawn pieces stay the system's.** Where the platform draws a piece (the calendar on iOS and Android), the theme reaches only as far as the platform lets it, and the contract's differences say so.
+- **System-drawn pieces stay the system's.** Where the platform draws a piece, the theme reaches only as far as the platform lets it, and the contract's differences say so.
 
 ### How a theme reaches each channel
 

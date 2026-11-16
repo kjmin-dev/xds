@@ -1,17 +1,21 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
-  androidInitialDay,
+  addDays,
+  addMonths,
+  calendarNames,
   clampDay,
+  daysBetween,
+  daysInMonth,
   fieldName,
+  firstWeekday,
   formatDay,
+  hasMonthAfter,
+  hasMonthBefore,
+  inRange,
   localDay,
-  localNoon,
-  localRange,
+  monthWeeks,
   openingDay,
-  selectableDays,
-  utcDay,
-  utcMidnight,
 } from "./datePicker.ts";
 
 // The farthest zones on each side of UTC, one that changes its clocks in each hemisphere, and
@@ -45,9 +49,6 @@ function inZone<Result>(timeZone: string, run: () => Result): Result {
     else process.env.TZ = before;
   }
 }
-
-/** What Expo UI's Android view does with `selectableDates`: the local day, as a UTC day. */
-const asUtcDay = (local: Date) => Date.UTC(local.getFullYear(), local.getMonth(), local.getDate());
 
 test("the zones of the tests are west and east of UTC", () => {
   const offset = (zone: string) =>
@@ -107,84 +108,87 @@ test("the calendar opens on the chosen day, or on today held between min and max
   assert.equal(openingDay({}, "2026-11-14"), "2026-11-14");
 });
 
-test("iOS: a day goes to the calendar at local noon and comes back the same day", () => {
+test("no time zone moves a day by a day, or a day's distance from another", () => {
   for (const zone of ZONES) {
     inZone(zone, () => {
       for (const day of DAYS) {
-        const noon = localNoon(day);
-        assert.equal(noon.getHours(), 12, `${day} in ${zone}`);
-        assert.equal(localDay(noon), day, `${day} in ${zone}`);
+        assert.equal(addDays(addDays(day, 1), -1), day, `${zone} ${day}`);
+        assert.equal(daysBetween(day, addDays(day, 40)), 40, `${zone} ${day}`);
       }
+      assert.equal(addDays("2026-02-28", 1), "2026-03-01", zone);
+      assert.equal(addDays("2024-02-28", 1), "2024-02-29", zone);
+      assert.equal(addDays("2026-12-31", 1), "2027-01-01", zone);
+      assert.equal(daysBetween("2026-03-10", "2026-03-08"), -2, zone);
     });
   }
 });
 
-test("iOS: the calendar's instant is read as a day on the device", () => {
-  // 20:00 UTC on March 10 is the 10th in the west and already the 11th in the east.
-  const instant = new Date("2026-03-10T20:00:00Z");
-  inZone("Pacific/Pago_Pago", () => assert.equal(localDay(instant), "2026-03-10"));
-  inZone("America/Los_Angeles", () => assert.equal(localDay(instant), "2026-03-10"));
-  inZone("Asia/Seoul", () => assert.equal(localDay(instant), "2026-03-11"));
-  inZone("Pacific/Kiritimati", () => assert.equal(localDay(instant), "2026-03-11"));
+test("a month on keeps to the months, whatever their lengths", () => {
+  assert.equal(addMonths("2026-01", 1), "2026-02");
+  assert.equal(addMonths("2026-12", 1), "2027-01");
+  assert.equal(addMonths("2026-01", -1), "2025-12");
+  assert.equal(addMonths("2026-03", -12), "2025-03");
+  assert.equal(daysInMonth("2026-02"), 28);
+  assert.equal(daysInMonth("2024-02"), 29);
+  assert.equal(daysInMonth("2026-04"), 30);
+  assert.equal(daysInMonth("2026-12"), 31);
 });
 
-test("iOS: min and max hold every time of day on the first and the last day", () => {
-  assert.equal(localRange(undefined, undefined), undefined);
-  for (const zone of ZONES) {
-    inZone(zone, () => {
-      for (const day of DAYS) {
-        const { start, end } = localRange(day, day) ?? {};
-        assert.ok(start && end, `${day} in ${zone}`);
-        assert.equal(localDay(start), day, `start of ${day} in ${zone}`);
-        assert.equal(localDay(end), day, `end of ${day} in ${zone}`);
-        assert.ok(start <= localNoon(day) && localNoon(day) <= end, `${day} in ${zone}`);
-        // Nothing of the day is left out at either end.
-        assert.notEqual(localDay(new Date(start.getTime() - 1)), day, `${day} in ${zone}`);
-        assert.notEqual(localDay(new Date(end.getTime() + 1)), day, `${day} in ${zone}`);
-      }
-      assert.deepEqual(Object.keys(localRange("2026-03-05", undefined) ?? {}), ["start"]);
-      assert.deepEqual(Object.keys(localRange(undefined, "2026-04-20") ?? {}), ["end"]);
-    });
-  }
+test("a month is laid out in weeks from the locale's first day, without its neighbours' days", () => {
+  // March 2026 starts on a Sunday and ends on a Tuesday.
+  const sunday = monthWeeks("2026-03", 0);
+  assert.equal(sunday.length, 5);
+  assert.deepEqual(sunday[0]?.slice(0, 2), ["2026-03-01", "2026-03-02"]);
+  assert.deepEqual(sunday[4], ["2026-03-29", "2026-03-30", "2026-03-31", null, null, null, null]);
+  // From Monday, the first Sunday is the last day of the first row.
+  const monday = monthWeeks("2026-03", 1);
+  assert.equal(monday.length, 6);
+  assert.deepEqual(monday[0], [null, null, null, null, null, null, "2026-03-01"]);
+  // February 2026 fills four rows exactly from Sunday.
+  assert.equal(monthWeeks("2026-02", 0).length, 4);
+  for (const week of monthWeeks("2026-08", 6)) assert.equal(week.length, 7);
 });
 
-test("Android: a day goes to the calendar as midnight UTC and comes back the same day", () => {
-  for (const zone of ZONES) {
-    inZone(zone, () => {
-      for (const day of DAYS) {
-        const [year = 0, month = 1, date = 1] = day.split("-").map(Number);
-        const sent = new Date(utcMidnight(day));
-        assert.equal(sent.getTime(), Date.UTC(year, month - 1, date), `${day} in ${zone}`);
-        assert.equal(utcDay(sent), day, `${day} in ${zone}`);
-      }
-    });
-  }
+test("the month buttons stop at the months of min and max", () => {
+  assert.ok(!hasMonthBefore("2026-03", "2026-03-05"));
+  assert.ok(hasMonthBefore("2026-04", "2026-03-05"));
+  assert.ok(hasMonthAfter("2026-03", "2026-04-20"));
+  assert.ok(!hasMonthAfter("2026-04", "2026-04-20"));
+  assert.ok(hasMonthBefore("2026-03") && hasMonthAfter("2026-03"));
+  assert.ok(inRange("2026-03-05", "2026-03-05", "2026-04-20"));
+  assert.ok(!inRange("2026-03-04", "2026-03-05", "2026-04-20"));
+  assert.ok(!inRange("2026-04-21", "2026-03-05", "2026-04-20"));
+  assert.ok(inRange("1999-01-01"));
 });
 
-test("Android: min and max are days on the device, which Expo UI turns into UTC days", () => {
-  assert.equal(selectableDays(undefined, undefined), undefined);
-  for (const zone of ZONES) {
-    inZone(zone, () => {
-      for (const day of DAYS) {
-        const { start, end } = selectableDays(day, day) ?? {};
-        assert.ok(start && end, `${day} in ${zone}`);
-        // The day itself, the first and the last that can be chosen, is the day the calendar
-        // would hand back for it.
-        assert.equal(asUtcDay(start), new Date(utcMidnight(day)).getTime(), `${day} in ${zone}`);
-        assert.equal(utcDay(new Date(asUtcDay(end))), day, `${day} in ${zone}`);
-      }
-      assert.deepEqual(Object.keys(selectableDays("2026-03-05", undefined) ?? {}), ["start"]);
-      assert.deepEqual(Object.keys(selectableDays(undefined, "2026-04-20") ?? {}), ["end"]);
-    });
-  }
+test("the week starts on the day the locale's region starts it", () => {
+  assert.equal(firstWeekday("en-US"), 0);
+  assert.equal(firstWeekday("ko-KR"), 0);
+  assert.equal(firstWeekday("en-GB"), 1);
+  assert.equal(firstWeekday("de-DE"), 1);
+  assert.equal(firstWeekday("zh-Hant-TW"), 0);
+  assert.equal(firstWeekday("ar-EG"), 6);
+  assert.equal(firstWeekday("dv-MV"), 5);
+  assert.equal(firstWeekday("en-US-u-ca-gregory"), 0);
+  // No region: Monday, as CLDR has it for the world.
+  assert.equal(firstWeekday("fr"), 1);
 });
 
-test("Android: with no day chosen the calendar opens empty, unless today cannot be chosen", () => {
-  const range = { min: "2026-03-05", max: "2026-04-20" };
-  assert.equal(androidInitialDay({ value: "2026-03-10", ...range }, "2026-11-14"), "2026-03-10");
-  assert.equal(androidInitialDay(range, "2026-03-20"), undefined);
-  assert.equal(androidInitialDay({}, "2026-11-14"), undefined);
-  // Today is after the last day or before the first: the month of the nearest one.
-  assert.equal(androidInitialDay(range, "2026-11-14"), "2026-04-20");
-  assert.equal(androidInitialDay(range, "2026-01-02"), "2026-03-05");
+test("the calendar's names are the locale's", () => {
+  const english = calendarNames("en-US");
+  assert.equal(english.firstDay, 0);
+  assert.equal(english.month("2026-03"), "March 2026");
+  assert.deepEqual(english.initials, ["S", "M", "T", "W", "T", "F", "S"]);
+  assert.equal(english.day("2026-03-10"), "Tuesday, March 10, 2026");
+  assert.equal(english.medium("2026-03-10"), "Mar 10, 2026");
+  const british = calendarNames("en-GB");
+  assert.deepEqual(british.initials, ["M", "T", "W", "T", "F", "S", "S"]);
+  const korean = calendarNames("ko-KR");
+  assert.equal(korean.month("2026-03"), "2026년 3월");
+  assert.equal(korean.initials[0], "일");
+  // Read at noon UTC and formatted in UTC: no zone shows another day.
+  for (const zone of ZONES)
+    inZone(zone, () =>
+      assert.equal(calendarNames("en-US").day("2026-01-01"), "Thursday, January 1, 2026", zone),
+    );
 });

@@ -314,55 +314,62 @@ function Day({
       onPress={onPress}
       style={[styles.day, { width, height: DAY }]}
     >
-      {({ pressed }) => (
-        <>
-          {marks.band && (
+      {({ pressed }) => {
+        const fill = end
+          ? pressed
+            ? colors.datePickerSelectedBackgroundPressed
+            : colors.datePickerSelectedBackground
+          : !pressed
+            ? undefined
+            : inBand
+              ? colors.datePickerRangeBackgroundPressed
+              : colors.datePickerDayBackgroundPressed;
+        return (
+          <>
+            {marks.band && (
+              <View
+                style={[
+                  styles.band,
+                  bandShape(marks.band, side),
+                  {
+                    top: (DAY - side) / 2,
+                    height: side,
+                    backgroundColor: colors.datePickerRangeBackground,
+                  },
+                ]}
+              />
+            )}
             <View
+              // Android draws a view that takes a fill after it was drawn without one as a square,
+              // losing its corners; a new view for the fill keeps it a circle. It takes no
+              // touches (styles.circle), so a press goes on while the view under it is replaced.
+              key={fill === undefined ? "clear" : "filled"}
               style={[
-                styles.band,
-                bandShape(marks.band, side),
+                styles.circle,
                 {
-                  top: (DAY - side) / 2,
-                  height: side,
-                  backgroundColor: colors.datePickerRangeBackground,
+                  width: circle,
+                  height: circle,
+                  backgroundColor: fill,
                 },
+                today &&
+                  !end && {
+                    borderWidth: border.width.thin,
+                    borderColor: colors.datePickerTodayBorder,
+                  },
               ]}
-            />
-          )}
-          <View
-            style={[
-              styles.circle,
-              {
-                width: circle,
-                height: circle,
-                backgroundColor: end
-                  ? pressed
-                    ? colors.datePickerSelectedBackgroundPressed
-                    : colors.datePickerSelectedBackground
-                  : !pressed
-                    ? "transparent"
-                    : inBand
-                      ? colors.datePickerRangeBackgroundPressed
-                      : colors.datePickerDayBackgroundPressed,
-              },
-              today &&
-                !end && {
-                  borderWidth: border.width.thin,
-                  borderColor: colors.datePickerTodayBorder,
-                },
-            ]}
-          >
-            <Text
-              // Today is bolder as well as ringed, so that it is not told by color alone.
-              variant={today ? "body-strong" : "body"}
-              tone="inherit"
-              style={{ color: text }}
             >
-              {Number(day.slice(8))}
-            </Text>
-          </View>
-        </>
-      )}
+              <Text
+                // Today is bolder as well as ringed, so that it is not told by color alone.
+                variant={today ? "body-strong" : "body"}
+                tone="inherit"
+                style={{ color: text }}
+              >
+                {Number(day.slice(8))}
+              </Text>
+            </View>
+          </>
+        );
+      }}
     </Pressable>
   );
 }
@@ -418,10 +425,13 @@ const styles = StyleSheet.create({
   },
   band: {
     position: "absolute",
+    pointerEvents: "none",
   },
   circle: {
     alignItems: "center",
     justifyContent: "center",
     borderRadius: radius.full,
+    // The day's Pressable is what is touched, whatever its circle is.
+    pointerEvents: "none",
   },
 });

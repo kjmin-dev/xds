@@ -8,7 +8,7 @@
       "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
       "date": "2026-11-17",
       "alt": "A bottom sheet titled Due date over the dimmed design preview, holding the calendar for March 2026 drawn from the tokens between buttons for the months before and after, with the 10th chosen and the days before the 5th greyed out.",
-      "inputs": "sha256:23333230bde024c32d911a3967f938f673d71fb330f8d24cd838bc7a96b1968d"
+      "inputs": "sha256:219ad52a2fa299dafeaaf192fff2bcc9e0b32a7f216ceb01ddf41888e6955a94"
     },
     {
       "name": "datepicker",
@@ -18,7 +18,7 @@
       "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
       "date": "2026-11-17",
       "alt": "A bottom sheet titled Due date over the dimmed design preview, holding the calendar for March 2026 drawn from the tokens between buttons for the months before and after, with the 10th chosen and the days before the 5th greyed out.",
-      "inputs": "sha256:23333230bde024c32d911a3967f938f673d71fb330f8d24cd838bc7a96b1968d"
+      "inputs": "sha256:219ad52a2fa299dafeaaf192fff2bcc9e0b32a7f216ceb01ddf41888e6955a94"
     },
     {
       "name": "datepicker",
@@ -38,7 +38,7 @@
       "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
       "date": "2026-11-17",
       "alt": "A tall bottom sheet titled Stay over the dimmed design preview: Check-in Mar 10, 2026 and Check-out Mar 14, 2026 at the top, the weekday initials, March 2026 with a band from the 10th to the 14th between two filled circles and the days before the 5th greyed out, April 2026 under it with the days after the 20th greyed out, and a Done button at the bottom.",
-      "inputs": "sha256:cb034a821ada10daa0fe5eab131726316256d52242ba7b8954c505e3672dae2b"
+      "inputs": "sha256:b80e4db0e7d5612ee703e58833df4b9e407e304c033860f672bb2dc9245b495d"
     },
     {
       "name": "daterange",
@@ -48,7 +48,7 @@
       "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
       "date": "2026-11-17",
       "alt": "A tall bottom sheet titled Stay over the dimmed design preview: Check-in Mar 10, 2026 and Check-out Mar 14, 2026 at the top, the weekday initials, March 2026 with a band from the 10th to the 14th between two filled circles and the days before the 5th greyed out, April 2026 under it with the days after the 20th greyed out, and a Done button at the bottom.",
-      "inputs": "sha256:cb034a821ada10daa0fe5eab131726316256d52242ba7b8954c505e3672dae2b"
+      "inputs": "sha256:b80e4db0e7d5612ee703e58833df4b9e407e304c033860f672bb2dc9245b495d"
     },
     {
       "name": "daterange",

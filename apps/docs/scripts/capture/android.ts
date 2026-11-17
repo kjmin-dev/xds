@@ -3,7 +3,7 @@
 // alone changed; it is made from a system image already installed, since this task downloads
 // nothing into the SDK, and it is deleted with the emulator after the run.
 
-import { existsSync, readdirSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
 import { join } from "node:path";
 import { appConfig, type Device, maestroSetup, mobile, prebuild, shoot } from "./mobile.ts";
@@ -114,6 +114,8 @@ export async function takeAndroid(names: CaptureName[], workspace: Workspace): P
 
   console.log(`  emulator: ${phone}, ${image}`);
   rmSync(avdHome, { recursive: true, force: true });
+  // avdmanager writes to ~/.android/avd when ANDROID_AVD_HOME names no directory.
+  mkdirSync(avdHome, { recursive: true });
   await run(
     avdmanager,
     ["create", "avd", "--name", NAME, "--package", image, "--device", definition],

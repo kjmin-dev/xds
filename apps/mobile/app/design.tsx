@@ -77,6 +77,7 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import { type ReactNode, useState } from "react";
 import { Image, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { GlassPreview } from "../src/GlassPreview.tsx";
 
 const VARIANTS: ButtonVariant[] = ["primary", "secondary", "ghost", "danger"];
 const SIZES: ControlSize[] = ["sm", "md", "lg"];
@@ -309,6 +310,9 @@ export default function Design() {
   const [panels, setPanels] = useState<readonly string[]>(["notifications", "privacy"]);
   const params = useLocalSearchParams<{
     section?: string;
+    glass?: string;
+    autoscroll?: string;
+    settle?: string;
     from?: string;
     sheet?: string;
     menu?: string;
@@ -319,7 +323,7 @@ export default function Design() {
     toast?: string;
   }>();
   const from = Number(params.from ?? 1);
-  const [sheet, setSheet] = useState(params.sheet === "1");
+  const [sheet, setSheet] = useState(params.section !== "glass" && params.sheet === "1");
   const [dialog, setDialog] = useState(params.dialog === "1");
   const [toast, setToast] = useState(params.toast === "1");
 
@@ -1070,6 +1074,9 @@ export default function Design() {
         ]}
       />
     </Section>,
+    <Section key="glass" title="Glass">
+      <GlassPreview />
+    </Section>,
   ];
 
   // A key keeps pointing at its section when sections are added above it; a number does not.
@@ -1090,9 +1097,19 @@ export default function Design() {
           }}
         />
         {/* A tap on a button while the keyboard is up is that button's, not only the keyboard's. */}
-        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.page}>
-          {sections.slice(start === -1 ? from - 1 : start)}
-        </ScrollView>
+        {params.section === "glass" || from === sections.length ? (
+          <GlassPreview
+            fullScreen
+            tier={params.glass}
+            autoscroll={params.autoscroll !== undefined}
+            settle={params.settle === "1"}
+            initiallyOpen={params.sheet === "1"}
+          />
+        ) : (
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.page}>
+            {sections.slice(start === -1 ? from - 1 : start)}
+          </ScrollView>
+        )}
         <BottomSheet open={sheet} onClose={() => setSheet(false)} title="Share report">
           <Text tone="secondary">A sheet holds a short task and leaves the screen behind it.</Text>
           <Button variant="primary" label="Copy link" fullWidth onPress={() => setSheet(false)} />

@@ -100,6 +100,16 @@ export function captureInputs(capture: Capture, contract: Contract): string[] {
       "kotlin/ui/src/commonMain/kotlin/acme/ui/GlassPreview.kt",
     );
   }
+  if (capture.name.startsWith("glass-") && capture.client === "mobile-react-native") {
+    parts.push(
+      "packages/ui-native/src/Glass.tsx",
+      capture.platform === "ios"
+        ? "packages/ui-native/ios/GlassSettingsModule.swift"
+        : "packages/ui-native/android/src/main/java/acme/ui/GlassSettingsModule.kt",
+      "packages/ui-native/src/glassTier.ts",
+      "apps/mobile/src/GlassPreview.tsx",
+    );
+  }
   return [...new Set([...sources, ...parts, ...tokens])].sort();
 }
 

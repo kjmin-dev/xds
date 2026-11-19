@@ -1,0 +1,8 @@
+# A requested blur or native tier may fall back to opaque on this device.
+appId: ${APP_ID}
+---
+- runFlow: open.yaml
+- extendedWaitUntil:
+    visible:
+      id: ${MATERIAL}
+    timeout: 10000

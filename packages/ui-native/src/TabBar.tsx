@@ -1,6 +1,7 @@
 import { border, radius, shadow, space, typography } from "@acme/tokens";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { GlassMaterial, type Surface } from "./Glass";
 import { control, useColors } from "./theme.ts";
 
 export type TabBarItem<Key extends string> = {
@@ -11,6 +12,7 @@ export type TabBarItem<Key extends string> = {
 };
 
 export type TabBarProps<Key extends string> = {
+  surface?: Surface;
   items: readonly TabBarItem<Key>[];
   value: Key;
   onChange: (key: Key) => void;
@@ -24,35 +26,50 @@ const INSET = space[1];
  * below, inside the safe area. The selected tab sits in a pill of its own: a shape, so the
  * selection does not depend on color.
  */
-export function TabBar<Key extends string>({ items, value, onChange }: TabBarProps<Key>) {
+export function TabBar<Key extends string>({
+  items,
+  value,
+  onChange,
+  surface = "solid",
+}: TabBarProps<Key>) {
   const colors = useColors();
-  return (
+  const content = items.map((item) => {
+    const selected = item.key === value;
+    const color = selected
+      ? colors.tabBarTextSelected
+      : surface === "glass"
+        ? colors.glassForeground
+        : colors.tabBarText;
+    return (
+      <Pressable
+        key={item.key}
+        role="tab"
+        aria-label={item.label}
+        aria-selected={selected}
+        onPress={() => onChange(item.key)}
+        style={[styles.item, selected && { backgroundColor: colors.tabBarSelectedBackground }]}
+      >
+        <View style={styles.icon}>{item.icon(color)}</View>
+        <Text numberOfLines={1} style={[typography.footnote, { color }]}>
+          {item.label}
+        </Text>
+      </Pressable>
+    );
+  });
+  return surface === "glass" ? (
+    <GlassMaterial role="tablist" corners={radius.full} style={styles.bar}>
+      {content}
+    </GlassMaterial>
+  ) : (
     <View
       role="tablist"
       style={[
         styles.bar,
+        styles.solid,
         { backgroundColor: colors.tabBarBackground, borderColor: colors.tabBarBorder },
       ]}
     >
-      {items.map((item) => {
-        const selected = item.key === value;
-        const color = selected ? colors.tabBarTextSelected : colors.tabBarText;
-        return (
-          <Pressable
-            key={item.key}
-            role="tab"
-            aria-label={item.label}
-            aria-selected={selected}
-            onPress={() => onChange(item.key)}
-            style={[styles.item, selected && { backgroundColor: colors.tabBarSelectedBackground }]}
-          >
-            <View style={styles.icon}>{item.icon(color)}</View>
-            <Text numberOfLines={1} style={[typography.footnote, { color }]}>
-              {item.label}
-            </Text>
-          </Pressable>
-        );
-      })}
+      {content}
     </View>
   );
 }
@@ -63,8 +80,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     height: control.bar + INSET * 2,
     padding: INSET,
-    borderWidth: border.width.thin,
     borderRadius: radius.full,
+  },
+  solid: {
+    borderWidth: border.width.thin,
+
     // The whole shadow in one object: react-native-web builds a box-shadow from each on its own.
     shadowColor: shadow.raised.color,
     shadowOffset: { width: shadow.raised.offsetX, height: shadow.raised.offsetY },

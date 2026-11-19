@@ -2175,7 +2175,18 @@
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/TopBar.kt",
           "symbol": "TopBar"
         }
-      }
+      },
+      "differences": [
+        {
+          "option": "surface",
+          "value": "glass",
+          "clients": [
+            "mobile-react-native"
+          ],
+          "kind": "system",
+          "note": "On iOS 26 and later, the content sits inside a system Liquid Glass view when transparency is allowed. Earlier iOS and Android 33 or later can blur the marked backdrop. Power saving, accessibility settings, low-memory Android devices and an unmarked backdrop use the opaque fallback."
+        }
+      ]
     },
     {
       "name": "TabBar",
@@ -2210,7 +2221,18 @@
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/TabBar.kt",
           "symbol": "TabBar"
         }
-      }
+      },
+      "differences": [
+        {
+          "option": "surface",
+          "value": "glass",
+          "clients": [
+            "mobile-react-native"
+          ],
+          "kind": "system",
+          "note": "On iOS 26 and later, the content sits inside a system Liquid Glass view when transparency is allowed. Earlier iOS and Android 33 or later can blur the marked backdrop. Power saving, accessibility settings, low-memory Android devices and an unmarked backdrop use the opaque fallback."
+        }
+      ]
     },
     {
       "name": "BottomSheet",
@@ -2248,7 +2270,18 @@
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/BottomSheet.kt",
           "symbol": "BottomSheet"
         }
-      }
+      },
+      "differences": [
+        {
+          "option": "surface",
+          "value": "glass",
+          "clients": [
+            "mobile-react-native"
+          ],
+          "kind": "system",
+          "note": "On iOS 26 and later, the content sits inside a system Liquid Glass view when transparency is allowed. Earlier iOS and Android 33 or later can blur the marked backdrop. Power saving, accessibility settings, low-memory Android devices and an unmarked backdrop use the opaque fallback."
+        }
+      ]
     }
   ]
 }

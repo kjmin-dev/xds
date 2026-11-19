@@ -69,6 +69,12 @@ const PAIRS: Pair[] = [
   ...STATUSES.flatMap((status) =>
     on(`status.${status}`, [...SURFACES, `status.${status}-subtle`], TEXT),
   ),
+  // Glass previews scroll these colored rows underneath the navigation surfaces.
+  ...on(
+    "text.primary",
+    STATUSES.map((status) => `status.${status}-subtle`),
+    TEXT,
+  ),
   ...on("border.strong", SURFACES, PART),
   ...on("border.focus", SURFACES, PART),
   ...on("accent.default", SURFACES, PART),

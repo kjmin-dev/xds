@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
 import { reactNativeWebPlugin } from "./scripts/react-native-web.ts";
@@ -8,7 +9,23 @@ import { reactNativeWebPlugin } from "./scripts/react-native-web.ts";
 // real clients, as Astro renders them before the tests start. The `.test.ts` files beside them
 // run in Node (`node --test`).
 export default defineConfig({
-  plugins: [reactNativeWebPlugin()],
+  plugins: [
+    {
+      name: "native-glass-test-hosts",
+      enforce: "pre",
+      resolveId(id, importer) {
+        // The docs render Glass.web.tsx. Only this regression exercises the actual native
+        // material component with UIKit/Expo hosts replaced by distinct browser elements.
+        if (
+          importer?.endsWith("/packages/ui-native/src/Glass.tsx") &&
+          ["expo", "expo-blur", "expo-glass-effect", "expo-linear-gradient"].includes(id)
+        )
+          return fileURLToPath(new URL("./test/fixtures/glass-hosts.tsx", import.meta.url));
+        return null;
+      },
+    },
+    reactNativeWebPlugin(),
+  ],
   test: {
     name: "browser",
     include: ["test/**/*.test.tsx"],

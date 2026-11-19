@@ -1,5 +1,5 @@
 import { motion, radius, shadow, space } from "@acme/tokens";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useContext, useEffect, useRef, useState } from "react";
 import {
   Animated,
   Easing,
@@ -11,11 +11,14 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { GlassMaterial, type Surface } from "./Glass";
+import { PreviewGlassTier } from "./glassPreview.ts";
 import { useReducedMotion } from "./motion.ts";
 import { Text } from "./Text.tsx";
 import { useColors } from "./theme.ts";
 
 export type BottomSheetProps = {
+  surface?: Surface;
   open: boolean;
   /** Called when the person dismisses the sheet: a tap outside, a drag down, the back button. */
   onClose: () => void;
@@ -54,11 +57,14 @@ function Sheet({
   onClose,
   title,
   closeLabel = "Close",
+  surface = "solid",
   children,
   tall,
 }: BottomSheetProps & { tall: boolean }) {
   const colors = useColors();
   const reduced = useReducedMotion();
+  const probe = useContext(PreviewGlassTier);
+  const onSheetEvent = surface === "glass" ? probe?.onSheetEvent : undefined;
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   // 0 is fully open, 1 fully off screen. The modal stays mounted until the way out has played.
@@ -72,6 +78,7 @@ function Sheet({
 
   useEffect(() => {
     if (open) setMounted(true);
+    else onSheetEvent?.("closing");
     const [x1, y1, x2, y2] = open ? motion.easing.enter : motion.easing.exit;
     Animated.timing(progress, {
       toValue: open ? 0 : 1,
@@ -80,9 +87,11 @@ function Sheet({
       easing: Easing.bezier(x1, y1, x2, y2),
       useNativeDriver: true,
     }).start(({ finished }) => {
-      if (finished && !open) setMounted(false);
+      if (!finished) return;
+      if (open) onSheetEvent?.("entered");
+      else setMounted(false);
     });
-  }, [open, progress, reduced, releases]);
+  }, [open, progress, reduced, releases, onSheetEvent]);
 
   const bottom = Math.max(insets.bottom, space[2]);
   // A tall sheet stops short of the status bar, with the margin it keeps from the other edges.
@@ -161,8 +170,29 @@ function Sheet({
   ).current;
 
   if (!mounted) return null;
+  const content = (
+    <>
+      <View style={styles.grip}>
+        <View style={[styles.handle, { backgroundColor: colors.sheetHandle }]} />
+      </View>
+      <View style={[styles.content, tall && styles.fill]}>
+        {title && (
+          <Text variant="heading" heading>
+            {title}
+          </Text>
+        )}
+        {children}
+      </View>
+    </>
+  );
   return (
-    <Modal transparent statusBarTranslucent animationType="none" onRequestClose={onClose}>
+    <Modal
+      transparent
+      statusBarTranslucent
+      animationType="none"
+      onRequestClose={onClose}
+      onShow={onSheetEvent && (() => onSheetEvent("shown"))}
+    >
       <Animated.View
         style={[
           StyleSheet.absoluteFill,
@@ -187,10 +217,11 @@ function Sheet({
         onLayout={(event) => setHeight(event.nativeEvent.layout.height)}
         style={[
           styles.sheet,
+          surface === "solid" && styles.solid,
           {
             bottom,
             ...(tall && { height: tallHeight }),
-            backgroundColor: colors.sheetBackground,
+            ...(surface === "solid" && { backgroundColor: colors.sheetBackground }),
             transform: [
               {
                 // Far enough to clear the margin below it as well.
@@ -200,17 +231,13 @@ function Sheet({
           },
         ]}
       >
-        <View style={styles.grip}>
-          <View style={[styles.handle, { backgroundColor: colors.sheetHandle }]} />
-        </View>
-        <View style={[styles.content, tall && styles.fill]}>
-          {title && (
-            <Text variant="heading" heading>
-              {title}
-            </Text>
-          )}
-          {children}
-        </View>
+        {surface === "glass" ? (
+          <GlassMaterial corners={radius.xl} sheet style={tall && styles.fill}>
+            {content}
+          </GlassMaterial>
+        ) : (
+          content
+        )}
       </Animated.View>
     </Modal>
   );
@@ -272,6 +299,8 @@ const styles = StyleSheet.create({
     left: space[2],
     right: space[2],
     borderRadius: radius.xl,
+  },
+  solid: {
     // The whole shadow in one object: react-native-web builds a box-shadow from each on its own.
     shadowColor: shadow.overlay.color,
     shadowOffset: { width: shadow.overlay.offsetX, height: shadow.overlay.offsetY },

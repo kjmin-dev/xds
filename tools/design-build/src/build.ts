@@ -6,7 +6,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import { checkContrast } from "./contrast.ts";
-import { emitCss, emitKotlin, emitRust, emitTailwind, emitTypeScript } from "./emit.ts";
+import { emitCss, emitDart, emitKotlin, emitRust, emitTailwind, emitTypeScript } from "./emit.ts";
 import { loadIcons } from "./icons.ts";
 import { loadModel, type Model, TokenError } from "./model.ts";
 
@@ -16,6 +16,7 @@ const check = process.argv.includes("--check");
 /** One emitter per kind of output. `design/build.json` says which to write, and where. */
 const EMITTERS: Record<string, (model: Model, path: string) => string> = {
   css: emitCss,
+  dart: emitDart,
   tailwind: emitTailwind,
   typescript: emitTypeScript,
   rust: emitRust,

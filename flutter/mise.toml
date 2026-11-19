@@ -1,0 +1,51 @@
+[tasks.install]
+description = "Resolve the Flutter app and library together"
+run = "flutter pub get --enforce-lockfile"
+
+[tasks.ios]
+description = "Run the app on an iOS simulator or connected iPhone"
+depends = ["install"]
+dir = "app"
+run = "node ../scripts/run.mjs ios"
+
+[tasks.android]
+description = "Run the app on an Android emulator or connected phone"
+depends = ["install"]
+dir = "app"
+run = "node ../scripts/run.mjs android"
+
+[tasks.check]
+description = "Format-check, analyze, test and build the Flutter Android app"
+depends = ["install"]
+run = [
+  "dart format --output=none --set-exit-if-changed ui/lib ui/test ui/test_render app/lib",
+  "flutter analyze --no-pub",
+  { task = "//flutter:test" },
+  { task = "//flutter:build:android" },
+]
+
+[tasks.test]
+description = "Run widget tests and compare the reference images on Linux"
+dir = "ui"
+run = "flutter test --no-pub"
+
+[tasks."build:android"]
+description = "Build the Flutter sample APK"
+dir = "app"
+run = "flutter build apk --debug --no-pub"
+
+[tasks."check:ios"]
+description = "Build the Flutter sample for the iOS simulator without signing"
+depends = ["install"]
+dir = "app"
+run = "flutter build ios --simulator --debug --no-pub"
+
+[tasks.goldens]
+description = "Record the reference PNGs on Linux"
+run = "bash scripts/goldens.sh"
+
+[tasks.render]
+description = "Render the Flutter design preview, including open overlays"
+depends = ["install"]
+dir = "ui"
+run = "flutter test --no-pub test_render/render_preview.dart"

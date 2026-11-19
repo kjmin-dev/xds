@@ -105,6 +105,32 @@ jobs:
           key: ${{ steps.gradle-cache.outputs.cache-primary-key }}
 
   # @endif
+  # @if dart-flutter
+  flutter:
+    name: Flutter (Android and widget goldens)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+        with:
+          install_args: flutter java
+      - run: mise run //flutter:check
+      # @if template
+      - name: Record reference images for inspection
+        if: failure()
+        working-directory: flutter/ui
+        run: flutter test --update-goldens --tags golden test/goldens_test.dart
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: flutter-golden-reference
+          path: |
+            flutter/ui/test/goldens
+            flutter/ui/test/failures
+          retention-days: 7
+      # @endif
+
+  # @endif
   # @if template
   docs:
     name: Documentation site

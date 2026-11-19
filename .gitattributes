@@ -18,3 +18,8 @@ packages/tokens/src/generated/**          linguist-generated
 # @if kotlin-compose
 kotlin/ui/src/commonMain/kotlin/acme/tokens/Tokens.kt linguist-generated
 # @endif
+# @if dart-flutter
+flutter/ui/lib/src/tokens/tokens.g.dart   linguist-generated
+flutter/ui/test/goldens/**                linguist-generated
+flutter/pubspec.lock                      linguist-generated
+# @endif

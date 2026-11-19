@@ -21,6 +21,8 @@ flowchart TD
   BUILD --> TW["tailwind.css<br/>Tailwind theme"]
   BUILD --> TS["tokens.ts<br/>TypeScript constants"]
   BUILD --> RS["generated.rs<br/>Rust constants"]
+  BUILD --> DART["tokens.g.dart<br/>Flutter values"]
+  DART --> FLUTTER["flutter/ui<br/>Flutter widgets"]
   BUILD --> KT["Tokens.kt<br/>Compose values"]
 
   CSS --> CORE["@acme/ui-core<br/>classes and CSS of the web components"]
@@ -202,6 +204,7 @@ The generator converts each shape to path data and writes it into the generated 
 | Output | Contents |
 | --- | --- |
 | TypeScript | `icons`, a map from icon name to path data, and the `IconName` type. The web and React Native `Icon` components render these paths; React Native uses `react-native-svg` |
+| Dart | The `IconName` enum carries SVG path data for the Flutter canvas |
 | Kotlin | The `IconName` enum, where each entry carries its path data. The Compose `Icon` component strokes the paths on a canvas |
 | Rust | The `Icon` enum with `name()`, `svg()`, and `filled_svg()` methods. The `icon` and `icon_filled` functions pass the SVG document to GPUI |
 
@@ -273,7 +276,7 @@ Every platform exposes the same component names, variants, sizes, and tones.
 | EmptyState | icon, title, description, action | Centered, with an illustrative icon at `size.icon.xl` and one action at most |
 | Accordion | items (value, title, description, content), expanded, multiple | Hairline-separated items whose bodies open under their titles. One at a time unless `multiple` |
 
-Three additional navigation components exist only on the touch-oriented platforms (React Native and Compose):
+Three additional navigation components exist only on the touch-oriented platforms (React Native, Compose and Flutter):
 
 | Component | Options | Rule |
 | --- | --- | --- |

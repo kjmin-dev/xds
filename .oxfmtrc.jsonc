@@ -15,6 +15,9 @@
     // Written by tools: the token generator, and JSON.stringify for the files under design/.
     "**/generated",
     "design",
+    // @if dart-flutter
+    "flutter",
+    // @endif
   ],
   // @if template
   // The documentation site's pages; Astro brings the compiler that formats them.

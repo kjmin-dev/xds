@@ -17,6 +17,7 @@ A cross-platform design system template. A single set of design tokens drives a 
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component | `crates/acme-ui` | `apps/desktop` |
 | `mobile-react-native` | iOS, Android | React Native, Expo | `packages/ui-native` | `apps/mobile` |
 | `kotlin-compose` | Android, iOS, desktop | Kotlin Multiplatform, Compose Multiplatform | `kotlin/ui` | `kotlin/androidApp`, `kotlin/iosApp`, `kotlin/desktopApp` |
+| `dart-flutter` | Android, iOS | Dart, Flutter widgets | `flutter/ui` | `flutter/app` |
 
 The web clients can be combined in one project: each has its own directory, port, and `mise` alias. `packages/ui-core` holds what the web libraries share (prop types, class recipes, and the stylesheet), so that each framework's library adds only its components, and the web clients look and behave the same.
 

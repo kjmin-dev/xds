@@ -298,7 +298,7 @@ function kotlinFloat(value: number): string {
   return `${float(value)}f`;
 }
 
-function kotlinColor({ r, g, b, a }: Rgba): string {
+function argbColor({ r, g, b, a }: Rgba): string {
   const channels = [Math.round(a * 255), r, g, b];
   return `Color(0x${channels.map((channel) => channel.toString(16).padStart(2, "0").toUpperCase()).join("")})`;
 }
@@ -326,7 +326,7 @@ function kotlinValue(token: ValueToken): [type: string, value: string] {
       const { color, offsetX, offsetY, blur, spread } = value.shadow;
       return [
         "ShadowToken",
-        `ShadowToken(color = ${kotlinColor(color)}, offsetX = ${offsetX}.dp, offsetY = ${offsetY}.dp, ` +
+        `ShadowToken(color = ${argbColor(color)}, offsetX = ${offsetX}.dp, offsetY = ${offsetY}.dp, ` +
           `blur = ${blur}.dp, spread = ${spread}.dp)`,
       ];
     }
@@ -383,7 +383,7 @@ export function emitKotlin(model: Model, packageName: string): string {
   for (const mode of ["light", "dark"] as const) {
     lines.push("", `object ${pascal(mode)}Colors : Colors {`);
     for (const token of model.colors) {
-      lines.push(`    override val ${property(token.path)} = ${kotlinColor(token[mode])}`);
+      lines.push(`    override val ${property(token.path)} = ${argbColor(token[mode])}`);
     }
     lines.push("}");
   }
@@ -595,6 +595,143 @@ export function emitRust(model: Model): string {
       "    }",
       "}",
     );
+  }
+  lines.push("");
+  return lines.join("\n");
+}
+
+// ---------------------------------------------------------------- Dart
+
+function dartString(value: string): string {
+  return JSON.stringify(value).replaceAll("$", "\\$");
+}
+
+function dartValue(token: ValueToken): [type: string, value: string] {
+  const { value } = token;
+  switch (value.kind) {
+    case "dimension":
+      return ["double", String(value.px)];
+    case "duration":
+      return ["Duration", `Duration(milliseconds: ${value.ms})`];
+    case "number":
+      return ["double", String(value.value)];
+    case "fontWeight":
+      return ["FontWeight", `FontWeight(${value.value})`];
+    case "fontFamily":
+      return ["List<String>", `[${value.families.map(dartString).join(", ")}]`];
+    case "cubicBezier":
+      return ["Cubic", `Cubic(${value.points.join(", ")})`];
+    case "shadow": {
+      const { color, offsetX, offsetY, blur, spread } = value.shadow;
+      return [
+        "ShadowToken",
+        `ShadowToken(color: ${argbColor(color)}, offsetX: ${offsetX}, offsetY: ${offsetY}, blur: ${blur}, spread: ${spread})`,
+      ];
+    }
+    case "typography": {
+      const { sizePx, weight: w, lineHeight, letterSpacingPx } = value.typography;
+      // The same whole-pixel line height as React Native and Compose, centered in the line as
+      // CSS does: Flutter's default puts the extra space by the font's ascent and descent.
+      const line = Math.round(sizePx * lineHeight);
+      return [
+        "TextStyle",
+        `TextStyle(fontSize: ${sizePx}, height: ${line} / ${sizePx}, fontWeight: FontWeight(${w}), ` +
+          `letterSpacing: ${letterSpacingPx}, leadingDistribution: TextLeadingDistribution.even)`,
+      ];
+    }
+  }
+}
+
+export function emitDart(model: Model): string {
+  const property = (path: string[]) => camel(kebab(path));
+  const lines = [
+    `// ${HEADER}`,
+    "// dart format off",
+    "// ignore_for_file: constant_identifier_names",
+    "",
+    "import 'package:flutter/animation.dart';",
+    "import 'package:flutter/painting.dart';",
+    "",
+    "import 'types.dart';",
+    "",
+    "/// Every color token, for one mode.",
+    "final class ColorTokens {",
+    "  const ColorTokens({",
+  ];
+  for (const token of model.colors) lines.push(`    required this.${property(token.path)},`);
+  lines.push("  });", "");
+  for (const token of model.colors) {
+    if (token.description) lines.push(`  /// ${token.description}`);
+    lines.push(`  final Color ${property(token.path)};`);
+  }
+  lines.push(
+    "",
+    "  /// Every color with its token name, in token order. For screens that list the colors.",
+    "  List<(String, Color)> get entries => [",
+  );
+  for (const token of model.colors)
+    lines.push(`    ('${kebab(token.path)}', ${property(token.path)}),`);
+  lines.push("  ];");
+  for (const mode of ["light", "dark"] as const) {
+    lines.push("", `  static const ${mode} = ColorTokens(`);
+    for (const token of model.colors) {
+      lines.push(`    ${property(token.path)}: ${argbColor(token[mode])},`);
+    }
+    lines.push("  );");
+  }
+  lines.push("}");
+
+  const groups = new Map<string, ValueToken[]>();
+  for (const token of model.values) {
+    const group = token.path[0] as string;
+    groups.set(group, [...(groups.get(group) ?? []), token]);
+  }
+  for (const [group, tokens] of groups) {
+    lines.push("", `abstract final class ${pascal(group)}Tokens {`);
+    for (const token of tokens) {
+      const name = property(token.path.slice(1));
+      const [type, value] = dartValue(token);
+      if (token.description) lines.push(`  /// ${token.description}`);
+      lines.push(
+        `  static const ${type} ${/^[0-9]/.test(name) ? group.charAt(0) + name : name} = ${value};`,
+      );
+    }
+    lines.push("}");
+  }
+
+  if (model.sizes.length > 0) {
+    lines.push(
+      "",
+      "/// Control sizes, for one input device.",
+      "final class SizeTokens {",
+      "  const SizeTokens({",
+    );
+    for (const token of model.sizes) lines.push(`    required this.${property(token.path)},`);
+    lines.push("  });", "");
+    for (const token of model.sizes) {
+      if (token.description) lines.push(`  /// ${token.description}`);
+      lines.push(`  final double ${property(token.path)};`);
+    }
+    for (const mode of INPUT_MODES) {
+      lines.push("", `  static const ${mode} = SizeTokens(`);
+      for (const token of model.sizes) lines.push(`    ${property(token.path)}: ${token[mode]},`);
+      lines.push("  );");
+    }
+    lines.push("}");
+  }
+  const icons = model.icons ?? [];
+  if (icons.length > 0) {
+    lines.push(
+      "",
+      `/// Icons as SVG path data on a ${ICON_GRID} by ${ICON_GRID} grid, stroked ${ICON_STROKE} wide with round caps and joins.`,
+      "enum IconName {",
+    );
+    icons.forEach((icon, index) => {
+      const paths = icon.paths.map((p) => `'${p}'`).join(", ");
+      const end = index === icons.length - 1 ? ";" : ",";
+      lines.push(`  ${camel(icon.name)}([${paths}])${end}`);
+    });
+    lines.push("", "  const IconName(this.paths);", "", "  final List<String> paths;", "}");
   }
   lines.push("");
   return lines.join("\n");

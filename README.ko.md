@@ -17,6 +17,7 @@
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component | `crates/acme-ui` | `apps/desktop` |
 | `mobile-react-native` | iOS, Android | React Native, Expo | `packages/ui-native` | `apps/mobile` |
 | `kotlin-compose` | Android, iOS, 데스크톱 | Kotlin Multiplatform, Compose Multiplatform | `kotlin/ui` | `kotlin/androidApp`, `kotlin/iosApp`, `kotlin/desktopApp` |
+| `dart-flutter` | Android, iOS | Dart, Flutter widgets | `flutter/ui` | `flutter/app` |
 
 웹 클라이언트들은 한 프로젝트에 함께 넣을 수 있습니다. 각각 디렉터리, 포트, `mise` 별칭이 따로 있습니다. `packages/ui-core`에는 웹 라이브러리들이 함께 쓰는 것(prop 타입, 클래스 레시피, 스타일시트)이 있어서, 프레임워크별 라이브러리는 컴포넌트만 더하고 웹 클라이언트들은 같은 모습과 동작을 가집니다.
 

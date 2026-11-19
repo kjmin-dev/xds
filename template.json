@@ -19,6 +19,7 @@
     ".claude-plugin",
     "LICENSE",
     "docs/images",
+    "flutter/ui/test/goldens",
     "docs/cli.md",
     "docs/library.md",
     ".github/workflows/release.yml",
@@ -166,6 +167,20 @@
           "command": "mise run //mobile:android",
           "description": "Start the mobile app in the Android emulator"
         }
+      ]
+    },
+    {
+      "id": "dart-flutter",
+      "title": "Flutter",
+      "stack": "Dart, Flutter widgets",
+      "platforms": ["iOS", "Android"],
+      "input": "touch",
+      "paths": ["flutter"],
+      "outputs": ["dart"],
+      "format": "mise run fmt",
+      "run": [
+        { "command": "mise run //flutter:ios", "description": "Run the Flutter app on iOS" },
+        { "command": "mise run //flutter:android", "description": "Run the Flutter app on Android" }
       ]
     },
     {

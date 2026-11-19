@@ -71,6 +71,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Button.kt",
           "symbol": "Button"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/button.dart",
+          "symbol": "Button"
         }
       },
       "differences": [
@@ -138,6 +142,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/TextField.kt",
           "symbol": "TextField"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/fields.dart",
+          "symbol": "TextField"
         }
       }
     },
@@ -200,6 +208,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Text.kt",
           "symbol": "Text"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/text.dart",
+          "symbol": "Text"
         }
       }
     },
@@ -255,6 +267,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Badge.kt",
           "symbol": "Badge"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/badges.dart",
+          "symbol": "Badge"
         }
       }
     },
@@ -302,6 +318,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/CountBadge.kt",
+          "symbol": "CountBadge"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/badges.dart",
           "symbol": "CountBadge"
         }
       }
@@ -355,6 +375,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Banner.kt",
+          "symbol": "Banner"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/badges.dart",
           "symbol": "Banner"
         }
       }
@@ -416,6 +440,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Card.kt",
           "symbol": "Card"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/cards.dart",
+          "symbol": "Card"
         }
       }
     },
@@ -455,6 +483,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Card.kt",
+          "symbol": "Divider"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/indicators.dart",
           "symbol": "Divider"
         }
       }
@@ -502,6 +534,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Spinner.kt",
+          "symbol": "Spinner"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/indicators.dart",
           "symbol": "Spinner"
         }
       }
@@ -555,6 +591,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Switch.kt",
           "symbol": "Switch"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/choices.dart",
+          "symbol": "Switch"
         }
       }
     },
@@ -607,6 +647,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Checkbox.kt",
           "symbol": "Checkbox"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/choices.dart",
+          "symbol": "Checkbox"
         }
       }
     },
@@ -657,6 +701,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/SegmentedControl.kt",
+          "symbol": "SegmentedControl"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/choices.dart",
           "symbol": "SegmentedControl"
         }
       }
@@ -709,6 +757,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Avatar.kt",
+          "symbol": "Avatar"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/avatars.dart",
           "symbol": "Avatar"
         }
       }
@@ -763,6 +815,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/AvatarStack.kt",
           "symbol": "AvatarStack"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/avatars.dart",
+          "symbol": "AvatarStack"
         }
       }
     },
@@ -807,6 +863,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/ProgressBar.kt",
+          "symbol": "ProgressBar"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/indicators.dart",
           "symbol": "ProgressBar"
         }
       }
@@ -862,6 +922,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Icon.kt",
+          "symbol": "Icon"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/icon.dart",
           "symbol": "Icon"
         }
       }
@@ -923,6 +987,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/ListRow.kt",
+          "symbol": "ListRow"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/cards.dart",
           "symbol": "ListRow"
         }
       }
@@ -995,6 +1063,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/IconButton.kt",
           "symbol": "IconButton"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/button.dart",
+          "symbol": "IconButton"
         }
       },
       "differences": [
@@ -1058,6 +1130,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Chip.kt",
           "symbol": "Chip"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/choices.dart",
+          "symbol": "Chip"
         }
       }
     },
@@ -1102,6 +1178,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/ChipBar.kt",
+          "symbol": "ChipBar"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/choices.dart",
           "symbol": "ChipBar"
         }
       }
@@ -1157,6 +1237,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Tabs.kt",
           "symbol": "Tabs"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/choices.dart",
+          "symbol": "Tabs"
         }
       }
     },
@@ -1211,6 +1295,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Menu.kt",
+          "symbol": "Menu"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/menus.dart",
           "symbol": "Menu"
         }
       },
@@ -1274,6 +1362,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Dialog.kt",
           "symbol": "Dialog"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/modals.dart",
+          "symbol": "Dialog"
         }
       }
     },
@@ -1325,6 +1417,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Toast.kt",
+          "symbol": "Toast"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/modals.dart",
           "symbol": "Toast"
         }
       }
@@ -1417,6 +1513,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Skeleton.kt",
           "symbol": "Skeleton"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/indicators.dart",
+          "symbol": "Skeleton"
         }
       }
     },
@@ -1472,6 +1572,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/SearchField.kt",
           "symbol": "SearchField"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/fields.dart",
+          "symbol": "SearchField"
         }
       }
     },
@@ -1526,6 +1630,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/RadioGroup.kt",
+          "symbol": "RadioGroup"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/choices.dart",
           "symbol": "RadioGroup"
         }
       }
@@ -1584,6 +1692,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Select.kt",
+          "symbol": "Select"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/menus.dart",
           "symbol": "Select"
         }
       },
@@ -1653,6 +1765,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/DatePicker.kt",
+          "symbol": "DatePicker"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/calendars.dart",
           "symbol": "DatePicker"
         }
       },
@@ -1730,6 +1846,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/DateRangePicker.kt",
+          "symbol": "DateRangePicker"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/calendars.dart",
           "symbol": "DateRangePicker"
         }
       },
@@ -1818,6 +1938,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Slider.kt",
           "symbol": "Slider"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/slider.dart",
+          "symbol": "Slider"
         }
       }
     },
@@ -1872,6 +1996,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Thumbnail.kt",
+          "symbol": "Thumbnail"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/cards.dart",
           "symbol": "Thumbnail"
         }
       }
@@ -1936,6 +2064,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/MediaCard.kt",
           "symbol": "MediaCard"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/cards.dart",
+          "symbol": "MediaCard"
         }
       }
     },
@@ -1984,6 +2116,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/SectionHeader.kt",
+          "symbol": "SectionHeader"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/sections.dart",
           "symbol": "SectionHeader"
         }
       }
@@ -2084,6 +2220,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/EmptyState.kt",
           "symbol": "EmptyState"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/sections.dart",
+          "symbol": "EmptyState"
         }
       }
     },
@@ -2138,6 +2278,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/Accordion.kt",
           "symbol": "Accordion"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/sections.dart",
+          "symbol": "Accordion"
         }
       }
     },
@@ -2174,6 +2318,10 @@
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/TopBar.kt",
           "symbol": "TopBar"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/navigation.dart",
+          "symbol": "TopBar"
         }
       }
     },
@@ -2208,6 +2356,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/TabBar.kt",
+          "symbol": "TabBar"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/navigation.dart",
           "symbol": "TabBar"
         }
       }
@@ -2246,6 +2398,10 @@
         },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/BottomSheet.kt",
+          "symbol": "BottomSheet"
+        },
+        "dart-flutter": {
+          "source": "flutter/ui/lib/src/modals.dart",
           "symbol": "BottomSheet"
         }
       }

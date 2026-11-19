@@ -45,6 +45,13 @@
   --acme-color-overlay-background: rgb(0 0 0 / 0.72);
   --acme-color-overlay-text: #ffffff;
   --acme-color-overlay-accent: #a5b4fc;
+  --acme-color-glass-tint: light-dark(rgb(255 255 255 / 0.72), rgb(34 34 40 / 0.72));
+  --acme-color-glass-tint-strong: light-dark(rgb(255 255 255 / 0.92), rgb(34 34 40 / 0.92));
+  --acme-color-glass-highlight: light-dark(rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.08));
+  --acme-color-glass-border: light-dark(rgb(255 255 255 / 0.6), rgb(255 255 255 / 0.12));
+  --acme-color-glass-shadow: light-dark(rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.35));
+  --acme-color-glass-fallback: light-dark(#ffffff, #222228);
+  --acme-color-glass-foreground: light-dark(#18181c, #f5f5f7);
   --acme-color-button-primary-background: light-dark(#4f46e5, #5b5ef0);
   --acme-color-button-primary-background-hover: light-dark(#4338ca, #4f46e5);
   --acme-color-button-primary-background-pressed: light-dark(#3730a3, #4338ca);
@@ -296,6 +303,8 @@
   --acme-shadow-subtle: 0px 1px 2px 0px rgb(0 0 0 / 0.06);
   --acme-shadow-raised: 0px 4px 16px 0px rgb(0 0 0 / 0.12);
   --acme-shadow-overlay: 0px 12px 32px 0px rgb(0 0 0 / 0.35);
+  --acme-glass-blur: 12px;
+  --acme-glass-saturation: 1.8;
 
   --acme-size-control-sm: 28px;
   --acme-size-control-md: 36px;

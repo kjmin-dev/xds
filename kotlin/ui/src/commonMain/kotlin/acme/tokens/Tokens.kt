@@ -84,6 +84,13 @@ interface Colors {
     val overlayText: Color
     /** Accent-colored marks on the overlay background, such as how much of a video was watched. Light enough to read over any picture, so the same in both modes. */
     val overlayAccent: Color
+    val glassTint: Color
+    val glassTintStrong: Color
+    val glassHighlight: Color
+    val glassBorder: Color
+    val glassShadow: Color
+    val glassFallback: Color
+    val glassForeground: Color
     val buttonPrimaryBackground: Color
     val buttonPrimaryBackgroundHover: Color
     val buttonPrimaryBackgroundPressed: Color
@@ -353,6 +360,13 @@ interface Colors {
         "overlay-background" to overlayBackground,
         "overlay-text" to overlayText,
         "overlay-accent" to overlayAccent,
+        "glass-tint" to glassTint,
+        "glass-tint-strong" to glassTintStrong,
+        "glass-highlight" to glassHighlight,
+        "glass-border" to glassBorder,
+        "glass-shadow" to glassShadow,
+        "glass-fallback" to glassFallback,
+        "glass-foreground" to glassForeground,
         "button-primary-background" to buttonPrimaryBackground,
         "button-primary-background-hover" to buttonPrimaryBackgroundHover,
         "button-primary-background-pressed" to buttonPrimaryBackgroundPressed,
@@ -564,6 +578,13 @@ object LightColors : Colors {
     override val overlayBackground = Color(0xB8000000)
     override val overlayText = Color(0xFFFFFFFF)
     override val overlayAccent = Color(0xFFA5B4FC)
+    override val glassTint = Color(0xB8FFFFFF)
+    override val glassTintStrong = Color(0xEBFFFFFF)
+    override val glassHighlight = Color(0x80FFFFFF)
+    override val glassBorder = Color(0x99FFFFFF)
+    override val glassShadow = Color(0x1F000000)
+    override val glassFallback = Color(0xFFFFFFFF)
+    override val glassForeground = Color(0xFF18181C)
     override val buttonPrimaryBackground = Color(0xFF4F46E5)
     override val buttonPrimaryBackgroundHover = Color(0xFF4338CA)
     override val buttonPrimaryBackgroundPressed = Color(0xFF3730A3)
@@ -774,6 +795,13 @@ object DarkColors : Colors {
     override val overlayBackground = Color(0xB8000000)
     override val overlayText = Color(0xFFFFFFFF)
     override val overlayAccent = Color(0xFFA5B4FC)
+    override val glassTint = Color(0xB8222228)
+    override val glassTintStrong = Color(0xEB222228)
+    override val glassHighlight = Color(0x14FFFFFF)
+    override val glassBorder = Color(0x1FFFFFFF)
+    override val glassShadow = Color(0x59000000)
+    override val glassFallback = Color(0xFF222228)
+    override val glassForeground = Color(0xFFF5F5F7)
     override val buttonPrimaryBackground = Color(0xFF5B5EF0)
     override val buttonPrimaryBackgroundHover = Color(0xFF4F46E5)
     override val buttonPrimaryBackgroundPressed = Color(0xFF4338CA)
@@ -1060,6 +1088,13 @@ object Shadow {
     val raised: ShadowToken = ShadowToken(color = Color(0x1F000000), offsetX = 0.dp, offsetY = 4.dp, blur = 16.dp, spread = 0.dp)
     /** Dialogs and sheets, which sit above everything else on the screen. */
     val overlay: ShadowToken = ShadowToken(color = Color(0x59000000), offsetX = 0.dp, offsetY = 12.dp, blur = 32.dp, spread = 0.dp)
+}
+
+object Glass {
+    /** Gaussian standard deviation for a blurred navigation surface. */
+    val blur: Dp = 12.dp
+    /** Backdrop saturation multiplier before the glass tint is drawn. */
+    val saturation: Float = 1.8f
 }
 
 /** Control sizes, for one input device. */

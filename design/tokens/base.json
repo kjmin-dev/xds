@@ -569,5 +569,20 @@
       },
       "$description": "Dialogs and sheets, which sit above everything else on the screen."
     }
+  },
+  "glass": {
+    "blur": {
+      "$type": "dimension",
+      "$value": {
+        "value": 12,
+        "unit": "px"
+      },
+      "$description": "Gaussian standard deviation for a blurred navigation surface."
+    },
+    "saturation": {
+      "$type": "number",
+      "$value": 1.8,
+      "$description": "Backdrop saturation multiplier before the glass tint is drawn."
+    }
   }
 }

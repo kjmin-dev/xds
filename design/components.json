@@ -2149,6 +2149,10 @@
           "title",
           "back",
           "trailing"
+        ],
+        "surface": [
+          "solid",
+          "glass"
         ]
       },
       "states": [
@@ -2157,7 +2161,10 @@
       "accessibility": "The title is a heading. The back button has a press area as large as the smallest touch target.",
       "tokens": [
         "color.top-bar",
-        "size.bar"
+        "size.bar",
+        "color.glass",
+        "glass.blur",
+        "glass.saturation"
       ],
       "clients": {
         "mobile-react-native": {
@@ -2177,6 +2184,10 @@
         "fields": [
           "items",
           "value"
+        ],
+        "surface": [
+          "solid",
+          "glass"
         ]
       },
       "states": [
@@ -2185,7 +2196,10 @@
       "accessibility": "A tab list. The selected tab sits in a pill, so the selection does not depend on color.",
       "tokens": [
         "color.tab-bar",
-        "size.bar"
+        "size.bar",
+        "color.glass",
+        "glass.blur",
+        "glass.saturation"
       ],
       "clients": {
         "mobile-react-native": {
@@ -2208,6 +2222,10 @@
         ],
         "flags": [
           "open"
+        ],
+        "surface": [
+          "solid",
+          "glass"
         ]
       },
       "states": [],
@@ -2216,7 +2234,10 @@
         "color.sheet",
         "color.scrim",
         "radius.xl",
-        "shadow.overlay"
+        "shadow.overlay",
+        "color.glass",
+        "glass.blur",
+        "glass.saturation"
       ],
       "clients": {
         "mobile-react-native": {

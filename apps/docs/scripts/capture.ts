@@ -253,7 +253,7 @@ async function record(platform: CapturePlatform, taken: Taken) {
     };
     const capture: Capture = {
       ...shown,
-      inputs: await inputsHash(root, captureInputs({ ...shown, inputs: "" }, contract)),
+      inputs: await inputsHash(root, captureInputs(shown, contract)),
     };
     for (const mode of MODES) {
       const still = join(out, stillPath(capture, mode));

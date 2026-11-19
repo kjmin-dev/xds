@@ -333,3 +333,27 @@ test("the size of a WebP image is read from each of its three headers", () => {
   assert.equal(webpSize(new TextEncoder().encode("\x89PNG\r\n\x1a\n".padEnd(40, "\0"))), undefined);
   assert.equal(webpSize(riff("VP8 ", [0, 0, 0, 1, 2, 3])), undefined, "no start code");
 });
+
+test("Flutter captures track the bytes of both Linux reference images", async (t) => {
+  const capture = {
+    name: "sheet",
+    client: "dart-flutter",
+    platform: "flutter" as const,
+    components: ["BottomSheet"],
+  };
+  const contract = {
+    components: [{ name: "BottomSheet", clients: { "dart-flutter": { source: "modals.dart" } } }],
+  };
+  const paths = captureInputs(capture, contract).filter((path) => path.endsWith(".png"));
+  assert.deepEqual(paths, [
+    "flutter/ui/test/goldens/open-sheet-dark.png",
+    "flutter/ui/test/goldens/open-sheet-light.png",
+  ]);
+  const root = await mkdtemp(join(tmpdir(), "flutter-capture-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const path = "sheet.png";
+  await writeFile(join(root, path), Buffer.from([0xff]));
+  const before = await inputsHash(root, [path]);
+  await writeFile(join(root, path), Buffer.from([0xfe]));
+  assert.notEqual(await inputsHash(root, [path]), before);
+});

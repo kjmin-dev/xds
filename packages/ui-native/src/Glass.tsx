@@ -6,6 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import {
   type ComponentRef,
   createContext,
+  Fragment,
   type ReactNode,
   useCallback,
   useContext,
@@ -126,63 +127,59 @@ export function GlassMaterial({ corners, sheet, style, children, ...props }: Mat
     borderColor: colors.glassBorder,
     borderWidth: border.width.thin,
   };
-  if (tier === "native") {
+  const opaque = [style, edge, { backgroundColor: colors.glassFallback }];
+  // Backdrop registration and live accessibility settings select an effect after mount.
+  // Keep the same UIKit contentView so controls inside the bar retain their state and focus.
+  const usesSystemHost =
+    native && scene && settings && preview?.requested !== "blur" && preview?.requested !== "solid";
+  if (usesSystemHost) {
     return (
       <GlassView
         {...props}
         testID={testID}
-        glassEffectStyle="regular"
+        glassEffectStyle={tier === "native" ? "regular" : "none"}
         colorScheme={scheme}
-        style={[style, { borderRadius: corners }]}
+        style={tier === "native" ? [style, { borderRadius: corners }] : opaque}
       >
         {children}
       </GlassView>
     );
   }
-  if (tier === "solid") {
-    return (
-      <View
-        {...props}
-        testID={testID}
-        style={[style, edge, { backgroundColor: colors.glassFallback }]}
-      >
-        {children}
-      </View>
-    );
-  }
   return (
-    <View {...props} testID={testID} style={[style, edge, styles.clip]}>
-      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-        <BlurView
-          style={StyleSheet.absoluteFill}
-          tint={scheme === "dark" ? "systemThinMaterialDark" : "systemThinMaterialLight"}
-          // Android's RenderEffect accepts a radius in device pixels. UIKit controls the
-          // Gaussian of its material and exposes only the intensity.
-          intensity={
-            Platform.OS === "android"
-              ? PixelRatio.getPixelSizeForLayoutSize((glass.blur - 0.5) / 0.57735)
-              : glass.blur
-          }
-          blurReductionFactor={1}
-          blurMethod="dimezisBlurViewSdk31Plus"
-          blurTarget={scene?.target}
-        />
-        {sheet && Platform.OS === "android" && (
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.scrim }]} />
-        )}
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: sheet ? colors.glassTintStrong : colors.glassTint },
-          ]}
-        />
-        <LinearGradient
-          style={StyleSheet.absoluteFill}
-          colors={[colors.glassHighlight, "transparent"]}
-          locations={[0, 0.5]}
-        />
-      </View>
-      {children}
+    <View {...props} testID={testID} style={tier === "blur" ? [style, edge, styles.clip] : opaque}>
+      {tier === "blur" && (
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+          <BlurView
+            style={StyleSheet.absoluteFill}
+            tint={scheme === "dark" ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+            // Android's RenderEffect accepts a radius in device pixels. UIKit controls the
+            // Gaussian of its material and exposes only the intensity.
+            intensity={
+              Platform.OS === "android"
+                ? PixelRatio.getPixelSizeForLayoutSize((glass.blur - 0.5) / 0.57735)
+                : glass.blur
+            }
+            blurReductionFactor={1}
+            blurMethod="dimezisBlurViewSdk31Plus"
+            blurTarget={scene?.target}
+          />
+          {sheet && Platform.OS === "android" && (
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.scrim }]} />
+          )}
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: sheet ? colors.glassTintStrong : colors.glassTint },
+            ]}
+          />
+          <LinearGradient
+            style={StyleSheet.absoluteFill}
+            colors={[colors.glassHighlight, "transparent"]}
+            locations={[0, 0.5]}
+          />
+        </View>
+      )}
+      <Fragment key="controls">{children}</Fragment>
     </View>
   );
 }

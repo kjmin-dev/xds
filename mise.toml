@@ -31,6 +31,9 @@ config_roots = [
   # @if kotlin-compose
   "kotlin",
   # @endif
+  # @if dart-flutter
+  "flutter",
+  # @endif
 ]
 lockfile = true
 
@@ -74,7 +77,10 @@ pnpm = "12.19.0"
 # @if rust-workspace
 rust = { version = "1.99.1", components = "rustfmt,clippy" }
 # @endif
-# @if kotlin-compose
+# @if dart-flutter
+flutter = "3.50.0"
+# @endif
+# @if kotlin-compose dart-flutter
 java = "temurin-17"
 # @endif
 actionlint = "1.7.12"
@@ -115,7 +121,7 @@ run = "node tools/design-build/src/theme.ts"
 
 # ---------------------------------------------------------------- checks
 
-# @if js-workspace rust-workspace
+# @if js-workspace rust-workspace dart-flutter
 [tasks.fmt]
 description = "Format everything"
 # @if js-workspace
@@ -129,6 +135,9 @@ run = [
   # Lint fixes first: the formatter then lays out whatever they changed.
   "pnpm exec oxlint --fix",
   "pnpm exec oxfmt",
+  # @endif
+  # @if dart-flutter
+  "dart format flutter/ui/lib flutter/ui/test flutter/ui/test_render flutter/app/lib flutter/app/test",
   # @endif
 ]
 
@@ -284,6 +293,9 @@ run = [
     # @endif
     # @if kotlin-compose
     "//kotlin:check",
+    # @endif
+    # @if dart-flutter
+    "//flutter:check",
     # @endif
     # @if template
     "check:docs",

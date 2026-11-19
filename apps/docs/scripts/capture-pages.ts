@@ -29,6 +29,7 @@ export const PLATFORM_LABELS: Record<CapturePlatform, string> = {
   ios: "iOS",
   android: "Android",
   compose: "Compose",
+  flutter: "Flutter",
 };
 
 export type Still = { src: string; width: number; height: number };

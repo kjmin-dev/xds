@@ -19,6 +19,7 @@ A cross-platform design system template. A single set of design tokens drives a 
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component | `crates/acme-ui` | `apps/desktop` |
 | `mobile-react-native` | iOS, Android | React Native, Expo | `packages/ui-native` | `apps/mobile` |
 | `kotlin-compose` | Android, iOS, desktop | Kotlin Multiplatform, Compose Multiplatform | `kotlin/ui` | `kotlin/androidApp`, `kotlin/iosApp`, `kotlin/desktopApp` |
+| `dart-flutter` | Android, iOS | Dart, Flutter widgets | `flutter/ui` | `flutter/app` |
 
 The web clients can be combined in one project: each has its own directory, port, and `mise` alias. `packages/ui-core` holds what the web libraries share (prop types, class recipes, and the stylesheet), so that each framework's library adds only its components, and the web clients look and behave the same.
 
@@ -84,7 +85,7 @@ See the [CLI documentation](docs/cli.md#for-scripts-and-agents) for details on t
 
 - `design/tokens` contains the design tokens in DTCG format: a color palette, light and dark semantic colors, component-specific colors, typographic roles, spacing, border radius, motion, shadows, and control sizes for pointer and touch input.
 - `design/themes` provides five color themes: `indigo` (the default), `ocean`, `forest`, `sunset`, and `plum`. Each theme defines an accent ramp and a neutral ramp, and every theme passes all contrast checks.
-- `tools/design-build` compiles the tokens into CSS custom properties, a Tailwind theme, TypeScript constants, Rust constants, and Compose values. It runs on plain Node with no external dependencies, and fails the build if any color pairing falls below its required WCAG contrast ratio.
+- `tools/design-build` compiles the tokens into CSS custom properties, a Tailwind theme, TypeScript constants, Rust constants, Compose values, and Dart constants. It runs on plain Node with no external dependencies, and fails the build if any color pairing falls below its required WCAG contrast ratio.
 - Every client implements the same set of components with matching names and options: Button, TextField, Text, Badge, CountBadge, Banner, Card, Divider, Spinner, Switch, Checkbox, SegmentedControl, Avatar, AvatarStack, ProgressBar, ListRow, Icon, IconButton, Chip, ChipBar, Tabs, Menu, Dialog, Toast, Skeleton, SearchField, RadioGroup, Select, DatePicker, DateRangePicker, Slider, Thumbnail, MediaCard, SectionHeader, EmptyState, and Accordion. The two touch clients also provide TopBar, TabBar, and BottomSheet, and the pointer clients (the four web clients and GPUI) provide Tooltip and Sidebar.
 - Each app includes a design preview screen that renders every token and component in a single view. The web apps share one, defined once as typed data in `packages/ui-core` and drawn by a small renderer in each web library.
 
@@ -115,6 +116,8 @@ mise run check          # everything CI runs
 | Open the GPUI design preview | `mise run //desktop:design` |
 | Start the React Native app | `mise run //mobile:ios` or `mise run //mobile:android` |
 | Check the React Native app against its Expo SDK | `mise run //mobile:check`, `mise run //mobile:bundle` |
+| Run the Flutter sample on a phone | `mise run //flutter:ios`, `mise run //flutter:android` |
+| Test Flutter and render its light and dark previews | `mise run //flutter:check`, `mise run //flutter:render` |
 | Start the Compose desktop app | `mise run //kotlin:desktop` |
 | Open the Compose design preview | `mise run //kotlin:design` |
 | Install the Compose app on Android | `mise run //kotlin:android` |
@@ -152,6 +155,7 @@ packages/ui-svelte/     Svelte web components
 packages/ui-native/     React Native components
 crates/acme-tokens/     generated Rust
 crates/acme-ui/         GPUI components
+flutter/                Flutter widgets and the Android/iOS app (one pub workspace)
 kotlin/                 Compose components and apps (a Gradle build of its own)
 apps/web/               React app
 apps/web-solid/         Solid app
@@ -173,6 +177,7 @@ template.json           which paths belong to which client
 | Web | The React, Solid, Vue, and Svelte design previews checked in headless Chrome in both light and dark modes, and compared with each other screenshot by screenshot, every section and each open overlay. The four libraries draw one preview, defined once as data, from one stylesheet, and take their behavior from the same Zag.js machines |
 | GPUI desktop | Run on macOS; design preview checked in both light and dark modes |
 | React Native | Run on the iOS simulator in light and dark modes, including the bottom sheet. Android and physical devices have not been checked |
+| Flutter | Linux widget goldens, Android APK and unsigned iOS simulator build. See [the Flutter tasks](flutter/README.md) |
 | Compose | Checked on desktop, an Android emulator, and the iOS simulator; see [kotlin/README.md](kotlin/README.md) for details |
 | `xds` | Generated projects for each client other than `web-solid`, `web-vue`, and `web-svelte` alone and for those four combined; each passed its own `mise run check` on macOS. Projects with `web-solid` alone, with `web-vue` alone, with `web-svelte` alone, and with two to four web clients passed their install, `check:js`, and the web builds. The Linux and Windows binaries and the release workflow have not been run |
 | Accessibility | Contrast is verified by the build. The keyboard, focus, and ARIA behavior of the interactive web components is tested in headless Chrome, with the same checks for the React, Solid, Vue, and Svelte libraries. No client has been tested with a screen reader |

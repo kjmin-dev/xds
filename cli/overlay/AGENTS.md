@@ -45,6 +45,9 @@ Acme is built around a shared design system: a single set of design tokens and a
 | `crates/acme-tokens` | Generated Rust token crate. Do not edit |
 | `crates/acme-ui`, `apps/desktop` | GPUI component library and the desktop app |
 <!-- @endif -->
+<!-- @if dart-flutter -->
+| `flutter/ui`, `flutter/app` | Flutter components, generated tokens, and sample app for Android and iOS |
+<!-- @endif -->
 <!-- @if kotlin-compose -->
 | `kotlin/ui`, `kotlin/shared` | Compose component library (including generated `acme.tokens`) and shared app screens |
 <!-- @endif -->
@@ -87,7 +90,7 @@ Acme is built around a shared design system: a single set of design tokens and a
 | --- | --- |
 | Run all CI checks | `mise run check` |
 | Regenerate token files | `mise run tokens` |
-<!-- @if js-workspace rust-workspace -->
+<!-- @if js-workspace rust-workspace dart-flutter -->
 | Format code | `mise run fmt` |
 <!-- @endif -->
 <!-- @if web-react -->
@@ -114,6 +117,10 @@ Acme is built around a shared design system: a single set of design tokens and a
 <!-- @if mobile-react-native -->
 | Start the mobile app | `mise run //mobile:ios` or `mise run //mobile:android` |
 | Check the mobile app's native packages against its Expo SDK, and bundle it for iOS and Android (`mise run check:js` runs both) | `mise run //mobile:check`, `mise run //mobile:bundle` |
+<!-- @endif -->
+<!-- @if dart-flutter -->
+| Start the Flutter app | `mise run //flutter:ios` or `mise run //flutter:android` |
+| Verify Flutter or render its preview | `mise run //flutter:check`, `mise run //flutter:render` |
 <!-- @endif -->
 <!-- @if kotlin-compose -->
 | Start the Compose desktop app | `mise run //kotlin:desktop` |

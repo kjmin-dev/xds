@@ -32,6 +32,9 @@ A single set of design tokens drives a component library for each client, paired
 <!-- @if mobile-react-native -->
 | Mobile | React Native, Expo | `packages/ui-native` | `apps/mobile` |
 <!-- @endif -->
+<!-- @if dart-flutter -->
+| Mobile | Dart, Flutter widgets | `flutter/ui` | `flutter/app` |
+<!-- @endif -->
 <!-- @if kotlin-compose -->
 | Android, iOS, desktop | Kotlin, Compose Multiplatform | `kotlin/ui` | `kotlin/androidApp`, `kotlin/iosApp`, `kotlin/desktopApp` |
 <!-- @endif -->
@@ -82,6 +85,10 @@ The first run resolves dependencies and generates the lockfiles. Commit them to 
 | Start the mobile app | `mise run //mobile:ios` or `mise run //mobile:android` |
 | Check the mobile app against its Expo SDK | `mise run //mobile:check`, `mise run //mobile:bundle` |
 <!-- @endif -->
+<!-- @if dart-flutter -->
+| Start the Flutter app | `mise run //flutter:ios` or `mise run //flutter:android` |
+| Verify Flutter or render its preview | `mise run //flutter:check`, `mise run //flutter:render` |
+<!-- @endif -->
 <!-- @if kotlin-compose -->
 | Start the Compose desktop app | `mise run //kotlin:desktop` |
 | Open the Compose design preview | `mise run //kotlin:design` |
@@ -89,7 +96,7 @@ The first run resolves dependencies and generates the lockfiles. Commit them to 
 <!-- @endif -->
 | Regenerate token files | `mise run tokens` |
 | Switch the color theme | `mise run theme <name>` (`mise run theme` lists available themes) |
-<!-- @if js-workspace rust-workspace -->
+<!-- @if js-workspace rust-workspace dart-flutter -->
 | Format the codebase | `mise run fmt` |
 <!-- @endif -->
 | List all tasks | `mise tasks --all` |

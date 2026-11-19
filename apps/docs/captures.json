@@ -31,6 +31,16 @@
       "inputs": "sha256:cefb16815ed466b6a11409690df88ef5301088d4b86d638c0dd4565924849f46"
     },
     {
+      "name": "datepicker",
+      "components": ["DatePicker"],
+      "platform": "flutter",
+      "client": "dart-flutter",
+      "source": "the Flutter widget tests on Linux",
+      "date": "2026-11-20",
+      "alt": "A single-date calendar sheet with month controls and a selected day.",
+      "inputs": "sha256:a9a94a7a96165593b3f7ada56dcde73c46eed5a3914946279508722d46923e0f"
+    },
+    {
       "name": "daterange",
       "components": ["DateRangePicker"],
       "platform": "ios",
@@ -61,6 +71,16 @@
       "inputs": "sha256:cefb16815ed466b6a11409690df88ef5301088d4b86d638c0dd4565924849f46"
     },
     {
+      "name": "daterange",
+      "components": ["DateRangePicker"],
+      "platform": "flutter",
+      "client": "dart-flutter",
+      "source": "the Flutter widget tests on Linux",
+      "date": "2026-11-20",
+      "alt": "A date range in a calendar sheet with the start, end, and days between them marked.",
+      "inputs": "sha256:0b96eea0ce1ebd25f0f3dc6f31157f447bb44650b031eef6b96be218d034759d"
+    },
+    {
       "name": "glass-blur",
       "components": ["TopBar", "TabBar"],
       "platform": "ios",
@@ -89,6 +109,16 @@
       "date": "2026-11-19",
       "alt": "A blurred top bar and tab bar over a scrolling collection of colored rows.",
       "inputs": "sha256:0312ff094431aba3dc01208c421bb8bac554d3a898a767bcadf52859739453d7"
+    },
+    {
+      "name": "glass-blur",
+      "components": ["TopBar", "TabBar"],
+      "platform": "flutter",
+      "client": "dart-flutter",
+      "source": "the Flutter widget tests on Linux",
+      "date": "2026-11-20",
+      "alt": "The top bar and tab bar blur colored collection rows.",
+      "inputs": "sha256:f76deae27ac2c04ba7c0c1f7b3ad2643902ca86d2ad5cd210a507314ba4e28ad"
     },
     {
       "name": "glass-native",
@@ -131,6 +161,16 @@
       "inputs": "sha256:a9a29adb22f0e84b31471c4c63f55d17360197f6c736f897ea3a7dae9a56146d"
     },
     {
+      "name": "glass-sheet-blur",
+      "components": ["BottomSheet"],
+      "platform": "flutter",
+      "client": "dart-flutter",
+      "source": "the Flutter widget tests on Linux",
+      "date": "2026-11-20",
+      "alt": "A tinted modal sheet over the dimmed collection.",
+      "inputs": "sha256:edcd49e3b0ea6744596c197d63cae118e99cec4806a810e74a4b91596bc7786a"
+    },
+    {
       "name": "glass-sheet-native",
       "components": ["BottomSheet"],
       "platform": "ios",
@@ -171,6 +211,16 @@
       "inputs": "sha256:a9a29adb22f0e84b31471c4c63f55d17360197f6c736f897ea3a7dae9a56146d"
     },
     {
+      "name": "glass-sheet-solid",
+      "components": ["BottomSheet"],
+      "platform": "flutter",
+      "client": "dart-flutter",
+      "source": "the Flutter widget tests on Linux",
+      "date": "2026-11-20",
+      "alt": "An opaque modal sheet over the dimmed collection.",
+      "inputs": "sha256:0f825e9b01a31c6198c05876479ac080a33de56cf8312e5e258f6a0457e3bbb9"
+    },
+    {
       "name": "glass-solid",
       "components": ["TopBar", "TabBar"],
       "platform": "ios",
@@ -199,6 +249,16 @@
       "date": "2026-11-19",
       "alt": "The same collection with opaque navigation bars for reduced transparency.",
       "inputs": "sha256:0312ff094431aba3dc01208c421bb8bac554d3a898a767bcadf52859739453d7"
+    },
+    {
+      "name": "glass-solid",
+      "components": ["TopBar", "TabBar"],
+      "platform": "flutter",
+      "client": "dart-flutter",
+      "source": "the Flutter widget tests on Linux",
+      "date": "2026-11-20",
+      "alt": "Opaque navigation bars over the collection rows.",
+      "inputs": "sha256:33ba001d9b40f7dd4017897781773d0c324a086ba3a42df2dcadfe01d3abf6d8"
     },
     {
       "name": "navigation",
@@ -231,6 +291,16 @@
       "inputs": "sha256:9792f2260415d44d0402aefe00e0213e1533d801f167e1e54f1ac3f1ae34782d"
     },
     {
+      "name": "navigation",
+      "components": ["TopBar", "TabBar"],
+      "platform": "flutter",
+      "client": "dart-flutter",
+      "source": "the Flutter widget tests on Linux",
+      "date": "2026-11-20",
+      "alt": "The navigation samples show a top bar, a tab bar with its current destination selected, and an action to open a sheet.",
+      "inputs": "sha256:615100847b73ac87df30a69ffbfa0c01ba0d4f6d3a7641a990700bdc3d44a086"
+    },
+    {
       "name": "sheet",
       "components": ["BottomSheet"],
       "platform": "ios",
@@ -260,6 +330,16 @@
       "date": "2026-11-19",
       "alt": "A bottom sheet risen from the bottom of a phone screen over the dimmed design preview, with a handle, the title Share the report, a line of text, a Copy the link button and a Cancel button.",
       "inputs": "sha256:f91aee630e083e8ce90b0d5caf66091227b7433ac6fab404bb4064599e71a8cf"
+    },
+    {
+      "name": "sheet",
+      "components": ["BottomSheet"],
+      "platform": "flutter",
+      "client": "dart-flutter",
+      "source": "the Flutter widget tests on Linux",
+      "date": "2026-11-20",
+      "alt": "An open bottom sheet with its title, actions and drag handle.",
+      "inputs": "sha256:9538642b4c5f2038e9291ef0b43833bac3c840ae57fa2ad86117093c1ace20b3"
     }
   ]
 }

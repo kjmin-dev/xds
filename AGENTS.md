@@ -1,6 +1,6 @@
 # Working in this repository
 
-This repository is the xds template: a single set of design tokens, component libraries for seven clients (four of them for the web), a sample app for each client, and the `xds` CLI that scaffolds a new project with a chosen subset of clients. `acme` is the placeholder name replaced by `xds create`, so keep it in all package names, identifiers, and file paths.
+This repository is the xds template: a single set of design tokens, component libraries for eight clients (four of them for the web), a sample app for each client, and the `xds` CLI that scaffolds a new project with a chosen subset of clients. `acme` is the placeholder name replaced by `xds create`, so keep it in all package names, identifiers, and file paths.
 
 ## Where things are
 
@@ -10,18 +10,18 @@ This repository is the xds template: a single set of design tokens, component li
 | `design/themes` | Color themes, each defining an accent ramp and a neutral ramp |
 | `design/components.json` | Component contract: variants, sizes, tones, and the source file for each client |
 | `tools/design-build` | Token compiler and WCAG contrast checker |
-| `packages/ui`, `packages/ui-solid`, `packages/ui-vue`, `packages/ui-svelte`, `packages/ui-native`, `crates/acme-ui`, `kotlin/ui` | Component libraries for the web (React, Solid, Vue, and Svelte), React Native, GPUI, and Compose |
+| `packages/ui`, `packages/ui-solid`, `packages/ui-vue`, `packages/ui-svelte`, `packages/ui-native`, `crates/acme-ui`, `kotlin/ui`, `flutter/ui` | Component libraries for the web (React, Solid, Vue, and Svelte), React Native, GPUI, Compose, and Flutter |
 | `apps/desktop-electron`, `apps/desktop-tauri` | Desktop shells that run the selected web app and its design preview |
 | `packages/ui-core` | What the web libraries share: the prop types, class recipes, and stylesheet of their components, the DOM helpers their behavior needs, the web design preview as data (`src/preview`), and the behavior tests that each of them runs. It imports no framework |
-| `apps/*`, `kotlin/*App` | Client apps, each with a design preview screen |
+| `apps/*`, `kotlin/*App`, `flutter/app` | Client apps, each with a design preview screen |
 | `cli`, `template.json` | The `xds` CLI and the manifest mapping repository paths to client targets |
 
 ## Rules
 
-- Design tokens are the source of truth. Never edit generated files (`packages/tokens/src/generated`, `crates/acme-tokens/src/generated.rs`, `kotlin/ui/src/commonMain/kotlin/acme/tokens/Tokens.kt`). Edit the JSON files in `design/tokens`, run `mise run tokens`, and commit both the token sources and the generated files.
+- Design tokens are the source of truth. Never edit generated files (`packages/tokens/src/generated`, `crates/acme-tokens/src/generated.rs`, `kotlin/ui/src/commonMain/kotlin/acme/tokens/Tokens.kt`, `flutter/ui/lib/src/tokens/tokens.g.dart`). Edit the JSON files in `design/tokens`, run `mise run tokens`, and commit both the token sources and the generated files.
 - Components must take all colors, sizes, and spacing from tokens. Do not hardcode hex colors in components, and prefer tokens over raw pixel values. Component-specific colors belong in that component's group in both `color.light.json` and `color.dark.json`.
 - Every foreground and background color pair rendered together by a component must have an entry in `tools/design-build/src/contrast.ts`. The token build fails if any pairing falls below its required contrast ratio.
-- Every component, variant, size, and tone must exist across all clients under the same name and appear in each client's design preview. TopBar, TabBar, and BottomSheet are touch-only exceptions and exist only on React Native and Compose. Tooltip and Sidebar are pointer-only exceptions and exist only on the web targets (React, Solid, Vue, and Svelte) and GPUI. Update `design/components.json` in the same change. A difference between clients that is not in the contract's names (an option only some clients have, a part the platform draws, a different presentation for touch) is listed in that component's `differences`.
+- Every component, variant, size, and tone must exist across all clients under the same name and appear in each client's design preview. TopBar, TabBar, and BottomSheet are touch-only exceptions and exist only on React Native, Compose and Flutter. Tooltip and Sidebar are pointer-only exceptions and exist only on the web targets (React, Solid, Vue, and Svelte) and GPUI. Update `design/components.json` in the same change. A difference between clients that is not in the contract's names (an option only some clients have, a part the platform draws, a different presentation for touch) is listed in that component's `differences`.
 - The Electron and Tauri shells reuse the app selected by each shell’s `web` script. Changes to a shared component belong in its web library. Keep the `/` and `/design` routes working inside each shell.
 - The web apps share one design preview, written once as typed data in `packages/ui-core/src/preview` and drawn by each web library's renderer (`src/preview.tsx`, `src/preview.ts` in Vue, or the `src/preview` directory in Svelte, on the library's `./preview` subpath). Add a web component to the preview there, not in an app: put its props in `components.ts`, show it in `sections.ts`, and add it to the `COMPONENTS` of each renderer, which fails to typecheck until it is there and takes every prop the data passes. Its `README.md` says how a renderer works.
 - On the web, the libraries share `packages/ui-core` and must look and behave the same. A component in any of them takes its classes and its CSS from `packages/ui-core`; the overlays and the composite controls take their behavior from Zag.js, and the selection controls and fields are native inputs. Change a component's look or a behavior that does not depend on the framework in `packages/ui-core`, then check every web library against it in both color modes. `packages/ui-core` keeps one copy of what the web libraries share, including the DOM helpers their behavior needs, so it never imports a framework, and its CSS selects on its own part classes, native pseudo-classes, `aria-*` attributes, and Zag's state attributes.
@@ -46,6 +46,8 @@ This repository is the xds template: a single set of design tokens, component li
 | Web component behavior tests, in headless Google Chrome | `pnpm --filter @acme/ui test` (React), `pnpm --filter @acme/ui-solid test` (Solid), `pnpm --filter @acme/ui-vue test` (Vue), `pnpm --filter @acme/ui-svelte test` (Svelte) |
 | Compare the web apps' design previews pixel by pixel, in headless Google Chrome | `mise run compare:previews` |
 | Rust lint and tests | `mise run check:rust`, `mise run check:desktop` (macOS), `mise run check:cli` |
+| Flutter tests, analyzer and Android build | `mise run //flutter:check` |
+| Flutter reference images on Linux | `mise run //flutter:goldens` |
 | Kotlin tests and builds | `mise run //kotlin:check` |
 | Check the Expo app's native packages against its SDK, and bundle it for iOS and Android | `mise run //mobile:check`, `mise run //mobile:bundle` |
 | Run the CLI from source | `mise run xds -- list` |
@@ -56,7 +58,7 @@ Use `xds tokens`, `xds components`, `xds contrast`, and `xds doctor` to inspect 
 
 ## Checking a UI change
 
-There is no automated visual regression test, so inspect the design preview in both light and dark modes on every client you modify. On the web, `mise run compare:previews` starts every web app and compares their previews with each other pixel by pixel: every section and every `?open=` overlay, at 1280 and 390 px, in both modes. A difference is a library drawing a component differently, since every app draws the same data. It is not part of `mise run check`.
+Flutter compares widget goldens on Linux. Inspect the design preview in both light and dark modes on every client you modify. On the web, `mise run compare:previews` starts every web app and compares their previews with each other pixel by pixel: every section and every `?open=` overlay, at 1280 and 390 px, in both modes. A difference is a library drawing a component differently, since every app draws the same data. It is not part of `mise run check`.
 
 How the interactive web components behave (keyboard, focus, and ARIA state) is tested in the Google Chrome installed on the machine, with the same checks for every web library. The checks are in `packages/ui-core/test`: `behavior.ts` finds elements by role and name and depends on no framework, and `scenarios.ts` writes the screen each check runs against as data, in the form of the design preview's. Each library's test file (`test/behavior.test.tsx` in `packages/ui` for React and `packages/ui-solid` for Solid, `test/behavior.test.ts` in `packages/ui-vue` for Vue and `packages/ui-svelte` for Svelte) draws those screens with the library's preview renderer and runs the checks. When you add or change an interactive web component, add its scenario and its checks to `packages/ui-core/test`; the libraries' test files do not change.
 
@@ -68,6 +70,7 @@ How the interactive web components behave (keyboard, focus, and ARIA state) is t
 | Web (Svelte) | Run `mise run //web-svelte:dev`, then open `http://localhost:5176/design#buttons` (the same preview, anchors, and parameters as the React app's, drawn by the Svelte library; it must look the same) |
 | GPUI desktop | `cargo run --package acme-desktop -- --design --dark --scroll 800` (`--open menu`, `select`, `datepicker`, `daterange`, `dialog`, `toast`, or `tooltip` opens that overlay) |
 | React Native | Pass `?section=<key>` (`navigation`), `?from=<section number>`, `?sheet=1`, `?menu=1`, `?select=1`, `?datepicker=1`, `?daterange=1`, `?dialog=1`, or `?toast=1` to the design screen route |
+| Flutter | `mise run //flutter:render` renders the phone screens. Open the app at `/design` to interact with them. |
 | Compose | `mise run //kotlin:render` renders PNG screenshots to `kotlin/build/preview`: the whole preview, and each overlay open (`menu-*`, `select-*`, `datepicker-*`, `daterange-*`, `sheet-*`, `dialog-*`, `toast-*`) |
 
 ## Changing the CLI

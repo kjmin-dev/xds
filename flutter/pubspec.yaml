@@ -1,0 +1,7 @@
+name: acme_workspace
+publish_to: none
+environment:
+  sdk: ^3.14.0
+workspace:
+  - ui
+  - app

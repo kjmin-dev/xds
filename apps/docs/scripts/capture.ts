@@ -26,6 +26,7 @@ import { parseArgs } from "node:util";
 import { takeAndroid } from "./capture/android.ts";
 import { takeCompose } from "./capture/compose.ts";
 import { duration, encodeClip, encodeStill } from "./capture/encode.ts";
+import { takeFlutter } from "./capture/flutter.ts";
 import { takeIos } from "./capture/ios.ts";
 import { cleanUp, have, onExit, run, scrub } from "./capture/process.ts";
 import type { CaptureName, Taken, Workspace } from "./capture/types.ts";
@@ -82,6 +83,7 @@ const NAMES: Record<
   "glass-blur": {
     components: ["TopBar", "TabBar"],
     alt: {
+      flutter: "The top bar and tab bar blur colored collection rows.",
       ...reactNative("A blurred top bar and tab bar over a scrolling collection of colored rows."),
       compose: "A blurred top bar and tab bar over a scrolling collection of colored rows.",
     },
@@ -89,6 +91,7 @@ const NAMES: Record<
   "glass-solid": {
     components: ["TopBar", "TabBar"],
     alt: {
+      flutter: "Opaque navigation bars over the collection rows.",
       ...reactNative("The same collection with opaque navigation bars for reduced transparency."),
       compose: "The same collection with opaque navigation bars for reduced transparency.",
     },
@@ -96,6 +99,7 @@ const NAMES: Record<
   "glass-sheet-blur": {
     components: ["BottomSheet"],
     alt: {
+      flutter: "A tinted modal sheet over the dimmed collection.",
       ...reactNative(
         "Collection details inside a strongly tinted glass sheet over the dimmed list.",
       ),
@@ -105,6 +109,7 @@ const NAMES: Record<
   "glass-sheet-solid": {
     components: ["BottomSheet"],
     alt: {
+      flutter: "An opaque modal sheet over the dimmed collection.",
       ...reactNative("Collection details inside the opaque fallback sheet over the dimmed list."),
       compose: "Collection details inside the opaque fallback sheet over the dimmed list.",
     },
@@ -112,6 +117,8 @@ const NAMES: Record<
   navigation: {
     components: ["TopBar", "TabBar"],
     alt: {
+      flutter:
+        "The navigation samples show a top bar, a tab bar with its current destination selected, and an action to open a sheet.",
       ...reactNative(
         "A phone screen showing the Navigation section of the design preview: a top bar titled " +
           "Settings with a back button and an Edit button, a button labeled Open a bottom " +
@@ -126,6 +133,7 @@ const NAMES: Record<
   sheet: {
     components: ["BottomSheet"],
     alt: {
+      flutter: "An open bottom sheet with its title, actions and drag handle.",
       ...reactNative(
         "A bottom sheet risen from the bottom of a phone screen over the dimmed design preview, " +
           "with a handle, the title Share report, a line of text, a Copy link button and a " +
@@ -140,6 +148,7 @@ const NAMES: Record<
   datepicker: {
     components: ["DatePicker"],
     alt: {
+      flutter: "A single-date calendar sheet with month controls and a selected day.",
       ...reactNative(DUE),
       compose: DUE,
     },
@@ -147,6 +156,8 @@ const NAMES: Record<
   daterange: {
     components: ["DateRangePicker"],
     alt: {
+      flutter:
+        "A date range in a calendar sheet with the start, end, and days between them marked.",
       ...reactNative(STAY),
       compose: STAY,
     },
@@ -156,12 +167,13 @@ const NAMES: Record<
 const TAKE: Record<
   CapturePlatform,
   (names: CaptureName[], workspace: Workspace) => Promise<Taken>
-> = { ios: takeIos, android: takeAndroid, compose: takeCompose };
+> = { ios: takeIos, android: takeAndroid, compose: takeCompose, flutter: takeFlutter };
 
 const CLIENT: Record<CapturePlatform, string> = {
   ios: "mobile-react-native",
   android: "mobile-react-native",
   compose: "kotlin-compose",
+  flutter: "dart-flutter",
 };
 
 function usage(message: string): never {
@@ -241,7 +253,7 @@ async function record(platform: CapturePlatform, taken: Taken) {
     };
     const capture: Capture = {
       ...shown,
-      inputs: await inputsHash(root, captureInputs({ ...shown, inputs: "" }, contract)),
+      inputs: await inputsHash(root, captureInputs(shown, contract)),
     };
     for (const mode of MODES) {
       const still = join(out, stillPath(capture, mode));

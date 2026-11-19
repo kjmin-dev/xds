@@ -21,6 +21,8 @@ flowchart TD
   BUILD --> TW["tailwind.css<br/>Tailwind theme"]
   BUILD --> TS["tokens.ts<br/>TypeScript constants"]
   BUILD --> RS["generated.rs<br/>Rust constants"]
+  BUILD --> DART["tokens.g.dart<br/>Flutter values"]
+  DART --> FLUTTER["flutter/ui<br/>Flutter widgets"]
   BUILD --> KT["Tokens.kt<br/>Compose values"]
 
   CSS --> CORE["@acme/ui-core<br/>classes and CSS of the web components"]
@@ -202,6 +204,7 @@ The generator converts each shape to path data and writes it into the generated 
 | Output | Contents |
 | --- | --- |
 | TypeScript | `icons`, a map from icon name to path data, and the `IconName` type. The web and React Native `Icon` components render these paths; React Native uses `react-native-svg` |
+| Dart | The `IconName` enum carries SVG path data for the Flutter canvas |
 | Kotlin | The `IconName` enum, where each entry carries its path data. The Compose `Icon` component strokes the paths on a canvas |
 | Rust | The `Icon` enum with `name()`, `svg()`, and `filled_svg()` methods. The `icon` and `icon_filled` functions pass the SVG document to GPUI |
 
@@ -273,7 +276,7 @@ Every platform exposes the same component names, variants, sizes, and tones.
 | EmptyState | icon, title, description, action | Centered, with an illustrative icon at `size.icon.xl` and one action at most |
 | Accordion | items (value, title, description, content), expanded, multiple | Hairline-separated items whose bodies open under their titles. One at a time unless `multiple` |
 
-Three additional navigation components exist only on the touch-oriented platforms (React Native and Compose):
+Three additional navigation components exist only on the touch-oriented platforms (React Native, Compose and Flutter):
 
 | Component | Options | Rule |
 | --- | --- | --- |
@@ -287,6 +290,10 @@ All three default to `solid`. With `surface="glass"`, a navigation bar uses `col
 In React Native, import `GlassScene` and `GlassBackdrop` from `@acme/ui-native/glass`. Put the content to blur inside the backdrop, and place the bars and sheet beside it inside the same scene. From `apps/mobile`, `pnpm exec expo run:ios` or `pnpm exec expo run:android` builds the app with the library's native settings module. It listens for changes to power-saving and accessibility settings. iOS Liquid Glass draws the system material. For the blur tier, Expo exposes an Android blur radius and an iOS material intensity. Saturation follows the platform material. Expo Go uses the opaque fallback because its binary omits the settings module. Open `/design?section=glass` in a native build to see the available material, and append `&sheet=1` to open its sheet.
 
 Append `&autoscroll=1` for the ten-second scroll. `&glass=native`, `blur` or `solid` selects a preview tier when the device allows it. The `XDS_GLASS_FRAMES` result includes the actual tier and UI callback gaps. For a sheet, the sampler waits for its own resolved material, the native modal to appear, and its entrance to finish. The result records those milestones and the opening phase separately. The top-level window starts when the scene is ready, `firstUpdateMs` measures the wait until the first scroll command, and `motion` starts at that command and covers ten full seconds. For a separate comparison after a two-second pause, append `&settle=1`.
+<!-- @endif -->
+
+<!-- @if dart-flutter -->
+Flutter exposes the components through `package:acme_ui/acme_ui.dart` with `AcmeTheme` above the screen. Its token values are Dart constants including `Color`, `TextStyle` and `Duration`. The mobile sample takes the touch sizes. A `GlassScene` groups the backdrop filters of its bars. An open glass sheet samples the scrimmed page separately. The Flutter preview and reference tasks are listed in [the Flutter guide](../flutter/README.md).
 <!-- @endif -->
 
 The token build checks glass text on both black and white backdrops in each color mode and theme. The foreground needs 4.5:1 contrast and the sheet handle needs 3:1. The opaque fallback uses `color.glass.fallback`. `glass.blur` is the Gaussian standard deviation in logical pixels, and `glass.saturation` multiplies the blurred backdrop's saturation before tinting.
@@ -316,14 +323,14 @@ Clearing the error state on edit avoids a common web form trap: when an invalid 
 
 ### Platform implementations
 
-| | Web (React) | Web (Solid) | Web (Vue) | Web (Svelte) | Desktop | Mobile | Kotlin |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Package | `@acme/ui` on `@acme/ui-core` | `@acme/ui-solid` on `@acme/ui-core` | `@acme/ui-vue` on `@acme/ui-core` | `@acme/ui-svelte` on `@acme/ui-core` | `acme-ui` | `@acme/ui-native` | `kotlin/ui` |
-| Built on | Zag.js state machines and native inputs | Zag.js state machines and native inputs | Zag.js state machines and native inputs | Zag.js state machines and native inputs | GPUI Component | React Native primitives | Compose foundation |
-| Runs on | Browsers | Browsers | Browsers | Browsers | macOS | iOS, Android | Android, iOS, desktop (JVM) |
-| Tokens arrive as | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | Rust constants | TypeScript constants | Compose values (`Color`, `Dp`, `TextStyle`) |
-| Sizes | Follow the input device | Follow the input device | Follow the input device | Follow the input device | Pointer | Touch | Touch on phones, pointer on desktop |
-| Design preview | `/design` | `/design` | `/design` | `/design` | `acme --design` | `/design` | The button on the home screen |
+| | Web (React) | Web (Solid) | Web (Vue) | Web (Svelte) | Desktop | Mobile | Kotlin | Flutter |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Package | `@acme/ui` on `@acme/ui-core` | `@acme/ui-solid` on `@acme/ui-core` | `@acme/ui-vue` on `@acme/ui-core` | `@acme/ui-svelte` on `@acme/ui-core` | `acme-ui` | `@acme/ui-native` | `kotlin/ui` | `acme_ui` |
+| Built on | Zag.js state machines and native inputs | Zag.js state machines and native inputs | Zag.js state machines and native inputs | Zag.js state machines and native inputs | GPUI Component | React Native primitives | Compose foundation | Flutter widgets |
+| Runs on | Browsers | Browsers | Browsers | Browsers | macOS | iOS, Android | Android, iOS, desktop (JVM) | iOS, Android |
+| Tokens arrive as | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | Rust constants | TypeScript constants | Compose values (`Color`, `Dp`, `TextStyle`) | Dart constants (`Color`, `TextStyle`, `Duration`) |
+| Sizes | Follow the input device | Follow the input device | Follow the input device | Follow the input device | Pointer | Touch | Touch on phones, pointer on desktop | Touch |
+| Design preview | `/design` | `/design` | `/design` | `/design` | `acme --design` | `/design` | The button on the home screen | The button on the home screen or `/design` |
 
 On the web, the React, Solid, Vue, and Svelte clients share their framework-free half, `@acme/ui-core`, and must look and behave the same. It holds each component's prop types, the Tailwind class strings of the components drawn with utilities, pure helpers, the steps on the page that the state machines leave to each library (an overlay's exit animation, an accordion panel's height, the page keys of a list), and a stylesheet for each component with states of its own. That CSS selects on the library's own part classes, native pseudo-classes, `aria-*` attributes, and Zag.js state attributes, never on a framework's. `@acme/ui` adds the React components, `@acme/ui-solid` the Solid ones, `@acme/ui-vue` the Vue ones, and `@acme/ui-svelte` the Svelte ones. Dialog, Menu, Select, Slider, Tabs, Tooltip, and Accordion take their keyboard, focus, and dismissal behavior from Zag.js state machines, with an adapter for each framework. Switch, Checkbox, RadioGroup, SegmentedControl, and the text fields are native HTML inputs with custom visuals drawn alongside or around them, so keyboard navigation, forms, and screen readers interact with standard controls. The remaining components are plain HTML elements styled with Tailwind utilities. A library for another framework can be built on the same core.
 

@@ -31,6 +31,7 @@ const VUE: &str = "web-vue";
 const SVELTE: &str = "web-svelte";
 const DESKTOP: &str = "desktop-gpui";
 const MOBILE: &str = "mobile-react-native";
+const FLUTTER: &str = "dart-flutter";
 const KOTLIN: &str = "kotlin-compose";
 
 /// Paths that must never reach a project, whatever is selected.
@@ -453,7 +454,10 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
         if requires("rust-workspace") {
             expected_tools.insert("rust");
         }
-        if has(KOTLIN) {
+        if has(FLUTTER) {
+            expected_tools.insert("flutter");
+        }
+        if has(KOTLIN) || has(FLUTTER) {
             expected_tools.insert("java");
         }
         assert_eq!(tools, expected_tools, "{selected:?}");
@@ -470,6 +474,9 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
         }
         if has(KOTLIN) {
             expected_roots.push("kotlin");
+        }
+        if has(FLUTTER) {
+            expected_roots.push("flutter");
         }
         assert_eq!(roots, expected_roots, "{selected:?}");
         // Each app has an alias, for `mise run //web:dev`.
@@ -508,6 +515,9 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
         }
         if has(KOTLIN) {
             expected_checks.push("//kotlin:check");
+        }
+        if has(FLUTTER) {
+            expected_checks.push("//flutter:check");
         }
         expected_checks.push("check:workflows");
         assert_eq!(checks, expected_checks, "{selected:?}");
@@ -800,6 +810,7 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
             ("  rust:\n", has(DESKTOP)),
             ("  desktop:\n", has(DESKTOP)),
             ("  kotlin:\n", has(KOTLIN)),
+            ("  flutter:\n", has(FLUTTER)),
             ("  cli:\n", false),
         ] {
             assert_eq!(ci.contains(job), expected, "{selected:?}: job {job:?}");
@@ -846,6 +857,7 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
             ("`crates/orbit-ui`", has(DESKTOP)),
             ("`packages/ui-native`", has(MOBILE)),
             ("`kotlin/ui`", has(KOTLIN)),
+            ("`flutter/ui`", has(FLUTTER)),
             ("`packages/tokens`", requires("js-tokens")),
             ("mise run fmt", formatted),
         ] {

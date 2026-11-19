@@ -85,6 +85,7 @@ fn lists_targets_and_themes_without_color_when_piped() {
         "web-svelte",
         "desktop-gpui",
         "mobile-react-native",
+        "dart-flutter",
         "kotlin-compose",
         "indigo",
         "ocean",

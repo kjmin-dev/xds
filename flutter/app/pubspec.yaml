@@ -1,0 +1,18 @@
+name: acme_app
+description: Acme design system sample app.
+version: 0.1.0+1
+publish_to: none
+resolution: workspace
+environment:
+  sdk: ^3.14.0
+dependencies:
+  acme_ui:
+    path: ../ui
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

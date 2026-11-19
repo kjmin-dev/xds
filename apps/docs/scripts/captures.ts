@@ -9,14 +9,19 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 /** The tab a capture appears under, and the first part of its file names. */
-export type CapturePlatform = "ios" | "android" | "compose";
+export type CapturePlatform = "ios" | "android" | "compose" | "flutter";
 
 export type Mode = "light" | "dark";
 
 export const MODES: readonly Mode[] = ["light", "dark"];
 
 /** The order of the tabs after the live example. */
-export const CAPTURE_PLATFORMS: readonly CapturePlatform[] = ["ios", "android", "compose"];
+export const CAPTURE_PLATFORMS: readonly CapturePlatform[] = [
+  "ios",
+  "android",
+  "compose",
+  "flutter",
+];
 
 export type Capture = {
   /**
@@ -46,6 +51,7 @@ export type Manifest = { captures: Capture[] };
 /** The files generated from the design tokens that each client's components read. */
 const TOKEN_FILES: Record<string, string[]> = {
   "mobile-react-native": ["packages/tokens/src/generated/tokens.ts"],
+  "dart-flutter": ["flutter/ui/lib/src/tokens/tokens.g.dart"],
   "kotlin-compose": ["kotlin/ui/src/commonMain/kotlin/acme/tokens/Tokens.kt"],
 };
 
@@ -84,7 +90,10 @@ type Contract = {
  * also changes that screen, and a picture flagged after every change would teach readers to
  * ignore the flag.
  */
-export function captureInputs(capture: Capture, contract: Contract): string[] {
+export function captureInputs(
+  capture: Pick<Capture, "name" | "client" | "platform" | "components">,
+  contract: Contract,
+): string[] {
   const tokens = TOKEN_FILES[capture.client];
   if (!tokens) throw new Error(`captures.json: no token files known for ${capture.client}`);
   const sources = capture.components.map((name) => {
@@ -110,6 +119,12 @@ export function captureInputs(capture: Capture, contract: Contract): string[] {
       "apps/mobile/src/GlassPreview.tsx",
     );
   }
+  if (capture.client === "dart-flutter") {
+    parts.push(...MODES.map((mode) => flutterGoldenPath(capture.name, mode)));
+    if (capture.name.startsWith("glass-")) {
+      parts.push("flutter/ui/lib/src/glass.dart", "flutter/ui/lib/src/preview/glass_preview.dart");
+    }
+  }
   return [...new Set([...sources, ...parts, ...tokens])].sort();
 }
 
@@ -120,10 +135,16 @@ export function captureInputs(capture: Capture, contract: Contract): string[] {
 export async function inputsHash(root: string, paths: string[]): Promise<string> {
   const hash = createHash("sha256");
   for (const path of [...paths].sort()) {
-    const text = (await readFile(join(root, path), "utf8")).replaceAll("\r\n", "\n");
-    hash.update(`${path}\0${text}\0`);
+    const bytes = await readFile(join(root, path));
+    const content = path.endsWith(".png") ? bytes : bytes.toString("utf8").replaceAll("\r\n", "\n");
+    hash.update(path).update("\0").update(content).update("\0");
   }
   return `sha256:${hash.digest("hex")}`;
+}
+
+export function flutterGoldenPath(name: string, mode: Mode): string {
+  const stem = ["sheet", "datepicker", "daterange"].includes(name) ? `open-${name}` : name;
+  return `flutter/ui/test/goldens/${stem}-${mode}.png`;
 }
 
 export function stillPath(capture: Capture, mode: Mode): string {

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { checkContrast, contrastRatio } from "./contrast.ts";
-import { emitCss, emitKotlin, emitRust, emitTailwind, emitTypeScript } from "./emit.ts";
+import { emitCss, emitDart, emitKotlin, emitRust, emitTailwind, emitTypeScript } from "./emit.ts";
 import { loadModel, type Model, TokenError } from "./model.ts";
 import { listThemes } from "./themes.ts";
 
@@ -356,4 +356,15 @@ test("Rust gets one struct field per color and typed constants", () => {
   assert.match(source, /pub const MOTION_DURATION_FAST: Duration = Duration::from_millis\(120\);/);
   assert.match(source, /pub const TYPOGRAPHY_BODY: Typography = Typography \{ size: 15\.0, /);
   assert.match(source, /pub const TOUCH: Sizes = Sizes \{\n {4}control_md: 48\.0,/);
+});
+
+test("Dart emits both color modes, touch and pointer sizes, and typed glass values", async () => {
+  const model = await loadModel(tokensDir);
+  const out = emitDart(model);
+  assert.match(out, /static const light = ColorTokens\(/);
+  assert.match(out, /static const dark = ColorTokens\(/);
+  assert.match(out, /glassTint: Color\(0xB8FFFFFF\)/);
+  assert.match(out, /static const touch = SizeTokens\(/);
+  assert.match(out, /static const pointer = SizeTokens\(/);
+  assert.match(out, /static const double saturation = 1\.8;/);
 });

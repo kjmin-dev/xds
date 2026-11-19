@@ -71,6 +71,7 @@ Targets
   desktop-tauri        Desktop (macOS, Windows, Linux) Tauri 2 (wraps a web app)
   desktop-gpui         Desktop (macOS)                 Rust, GPUI, GPUI Component
   mobile-react-native  Mobile (iOS, Android)           React Native, Expo
+  dart-flutter         Flutter (iOS, Android)            Dart, Flutter widgets
   kotlin-compose       Kotlin (Android, iOS, Desktop)  Kotlin, Compose Multiplatform
 
 Themes
@@ -373,6 +374,7 @@ Agents with shell access do not need the MCP server; running the CLI commands wi
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component | `apps/desktop`, `crates/acme-ui`, `crates/acme-tokens` |
 | `mobile-react-native` | iOS, Android | React Native, Expo | `apps/mobile`, `packages/ui-native` |
 | `kotlin-compose` | Android, iOS, desktop | Kotlin, Compose Multiplatform | `kotlin` |
+| `dart-flutter` | Android, iOS | Dart, Flutter widgets | `flutter` |
 
 The JavaScript targets share `packages/tokens` and the root pnpm workspace configuration. Their packages type-check with tsrs, an experimental Rust port of TypeScript 7.1 that also runs oxlint's type-aware rules, while editors keep TypeScript's own language server, pointed at the root `typescript` package. The two are exact pins that move together: `tools/check-tsrs.ts`, which comes with the workspace configuration, fails `mise run check:js` while they differ. The Vue packages check their `.vue` files with vue-tsc instead, on typescript-native-bridge from the `vue` catalog, which keeps the TypeScript 6 API that vue-tsc and Vite's compiler for `.vue` files need. The Svelte packages type-check with svelte-check instead, on the same TypeScript 7 under the catalog's `@typescript/native` alias; `web-svelte` brings `.pnpmfile.cjs`, which gives svelte-check the TypeScript 6 it still reads `.svelte` files with. The web targets also require the shared group `ui-core`, which is `packages/ui-core`: the prop types, class recipes, and stylesheet that the web libraries share, and the behavior tests that every web library runs. The web libraries take their behavior from Zag.js 2, a prerelease, so every `@zag-js` package is pinned to the same exact version. Every project must include at least one target. A desktop shell requires one of the four web targets.
 

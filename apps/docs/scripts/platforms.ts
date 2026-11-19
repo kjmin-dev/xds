@@ -54,6 +54,7 @@ const NAMES: Record<string, string> = {
   "desktop-gpui": "GPUI",
   "mobile-react-native": "React Native",
   "kotlin-compose": "Compose",
+  "dart-flutter": "Flutter",
 };
 
 const KINDS = ["only", "system", "adapts"];

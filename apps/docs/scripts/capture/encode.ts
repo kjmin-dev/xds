@@ -10,12 +10,16 @@ const CLIP_SECONDS = 3;
 
 export async function encodeStill(png: string, webp: string, name: string) {
   const sheet = name.startsWith("glass-sheet-");
-  const width = sheet ? 440 : name.startsWith("glass-") ? 360 : 780;
+  const image = await readFile(png);
+  // Flutter's reference image is already a one-to-one phone render.
+  const width = Math.min(
+    image.readUInt32BE(16),
+    sheet ? 440 : name.startsWith("glass-") ? 360 : 780,
+  );
   const crop: string[] = [];
   if (sheet) {
     // Keep the sheet and some of the dimmed backdrop. The ordinary sheet still shows the
     // whole screen, so tier comparisons can spend their shared page budget on legible text.
-    const image = await readFile(png);
     const height = image.readUInt32BE(20);
     const top = Math.floor((height * 0.54) / 2) * 2;
     crop.push("-crop", "0", String(top), String(image.readUInt32BE(16)), String(height - top));

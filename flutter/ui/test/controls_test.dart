@@ -117,6 +117,28 @@ void main() {
     expect(value, 'abcd');
     expect(find.text('4/4'), findsOneWidget);
   });
+  testWidgets('touch editing selects a word and opens the clipboard menu', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      screen(
+        ui.TextField(label: 'Notes', value: 'Alpha Beta', onChanged: (_) {}),
+      ),
+    );
+    final field = find.byType(EditableText);
+    final point = tester.getTopLeft(field) + const Offset(10, 12);
+    await tester.tapAt(point);
+    await tester.pump();
+    expect(tester.widget<EditableText>(field).focusNode.hasFocus, isTrue);
+    await tester.startGesture(point).then((gesture) async {
+      await tester.pump(const Duration(seconds: 1));
+      await gesture.up();
+    });
+    await tester.pump();
+    final value = tester.widget<EditableText>(field).controller.value;
+    expect(value.selection.textInside(value.text), 'Alpha');
+    expect(find.text('Copy'), findsOneWidget);
+  });
   testWidgets('progress and scrolling tabs expose valid roles', (tester) async {
     for (final fullWidth in [false, true]) {
       await tester.pumpWidget(
@@ -172,6 +194,33 @@ void main() {
     }
     expect(seen, [2, true, false]);
   });
+  testWidgets(
+    'radio arrows skip disabled options and select the next enabled one',
+    (tester) async {
+      int selected = 1;
+      await tester.pumpWidget(
+        screen(
+          StatefulBuilder(
+            builder: (context, setState) => ui.RadioGroup(
+              label: 'Projects',
+              options: const [
+                ui.ChoiceOption(1, 'One'),
+                ui.ChoiceOption(2, 'Two', disabled: true),
+                ui.ChoiceOption(3, 'Three'),
+              ],
+              value: selected,
+              onChanged: (v) => setState(() => selected = v),
+            ),
+          ),
+        ),
+      );
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.pump();
+      expect(selected, 3);
+    },
+  );
   testWidgets('slider follows RTL tap direction and its nearest step', (
     tester,
   ) async {

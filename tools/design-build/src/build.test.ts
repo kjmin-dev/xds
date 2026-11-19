@@ -118,6 +118,24 @@ test("glass tints must carry text on both extremes of the backdrop", async () =>
   }
 });
 
+test("a bright glass edge can hide the sheet handle even when its tint passes", async () => {
+  const model = await loadModel(tokensDir);
+  const colors = model.colors.map((token) =>
+    token.path.join(".") === "glass.highlight"
+      ? { ...token, dark: { ...token.dark, a: 0.2 } }
+      : token,
+  );
+  const failures = checkContrast({ ...model, colors });
+  assert.ok(
+    failures.some((line) =>
+      line.startsWith(
+        "sheet.handle on glass.highlight over glass.tint-strong over scrim over rgb(255 255 255) (dark)",
+      ),
+    ),
+  );
+  assert.ok(failures.every((line) => line.includes("glass.highlight")));
+});
+
 test("contrast ratio matches the WCAG reference values", () => {
   const black = { r: 0, g: 0, b: 0, a: 1 };
   const white = { r: 255, g: 255, b: 255, a: 1 };

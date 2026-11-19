@@ -7,8 +7,11 @@ import {
   type ComponentRef,
   createContext,
   type ReactNode,
+  useCallback,
   useContext,
   useEffect,
+  useId,
+  useLayoutEffect,
   useMemo,
   useState,
   useSyncExternalStore,
@@ -37,6 +40,8 @@ const Scene = createContext<
       target: { current: Target | null };
       register: (view: Target | null) => void;
       allowed: boolean;
+      topSheet?: string;
+      showSheet: (id: string) => () => void;
     }
   | undefined
 >(undefined);
@@ -44,10 +49,21 @@ const Scene = createContext<
 /** Mark the scrollable page and draw its bars as siblings so an effect never samples itself. */
 export function GlassScene({ children }: { children: ReactNode }) {
   const [backdrop, register] = useState<Target | null>(null);
+  const [sheets, setSheets] = useState<readonly string[]>([]);
+  const showSheet = useCallback((id: string) => {
+    setSheets((stack) => [...stack, id]);
+    return () => setSheets((stack) => stack.filter((sheet) => sheet !== id));
+  }, []);
   const canBlur = useSyncExternalStore(subscribe, allowed, () => false);
   const value = useMemo(
-    () => ({ target: { current: backdrop }, register, allowed: canBlur }),
-    [backdrop, canBlur],
+    () => ({
+      target: { current: backdrop },
+      register,
+      allowed: canBlur,
+      topSheet: sheets.at(-1),
+      showSheet,
+    }),
+    [backdrop, canBlur, sheets, showSheet],
   );
   return <Scene value={value}>{children}</Scene>;
 }
@@ -75,16 +91,24 @@ export function GlassMaterial({ corners, sheet, style, children, ...props }: Mat
   const preview = useContext(PreviewGlassTier);
   const colors = useColors();
   const scheme = useScheme();
+  const id = useId();
+  const showSheet = scene?.showSheet;
+  useLayoutEffect(() => {
+    if (Platform.OS === "ios" && sheet) return showSheet?.(id);
+  }, [id, sheet, showSheet]);
+  // UIKit samples everything behind this view. While a modal sheet is visible, flatten the
+  // earlier materials so it samples the same dimmed, single-layer backdrop the reader sees.
+  const covered = scene?.topSheet !== undefined && scene.topSheet !== id;
   const native = Platform.OS === "ios" && isLiquidGlassAvailable() && isGlassEffectAPIAvailable();
   const tier = glassTier(
-    scene?.allowed ?? false,
+    Boolean(scene?.allowed && !covered),
     Boolean(scene?.target.current),
     native,
     preview?.requested,
   );
   useEffect(() => {
-    preview?.onResolve?.(tier);
-  }, [preview, tier]);
+    if (!covered) preview?.onResolve?.(tier);
+  }, [preview, tier, covered]);
   // The capture flow checks what actually rendered, including a fallback on an older device.
   const testID = props.testID ?? (preview ? `glass-${sheet ? "sheet" : "bar"}-${tier}` : undefined);
   const geometry = sheet ? shadow.overlay : shadow.raised;

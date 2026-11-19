@@ -18,15 +18,21 @@ run = "node ../scripts/run.mjs android"
 description = "Format-check, analyze, test and build the Flutter Android app"
 depends = ["install"]
 run = [
-  "dart format --output=none --set-exit-if-changed ui/lib ui/test ui/test_render app/lib",
+  "dart format --output=none --set-exit-if-changed ui/lib ui/test ui/test_render app/lib app/test",
   "flutter analyze --no-pub",
   { task = "//flutter:test" },
+  { task = "//flutter:test:app" },
   { task = "//flutter:build:android" },
 ]
 
 [tasks.test]
 description = "Run widget tests and compare the reference images on Linux"
 dir = "ui"
+run = "flutter test --no-pub"
+
+[tasks."test:app"]
+description = "Exercise the sample app's navigation and theme switch"
+dir = "app"
 run = "flutter test --no-pub"
 
 [tasks."build:android"]

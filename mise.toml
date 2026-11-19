@@ -137,7 +137,7 @@ run = [
   "pnpm exec oxfmt",
   # @endif
   # @if dart-flutter
-  "dart format flutter/ui/lib flutter/ui/test flutter/ui/test_render flutter/app/lib",
+  "dart format flutter/ui/lib flutter/ui/test flutter/ui/test_render flutter/app/lib flutter/app/test",
   # @endif
 ]
 

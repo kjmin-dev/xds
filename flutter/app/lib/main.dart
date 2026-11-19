@@ -3,6 +3,7 @@ import 'dart:ui' show PlatformDispatcher;
 
 import 'package:acme_ui/acme_ui.dart';
 import 'package:acme_ui/preview.dart';
+import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
@@ -73,8 +74,21 @@ class _AcmeAppState extends State<AcmeApp> {
       if ((Uri.tryParse(name)?.path ?? '/') == '/design')
         route(RouteSettings(name: name)),
     ],
-    builder: (context, child) =>
-        AcmeTheme(brightness: mode, child: child ?? const SizedBox.shrink()),
+    builder: (context, child) {
+      final brightness = mode ?? MediaQuery.platformBrightnessOf(context);
+      // Android draws system icons above our edge-to-edge background, even when the
+      // preview pins a mode different from the phone's system appearance.
+      final bars = brightness == Brightness.dark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark;
+      return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: bars,
+        child: AcmeTheme(
+          brightness: brightness,
+          child: child ?? const SizedBox.shrink(),
+        ),
+      );
+    },
   );
 }
 

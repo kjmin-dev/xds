@@ -68,7 +68,7 @@
       "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
       "date": "2026-11-19",
       "alt": "A blurred top bar and tab bar over a scrolling collection of colored rows.",
-      "inputs": "sha256:940ba24b82f80454204e6709c4d95a85272d19601d2031d1c8a5d63dd65f5564"
+      "inputs": "sha256:0312ff094431aba3dc01208c421bb8bac554d3a898a767bcadf52859739453d7"
     },
     {
       "name": "glass-sheet-blur",
@@ -78,7 +78,7 @@
       "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
       "date": "2026-11-19",
       "alt": "Collection details inside a strongly tinted glass sheet over the dimmed list.",
-      "inputs": "sha256:7de8c0f4dab1b7d70a68cc6f9d986ae3fbf5458cca05773b16816933648d6a7d"
+      "inputs": "sha256:a9a29adb22f0e84b31471c4c63f55d17360197f6c736f897ea3a7dae9a56146d"
     },
     {
       "name": "glass-sheet-solid",
@@ -88,7 +88,7 @@
       "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
       "date": "2026-11-19",
       "alt": "Collection details inside the opaque fallback sheet over the dimmed list.",
-      "inputs": "sha256:7de8c0f4dab1b7d70a68cc6f9d986ae3fbf5458cca05773b16816933648d6a7d"
+      "inputs": "sha256:a9a29adb22f0e84b31471c4c63f55d17360197f6c736f897ea3a7dae9a56146d"
     },
     {
       "name": "glass-solid",
@@ -98,7 +98,7 @@
       "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
       "date": "2026-11-19",
       "alt": "The same collection with opaque navigation bars for reduced transparency.",
-      "inputs": "sha256:940ba24b82f80454204e6709c4d95a85272d19601d2031d1c8a5d63dd65f5564"
+      "inputs": "sha256:0312ff094431aba3dc01208c421bb8bac554d3a898a767bcadf52859739453d7"
     },
     {
       "name": "navigation",

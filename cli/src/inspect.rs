@@ -21,7 +21,7 @@ pub const COMPONENTS_PATH: &str = "design/components.json";
 const GENERATOR: &str = "tools/design-build/src/build.ts";
 
 /// The color groups screens may use. Every other group under `color` belongs to one component.
-const SEMANTIC_GROUPS: [&str; 9] = [
+const SEMANTIC_GROUPS: [&str; 10] = [
     "background",
     "text",
     "border",
@@ -30,6 +30,7 @@ const SEMANTIC_GROUPS: [&str; 9] = [
     "danger",
     "status",
     "overlay",
+    "glass",
     "scrim",
 ];
 

@@ -290,6 +290,10 @@ All three default to `solid`. With `surface="glass"`, a navigation bar uses `col
 In React Native, import `GlassScene` and `GlassBackdrop` from `@acme/ui-native/glass`. Put the content to blur inside the backdrop, and place the bars and sheet beside it inside the same scene. From `apps/mobile`, `pnpm exec expo run:ios` or `pnpm exec expo run:android` builds the app with the library's native settings module. It listens for changes to power-saving and accessibility settings. Expo Go uses the opaque fallback because its binary omits that module. Open `/design?section=glass` in a native build to see the available material, and append `&sheet=1` to open its sheet.
 <!-- @endif -->
 
+<!-- @if dart-flutter -->
+Flutter exposes the components through `package:acme_ui/acme_ui.dart` with `AcmeTheme` above the screen. Its token values are Dart constants including `Color`, `TextStyle` and `Duration`. The mobile sample takes the touch sizes. A `GlassScene` groups the backdrop filters of its bars. An open glass sheet samples the scrimmed page separately. The Flutter preview and reference tasks are listed in [the Flutter guide](../flutter/README.md).
+<!-- @endif -->
+
 The token build checks glass text on both black and white backdrops in each color mode and theme. The foreground needs 4.5:1 contrast and the sheet handle needs 3:1. The opaque fallback uses `color.glass.fallback`. `glass.blur` is the Gaussian standard deviation in logical pixels, and `glass.saturation` multiplies the blurred backdrop's saturation before tinting.
 
 Two components exist only on the pointer-oriented platforms (the web clients and GPUI):

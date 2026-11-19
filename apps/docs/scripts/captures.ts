@@ -9,14 +9,19 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 /** The tab a capture appears under, and the first part of its file names. */
-export type CapturePlatform = "ios" | "android" | "compose";
+export type CapturePlatform = "ios" | "android" | "compose" | "flutter";
 
 export type Mode = "light" | "dark";
 
 export const MODES: readonly Mode[] = ["light", "dark"];
 
 /** The order of the tabs after the live example. */
-export const CAPTURE_PLATFORMS: readonly CapturePlatform[] = ["ios", "android", "compose"];
+export const CAPTURE_PLATFORMS: readonly CapturePlatform[] = [
+  "ios",
+  "android",
+  "compose",
+  "flutter",
+];
 
 export type Capture = {
   /**
@@ -46,6 +51,7 @@ export type Manifest = { captures: Capture[] };
 /** The files generated from the design tokens that each client's components read. */
 const TOKEN_FILES: Record<string, string[]> = {
   "mobile-react-native": ["packages/tokens/src/generated/tokens.ts"],
+  "dart-flutter": ["flutter/ui/lib/src/tokens/tokens.g.dart"],
   "kotlin-compose": ["kotlin/ui/src/commonMain/kotlin/acme/tokens/Tokens.kt"],
 };
 
@@ -109,6 +115,9 @@ export function captureInputs(capture: Capture, contract: Contract): string[] {
       "packages/ui-native/src/glassTier.ts",
       "apps/mobile/src/GlassPreview.tsx",
     );
+  }
+  if (capture.client === "dart-flutter" && capture.name.startsWith("glass-")) {
+    parts.push("flutter/ui/lib/src/glass.dart", "flutter/ui/lib/src/preview/glass_preview.dart");
   }
   return [...new Set([...sources, ...parts, ...tokens])].sort();
 }

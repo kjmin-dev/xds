@@ -86,6 +86,8 @@ struct ProjectRequest {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 struct CreateRequest {
+    /// Web target to run in the new desktop shells.
+    wrap: Option<String>,
     /// Where to create the project.
     directory: PathBuf,
     /// Lowercase letters and digits, starting with a letter.
@@ -105,6 +107,8 @@ struct CreateRequest {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 struct AddRequest {
+    /// Web target to run in the new desktop shells.
+    wrap: Option<String>,
     targets: Vec<String>,
     project: Option<PathBuf>,
     /// Write the files. Without it this is a dry run.
@@ -199,6 +203,7 @@ impl Server {
     fn create(&self, Parameters(request): Parameters<CreateRequest>) -> CallToolResult {
         reply(commands::create(
             &CreateArgs {
+                wrap: request.wrap,
                 directory: request.directory,
                 name: Some(request.name),
                 title: request.title,
@@ -216,6 +221,7 @@ impl Server {
     fn add(&self, Parameters(request): Parameters<AddRequest>) -> CallToolResult {
         reply(commands::add(
             &AddArgs {
+                wrap: request.wrap,
                 targets: request.targets,
                 project: request.project,
                 dry_run: !request.write,

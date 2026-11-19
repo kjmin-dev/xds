@@ -1,5 +1,6 @@
 //! The subcommands.
 
+use std::collections::BTreeMap;
 use std::fs;
 use std::io::{IsTerminal, stdout};
 use std::path::{Path, PathBuf};
@@ -7,7 +8,7 @@ use std::path::{Path, PathBuf};
 use serde_json::{Value, json};
 
 use crate::error::{Context, Error, Result};
-use crate::manifest::{Manifest, Target, manifest};
+use crate::manifest::{self as target_manifest, Manifest, Target, manifest};
 use crate::output::Out;
 use crate::preview::{Layout, Preview};
 use crate::prompt::{self, Choice};
@@ -35,6 +36,9 @@ pub struct CreateArgs {
     /// default ones)
     #[arg(long, value_delimiter = ',', value_name = "TARGETS")]
     pub targets: Option<Vec<String>>,
+    /// Web target to run inside each new desktop shell (also includes that web target)
+    #[arg(long, value_name = "WEB_TARGET")]
+    pub wrap: Option<String>,
     /// Color theme (see `xds themes`)
     #[arg(long)]
     pub theme: Option<String>,
@@ -55,6 +59,9 @@ pub struct AddArgs {
     /// Client stacks to add (see `xds list`)
     #[arg(required = true, value_name = "TARGET")]
     pub targets: Vec<String>,
+    /// Web target to run inside each new desktop shell (also includes that web target)
+    #[arg(long, value_name = "WEB_TARGET")]
+    pub wrap: Option<String>,
     /// The project to add them to [default: the current directory]
     #[arg(long, value_name = "DIR")]
     pub project: Option<PathBuf>,
@@ -154,6 +161,8 @@ fn target_json(target: &Target) -> Value {
         "id": target.id,
         "title": target.title,
         "stack": target.stack,
+        "wraps": target.wraps,
+        "package": target.package,
         "platforms": target.platforms,
         "input": target.input.name(),
         "default": target.default,
@@ -280,10 +289,24 @@ pub fn create(args: &CreateArgs, out: Out) -> Result<Value> {
     if let Some(title) = &args.title {
         rename::validate_title(title)?;
     }
+    if let Some(web) = &args.wrap
+        && !manifest
+            .target(web)
+            .is_some_and(|target| target.package.is_some())
+    {
+        return Err(Error::Message(format!(
+            "--wrap needs a web target, but {web} is not one"
+        )));
+    }
+    let prepare = |targets| {
+        let targets = include_wrapped(manifest, targets, args.wrap.as_deref())?;
+        target_manifest::shell_wraps(&targets, &BTreeMap::new(), args.wrap.as_deref())?;
+        Ok(targets)
+    };
     let flag_targets = args
         .targets
         .as_ref()
-        .map(|ids| select_targets(manifest, ids))
+        .map(|ids| select_targets(manifest, ids).and_then(prepare))
         .transpose()?;
     let flag_theme = args
         .theme
@@ -341,7 +364,7 @@ pub fn create(args: &CreateArgs, out: Out) -> Result<Value> {
 
     let targets: Vec<&Target> = match flag_targets {
         Some(targets) => targets,
-        None if args.yes => manifest.default_targets(),
+        None if args.yes => prepare(manifest.default_targets())?,
         None => {
             let choices: Vec<Choice> = manifest
                 .targets
@@ -352,19 +375,62 @@ pub fn create(args: &CreateArgs, out: Out) -> Result<Value> {
                 })
                 .collect();
             // Ticked to start with, so that Enter gives the project --yes gives.
-            let defaults: Vec<usize> = manifest
+            let mut defaults: Vec<usize> = manifest
                 .targets
                 .iter()
                 .enumerate()
                 .filter_map(|(index, target)| target.default.then_some(index))
                 .collect();
-            let picked = prompt::multi_select(style, "Targets", &choices, &defaults)?;
-            picked
-                .into_iter()
-                .map(|index| &manifest.targets[index])
-                .collect()
+            loop {
+                let picked = prompt::multi_select(style, "Targets", &choices, &defaults)?;
+                let selected = picked
+                    .iter()
+                    .map(|&index| &manifest.targets[index])
+                    .collect();
+                match prepare(selected) {
+                    Ok(targets) => break targets,
+                    Err(error) => {
+                        say!(out, "{}", style.yellow(&error.to_string()));
+                        defaults = picked;
+                    }
+                }
+            }
         }
     };
+
+    let picked =
+        if interactive && args.wrap.is_none() && targets.iter().any(|t| !t.wraps.is_empty()) {
+            let choices: Vec<_> = targets
+                .iter()
+                .filter(|t| t.package.is_some())
+                .map(|t| Choice {
+                    name: t.id.clone(),
+                    description: t.stack.clone(),
+                })
+                .collect();
+            if choices.len() > 1 {
+                Some(
+                    choices[prompt::select(
+                        style,
+                        "Web app for the desktop shells",
+                        &choices,
+                        0,
+                        |_, _, _| vec![],
+                    )?]
+                    .name
+                    .clone(),
+                )
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+    let wraps = target_manifest::shell_wraps(
+        &targets,
+        &BTreeMap::new(),
+        args.wrap.as_deref().or(picked.as_deref()),
+    )?;
 
     let theme = match flag_theme {
         Some(theme) => theme,
@@ -372,7 +438,7 @@ pub fn create(args: &CreateArgs, out: Out) -> Result<Value> {
         None => find_theme(&themes, &manifest.default_theme)?,
     };
 
-    let mut files = render::render(template, manifest, &targets, &names)?;
+    let mut files = render::with_wraps(template, manifest, &targets, &names, &wraps)?;
     // The template's palette holds the default theme, and so do its generated files. Any other
     // theme goes into the palette here and into the generated files once they are on disk.
     let palette = files
@@ -385,7 +451,11 @@ pub fn create(args: &CreateArgs, out: Out) -> Result<Value> {
     }
     files.insert(
         RECORD.to_owned(),
-        Record::new(&names, &targets, &theme.name).to_file(),
+        Record {
+            wraps: wraps.clone(),
+            ..Record::new(&names, &targets, &theme.name)
+        }
+        .to_file(),
     );
 
     let ids: Vec<&str> = targets.iter().map(|target| target.id.as_str()).collect();
@@ -397,6 +467,7 @@ pub fn create(args: &CreateArgs, out: Out) -> Result<Value> {
             "title": names.title,
             "targets": ids,
             "theme": theme.name,
+            "wraps": wraps,
             "files": files.keys().collect::<Vec<_>>(),
             "tokens": regenerated,
             "nextSteps": next_steps(&targets),
@@ -411,6 +482,9 @@ pub fn create(args: &CreateArgs, out: Out) -> Result<Value> {
         );
         say!(out, "  name     {}", names.name);
         say!(out, "  targets  {}", ids.join(", "));
+        for (shell, web) in &wraps {
+            say!(out, "  wraps    {shell} → {web}");
+        }
         say!(out, "  theme    {}", theme.name);
         say!(out, "  files    {}", files.len());
     };
@@ -465,6 +539,27 @@ pub fn create(args: &CreateArgs, out: Out) -> Result<Value> {
     }
     print_next_steps(out, Some(directory), &targets);
     Ok(result(tokens))
+}
+
+fn include_wrapped<'a>(
+    manifest: &'a Manifest,
+    targets: Vec<&'a Target>,
+    requested: Option<&str>,
+) -> Result<Vec<&'a Target>> {
+    let Some(web) = requested else {
+        return Ok(targets);
+    };
+    if !targets
+        .iter()
+        .any(|shell| shell.wraps.iter().any(|id| id == web))
+    {
+        return Err(Error::Message(format!(
+            "--wrap {web} requires a desktop shell that supports that web target"
+        )));
+    }
+    let mut ids: Vec<_> = targets.iter().map(|target| target.id.clone()).collect();
+    ids.push(web.to_owned());
+    manifest.select(&ids)
 }
 
 fn select_targets<'a>(manifest: &'a Manifest, ids: &[String]) -> Result<Vec<&'a Target>> {
@@ -579,11 +674,18 @@ pub fn add(args: &AddArgs, out: Out) -> Result<Value> {
     let current = manifest
         .select(&record.targets)
         .context(project.join(RECORD).display())?;
-    let added: Vec<&Target> = manifest
-        .select(&args.targets)?
+    let selected = include_wrapped(
+        manifest,
+        manifest.select(&args.targets)?,
+        args.wrap.as_deref(),
+    )?;
+    let added: Vec<&Target> = selected
         .into_iter()
         .filter(|target| !record.targets.contains(&target.id))
         .collect();
+    if args.wrap.is_some() && !added.iter().any(|target| !target.wraps.is_empty()) {
+        return Err(Error::Message("--wrap applies to a new desktop shell. To change an existing shell, edit its web script and its .xds.json wraps entry.".to_owned()));
+    }
     if added.is_empty() {
         say!(
             out,
@@ -595,6 +697,7 @@ pub fn add(args: &AddArgs, out: Out) -> Result<Value> {
             "dryRun": args.dry_run,
             "added": [],
             "targets": record.targets,
+            "wraps": record.wraps,
             "newFiles": 0,
             "updated": [],
             "conflicts": [],
@@ -607,8 +710,10 @@ pub fn add(args: &AddArgs, out: Out) -> Result<Value> {
 
     // What the project was made of, and what it would be made of with the new targets. The
     // difference is what `add` has to bring in.
-    let before = render::render(template(), manifest, &current, &names)?;
-    let after = render::render(template(), manifest, &wanted, &names)?;
+    let old_wraps = record.validated_wraps(manifest)?;
+    let wraps = target_manifest::shell_wraps(&wanted, &old_wraps, args.wrap.as_deref())?;
+    let before = render::with_wraps(template(), manifest, &current, &names, &old_wraps)?;
+    let after = render::with_wraps(template(), manifest, &wanted, &names, &wraps)?;
 
     // A dry run goes through the same comparison and leaves the writing out.
     let write = |path: &str, file: &File| -> Result<()> {
@@ -655,7 +760,10 @@ pub fn add(args: &AddArgs, out: Out) -> Result<Value> {
         }
     }
 
-    let new_record = Record::new(&names, &wanted, &record.theme);
+    let new_record = Record {
+        wraps,
+        ..Record::new(&names, &wanted, &record.theme)
+    };
     write(RECORD, &new_record.to_file())?;
 
     let added_ids: Vec<&str> = added.iter().map(|target| target.id.as_str()).collect();
@@ -729,7 +837,8 @@ pub fn add(args: &AddArgs, out: Out) -> Result<Value> {
     Ok(json!({
         "dryRun": args.dry_run,
         "added": added_ids,
-        "targets": ids,
+        "targets": new_record.targets,
+        "wraps": new_record.wraps,
         "newFiles": new_files,
         "updated": updated,
         "conflicts": conflicts

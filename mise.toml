@@ -39,6 +39,12 @@ lockfile = true
 # @if desktop-gpui
 desktop = "apps/desktop"
 # @endif
+# @if desktop-electron
+desktop-electron = "apps/desktop-electron"
+# @endif
+# @if desktop-tauri
+desktop-tauri = "apps/desktop-tauri"
+# @endif
 # @if mobile-react-native
 mobile = "apps/mobile"
 # @endif
@@ -65,7 +71,7 @@ node = "26.13.1"
 # @if js-workspace
 pnpm = "12.19.0"
 # @endif
-# @if desktop-gpui
+# @if rust-workspace
 rust = { version = "1.99.1", components = "rustfmt,clippy" }
 # @endif
 # @if kotlin-compose
@@ -116,7 +122,7 @@ description = "Format everything"
 depends = ["install"]
 # @endif
 run = [
-  # @if desktop-gpui
+  # @if rust-workspace
   "cargo fmt --all",
   # @endif
   # @if js-workspace
@@ -192,8 +198,8 @@ run = "node packages/ui-core/scripts/compare-previews.ts"
 description = "Format-check the Rust workspace, then lint and test the crates that build on any OS"
 run = [
   "cargo fmt --all --check",
-  "cargo clippy --workspace --exclude acme-desktop --exclude acme-ui --all-targets -- --deny warnings",
-  "cargo test --workspace --exclude acme-desktop --exclude acme-ui",
+  "cargo clippy --workspace --exclude 'acme-desktop*' --exclude acme-ui --all-targets -- --deny warnings",
+  "cargo test --workspace --exclude 'acme-desktop*' --exclude acme-ui",
 ]
 
 [tasks."check:desktop"]
@@ -269,6 +275,12 @@ run = [
     # @if desktop-gpui
     "check:rust",
     "check:desktop",
+    # @endif
+    # @if desktop-electron
+    "//desktop-electron:check",
+    # @endif
+    # @if desktop-tauri
+    "//desktop-tauri:check",
     # @endif
     # @if kotlin-compose
     "//kotlin:check",

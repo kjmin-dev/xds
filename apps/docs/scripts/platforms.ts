@@ -61,13 +61,15 @@ const KINDS = ["only", "system", "adapts"];
 /** Reads the clients and the contract. `slugs` gives each component's page. */
 export async function loadPlatforms(root: string, slugs: Map<string, string>): Promise<Platforms> {
   const manifest = JSON.parse(await readFile(join(root, "template.json"), "utf8")) as {
-    targets: { id: string; platforms: string[]; input: Input }[];
+    targets: { id: string; platforms: string[]; input: Input; wraps?: string[] }[];
   };
-  const clients = manifest.targets.map(({ id, platforms, input }) => {
-    const name = NAMES[id];
-    if (!name) throw new Error(`apps/docs/scripts/platforms.ts: give the target ${id} a name`);
-    return { id, name, platforms, input };
-  });
+  const clients = manifest.targets
+    .filter((target) => !target.wraps?.length)
+    .map(({ id, platforms, input }) => {
+      const name = NAMES[id];
+      if (!name) throw new Error(`apps/docs/scripts/platforms.ts: give the target ${id} a name`);
+      return { id, name, platforms, input };
+    });
   const contract = JSON.parse(await readFile(join(root, "design/components.json"), "utf8")) as {
     components: {
       name: string;

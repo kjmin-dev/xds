@@ -35,6 +35,12 @@ Acme is built around a shared design system: a single set of design tokens and a
 <!-- @if mobile-react-native -->
 | `packages/ui-native`, `apps/mobile` | React Native component library and the Expo app |
 <!-- @endif -->
+<!-- @if desktop-electron -->
+| `apps/desktop-electron` | Electron wrapper for the selected web app |
+<!-- @endif -->
+<!-- @if desktop-tauri -->
+| `apps/desktop-tauri` | Tauri wrapper for the selected web app |
+<!-- @endif -->
 <!-- @if desktop-gpui -->
 | `crates/acme-tokens` | Generated Rust token crate. Do not edit |
 | `crates/acme-ui`, `apps/desktop` | GPUI component library and the desktop app |
@@ -96,6 +102,12 @@ Acme is built around a shared design system: a single set of design tokens and a
 <!-- @if web-svelte -->
 | Start the Svelte web app | `mise run //web-svelte:dev` |
 <!-- @endif -->
+<!-- @if desktop-electron -->
+| Run the Electron shell | `mise run //desktop-electron:dev` |
+<!-- @endif -->
+<!-- @if desktop-tauri -->
+| Run the Tauri shell | `mise run //desktop-tauri:dev` |
+<!-- @endif -->
 <!-- @if desktop-gpui -->
 | Start the desktop app | `mise run //desktop:dev` |
 <!-- @endif -->
@@ -139,6 +151,12 @@ Inspect the design preview in both light and dark modes after making visual chan
 <!-- @endif -->
 <!-- @if web-svelte -->
 | Web (Svelte) | Open `http://localhost:5176/design#buttons` while the Svelte dev server is running. Each section has an anchor, `?theme=light` or `?theme=dark` pins the color mode, and `?open=menu`, `select`, `datepicker`, `daterange`, `dialog`, `toast`, or `tooltip` opens that overlay |
+<!-- @endif -->
+<!-- @if desktop-electron -->
+| Electron | `mise run //desktop-electron:dev -- --path '/design?theme=dark'` |
+<!-- @endif -->
+<!-- @if desktop-tauri -->
+| Tauri | `mise run //desktop-tauri:dev -- --path '/design?theme=light'` |
 <!-- @endif -->
 <!-- @if desktop-gpui -->
 | Desktop | Run `mise run //desktop:design`. Pass `--light` or `--dark` to pin the mode, `--scroll <pixels>` to open at a vertical offset, and `--open menu`, `select`, `datepicker`, `daterange`, `dialog`, `toast`, or `tooltip` to open with that overlay showing |

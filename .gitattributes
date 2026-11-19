@@ -7,8 +7,10 @@
 
 # Generated files: collapsed in pull request diffs and left out of language statistics.
 mise.lock                                 linguist-generated
-# @if desktop-gpui
+# @if rust-workspace
 Cargo.lock                                linguist-generated
+# @endif
+# @if desktop-gpui
 crates/acme-tokens/src/generated.rs       linguist-generated
 # @endif
 # @if js-workspace

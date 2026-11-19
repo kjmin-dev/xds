@@ -5,7 +5,7 @@
 .idea/
 .vscode/
 
-# @if desktop-gpui
+# @if rust-workspace
 # Rust
 target/
 
@@ -29,4 +29,11 @@ mise.*.local.toml
 # Wrangler's local state, which names the Cloudflare account, and its file of local secrets
 .wrangler/
 .dev.vars*
+# @endif
+
+# @if desktop-electron
+/apps/desktop-electron/out/
+# @endif
+# @if desktop-tauri
+/apps/desktop-tauri/src-tauri/gen/
 # @endif

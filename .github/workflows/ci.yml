@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 env:
-  # @if desktop-gpui
+  # @if rust-workspace
   CARGO_TERM_COLOR: always
   # @endif
   # Each job installs only the tools its tasks use (`install_args`). Without this, `mise run`
@@ -71,6 +71,32 @@ jobs:
           install_args: rust
       - uses: Swatinem/rust-cache@v2
       - run: mise run check:desktop
+
+  # @endif
+  # @if desktop-electron
+  desktop-electron:
+    name: Electron
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+        with:
+          install_args: node pnpm
+      - run: mise run //desktop-electron:check
+
+  # @endif
+  # @if desktop-tauri
+  desktop-tauri:
+    name: Tauri
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+        with:
+          install_args: rust node pnpm
+      - uses: Swatinem/rust-cache@v2
+      - run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libxdo-dev libayatana-appindicator3-dev librsvg2-dev
+      - run: mise run //desktop-tauri:check
 
   # @endif
   # @if kotlin-compose

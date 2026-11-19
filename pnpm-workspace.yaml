@@ -17,6 +17,12 @@ packages:
   # @if web-svelte
   - apps/web-svelte
   # @endif
+  # @if desktop-electron
+  - apps/desktop-electron
+  # @endif
+  # @if desktop-tauri
+  - apps/desktop-tauri
+  # @endif
   - packages/*
   - tools/*
 
@@ -153,4 +159,9 @@ minimumReleaseAgeExclude:
 allowBuilds:
   esbuild: false
   workerd: false
+# @endif
+
+# @if desktop-electron
+# Electron Forge checks that pnpm has a hoist pattern before it packages the app.
+hoistPattern: ["*"]
 # @endif

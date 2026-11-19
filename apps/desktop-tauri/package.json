@@ -1,0 +1,11 @@
+{
+  "name": "@acme/desktop-tauri",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "web": "pnpm --filter @acme/web exec vite"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.12.4"
+  }
+}

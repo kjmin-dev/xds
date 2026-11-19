@@ -1,0 +1,20 @@
+[tasks.dev]
+description = "Run the web app in the Tauri shell, with its dev server on http://localhost:5177"
+depends = ["//:install"]
+# Arguments after the task name go to the app: `mise run //desktop-tauri:dev --path /design`.
+run = "pnpm exec tauri dev -- --"
+
+[tasks.build]
+description = "Build the web app and bundle it in the Tauri app for this OS, under target/release/bundle"
+depends = ["//:install"]
+run = "pnpm exec tauri build"
+
+[tasks.check]
+description = "Format-check and lint the Tauri app"
+depends = ["//:install"]
+run = [
+  # generate_context! embeds the built web app, so the crate does not compile without it.
+  "pnpm run web build --outDir ../desktop-tauri/dist --emptyOutDir",
+  "cargo fmt --package acme-desktop-tauri --check",
+  "cargo clippy --package acme-desktop-tauri --all-targets -- --deny warnings",
+]

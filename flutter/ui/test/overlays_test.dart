@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' as w;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:acme_ui/src/calendars.dart';
+import 'package:acme_ui/src/button.dart';
 import 'package:acme_ui/src/glass.dart';
 import 'package:acme_ui/src/menus.dart';
 import 'package:acme_ui/src/modals.dart';
@@ -26,6 +27,81 @@ w.Widget _host(w.Widget child, {SizeTokens sizes = SizeTokens.touch}) =>
 Finder _day(String iso) => find.byKey(w.ValueKey(iso));
 
 void main() {
+  testWidgets(
+    'TalkBack can focus and activate the range sheet Done control by itself',
+    (tester) async {
+      var value = DateRange(
+        start: DateTime(2026, 3, 17),
+        end: DateTime(2026, 3, 20),
+      );
+      await tester.pumpWidget(
+        _host(
+          w.StatefulBuilder(
+            builder: (context, update) => DateRangePicker(
+              label: 'Stay',
+              value: value,
+              onChanged: (next) => update(() => value = next),
+              min: DateTime(2026, 3, 1),
+              max: DateTime(2026, 4, 20),
+              defaultOpen: true,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final done = find.semantics.byLabel(RegExp(r'^Done$'));
+      expect(done, findsOne);
+      expect(
+        done.evaluate().single.rect.height,
+        lessThanOrEqualTo(SizeTokens.touch.controlMd),
+      );
+      tester.semantics.tap(done);
+      await tester.pumpAndSettle();
+      expect(done, findsNothing);
+    },
+  );
+  testWidgets('dialog actions retain individual semantic names and bounds', (
+    tester,
+  ) async {
+    var open = true, deleted = false;
+    await tester.pumpWidget(
+      _host(
+        w.StatefulBuilder(
+          builder: (context, update) => Dialog(
+            open: open,
+            title: 'Delete report',
+            description: 'This removes the report.',
+            onClose: () => update(() => open = false),
+            actions: [
+              Button(
+                label: 'Cancel',
+                onPressed: () => update(() => open = false),
+              ),
+              Button(
+                label: 'Delete',
+                onPressed: () => update(() {
+                  deleted = true;
+                  open = false;
+                }),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final cancel = find.semantics.byLabel(RegExp(r'^Cancel$')),
+        action = find.semantics.byLabel(RegExp(r'^Delete$'));
+    expect(cancel, findsOne);
+    expect(action, findsOne);
+    expect(
+      action.evaluate().single.rect.height,
+      lessThanOrEqualTo(SizeTokens.touch.controlMd),
+    );
+    tester.semantics.tap(action);
+    await tester.pumpAndSettle();
+    expect(deleted, isTrue);
+  });
   testWidgets(
     'only the glass sheet reads the backdrop above covered navigation',
     (tester) async {
@@ -158,7 +234,13 @@ void main() {
       await tester.tap(find.text('Feb 15, 2028'));
       await tester.pumpAndSettle();
       expect(find.text('February 2028'), findsOneWidget);
-      await tester.tap(find.bySemanticsLabel('Next month'));
+      final next = find.semantics.byLabel(RegExp(r'^Next month$'));
+      expect(next, findsOne);
+      expect(
+        next.evaluate().single.rect.height,
+        lessThanOrEqualTo(SizeTokens.touch.targetMin),
+      );
+      tester.semantics.tap(next);
       await tester.pumpAndSettle();
       await tester.tap(_day('2028-03-03'));
       await tester.pumpAndSettle();

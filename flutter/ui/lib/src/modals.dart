@@ -375,6 +375,9 @@ class _SheetBodyState extends State<_SheetBody> {
                   },
                   child: GestureDetector(
                     key: _panel,
+                    // The sheet already exposes a semantic dismiss action. A second gesture
+                    // node here would absorb the names and actions of the controls it wraps.
+                    excludeFromSemantics: true,
                     behavior: HitTestBehavior.opaque,
                     onVerticalDragUpdate: (d) => _move(d.primaryDelta ?? 0),
                     onVerticalDragEnd: (d) => _settle(d.primaryVelocity ?? 0),

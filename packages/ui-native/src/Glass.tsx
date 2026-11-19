@@ -108,8 +108,8 @@ export function GlassMaterial({ corners, sheet, style, children, ...props }: Mat
     preview?.requested,
   );
   useEffect(() => {
-    if (!covered) preview?.onResolve?.(tier);
-  }, [preview, tier, covered]);
+    if (!covered) preview?.onResolve?.(tier, sheet ? "sheet" : "bar");
+  }, [preview, tier, covered, sheet]);
   // The capture flow checks what actually rendered, including a fallback on an older device.
   const testID = props.testID ?? (preview ? `glass-${sheet ? "sheet" : "bar"}-${tier}` : undefined);
   const geometry = sheet ? shadow.overlay : shadow.raised;

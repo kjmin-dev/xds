@@ -6,9 +6,14 @@ import {
   GLASS_SCROLL_MS,
   glassFrameWindows,
   type GlassTier,
+  type GlassPart,
+  type GlassSheetEvent,
+  type GlassMilestones,
+  measurableGlassTier,
+  glassOpeningWindow,
   PreviewGlassTier,
 } from "@acme/ui-native/glass-preview";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { type ScrollView, StyleSheet, View } from "react-native";
 import Animated, {
   scrollTo,
@@ -53,27 +58,58 @@ export function GlassPreview({
   const intervals = useSharedValue<number[]>([]);
   const resolved = useSharedValue<GlassTier | null>(null);
   const measuring = useSharedValue<GlassTier | null>(null);
+  const [mountedAt] = useState(() => performance.now());
+  const milestones = useRef<GlassMilestones>({});
+  const openingFrame = useSharedValue<number | null>(null);
+  const openingSamples = useSharedValue<number[]>([]);
   const preview = useMemo(
     () => ({
       requested:
         tier === "solid" || tier === "blur" || tier === "native" ? (tier as GlassTier) : undefined,
-      onResolve: autoscroll ? (actual: GlassTier) => resolved.set(actual) : undefined,
+      onResolve: autoscroll
+        ? (actual: GlassTier, part: GlassPart) => {
+            const events = milestones.current;
+            if (events[part]?.tier !== actual)
+              events[part] = { tier: actual, atMs: Math.round(performance.now() - mountedAt) };
+            resolved.set(measurableGlassTier(initiallyOpen ? "sheet" : "bar", events));
+          }
+        : undefined,
+      onSheetEvent:
+        autoscroll && initiallyOpen
+          ? (event: GlassSheetEvent) => {
+              const events = milestones.current;
+              if (event === "closing") {
+                delete events.shownMs;
+                delete events.enteredMs;
+                delete events.sheet;
+                start.set(null);
+                openingFrame.set(null);
+                openingSamples.set([]);
+              } else {
+                const key = event === "shown" ? "shownMs" : "enteredMs";
+                events[key] ??= Math.round(performance.now() - mountedAt);
+              }
+              resolved.set(measurableGlassTier("sheet", events));
+            }
+          : undefined,
     }),
-    [tier, autoscroll, resolved],
+    [tier, autoscroll, resolved, initiallyOpen, mountedAt, start, openingFrame, openingSamples],
   );
   const finish = useCallback(
-    (samples: number[], actual: GlassTier) => {
+    (samples: number[], actual: GlassTier, opening: number[]) => {
       const result = {
         tier: actual,
         requestedTier: tier ?? "auto",
         settleMs: settle ? 2000 : 0,
         ...glassFrameWindows(samples),
+        milestones: milestones.current,
+        ...(initiallyOpen && { opening: glassOpeningWindow(opening) }),
       };
       const line = `XDS_GLASS_FRAMES ${JSON.stringify(result)}`;
       console.log(line);
       setReport(line);
     },
-    [tier, settle],
+    [tier, settle, initiallyOpen],
   );
   // Start after layout, so mounting and navigation do not consume part of the 10-second run.
   useFrameCallback(({ timestamp, timeSincePreviousFrame }) => {
@@ -81,6 +117,18 @@ export function GlassPreview({
     if (done.get() || viewport.get() <= 0 || distance <= 0) return;
     const first = start.get();
     const actual = resolved.get();
+    if (initiallyOpen && first === null) {
+      const previous = openingFrame.get();
+      if (previous !== null) {
+        const gap = timestamp - previous;
+        openingSamples.modify((values) => {
+          "worklet";
+          values.push(gap);
+          return values;
+        });
+      }
+      openingFrame.set(timestamp);
+    }
     if (!actual) return;
     if (first === null || actual !== measuring.get()) {
       measuring.set(actual);
@@ -119,7 +167,7 @@ export function GlassPreview({
     scrollTo(ref, 0, offset, false);
     if (elapsed >= GLASS_SCROLL_MS) {
       done.set(true);
-      scheduleOnRN(finish, intervals.get(), actual);
+      scheduleOnRN(finish, intervals.get(), actual, openingSamples.get());
     }
   }, autoscroll);
   const sections = [

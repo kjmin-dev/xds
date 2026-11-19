@@ -3,7 +3,7 @@
 export const GLASS_SCROLL_MS = 10_000;
 export const DISPLAY_FRAME_MS = 1000 / 120;
 
-function frameWindow(intervals: readonly number[], start: number) {
+function frameWindow(intervals: readonly number[], start: number, duration = GLASS_SCROLL_MS) {
   let elapsedMs = 0;
   let dropped = 0;
   const samples: number[] = [];
@@ -20,7 +20,7 @@ function frameWindow(intervals: readonly number[], start: number) {
     }
     samples.push(interval);
     elapsedMs += interval;
-    if (elapsedMs >= GLASS_SCROLL_MS - 0.000001) break;
+    if (elapsedMs >= duration - 0.000001) break;
   }
   samples.sort((a, b) => a - b);
   return {
@@ -45,4 +45,9 @@ export function glassFrameWindows(intervals: readonly number[]) {
     // instead spans ten full seconds from that first change through the last scroll command.
     motion: frameWindow(intervals, 1),
   };
+}
+
+/** The opening phase runs until the sheet is shown and its entrance completes. */
+export function glassOpeningWindow(intervals: readonly number[]) {
+  return frameWindow(intervals, 0, Infinity);
 }

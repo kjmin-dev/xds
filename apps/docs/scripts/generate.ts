@@ -166,6 +166,7 @@ const SEMANTIC = [
   "danger",
   "status",
   "overlay",
+  "glass",
 ];
 const title = (name: string) => name.charAt(0).toUpperCase() + name.slice(1).replaceAll("-", " ");
 

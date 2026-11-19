@@ -184,6 +184,74 @@
         "$description": "Accent-colored marks on the overlay background, such as how much of a video was watched. Light enough to read over any picture, so the same in both modes."
       }
     },
+    "glass": {
+      "tint": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.13333333333333333,
+            0.13333333333333333,
+            0.1568627450980392
+          ],
+          "alpha": 0.72,
+          "hex": "#222228"
+        }
+      },
+      "tint-strong": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.13333333333333333,
+            0.13333333333333333,
+            0.1568627450980392
+          ],
+          "alpha": 0.92,
+          "hex": "#222228"
+        }
+      },
+      "highlight": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            1,
+            1
+          ],
+          "alpha": 0.08,
+          "hex": "#ffffff"
+        }
+      },
+      "border": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1,
+            1,
+            1
+          ],
+          "alpha": 0.12,
+          "hex": "#ffffff"
+        }
+      },
+      "shadow": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0,
+            0,
+            0
+          ],
+          "alpha": 0.35,
+          "hex": "#000000"
+        }
+      },
+      "fallback": {
+        "$value": "{color.background.raised}"
+      },
+      "foreground": {
+        "$value": "{color.text.primary}"
+      }
+    },
     "button": {
       "primary": {
         "background": {

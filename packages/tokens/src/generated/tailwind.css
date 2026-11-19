@@ -43,6 +43,13 @@
   --color-acme-overlay-background: var(--acme-color-overlay-background);
   --color-acme-overlay-text: var(--acme-color-overlay-text);
   --color-acme-overlay-accent: var(--acme-color-overlay-accent);
+  --color-acme-glass-tint: var(--acme-color-glass-tint);
+  --color-acme-glass-tint-strong: var(--acme-color-glass-tint-strong);
+  --color-acme-glass-highlight: var(--acme-color-glass-highlight);
+  --color-acme-glass-border: var(--acme-color-glass-border);
+  --color-acme-glass-shadow: var(--acme-color-glass-shadow);
+  --color-acme-glass-fallback: var(--acme-color-glass-fallback);
+  --color-acme-glass-foreground: var(--acme-color-glass-foreground);
   --color-acme-button-primary-background: var(--acme-color-button-primary-background);
   --color-acme-button-primary-background-hover: var(--acme-color-button-primary-background-hover);
   --color-acme-button-primary-background-pressed: var(--acme-color-button-primary-background-pressed);

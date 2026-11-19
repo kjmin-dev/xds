@@ -1,8 +1,19 @@
 import { space } from "@acme/tokens";
 import { BottomSheet, Button, Icon, TabBar, Text, TopBar, useColors } from "@acme/ui-native";
 import { GlassBackdrop, GlassScene } from "@acme/ui-native/glass";
-import { type GlassTier, PreviewGlassTier } from "@acme/ui-native/glass-preview";
-import { useCallback, useMemo, useState } from "react";
+import {
+  DISPLAY_FRAME_MS,
+  GLASS_SCROLL_MS,
+  glassFrameWindows,
+  type GlassTier,
+  type GlassPart,
+  type GlassSheetEvent,
+  type GlassMilestones,
+  measurableGlassTier,
+  glassOpeningWindow,
+  PreviewGlassTier,
+} from "@acme/ui-native/glass-preview";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { type ScrollView, StyleSheet, View } from "react-native";
 import Animated, {
   scrollTo,
@@ -12,21 +23,25 @@ import Animated, {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 
-const SCROLL_MS = 10_000;
-const FRAME_MS = 1000 / 120;
-
 const tabs = [
   { key: "home", label: "Home", icon: (color: string) => <Icon name="house" color={color} /> },
   { key: "search", label: "Search", icon: (color: string) => <Icon name="search" color={color} /> },
   { key: "profile", label: "Profile", icon: (color: string) => <Icon name="user" color={color} /> },
 ];
 
-type Props = { fullScreen?: boolean; tier?: string; autoscroll?: boolean; initiallyOpen?: boolean };
+type Props = {
+  fullScreen?: boolean;
+  tier?: string;
+  autoscroll?: boolean;
+  settle?: boolean;
+  initiallyOpen?: boolean;
+};
 
 export function GlassPreview({
   fullScreen,
   tier,
   autoscroll = false,
+  settle = false,
   initiallyOpen = false,
 }: Props) {
   const colors = useColors();
@@ -37,41 +52,64 @@ export function GlassPreview({
   const viewport = useSharedValue(0);
   const [report, setReport] = useState<string>();
   const start = useSharedValue<number | null>(null);
+  const motionStart = useSharedValue<number | null>(null);
   const done = useSharedValue(false);
+  const waitUntil = useSharedValue(0);
   const intervals = useSharedValue<number[]>([]);
   const resolved = useSharedValue<GlassTier | null>(null);
   const measuring = useSharedValue<GlassTier | null>(null);
+  const [mountedAt] = useState(() => performance.now());
+  const milestones = useRef<GlassMilestones>({});
+  const openingFrame = useSharedValue<number | null>(null);
+  const openingSamples = useSharedValue<number[]>([]);
   const preview = useMemo(
     () => ({
       requested:
         tier === "solid" || tier === "blur" || tier === "native" ? (tier as GlassTier) : undefined,
-      onResolve: autoscroll ? (actual: GlassTier) => resolved.set(actual) : undefined,
+      onResolve: autoscroll
+        ? (actual: GlassTier, part: GlassPart) => {
+            const events = milestones.current;
+            if (events[part]?.tier !== actual)
+              events[part] = { tier: actual, atMs: Math.round(performance.now() - mountedAt) };
+            resolved.set(measurableGlassTier(initiallyOpen ? "sheet" : "bar", events));
+          }
+        : undefined,
+      onSheetEvent:
+        autoscroll && initiallyOpen
+          ? (event: GlassSheetEvent) => {
+              const events = milestones.current;
+              if (event === "closing") {
+                delete events.shownMs;
+                delete events.enteredMs;
+                delete events.sheet;
+                start.set(null);
+                openingFrame.set(null);
+                openingSamples.set([]);
+              } else {
+                const key = event === "shown" ? "shownMs" : "enteredMs";
+                events[key] ??= Math.round(performance.now() - mountedAt);
+              }
+              resolved.set(measurableGlassTier("sheet", events));
+            }
+          : undefined,
     }),
-    [tier, autoscroll, resolved],
+    [tier, autoscroll, resolved, initiallyOpen, mountedAt, start, openingFrame, openingSamples],
   );
   const finish = useCallback(
-    (samples: number[], elapsedMs: number, actual: GlassTier) => {
-      // Compute the distribution after scrolling. Each sample measures UI callbacks, not GPU time.
-      const sorted = [...samples].sort((a, b) => a - b);
-      const frames = samples.length;
-      const dropped = samples.reduce(
-        (count, ms) => count + Math.max(0, Math.round(ms / FRAME_MS) - 1),
-        0,
-      );
+    (samples: number[], actual: GlassTier, opening: number[]) => {
       const result = {
         tier: actual,
         requestedTier: tier ?? "auto",
-        elapsedMs,
-        frames,
-        dropped,
-        p90Ms: sorted[Math.ceil(frames * 0.9) - 1],
-        p99Ms: sorted[Math.ceil(frames * 0.99) - 1],
+        settleMs: settle ? 2000 : 0,
+        ...glassFrameWindows(samples),
+        milestones: milestones.current,
+        ...(initiallyOpen && { opening: glassOpeningWindow(opening) }),
       };
       const line = `XDS_GLASS_FRAMES ${JSON.stringify(result)}`;
       console.log(line);
       setReport(line);
     },
-    [tier],
+    [tier, settle, initiallyOpen],
   );
   // Start after layout, so mounting and navigation do not consume part of the 10-second run.
   useFrameCallback(({ timestamp, timeSincePreviousFrame }) => {
@@ -79,25 +117,57 @@ export function GlassPreview({
     if (done.get() || viewport.get() <= 0 || distance <= 0) return;
     const first = start.get();
     const actual = resolved.get();
+    if (initiallyOpen && first === null) {
+      const previous = openingFrame.get();
+      if (previous !== null) {
+        const gap = timestamp - previous;
+        openingSamples.modify((values) => {
+          "worklet";
+          values.push(gap);
+          return values;
+        });
+      }
+      openingFrame.set(timestamp);
+    }
     if (!actual) return;
     if (first === null || actual !== measuring.get()) {
       measuring.set(actual);
+      motionStart.set(null);
       intervals.set([]);
       start.set(timestamp);
+      if (settle) waitUntil.set(timestamp + 2000);
       return;
     }
-    const elapsed = timestamp - first;
-    if (timeSincePreviousFrame !== null) {
+    if (settle && waitUntil.get() > 0) {
+      if (timestamp >= waitUntil.get()) {
+        start.set(timestamp);
+        waitUntil.set(0);
+      }
+      return;
+    }
+    const motion = motionStart.get();
+    const delta = motion === null ? timestamp - first : timeSincePreviousFrame;
+    if (delta !== null) {
       intervals.modify((values) => {
         "worklet";
-        values.push(timeSincePreviousFrame);
+        values.push(delta);
         return values;
       });
     }
-    scrollTo(ref, 0, distance * Math.min(elapsed / SCROLL_MS, 1), false);
-    if (elapsed >= SCROLL_MS) {
+    // Every tier moves by the same distance on the first command, then traverses the rest
+    // over ten seconds. Include the first-command latency in the original window separately.
+    const firstOffset = (distance * DISPLAY_FRAME_MS) / GLASS_SCROLL_MS;
+    if (motion === null) {
+      motionStart.set(timestamp);
+      scrollTo(ref, 0, firstOffset, false);
+      return;
+    }
+    const elapsed = timestamp - motion;
+    const offset = firstOffset + (distance - firstOffset) * Math.min(elapsed / GLASS_SCROLL_MS, 1);
+    scrollTo(ref, 0, offset, false);
+    if (elapsed >= GLASS_SCROLL_MS) {
       done.set(true);
-      scheduleOnRN(finish, intervals.get(), elapsed, actual);
+      scheduleOnRN(finish, intervals.get(), actual, openingSamples.get());
     }
   }, autoscroll);
   const sections = [

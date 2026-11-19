@@ -6,6 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import {
   type ComponentRef,
   createContext,
+  Fragment,
   type ReactNode,
   useCallback,
   useContext,
@@ -107,8 +108,8 @@ export function GlassMaterial({ corners, sheet, style, children, ...props }: Mat
     preview?.requested,
   );
   useEffect(() => {
-    if (!covered) preview?.onResolve?.(tier);
-  }, [preview, tier, covered]);
+    if (!covered) preview?.onResolve?.(tier, sheet ? "sheet" : "bar");
+  }, [preview, tier, covered, sheet]);
   // The capture flow checks what actually rendered, including a fallback on an older device.
   const testID = props.testID ?? (preview ? `glass-${sheet ? "sheet" : "bar"}-${tier}` : undefined);
   const geometry = sheet ? shadow.overlay : shadow.raised;
@@ -126,35 +127,36 @@ export function GlassMaterial({ corners, sheet, style, children, ...props }: Mat
     borderColor: colors.glassBorder,
     borderWidth: border.width.thin,
   };
-  if (tier === "native") {
+  const opaque = [style, edge, { backgroundColor: colors.glassFallback }];
+  // Backdrop registration and live accessibility settings select an effect after mount.
+  // Keep the same UIKit contentView so controls inside the bar retain their state and focus.
+  const usesSystemHost =
+    native && scene && settings && preview?.requested !== "blur" && preview?.requested !== "solid";
+  if (usesSystemHost) {
     return (
       <GlassView
         {...props}
         testID={testID}
-        glassEffectStyle="regular"
+        glassEffectStyle={tier === "native" ? "regular" : "none"}
         colorScheme={scheme}
-        style={[style, { borderRadius: corners }]}
+        style={tier === "native" ? [style, { borderRadius: corners }] : opaque}
       >
         {children}
       </GlassView>
     );
   }
-  if (tier === "solid") {
-    return (
-      <View
-        {...props}
-        testID={testID}
-        style={[style, edge, { backgroundColor: colors.glassFallback }]}
-      >
-        {children}
-      </View>
-    );
-  }
+  // Keep the shadow and controls outside the mask. The backing alone must stop at the
+  // rounded edge; clipping a host with a boxShadow makes Fabric wrap all its content.
+  const backingClip = corners > 0 && {
+    borderRadius: Math.max(0, corners - border.width.thin),
+    overflow: "hidden" as const,
+  };
   return (
-    <View {...props} testID={testID} style={[style, edge, styles.clip]}>
-      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+    <View {...props} testID={testID} style={tier === "blur" ? [style, edge] : opaque}>
+      {tier === "blur" && (
         <BlurView
-          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, backingClip]}
           tint={scheme === "dark" ? "systemThinMaterialDark" : "systemThinMaterialLight"}
           // Android's RenderEffect accepts a radius in device pixels. UIKit controls the
           // Gaussian of its material and exposes only the intensity.
@@ -166,25 +168,21 @@ export function GlassMaterial({ corners, sheet, style, children, ...props }: Mat
           blurReductionFactor={1}
           blurMethod="dimezisBlurViewSdk31Plus"
           blurTarget={scene?.target}
-        />
-        {sheet && Platform.OS === "android" && (
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.scrim }]} />
-        )}
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: sheet ? colors.glassTintStrong : colors.glassTint },
-          ]}
-        />
-        <LinearGradient
-          style={StyleSheet.absoluteFill}
-          colors={[colors.glassHighlight, "transparent"]}
-          locations={[0, 0.5]}
-        />
-      </View>
-      {children}
+        >
+          {sheet && Platform.OS === "android" && (
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.scrim }]} />
+          )}
+          <LinearGradient
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: sheet ? colors.glassTintStrong : colors.glassTint },
+            ]}
+            colors={[colors.glassHighlight, "transparent"]}
+            locations={[0, 0.5]}
+          />
+        </BlurView>
+      )}
+      <Fragment key="controls">{children}</Fragment>
     </View>
   );
 }
-
-const styles = StyleSheet.create({ clip: { overflow: "hidden" } });

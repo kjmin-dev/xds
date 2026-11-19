@@ -1,5 +1,5 @@
 import { motion, radius, shadow, space } from "@acme/tokens";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useContext, useEffect, useRef, useState } from "react";
 import {
   Animated,
   Easing,
@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { GlassMaterial, type Surface } from "./Glass";
+import { PreviewGlassTier } from "./glassPreview.ts";
 import { useReducedMotion } from "./motion.ts";
 import { Text } from "./Text.tsx";
 import { useColors } from "./theme.ts";
@@ -62,6 +63,8 @@ function Sheet({
 }: BottomSheetProps & { tall: boolean }) {
   const colors = useColors();
   const reduced = useReducedMotion();
+  const probe = useContext(PreviewGlassTier);
+  const onSheetEvent = surface === "glass" ? probe?.onSheetEvent : undefined;
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   // 0 is fully open, 1 fully off screen. The modal stays mounted until the way out has played.
@@ -75,6 +78,7 @@ function Sheet({
 
   useEffect(() => {
     if (open) setMounted(true);
+    else onSheetEvent?.("closing");
     const [x1, y1, x2, y2] = open ? motion.easing.enter : motion.easing.exit;
     Animated.timing(progress, {
       toValue: open ? 0 : 1,
@@ -83,9 +87,11 @@ function Sheet({
       easing: Easing.bezier(x1, y1, x2, y2),
       useNativeDriver: true,
     }).start(({ finished }) => {
-      if (finished && !open) setMounted(false);
+      if (!finished) return;
+      if (open) onSheetEvent?.("entered");
+      else setMounted(false);
     });
-  }, [open, progress, reduced, releases]);
+  }, [open, progress, reduced, releases, onSheetEvent]);
 
   const bottom = Math.max(insets.bottom, space[2]);
   // A tall sheet stops short of the status bar, with the margin it keeps from the other edges.
@@ -180,7 +186,13 @@ function Sheet({
     </>
   );
   return (
-    <Modal transparent statusBarTranslucent animationType="none" onRequestClose={onClose}>
+    <Modal
+      transparent
+      statusBarTranslucent
+      animationType="none"
+      onRequestClose={onClose}
+      onShow={onSheetEvent && (() => onSheetEvent("shown"))}
+    >
       <Animated.View
         style={[
           StyleSheet.absoluteFill,

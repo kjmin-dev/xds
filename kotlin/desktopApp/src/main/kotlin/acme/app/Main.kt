@@ -35,7 +35,7 @@ fun main(args: Array<String>) {
         ) {
             val section = args.toList().zipWithNext().firstOrNull { it.first == "--section" }?.second
             val glass = args.toList().zipWithNext().firstOrNull { it.first == "--glass" }?.second
-            App(startInDesign = design || section != null, mode = mode, section = section, glass = glass, autoscroll = "--autoscroll" in args)
+            App(startInDesign = design || section != null, mode = mode, section = section, glass = glass, autoscroll = "--autoscroll" in args, sheet = "--sheet" in args)
         }
     }
 }

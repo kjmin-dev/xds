@@ -137,11 +137,24 @@ private val Radii = listOf(
 
 /** Shows every token and every component. [onBack] is called by the back mark in its top bar. */
 @Composable
-fun DesignPreview(onBack: () -> Unit) = DesignPreview(null, null, false, onBack)
+fun DesignPreview(onBack: () -> Unit) = DesignPreview(null, null, false, onBack = onBack)
 
 @Composable
-fun DesignPreview(section: String?, glass: String?, autoscroll: Boolean, onBack: () -> Unit) {
-    DesignPreviewScreen(onBack = onBack, scrolls = true, open = null, from = section, glass = glass, autoscroll = autoscroll)
+fun DesignPreview(
+    section: String?,
+    glass: String?,
+    autoscroll: Boolean,
+    sheet: Boolean = false,
+    onBack: () -> Unit,
+) {
+    DesignPreviewScreen(
+        onBack = onBack,
+        scrolls = true,
+        open = if (sheet) PreviewOverlay.Sheet else null,
+        from = section,
+        glass = glass,
+        autoscroll = autoscroll,
+    )
 }
 
 /** What the preview can start with open, so that it can be drawn into an image open. */

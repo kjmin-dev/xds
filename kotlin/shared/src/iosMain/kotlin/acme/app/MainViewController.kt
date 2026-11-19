@@ -11,5 +11,5 @@ fun MainViewController() = ComposeUIViewController {
     val args = NSProcessInfo.processInfo.arguments.filterIsInstance<String>()
     val section = args.zipWithNext().firstOrNull { it.first == "--section" }?.second
     val glass = args.zipWithNext().firstOrNull { it.first == "--glass" }?.second
-    App(startInDesign = "--design" in args || section != null, section = section, glass = glass, autoscroll = "--autoscroll" in args)
+    App(startInDesign = "--design" in args || section != null, section = section, glass = glass, autoscroll = "--autoscroll" in args, sheet = "--sheet" in args)
 }

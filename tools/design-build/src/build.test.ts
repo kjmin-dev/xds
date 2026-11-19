@@ -113,8 +113,8 @@ test("glass tints must carry text on both extremes of the backdrop", async () =>
   );
   const failures = checkContrast({ ...model, colors }).join("\n");
   for (const pair of ["glass.foreground on glass.tint", "text.secondary on glass.tint-strong"]) {
-    assert.ok(failures.includes(pair + " over rgb(0 0 0) (light)"));
-    assert.ok(failures.includes(pair + " over rgb(255 255 255) (dark)"));
+    assert.ok(failures.includes(`${pair} over rgb(0 0 0) (light)`));
+    assert.ok(failures.includes(`${pair} over rgb(255 255 255) (dark)`));
   }
 });
 

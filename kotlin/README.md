@@ -23,6 +23,14 @@ Gradle requires JDK 17 or later. Building for Android also requires the Android 
 
 On Android and iOS, tap the button on the home screen to open the design preview. On the iOS simulator, passing `--design` at launch opens the preview directly: `xcrun simctl launch booted com.example.acme --design`.
 
+## Glass navigation
+
+`TopBar`, `TabBar` and `BottomSheet` default to `Surface.Solid`. Place scrolling content and navigation inside the same `GlassScene`, mark the content with `Modifier.glassBackdrop()`, and pass `surface = Surface.Glass` to the bars or sheet. The marked source and the surfaces should be siblings. This lets Haze sample the page once and keeps the sheet from blurring a bar's material a second time.
+
+On iOS the surface becomes opaque with Reduce Transparency, Increase Contrast or Low Power Mode. Android uses the opaque material below API 33, on low-RAM devices, in power-saving mode and with high-contrast text on API 36 or later. A missing backdrop also selects the opaque material.
+
+The desktop preview accepts `--section glass --glass blur` or `--section glass --glass solid`. Add `--sheet` to show the sheet and `--autoscroll` for a 10-second scroll. The iOS app accepts the same launch arguments. On Android, use intent string extras `section` and `glass` and boolean extras `sheet` and `autoscroll`. The `XDS_GLASS_FRAMES` line records callback intervals for the active tier. Use a compositor trace for presentation hitches.
+
 ## Checks and tests
 
 | | Command |

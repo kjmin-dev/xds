@@ -34,6 +34,8 @@ pub struct Record {
     pub title: String,
     pub targets: Vec<String>,
     pub theme: String,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub wraps: BTreeMap<String, String>,
 }
 
 impl Record {
@@ -44,7 +46,19 @@ impl Record {
             title: names.title.clone(),
             targets: targets.iter().map(|target| target.id.clone()).collect(),
             theme: theme.to_owned(),
+            wraps: BTreeMap::new(),
         }
+    }
+
+    pub fn validated_wraps(&self, manifest: &Manifest) -> Result<BTreeMap<String, String>> {
+        let targets = manifest.select(&self.targets)?;
+        let resolved = crate::manifest::shell_wraps(&targets, &self.wraps, None)?;
+        if resolved != self.wraps {
+            return Err(Error::Message(format!(
+                "{RECORD}: wraps must name each selected desktop shell and its selected web app"
+            )));
+        }
+        Ok(resolved)
     }
 
     pub fn read(project: &Path) -> Result<Self> {
@@ -134,6 +148,48 @@ pub fn render(
     for (path, file) in &template.overlay {
         let (path, file) = transform(path, file)?;
         files.insert(path, file);
+    }
+    Ok(files)
+}
+
+/// The shell's web script is the only part of the template tied to a particular web app.
+pub fn with_wraps(
+    template: &Template,
+    manifest: &Manifest,
+    targets: &[&Target],
+    names: &Names,
+    wraps: &BTreeMap<String, String>,
+) -> Result<Files> {
+    let mut files = render(template, manifest, targets, names)?;
+    for (shell, web) in wraps {
+        let shell = manifest.target(shell).expect("validated shell");
+        let directory = &shell.paths[0];
+        let path = format!("{directory}/package.json");
+        let file = files
+            .get_mut(&path)
+            .ok_or_else(|| Error::Message(format!("No {path} for {}", shell.id)))?;
+        let script = |id: &str| -> Result<String> {
+            let package = manifest
+                .target(id)
+                .and_then(|target| target.package.as_deref())
+                .ok_or_else(|| Error::Message(format!("{id} has no workspace package")))?;
+            Ok(format!(
+                "pnpm --filter {} exec vite",
+                names.apply(package, &manifest.placeholder)
+            ))
+        };
+        let default = script(&shell.wraps[0])?;
+        let chosen = script(web)?;
+        let source = std::str::from_utf8(&file.contents).context(&path)?;
+        let from = format!(r#""web": "{default}""#);
+        if source.matches(&from).count() != 1 {
+            return Err(Error::Message(format!(
+                "{path} must contain exactly one web script that runs {default}"
+            )));
+        }
+        file.contents = source
+            .replacen(&from, &format!(r#""web": "{chosen}""#), 1)
+            .into_bytes();
     }
     Ok(files)
 }

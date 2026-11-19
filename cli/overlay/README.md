@@ -20,6 +20,12 @@ A single set of design tokens drives a component library for each client, paired
 <!-- @if web-svelte -->
 | Web | Svelte 5, Vite, Tailwind v4, Zag.js | `packages/ui-svelte`, `packages/ui-core` | `apps/web-svelte` |
 <!-- @endif -->
+<!-- @if desktop-electron -->
+| Desktop (Windows, macOS, Linux) | Electron, Chromium | Web app selected at creation | `apps/desktop-electron` |
+<!-- @endif -->
+<!-- @if desktop-tauri -->
+| Desktop (Windows, macOS, Linux) | Tauri 2, system WebView | Web app selected at creation | `apps/desktop-tauri` |
+<!-- @endif -->
 <!-- @if desktop-gpui -->
 | Desktop (macOS) | Rust, GPUI, GPUI Component | `crates/acme-ui` | `apps/desktop` |
 <!-- @endif -->
@@ -65,6 +71,12 @@ The first run resolves dependencies and generates the lockfiles. Commit them to 
 | Start the Svelte web app | `mise run //web-svelte:dev`, then open `http://localhost:5176` |
 | Open the Svelte design preview | Visit `http://localhost:5176/design` |
 <!-- @endif -->
+<!-- @if desktop-electron -->
+| Run the Electron shell | `mise run //desktop-electron:dev` |
+<!-- @endif -->
+<!-- @if desktop-tauri -->
+| Run the Tauri shell | `mise run //desktop-tauri:dev` |
+<!-- @endif -->
 <!-- @if desktop-gpui -->
 | Start the desktop app | `mise run //desktop:dev` |
 | Open the desktop design preview | `mise run //desktop:design` |
@@ -103,8 +115,14 @@ The Svelte packages type-check with svelte-check, on the same TypeScript 7 (`@ty
 <!-- @if ui-core -->
 The tests of the web components run in Google Chrome, which `mise run check` needs installed.
 <!-- @endif -->
+<!-- @if desktop-tauri -->
+Install the [Tauri build prerequisites](https://v2.tauri.app/start/prerequisites/) for your OS. Build the native installer with `mise run //desktop-tauri:build`.
+<!-- @endif -->
+<!-- @if desktop-electron -->
+Package the Electron app for this OS with `mise run //desktop-electron:build`.
+<!-- @endif -->
 <!-- @if desktop-gpui -->
-The desktop app requires macOS.
+The GPUI app requires macOS.
 <!-- @endif -->
 <!-- @if mobile-react-native -->
 On mobile, use the button on the home screen to open the design preview.

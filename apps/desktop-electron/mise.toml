@@ -1,0 +1,22 @@
+[tasks.dev]
+description = "Run the web app in the Electron shell, with its dev server on http://localhost:5178"
+depends = ["//:install"]
+# Arguments after the task name go to the app: `mise run //desktop-electron:dev --path /design`.
+run = "node scripts/dev.ts"
+
+[tasks.build]
+description = "Build the web app and package it in the Electron app for this OS, under out/make"
+depends = ["//:install"]
+run = [
+  "pnpm run web build --outDir ../desktop-electron/dist --emptyOutDir",
+  "pnpm exec electron-forge make",
+]
+
+[tasks.check]
+description = "Build the web app, run it in the shell, and package the shell"
+depends = ["//:install"]
+run = [
+  "pnpm run web build --outDir ../desktop-electron/dist --emptyOutDir",
+  "node --test test/",
+  "pnpm exec electron-forge package",
+]

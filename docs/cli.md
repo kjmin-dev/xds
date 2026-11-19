@@ -67,6 +67,8 @@ Targets
   web-solid            Web                             SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js
   web-vue              Web                             Vue 3, Vite, Tailwind v4, Zag.js
   web-svelte           Web                             Svelte 5, Vite, Tailwind v4, Zag.js
+  desktop-electron     Desktop (macOS, Windows, Linux) Electron, Electron Forge (wraps a web app)
+  desktop-tauri        Desktop (macOS, Windows, Linux) Tauri 2 (wraps a web app)
   desktop-gpui         Desktop (macOS)                 Rust, GPUI, GPUI Component
   mobile-react-native  Mobile (iOS, Android)           React Native, Expo
   dart-flutter         Flutter (iOS, Android)            Dart, Flutter widgets
@@ -123,6 +125,7 @@ Run
 | --- | --- |
 | `--name` | Lowercase ASCII letters and digits, starting with a letter, up to 40 characters. Replaces `acme` across the project: crate names (`orbit-ui`), the npm scope (`@orbit/ui`), CSS custom properties (`--orbit-color-*`), and the Kotlin package (`orbit.tokens`). Kotlin and Java reserved keywords are rejected |
 | `--title` | Display name used to replace `Acme`. Accepts letters, digits, spaces, and `-`, `_`, `.`. Defaults to the project name with an uppercase first letter |
+| `--wrap` | Web target to include and run in the selected desktop shells |
 | `--targets` | Comma-separated target IDs, or `all` for every target |
 | `--theme` | Theme name. Defaults to `indigo` |
 | `--yes`, `-y` | Skip interactive prompts and use defaults for any omitted flags: the project name comes from the directory name, the targets are the default targets (`web-react`, marked `(default)` in `xds list`), and the theme defaults to `indigo` |
@@ -133,17 +136,33 @@ When stdout is not a terminal (for example, in a script or CI job), there is no 
 
 What a scaffolded project contains:
 
-- The files for the selected targets along with shared project files: `design/`, `tools/design-build/`, `mise.toml`, the CI workflow, and `docs/design-system.md`. Selecting any JavaScript target also includes the pnpm workspace configuration and `packages/tokens`. Selecting a web target also includes `packages/ui-core`. Selecting the desktop target includes the Cargo workspace configuration.
+- The files for the selected targets along with shared project files: `design/`, `tools/design-build/`, `mise.toml`, the CI workflow, and `docs/design-system.md`. Selecting any JavaScript target also includes the pnpm workspace configuration and `packages/tokens`. Selecting a web target also includes `packages/ui-core`. Selecting GPUI or Tauri includes the Cargo workspace configuration.
 - Only the generated token files consumed by the selected targets. `design/build.json` is filtered to those outputs so `mise run tokens` does not generate files for unused stacks.
 - Root configuration files trimmed to match the selection: `mise.toml` includes only the relevant tools and tasks, and the CI workflow includes only the relevant jobs.
 - A project `README.md` with the run commands for the selected stacks.
-- `.xds.json`, which records the `xds` version, project name, title, targets, and theme for use by `xds add` and `xds theme`.
+- `.xds.json`, which records the `xds` version, project name, title, targets, theme and each selected shell’s web app for use by `xds add` and `xds theme`.
 
 Files specific to maintaining this template repository are excluded: this repository's own README, license, contributing guide, the CLI itself, and lockfiles. Because a scaffolded project contains a custom subset of workspace packages, it needs its own lockfiles; running `mise run check` for the first time resolves dependencies and generates them.
 
 Run `mise run fmt` once before running `mise run check` for the first time. The template source is formatted for the placeholder name `acme`; substituting a different project name can push lines past the formatter's line-length limit or change alphabetical import ordering (such as `orbit_tokens`), causing the formatting check in `mise run check` to fail until the formatter has been run. Projects that only include the Kotlin stack do not have a `fmt` task and can skip this step.
 
 When `--title` contains spaces, `Acme` inside code identifiers is replaced with the space-stripped title: `--title "Orbit Notes"` turns `AcmeTheme` into `OrbitNotesTheme` while turning `<title>Acme</title>` into `<title>Orbit Notes</title>`.
+
+### Desktop shells
+
+`desktop-electron` and `desktop-tauri` open a selected web app on macOS, Windows or Linux. The same web routes, components and design preview run inside the shell. Electron ships Chromium. Tauri uses the system WebView and requires its platform development tools. [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) The macOS bundle requires 14.4 or later because the shared design preview uses `Object.groupBy`, added in Safari 17.4. [WebKit release notes](https://webkit.org/blog/15063/webkit-features-in-safari-17-4/)
+
+```sh
+xds create orbit --name orbit --targets desktop-electron --wrap web-solid --yes
+cd orbit
+xds add desktop-tauri --wrap web-svelte
+mise run //desktop-electron:dev
+mise run //desktop-tauri:build
+```
+
+Each shell needs a web target. `--wrap` includes it automatically. If multiple web targets are selected, interactive creation asks which to wrap. Noninteractive creation uses the first selected web target in manifest order. Both shells may wrap the same app. The shell's `package.json` names the web workspace package in its `web` script, and `.xds.json` records that choice under `wraps`. Adding another web target preserves existing shells. To switch an existing shell, change its script and the corresponding record entry together.
+
+The builds use Vite's production output. `mise run //desktop-electron:build` produces a Forge ZIP in the shell's `out/make`, and `mise run //desktop-tauri:build` produces the OS bundle in Cargo's release directory.
 
 ### `xds add <target>...`
 
@@ -350,12 +369,14 @@ Agents with shell access do not need the MCP server; running the CLI commands wi
 | `web-solid` | Web | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js | `apps/web-solid`, `packages/ui-solid`, and the shared `packages/ui-core` |
 | `web-vue` | Web | Vue 3, Vite, Tailwind v4, Zag.js | `apps/web-vue`, `packages/ui-vue`, and the shared `packages/ui-core` |
 | `web-svelte` | Web | Svelte 5, Vite, Tailwind v4, Zag.js | `apps/web-svelte`, `packages/ui-svelte`, `.pnpmfile.cjs`, and the shared `packages/ui-core` |
+| `desktop-electron` | macOS, Windows, Linux | Electron and the selected web app | `apps/desktop-electron` |
+| `desktop-tauri` | macOS, Windows, Linux | Tauri 2 and the selected web app | `apps/desktop-tauri` |
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component | `apps/desktop`, `crates/acme-ui`, `crates/acme-tokens` |
 | `mobile-react-native` | iOS, Android | React Native, Expo | `apps/mobile`, `packages/ui-native` |
 | `kotlin-compose` | Android, iOS, desktop | Kotlin, Compose Multiplatform | `kotlin` |
 | `dart-flutter` | Android, iOS | Dart, Flutter widgets | `flutter` |
 
-The JavaScript targets share `packages/tokens` and the root pnpm workspace configuration. Their packages type-check with tsrs, an experimental Rust port of TypeScript 7.1 that also runs oxlint's type-aware rules, while editors keep TypeScript's own language server, pointed at the root `typescript` package. The two are exact pins that move together: `tools/check-tsrs.ts`, which comes with the workspace configuration, fails `mise run check:js` while they differ. The Vue packages check their `.vue` files with vue-tsc instead, on typescript-native-bridge from the `vue` catalog, which keeps the TypeScript 6 API that vue-tsc and Vite's compiler for `.vue` files need. The Svelte packages type-check with svelte-check instead, on the same TypeScript 7 under the catalog's `@typescript/native` alias; `web-svelte` brings `.pnpmfile.cjs`, which gives svelte-check the TypeScript 6 it still reads `.svelte` files with. The web targets also require the shared group `ui-core`, which is `packages/ui-core`: the prop types, class recipes, and stylesheet that the web libraries share, and the behavior tests that every web library runs. The web libraries take their behavior from Zag.js 2, a prerelease, so every `@zag-js` package is pinned to the same exact version. Every project must include at least one target.
+The JavaScript targets share `packages/tokens` and the root pnpm workspace configuration. Their packages type-check with tsrs, an experimental Rust port of TypeScript 7.1 that also runs oxlint's type-aware rules, while editors keep TypeScript's own language server, pointed at the root `typescript` package. The two are exact pins that move together: `tools/check-tsrs.ts`, which comes with the workspace configuration, fails `mise run check:js` while they differ. The Vue packages check their `.vue` files with vue-tsc instead, on typescript-native-bridge from the `vue` catalog, which keeps the TypeScript 6 API that vue-tsc and Vite's compiler for `.vue` files need. The Svelte packages type-check with svelte-check instead, on the same TypeScript 7 under the catalog's `@typescript/native` alias; `web-svelte` brings `.pnpmfile.cjs`, which gives svelte-check the TypeScript 6 it still reads `.svelte` files with. The web targets also require the shared group `ui-core`, which is `packages/ui-core`: the prop types, class recipes, and stylesheet that the web libraries share, and the behavior tests that every web library runs. The web libraries take their behavior from Zag.js 2, a prerelease, so every `@zag-js` package is pinned to the same exact version. Every project must include at least one target. A desktop shell requires one of the four web targets.
 
 The web targets can be combined in one project. Each has its own app directory, dev server port (5173 for `web-react`, 5174 for `web-solid`, 5175 for `web-vue`, 5176 for `web-svelte`), and `mise` alias (`//web`, `//web-solid`, `//web-vue`, `//web-svelte`), so `--targets all` creates the web apps side by side. `mise run compare:previews` compares the design previews of every web app in a project with each other, and has nothing to compare with one.
 

@@ -62,6 +62,7 @@ fn every_command_has_help() {
         "--name",
         "--title",
         "--targets",
+        "--wrap",
         "--theme",
         "--yes",
         "--dry-run",
@@ -76,6 +77,8 @@ fn lists_targets_and_themes_without_color_when_piped() {
     let (output, stdout, _) = run(xds().arg("list"));
     assert!(output.status.success());
     for expected in [
+        "desktop-electron",
+        "desktop-tauri",
         "web-react",
         "web-solid",
         "web-vue",

@@ -14,6 +14,8 @@ A cross-platform design system template. A single set of design tokens drives a 
 | `web-solid` | Browsers | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js | `packages/ui-solid`, `packages/ui-core` | `apps/web-solid` |
 | `web-vue` | Browsers | Vue 3, Vite, Tailwind v4, Zag.js | `packages/ui-vue`, `packages/ui-core` | `apps/web-vue` |
 | `web-svelte` | Browsers | Svelte 5, Vite, Tailwind v4, Zag.js | `packages/ui-svelte`, `packages/ui-core` | `apps/web-svelte` |
+| `desktop-electron` | macOS, Windows, Linux | Electron, Chromium | Selected web app | `apps/desktop-electron` |
+| `desktop-tauri` | macOS, Windows, Linux | Tauri 2, WebView | Selected web app | `apps/desktop-tauri` |
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component | `crates/acme-ui` | `apps/desktop` |
 | `mobile-react-native` | iOS, Android | React Native, Expo | `packages/ui-native` | `apps/mobile` |
 | `kotlin-compose` | Android, iOS, desktop | Kotlin Multiplatform, Compose Multiplatform | `kotlin/ui` | `kotlin/androidApp`, `kotlin/iosApp`, `kotlin/desktopApp` |
@@ -34,6 +36,7 @@ xds create my-app
 ```sh
 # Or without questions:
 xds create my-app --name orbit --targets web-react,kotlin-compose --theme ocean
+xds create orbit-desktop --name orbit --targets desktop-electron --wrap web-vue
 xds add desktop-gpui          # add a client later
 xds theme sunset              # change the theme later
 ```

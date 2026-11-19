@@ -17,6 +17,12 @@ packages:
   # @if web-svelte
   - apps/web-svelte
   # @endif
+  # @if desktop-electron
+  - apps/desktop-electron
+  # @endif
+  # @if desktop-tauri
+  - apps/desktop-tauri
+  # @endif
   - packages/*
   - tools/*
 
@@ -153,4 +159,17 @@ minimumReleaseAgeExclude:
 allowBuilds:
   esbuild: false
   workerd: false
+# @endif
+
+# @if desktop-electron
+# Electron Forge checks that pnpm has a hoist pattern before it packages the app.
+hoistPattern: ["*"]
+# @endif
+
+# @if web-solid
+# The compiler emits helpers that must exist in this RC of the runtime. Both transitive
+# ranges also accept later releases when a generated project creates its first lockfile.
+overrides:
+  "@solidjs/vite-plugin>@solidjs/compiler": 2.0.0-rc.21
+  "solid-js>@solidjs/signals": 2.0.0-rc.21
 # @endif

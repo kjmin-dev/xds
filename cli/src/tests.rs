@@ -314,6 +314,23 @@ fn the_manifest_is_consistent() {
         kinds.into_iter().collect(),
         "every output kind is read by some target"
     );
+    for target in &manifest.targets {
+        if let Some(package) = &target.package {
+            let directory = &target.paths[0];
+            assert!(directory.starts_with("apps/") && directory.matches('/').count() == 1);
+            let file: Value = serde_json::from_slice(
+                &template().files[&format!("{directory}/package.json")].contents,
+            )
+            .unwrap();
+            assert_eq!(file["name"], *package);
+        }
+        if !target.wraps.is_empty() {
+            assert!(target.package.is_none() && target.outputs.is_empty() && !target.default);
+            for id in &target.wraps {
+                assert!(manifest.target(id).is_some_and(|web| web.package.is_some()));
+            }
+        }
+    }
     for path in &manifest.exclude {
         assert!(
             !template().files.keys().any(|file| is_under(file, path)),
@@ -344,9 +361,64 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
     // The template's component contract, which each project's is cut down from.
     let contract: Value =
         serde_json::from_slice(&template().files[COMPONENTS_PATH].contents).expect("valid JSON");
+    // The combination matrix checks source paths and shared configuration. Keep the paths
+    // but skip copying and renaming every framework implementation for every subset.
+    let source = template();
+    let skeleton = Template {
+        files: source
+            .files
+            .iter()
+            .map(|(path, file)| {
+                let shared = !path.contains('/')
+                    || path == BUILD_CONFIG
+                    || path == COMPONENTS_PATH
+                    || path == ".github/workflows/ci.yml"
+                    || path.ends_with("/package.json")
+                    || path == "packages/ui-core/scripts/compare-previews.ts";
+                let bytes = if shared {
+                    file.contents.clone()
+                } else {
+                    Vec::new()
+                };
+                (
+                    path.clone(),
+                    File {
+                        contents: bytes,
+                        executable: file.executable,
+                    },
+                )
+            })
+            .collect(),
+        overlay: source.overlay.clone(),
+    };
     let check = |selected: &Vec<String>| {
         let targets = manifest().select(selected).expect("known ids");
-        let files = render::render(template(), manifest(), &targets, &names).expect("renders");
+        let wraps = crate::manifest::shell_wraps(&targets, &BTreeMap::new(), None);
+        if targets.iter().any(|shell| {
+            !shell.wraps.is_empty()
+                && !targets
+                    .iter()
+                    .any(|target| shell.wraps.contains(&target.id))
+        }) {
+            assert!(wraps.is_err(), "{selected:?}: missing web app");
+            return;
+        }
+        let wraps = wraps.expect("valid selection");
+        let files =
+            render::with_wraps(&skeleton, manifest(), &targets, &names, &wraps).expect("renders");
+        for (shell, web) in &wraps {
+            let package: Value =
+                serde_json::from_slice(&files[&format!("apps/{shell}/package.json")].contents)
+                    .expect("valid package");
+            let name = manifest().target(web).unwrap().package.as_deref().unwrap();
+            assert_eq!(
+                package["scripts"]["web"],
+                format!(
+                    "pnpm --filter {} exec vite",
+                    names.apply(name, &manifest().placeholder)
+                )
+            );
+        }
         let has = |id: &str| selected.iter().any(|selected| selected == id);
         // What follows from template.json is read from it, so that a new target which requires
         // the JavaScript workspace needs expectations for what is its own, and nothing more.
@@ -379,7 +451,7 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
         if js {
             expected_tools.insert("pnpm");
         }
-        if has(DESKTOP) {
+        if requires("rust-workspace") {
             expected_tools.insert("rust");
         }
         if has(FLUTTER) {
@@ -434,6 +506,12 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
         }
         if has(DESKTOP) {
             expected_checks.extend(["check:rust", "check:desktop"]);
+        }
+        if has("desktop-electron") {
+            expected_checks.push("//desktop-electron:check");
+        }
+        if has("desktop-tauri") {
+            expected_checks.push("//desktop-tauri:check");
         }
         if has(KOTLIN) {
             expected_checks.push("//kotlin:check");
@@ -496,7 +574,7 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
             requires("rust-workspace"),
             "{selected:?}"
         );
-        if has(DESKTOP) {
+        if requires("rust-workspace") {
             let cargo: toml::Table = read("Cargo.toml")
                 .parse()
                 .unwrap_or_else(|error| panic!("Cargo.toml: {error}"));
@@ -506,7 +584,14 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
                 .iter()
                 .map(|member| member.as_str().expect("a path"))
                 .collect();
-            assert_eq!(members, ["crates/*", "apps/desktop"]);
+            let mut expected = vec![];
+            if has(DESKTOP) {
+                expected.extend(["crates/*", "apps/desktop"]);
+            }
+            if has("desktop-tauri") {
+                expected.push("apps/desktop-tauri/src-tauri");
+            }
+            assert_eq!(members, expected);
             assert!(
                 !cargo["profile"]
                     .as_table()
@@ -523,6 +608,12 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
         );
         if js {
             let workspace = read("pnpm-workspace.yaml");
+            assert_eq!(workspace.contains("hoistPattern:"), has("desktop-electron"));
+            assert_eq!(
+                workspace.contains("@solidjs/vite-plugin>@solidjs/compiler"),
+                has(SOLID)
+            );
+            assert_eq!(workspace.contains("solid-js>@solidjs/signals"), has(SOLID));
             let js_targets = manifest()
                 .targets
                 .iter()
@@ -713,6 +804,8 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
         let ci = read(".github/workflows/ci.yml");
         for (job, expected) in [
             ("  generated:\n", true),
+            ("  desktop-electron:\n", has("desktop-electron")),
+            ("  desktop-tauri:\n", has("desktop-tauri")),
             ("  js:\n", js),
             ("  rust:\n", has(DESKTOP)),
             ("  desktop:\n", has(DESKTOP)),
@@ -1718,6 +1811,7 @@ fn without_generated(mut tree: Tree) -> Tree {
 
 fn add(directory: &Path, targets: &[&str]) {
     let args = AddArgs {
+        wrap: None,
         targets: targets.iter().map(|target| (*target).to_owned()).collect(),
         project: Some(directory.to_path_buf()),
         dry_run: false,
@@ -1854,6 +1948,7 @@ fn add_keeps_the_theme_and_does_nothing_for_a_target_that_is_there() {
 fn add_needs_a_project_and_a_known_target() {
     let temp = TempDir::new().expect("a temporary directory");
     let args = AddArgs {
+        wrap: None,
         targets: vec![WEB.to_owned()],
         project: Some(temp.path().to_path_buf()),
         dry_run: false,
@@ -1863,6 +1958,7 @@ fn add_needs_a_project_and_a_known_target() {
 
     let (_temp, directory) = project(&[WEB]);
     let args = AddArgs {
+        wrap: None,
         targets: vec!["web-angular".to_owned()],
         project: Some(directory),
         dry_run: false,
@@ -2236,4 +2332,75 @@ fn contrast_matches_the_wcag_reference_values() {
 fn a_named_directory_without_tokens_is_not_answered_from_the_template() {
     let temp = TempDir::new().expect("a temporary directory");
     assert!(Location::find(Some(temp.path())).is_err());
+}
+
+#[test]
+fn desktop_shells_keep_their_web_apps_across_add_and_dry_run() {
+    let temp = TempDir::new().unwrap();
+    let project = temp.path().join("desktop");
+    let create = CreateArgs {
+        wrap: Some(SOLID.to_owned()),
+        ..create_args(&project, &["desktop-electron"])
+    };
+    commands::create(&create, Out::plain()).unwrap();
+    let mut add = AddArgs {
+        project: Some(project.clone()),
+        targets: vec!["desktop-tauri".to_owned()],
+        wrap: Some(VUE.to_owned()),
+        dry_run: true,
+    };
+    let initial = read_tree(&project);
+    let preview = commands::add(&add, Out::plain()).unwrap();
+    assert_eq!(preview["wraps"]["desktop-electron"], SOLID);
+    assert_eq!(preview["wraps"]["desktop-tauri"], VUE);
+    assert_eq!(initial, read_tree(&project));
+    add.dry_run = false;
+    commands::add(&add, Out::plain()).unwrap();
+
+    // React sorts before Solid and Vue. Adding it must keep the original workspace scripts.
+    add.targets = vec![WEB.to_owned()];
+    add.wrap = None;
+    commands::add(&add, Out::plain()).unwrap();
+    let tree = read_tree(&project);
+    let record = Record::read(&project).unwrap();
+    for (shell, web) in [("desktop-electron", SOLID), ("desktop-tauri", VUE)] {
+        assert_eq!(record.wraps[shell], web);
+        let path = format!("apps/{shell}/package.json");
+        let package: Value = serde_json::from_slice(&tree[&path]).unwrap();
+        assert_eq!(
+            package["scripts"]["web"],
+            format!("pnpm --filter @orbit/{web} exec vite")
+        );
+        add.targets = vec![shell.to_owned()];
+        add.wrap = Some(WEB.to_owned());
+        assert!(commands::add(&add, Out::plain()).is_err());
+    }
+    assert_eq!(tree, read_tree(&project));
+}
+
+#[test]
+fn a_shell_needs_a_web_app_before_anything_is_written() {
+    let temp = TempDir::new().unwrap();
+    let directory = temp.path().join("project");
+    for (targets, wrap) in [
+        (vec!["desktop-electron"], None),
+        (vec![KOTLIN, "desktop-tauri"], None),
+        (vec!["desktop-tauri"], Some(KOTLIN.to_owned())),
+        (vec![WEB], Some(WEB.to_owned())),
+    ] {
+        let args = CreateArgs {
+            wrap,
+            ..create_args(&directory, &targets)
+        };
+        assert!(commands::create(&args, Out::plain()).is_err());
+        assert!(!directory.exists());
+    }
+    let args = create_args(
+        &directory,
+        &[WEB, SOLID, "desktop-electron", "desktop-tauri"],
+    );
+    commands::create(&args, Out::plain()).unwrap();
+    let record = Record::read(&directory).unwrap();
+    assert_eq!(record.wraps.len(), 2);
+    assert!(record.wraps.values().all(|web| web == WEB));
 }

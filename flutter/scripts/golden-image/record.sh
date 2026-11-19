@@ -25,7 +25,7 @@ else:
     print(version, base + '/' + entry['archive'], entry['sha256'])
 PY
 )
-export FLUTTER_ROOT="/cache/flutter-$version"
+export FLUTTER_ROOT="/cache/flutter-$version-$digest"
 export PUB_CACHE=/cache/pub
 export CI=true
 if [[ ! -f "$FLUTTER_ROOT/.golden-sdk-$digest" ]]; then
@@ -44,10 +44,17 @@ cd /work/flutter
 # Keep tool state out of the host checkout; its package_config contains host paths.
 cp /source/flutter/pubspec* .
 cp /source/flutter/app/pubspec.yaml app/
+cp -R /source/flutter/app/lib app/
 cp /source/flutter/ui/{pubspec.yaml,dart_test.yaml} ui/
-cp -R /source/flutter/ui/{lib,test} ui/
+# Pub validates each native plugin declaration even for host widget tests.
+tar -C /source/flutter/ui --exclude=.gradle --exclude=.cxx --exclude=build --exclude=Pods \
+  -cf - lib test android ios | tar -xf - -C ui
 mkdir -p ui/test/goldens
 flutter pub get --enforce-lockfile
 cd ui
 flutter test --update-goldens --tags golden test/goldens_test.dart
-cp test/goldens/*.png /output/
+for golden in test/goldens/*.png; do
+    destination="/output/${golden##*/}"
+    cp "$golden" "$destination"
+    chown --reference=/output "$destination"
+done

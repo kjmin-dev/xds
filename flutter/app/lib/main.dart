@@ -22,15 +22,23 @@ class AcmeApp extends StatefulWidget {
 }
 
 class _AcmeAppState extends State<AcmeApp> {
-  late Brightness? mode = switch (Uri.tryParse(widget.initialRoute)
-      ?.queryParameters['theme']) {
-    'light' => Brightness.light,
-    'dark' => Brightness.dark,
-    _ => null,
-  };
+  late Brightness? mode = requestedMode(Uri.tryParse(widget.initialRoute));
+
+  Brightness? requestedMode(Uri? location) =>
+      switch (location?.queryParameters['theme']) {
+        'light' => Brightness.light,
+        'dark' => Brightness.dark,
+        _ => null,
+      };
 
   Route<void> route(RouteSettings settings) {
     final location = Uri.tryParse(settings.name ?? '/') ?? Uri(path: '/');
+    final pinned = requestedMode(location);
+    if (pinned != null && pinned != mode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => mode = pinned);
+      });
+    }
     return PageRouteBuilder<void>(
       settings: settings,
       pageBuilder: (context, animation, secondary) {

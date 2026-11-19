@@ -25,6 +25,7 @@ class _ComponentSpecimenState extends State<ComponentSpecimen> {
   String selection = 'home';
   double volume = 40;
   Set<String> expanded = {'tokens'};
+  DateRange? leave;
   DateTime? due = DateTime(2026, 3, 10);
   DateRange? stay = DateRange(
     start: DateTime(2026, 3, 10),
@@ -333,11 +334,12 @@ class _ComponentSpecimenState extends State<ComponentSpecimen> {
           ),
           DateRangePicker(
             label: 'Leave',
+            value: leave,
             placeholder: 'Choose dates',
             description: 'Choose between two and seven days.',
             minLength: 2,
             maxLength: 7,
-            onChanged: (v) => setState(() => stay = v),
+            onChanged: (v) => setState(() => leave = v),
           ),
         ]);
       case 'Chip':

@@ -15,6 +15,7 @@ void main() {
   final out = Directory('../build/preview');
   for (final mode in Brightness.values) {
     final pages = <String, String>{
+      'preview': '',
       for (final section in previewSections)
         section.$1: 'section=${section.$1}',
       for (final overlay in previewOverlays.keys) 'open-$overlay': '$overlay=1',
@@ -29,11 +30,13 @@ void main() {
           tester,
           DesignPreview(
             location: Uri.parse('/design?${page.value}'),
+            scrolls: page.key != 'preview',
             onBack: () {},
             onToggleTheme: () {},
           ),
           mode,
-          fullScreen: true,
+          fullScreen: page.key != 'preview',
+          viewportHeight: page.key == 'preview' ? 24000 : 844,
         );
         final boundary = tester.renderObject<RenderRepaintBoundary>(
           find.byKey(previewBoundary),

@@ -56,7 +56,11 @@ class DesignPreview extends StatelessWidget {
     required this.location,
     required this.onBack,
     required this.onToggleTheme,
+    this.scrolls = true,
   });
+
+  /// Off-screen renderers lay out the complete catalog as a single page.
+  final bool scrolls;
   final Uri location;
   final VoidCallback onBack, onToggleTheme;
 
@@ -86,57 +90,66 @@ class DesignPreview extends StatelessWidget {
     }();
     final theme = AcmeTheme.of(context);
     final onlyGlass = first == previewSections.length - 1;
+    Widget section(BuildContext context, int index) {
+      final (key, title, components) = previewSections[first + index];
+      return Padding(
+        padding: const EdgeInsets.only(bottom: SpaceTokens.s8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: SpaceTokens.s3,
+          children: [
+            Text(title, variant: TextVariant.title, heading: true, level: 2),
+            if (key == 'colors') const _Colors(),
+            if (key == 'sizes') const _Sizes(),
+            if (key == 'icons')
+              Wrap(
+                spacing: SpaceTokens.s3,
+                runSpacing: SpaceTokens.s3,
+                children: [
+                  for (final icon in IconName.values)
+                    Icon(icon, label: icon.name),
+                ],
+              ),
+            for (final name in components)
+              ComponentSpecimen(
+                name,
+                key: ValueKey(name),
+                initiallyOpen: name == open,
+              ),
+            if (key == 'glass')
+              const SizedBox(height: 440, child: GlassPreview()),
+          ],
+        ),
+      );
+    }
+
     Widget body = onlyGlass
         ? GlassPreview(
             tier: params['glass'],
             autoscroll: params.containsKey('autoscroll'),
             sheet: params['sheet'] == '1',
           )
+        : !scrolls
+        ? Padding(
+            padding: const EdgeInsets.all(SpaceTokens.s4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var i = 0; i < previewSections.length - first; i++)
+                  section(context, i),
+              ],
+            ),
+          )
         : ListView.builder(
             padding: const EdgeInsets.all(SpaceTokens.s4),
             itemCount: previewSections.length - first,
-            itemBuilder: (context, index) {
-              final (key, title, components) = previewSections[first + index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: SpaceTokens.s8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  spacing: SpaceTokens.s3,
-                  children: [
-                    Text(
-                      title,
-                      variant: TextVariant.title,
-                      heading: true,
-                      level: 2,
-                    ),
-                    if (key == 'colors') const _Colors(),
-                    if (key == 'sizes') const _Sizes(),
-                    if (key == 'icons')
-                      Wrap(
-                        spacing: SpaceTokens.s3,
-                        runSpacing: SpaceTokens.s3,
-                        children: [
-                          for (final icon in IconName.values)
-                            Icon(icon, label: icon.name),
-                        ],
-                      ),
-                    for (final name in components)
-                      ComponentSpecimen(
-                        name,
-                        key: ValueKey(name),
-                        initiallyOpen: name == open,
-                      ),
-                    if (key == 'glass')
-                      const SizedBox(height: 440, child: GlassPreview()),
-                  ],
-                ),
-              );
-            },
+            itemBuilder: section,
           );
     return ColoredBox(
       color: theme.colors.backgroundBase,
       child: SafeArea(
         child: Column(
+          mainAxisSize: scrolls ? MainAxisSize.max : MainAxisSize.min,
           children: [
             TopBar(
               title: 'Design system',
@@ -150,7 +163,7 @@ class DesignPreview extends StatelessWidget {
                 onPressed: onToggleTheme,
               ),
             ),
-            Expanded(child: body),
+            if (scrolls) Expanded(child: body) else body,
           ],
         ),
       ),

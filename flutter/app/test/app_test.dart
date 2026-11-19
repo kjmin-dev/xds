@@ -30,5 +30,10 @@ void main() {
     await tester.tap(find.bySemanticsLabel('Switch to light'));
     await tester.pumpAndSettle();
     expect(AcmeTheme.of(context).brightness, Brightness.light);
+    Navigator.of(context)
+        .pushNamed('/design?section=glass&glass=solid&theme=dark');
+    await tester.pumpAndSettle();
+    final latest = tester.element(find.text('Collections'));
+    expect(AcmeTheme.of(latest).brightness, Brightness.dark);
   });
 }

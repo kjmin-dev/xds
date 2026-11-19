@@ -31,9 +31,10 @@ Future<void> drawPreview(
   Brightness mode, {
   bool fullScreen = false,
   double ratio = 1,
+  double viewportHeight = 844,
 }) async {
   tester.view.devicePixelRatio = ratio;
-  tester.view.physicalSize = Size(390 * ratio, 844 * ratio);
+  tester.view.physicalSize = Size(390 * ratio, viewportHeight * ratio);
   addTearDown(() {
     tester.view.resetPhysicalSize();
     tester.view.resetDevicePixelRatio();
@@ -77,7 +78,9 @@ Future<void> drawPreview(
                     child: ColoredBox(
                       color: colors.backgroundBase,
                       child: Padding(
-                        padding: const EdgeInsets.all(SpaceTokens.s4),
+                        padding: EdgeInsets.all(
+                          viewportHeight > 844 ? 0 : SpaceTokens.s4,
+                        ),
                         child: SizedBox(width: double.infinity, child: child),
                       ),
                     ),
@@ -89,8 +92,9 @@ Future<void> drawPreview(
     ),
   );
   // Fixed steps finish route transitions and freeze spinners at the same angle on every run.
-  await tester.pump();
-  await tester.pump(const Duration(milliseconds: 400));
-  await tester.pump(const Duration(milliseconds: 100));
-  await tester.pump();
+  // Menu and Select first schedule their host sheet, then the route transition starts.
+  // Advance frame by frame so it finishes even when the next screen is built lazily.
+  for (var step = 0; step < 20; step++) {
+    await tester.pump(const Duration(milliseconds: 40));
+  }
 }

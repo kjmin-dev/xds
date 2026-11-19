@@ -285,6 +285,8 @@ All three default to `solid`. With `surface="glass"`, a navigation bar uses `col
 
 <!-- @if mobile-react-native -->
 In React Native, import `GlassScene` and `GlassBackdrop` from `@acme/ui-native/glass`. Put the content to blur inside the backdrop, and place the bars and sheet beside it inside the same scene. From `apps/mobile`, `pnpm exec expo run:ios` or `pnpm exec expo run:android` builds the app with the library's native settings module. It listens for changes to power-saving and accessibility settings. iOS Liquid Glass draws the system material. For the blur tier, Expo exposes an Android blur radius and an iOS material intensity. Saturation follows the platform material. Expo Go uses the opaque fallback because its binary omits the settings module. Open `/design?section=glass` in a native build to see the available material, and append `&sheet=1` to open its sheet.
+
+Append `&autoscroll=1` for the ten-second scroll. `&glass=native`, `blur` or `solid` selects a preview tier when the device allows it. The `XDS_GLASS_FRAMES` result includes the actual tier and UI callback gaps. The top-level window starts when the scene is ready, `firstUpdateMs` measures the wait until the first scroll command, and `motion` starts at that command and covers ten full seconds. For a separate comparison after a two-second pause, append `&settle=1`.
 <!-- @endif -->
 
 The token build checks glass text on both black and white backdrops in each color mode and theme. The foreground needs 4.5:1 contrast and the sheet handle needs 3:1. The opaque fallback uses `color.glass.fallback`. `glass.blur` is the Gaussian standard deviation in logical pixels, and `glass.saturation` multiplies the blurred backdrop's saturation before tinting.

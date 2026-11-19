@@ -76,9 +76,9 @@
       "platform": "android",
       "client": "mobile-react-native",
       "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
-      "date": "2026-11-19",
+      "date": "2026-11-20",
       "alt": "A blurred top bar and tab bar over a scrolling collection of colored rows.",
-      "inputs": "sha256:ce4bdb77fe6fe0aeca5c0fb4beb2ccc50d24ee7b7e9b1b7479cc134e7cc4a55b"
+      "inputs": "sha256:fe5522aa2ce7b77a9307abc6d7d14062876693962eadecd029ecb2728fcf79e8"
     },
     {
       "name": "glass-blur",
@@ -116,9 +116,9 @@
       "platform": "android",
       "client": "mobile-react-native",
       "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
-      "date": "2026-11-19",
+      "date": "2026-11-20",
       "alt": "Collection details inside a strongly tinted glass sheet over the dimmed list.",
-      "inputs": "sha256:38dc30a10394a4ef237abf6581973edf64df0583704228ad2ef6982131bd8639"
+      "inputs": "sha256:39c08b9e222318b4e79d3e7aa04cb405d5faa34f49f86000438d4e7d587e1059"
     },
     {
       "name": "glass-sheet-blur",
@@ -156,9 +156,9 @@
       "platform": "android",
       "client": "mobile-react-native",
       "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
-      "date": "2026-11-19",
+      "date": "2026-11-20",
       "alt": "Collection details inside the opaque fallback sheet over the dimmed list.",
-      "inputs": "sha256:38dc30a10394a4ef237abf6581973edf64df0583704228ad2ef6982131bd8639"
+      "inputs": "sha256:39c08b9e222318b4e79d3e7aa04cb405d5faa34f49f86000438d4e7d587e1059"
     },
     {
       "name": "glass-sheet-solid",
@@ -186,9 +186,9 @@
       "platform": "android",
       "client": "mobile-react-native",
       "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
-      "date": "2026-11-19",
+      "date": "2026-11-20",
       "alt": "The same collection with opaque navigation bars for reduced transparency.",
-      "inputs": "sha256:ce4bdb77fe6fe0aeca5c0fb4beb2ccc50d24ee7b7e9b1b7479cc134e7cc4a55b"
+      "inputs": "sha256:fe5522aa2ce7b77a9307abc6d7d14062876693962eadecd029ecb2728fcf79e8"
     },
     {
       "name": "glass-solid",

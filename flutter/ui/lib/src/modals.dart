@@ -79,9 +79,10 @@ class _Modal extends StatefulWidget {
     required this.child,
     required this.sheet,
     this.dismissible = true,
+    this.glass = false,
     this.closeLabel = 'Close',
   });
-  final bool open, dismissible, sheet;
+  final bool open, dismissible, sheet, glass;
   final VoidCallback onClose;
   final String closeLabel;
   final Widget child;
@@ -130,6 +131,14 @@ class _ModalState extends State<_Modal> {
     if (testSettings != null) {
       body = GlassTestSettings(allowed: testSettings, child: body);
     }
+    final owner = ModalRoute.of(context);
+    // All panels share the native power and accessibility signal. Reserve the layer before
+    // pushing so that enabling blur while a sheet is up cannot double-filter a frame.
+    final covers =
+        widget.glass &&
+        preview != false &&
+        testSettings != false &&
+        !MediaQuery.highContrastOf(context);
     final content = AcmeTheme(
       brightness: theme.brightness,
       fontFamily: theme.fontFamily,
@@ -145,6 +154,10 @@ class _ModalState extends State<_Modal> {
           _remove(route);
         }
       } else if (route != null) {
+        if (route.navigator case final navigator?) {
+          GlassSheetLayers.forNavigator(navigator)
+              .setSheet(route, owner, covers);
+        }
         route.update(
           content,
           widget.dismissible,
@@ -165,7 +178,14 @@ class _ModalState extends State<_Modal> {
           sheet: widget.sheet,
         );
         _route = route;
-        Navigator.of(context).push(route).then((_) {
+        final presented = route;
+        final navigator = Navigator.of(context);
+        final layers = GlassSheetLayers.forNavigator(navigator);
+        layers.setSheet(presented, owner, covers);
+        presented.completed.then(
+          (_) => layers.setSheet(presented, owner, false),
+        );
+        navigator.push(presented).then((_) {
           if (!mounted || _route != route) return;
           _route = null;
           _dismissed = true;
@@ -199,6 +219,7 @@ class BottomSheet extends StatelessWidget {
     open: open,
     onClose: onClose,
     sheet: true,
+    glass: surface == Surface.glass,
     closeLabel: closeLabel,
     child: _SheetBody(title: title, surface: surface, tall: tall, child: child),
   );

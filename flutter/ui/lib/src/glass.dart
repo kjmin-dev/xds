@@ -73,6 +73,38 @@ bool glassBlurEnabled(BuildContext context) =>
     !MediaQuery.highContrastOf(context) &&
     GlassPreviewOverride.of(context) != false;
 
+/// The modal barrier is drawn after the page. An independently filtered sheet above that
+/// barrier would otherwise blur the already filtered navigation bars underneath it.
+class GlassSheetLayers extends ChangeNotifier {
+  static final _navigators = Expando<GlassSheetLayers>();
+  static GlassSheetLayers forNavigator(NavigatorState navigator) =>
+      _navigators[navigator] ??= GlassSheetLayers();
+
+  final _sheets = <ModalRoute<dynamic>, ModalRoute<dynamic>?>{};
+
+  void setSheet(
+    ModalRoute<dynamic> sheet,
+    ModalRoute<dynamic>? owner,
+    bool shown,
+  ) {
+    if (shown == _sheets.containsKey(sheet)) return;
+    if (shown) {
+      _sheets[sheet] = owner;
+    } else {
+      _sheets.remove(sheet);
+    }
+    notifyListeners();
+  }
+
+  bool allows(ModalRoute<dynamic> route, {required bool sheet}) {
+    if (_sheets.isEmpty) return true;
+    if (route == _sheets.keys.last) return sheet;
+    // The owner is current again during the exit animation while the departing sheet
+    // is still visible. A new route pushed above a sheet can draw its own glass.
+    return route.isCurrent && !_sheets.containsValue(route);
+  }
+}
+
 // A new surface must know the latest setting even if another surface already subscribed.
 class _GlassSettings extends ChangeNotifier implements ValueListenable<bool> {
   static final instance = _GlassSettings();
@@ -207,11 +239,21 @@ class GlassPanel extends StatelessWidget {
       );
     }
 
-    if (context.dependOnInheritedWidgetOfExactType<_DeviceGlass>() == null) {
-      return GlassScene(
-        child: Builder(builder: (inner) => panel(glassBlurEnabled(inner))),
+    Widget material(BuildContext inner) {
+      if (!glassBlurEnabled(inner)) return panel(false);
+      final route = ModalRoute.of(inner);
+      final navigator = route?.navigator;
+      if (route == null || navigator == null) return panel(true);
+      final layers = GlassSheetLayers.forNavigator(navigator);
+      return ListenableBuilder(
+        listenable: layers,
+        builder: (_, _) => panel(layers.allows(route, sheet: sheet)),
       );
     }
-    return panel(glassBlurEnabled(context));
+
+    if (context.dependOnInheritedWidgetOfExactType<_DeviceGlass>() == null) {
+      return GlassScene(child: Builder(builder: material));
+    }
+    return material(context);
   }
 }

@@ -26,6 +26,83 @@ w.Widget _host(w.Widget child, {SizeTokens sizes = SizeTokens.touch}) =>
 Finder _day(String iso) => find.byKey(w.ValueKey(iso));
 
 void main() {
+  testWidgets(
+    'only the glass sheet reads the backdrop above covered navigation',
+    (tester) async {
+      var open = false, surface = Surface.glass;
+      await tester.pumpWidget(
+        _host(
+          GlassTestSettings(
+            allowed: true,
+            child: GlassScene(
+              child: w.StatefulBuilder(
+                builder: (context, update) => w.Stack(
+                  children: [
+                    const w.Align(
+                      alignment: w.Alignment.topCenter,
+                      child: TopBar(
+                        title: 'Collections',
+                        surface: Surface.glass,
+                      ),
+                    ),
+                    const w.Align(
+                      alignment: w.Alignment.bottomCenter,
+                      child: _PreviewTab(),
+                    ),
+                    w.Center(
+                      child: w.Column(
+                        mainAxisSize: w.MainAxisSize.min,
+                        children: [
+                          for (final material in Surface.values)
+                            w.GestureDetector(
+                              onTap: () => update(() {
+                                open = true;
+                                surface = material;
+                              }),
+                              child: w.Text('Open ${material.name}'),
+                            ),
+                        ],
+                      ),
+                    ),
+                    BottomSheet(
+                      open: open,
+                      surface: surface,
+                      title: 'Details',
+                      child: const w.Text('Items'),
+                      onClose: () => update(() => open = false),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      Finder filters(bool sheet) => find.descendant(
+        of: find.byWidgetPredicate((w) => w is GlassPanel && w.sheet == sheet),
+        matching: find.byType(w.BackdropFilter),
+      );
+      await tester.pumpAndSettle();
+      expect(filters(false), findsNWidgets(2));
+      await tester.tap(find.text('Open glass'));
+      await tester.pumpAndSettle();
+      expect(filters(false), findsNothing);
+      expect(filters(true), findsOneWidget);
+      expect(find.text('Collections'), findsOneWidget);
+      await tester.binding.handlePopRoute();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 60));
+      expect(filters(true), findsOneWidget);
+      expect(filters(false), findsNothing);
+      await tester.pumpAndSettle();
+      expect(filters(false), findsNWidgets(2));
+      expect(filters(true), findsNothing);
+      await tester.tap(find.text('Open solid'));
+      await tester.pumpAndSettle();
+      expect(filters(false), findsNWidgets(2));
+      expect(filters(true), findsNothing);
+    },
+  );
   testWidgets('tab bar exposes only named tabs beside other controls', (
     tester,
   ) async {
@@ -367,5 +444,18 @@ void main() {
       await tester.pump();
       expect(find.byType(w.BackdropFilter), findsNothing);
     },
+  );
+}
+
+class _PreviewTab extends w.StatelessWidget {
+  const _PreviewTab();
+  @override
+  w.Widget build(w.BuildContext context) => TabBar(
+    items: const [
+      TabBarItem(value: 'home', label: 'Home', icon: IconName.house),
+    ],
+    value: 'home',
+    onChanged: (_) {},
+    surface: Surface.glass,
   );
 }

@@ -1577,7 +1577,7 @@ export const COMPONENTS: Component[] = [
     name: "TopBar",
     summary: "The bar at the top of a screen: where you are, and the way back.",
     guidance: [
-      "It has the page's background and no border, so content scrolls up to it without a line in between.",
+      "The default solid surface has the page’s background. On glass, give the trailing action an opaque fill.",
       "It does not cover the status bar. Put it inside the safe area.",
     ],
     example: `import { Button, TopBar } from "@acme/ui-native";
@@ -1589,6 +1589,12 @@ export const COMPONENTS: Component[] = [
 />`,
     exampleLanguage: "tsx",
     props: [
+      {
+        name: "surface",
+        type: '"solid" | "glass"',
+        description:
+          "Defaults to solid. Glass samples a sibling GlassBackdrop inside a GlassScene.",
+      },
       { name: "title", type: "string", description: "Required." },
       { name: "onBack", type: "() => void", description: "Shows a back button." },
       {
@@ -1626,6 +1632,12 @@ export const COMPONENTS: Component[] = [
     exampleLanguage: "tsx",
     props: [
       {
+        name: "surface",
+        type: '"solid" | "glass"',
+        description:
+          "Defaults to solid. Glass samples a sibling GlassBackdrop inside a GlassScene.",
+      },
+      {
         name: "items",
         type: "readonly { key: Key; label: string; icon: (color: string) => ReactNode }[]",
         description: "Required. The icon is drawn above the label, 24 points square.",
@@ -1650,6 +1662,12 @@ export const COMPONENTS: Component[] = [
 </BottomSheet>`,
     exampleLanguage: "tsx",
     props: [
+      {
+        name: "surface",
+        type: '"solid" | "glass"',
+        description:
+          "Defaults to solid. Glass samples a sibling GlassBackdrop inside a GlassScene.",
+      },
       { name: "open", type: "boolean", description: "Required." },
       {
         name: "onClose",

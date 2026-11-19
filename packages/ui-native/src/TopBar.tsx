@@ -1,11 +1,13 @@
 import { radius, space } from "@acme/tokens";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import { GlassMaterial, type Surface } from "./Glass";
 import { Icon } from "./Icon.tsx";
 import { Text } from "./Text.tsx";
 import { CONTROL_HEIGHT, control, useColors } from "./theme.ts";
 
 export type TopBarProps = {
+  surface?: Surface;
   title: string;
   /** Shows a back button. Leave it out on a screen that is not reached from another. */
   onBack?: () => void;
@@ -20,10 +22,16 @@ export type TopBarProps = {
  * background and no edge of its own, so content scrolls up to it without a line in between.
  * It does not cover the status bar; put it inside the safe area.
  */
-export function TopBar({ title, onBack, backLabel = "Back", trailing }: TopBarProps) {
+export function TopBar({
+  title,
+  onBack,
+  backLabel = "Back",
+  trailing,
+  surface = "solid",
+}: TopBarProps) {
   const colors = useColors();
-  return (
-    <View style={[styles.bar, { backgroundColor: colors.topBarBackground }]}>
+  const content = (
+    <>
       {onBack && (
         <Pressable
           role="button"
@@ -41,12 +49,22 @@ export function TopBar({ title, onBack, backLabel = "Back", trailing }: TopBarPr
         tone="inherit"
         heading
         numberOfLines={1}
-        style={[styles.title, { color: colors.topBarText }]}
+        style={[
+          styles.title,
+          { color: surface === "glass" ? colors.glassForeground : colors.topBarText },
+        ]}
       >
         {title}
       </Text>
       {trailing}
-    </View>
+    </>
+  );
+  return surface === "glass" ? (
+    <GlassMaterial corners={0} style={styles.bar}>
+      {content}
+    </GlassMaterial>
+  ) : (
+    <View style={[styles.bar, { backgroundColor: colors.topBarBackground }]}>{content}</View>
   );
 }
 

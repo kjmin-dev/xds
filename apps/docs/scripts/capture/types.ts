@@ -6,6 +6,8 @@ export type CaptureName =
   | "sheet"
   | "datepicker"
   | "daterange"
+  | "glass-native"
+  | "glass-sheet-native"
   | "glass-blur"
   | "glass-solid"
   | "glass-sheet-blur"

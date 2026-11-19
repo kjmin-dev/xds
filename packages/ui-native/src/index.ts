@@ -18,6 +18,7 @@ export { DatePicker, type DatePickerProps, type IsoDate } from "./DatePicker.tsx
 export { type DateRange, DateRangePicker, type DateRangePickerProps } from "./DateRangePicker.tsx";
 export { Dialog, type DialogProps } from "./Dialog.tsx";
 export { EmptyState, type EmptyStateProps } from "./EmptyState.tsx";
+export type { Surface } from "./Glass";
 export { Icon, type IconName, type IconProps, type IconSize } from "./Icon.tsx";
 export { IconButton, type IconButtonProps } from "./IconButton.tsx";
 export { ListRow, type ListRowProps } from "./ListRow.tsx";

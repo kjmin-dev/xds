@@ -11,11 +11,13 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { GlassMaterial, type Surface } from "./Glass";
 import { useReducedMotion } from "./motion.ts";
 import { Text } from "./Text.tsx";
 import { useColors } from "./theme.ts";
 
 export type BottomSheetProps = {
+  surface?: Surface;
   open: boolean;
   /** Called when the person dismisses the sheet: a tap outside, a drag down, the back button. */
   onClose: () => void;
@@ -54,6 +56,7 @@ function Sheet({
   onClose,
   title,
   closeLabel = "Close",
+  surface = "solid",
   children,
   tall,
 }: BottomSheetProps & { tall: boolean }) {
@@ -161,6 +164,21 @@ function Sheet({
   ).current;
 
   if (!mounted) return null;
+  const content = (
+    <>
+      <View style={styles.grip}>
+        <View style={[styles.handle, { backgroundColor: colors.sheetHandle }]} />
+      </View>
+      <View style={[styles.content, tall && styles.fill]}>
+        {title && (
+          <Text variant="heading" heading>
+            {title}
+          </Text>
+        )}
+        {children}
+      </View>
+    </>
+  );
   return (
     <Modal transparent statusBarTranslucent animationType="none" onRequestClose={onClose}>
       <Animated.View
@@ -187,10 +205,11 @@ function Sheet({
         onLayout={(event) => setHeight(event.nativeEvent.layout.height)}
         style={[
           styles.sheet,
+          surface === "solid" && styles.solid,
           {
             bottom,
             ...(tall && { height: tallHeight }),
-            backgroundColor: colors.sheetBackground,
+            ...(surface === "solid" && { backgroundColor: colors.sheetBackground }),
             transform: [
               {
                 // Far enough to clear the margin below it as well.
@@ -200,17 +219,13 @@ function Sheet({
           },
         ]}
       >
-        <View style={styles.grip}>
-          <View style={[styles.handle, { backgroundColor: colors.sheetHandle }]} />
-        </View>
-        <View style={[styles.content, tall && styles.fill]}>
-          {title && (
-            <Text variant="heading" heading>
-              {title}
-            </Text>
-          )}
-          {children}
-        </View>
+        {surface === "glass" ? (
+          <GlassMaterial corners={radius.xl} sheet style={tall && styles.fill}>
+            {content}
+          </GlassMaterial>
+        ) : (
+          content
+        )}
       </Animated.View>
     </Modal>
   );
@@ -272,6 +287,8 @@ const styles = StyleSheet.create({
     left: space[2],
     right: space[2],
     borderRadius: radius.xl,
+  },
+  solid: {
     // The whole shadow in one object: react-native-web builds a box-shadow from each on its own.
     shadowColor: shadow.overlay.color,
     shadowOffset: { width: shadow.overlay.offsetX, height: shadow.overlay.offsetY },

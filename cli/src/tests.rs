@@ -599,6 +599,11 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
         if js {
             let workspace = read("pnpm-workspace.yaml");
             assert_eq!(workspace.contains("hoistPattern:"), has("desktop-electron"));
+            assert_eq!(
+                workspace.contains("@solidjs/vite-plugin>@solidjs/compiler"),
+                has(SOLID)
+            );
+            assert_eq!(workspace.contains("solid-js>@solidjs/signals"), has(SOLID));
             let js_targets = manifest()
                 .targets
                 .iter()

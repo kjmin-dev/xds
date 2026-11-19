@@ -312,6 +312,7 @@ export default function Design() {
     section?: string;
     glass?: string;
     autoscroll?: string;
+    settle?: string;
     from?: string;
     sheet?: string;
     menu?: string;
@@ -1101,6 +1102,7 @@ export default function Design() {
             fullScreen
             tier={params.glass}
             autoscroll={params.autoscroll !== undefined}
+            settle={params.settle === "1"}
             initiallyOpen={params.sheet === "1"}
           />
         ) : (

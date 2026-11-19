@@ -21,12 +21,19 @@ const tabs = [
   { key: "profile", label: "Profile", icon: (color: string) => <Icon name="user" color={color} /> },
 ];
 
-type Props = { fullScreen?: boolean; tier?: string; autoscroll?: boolean; initiallyOpen?: boolean };
+type Props = {
+  fullScreen?: boolean;
+  tier?: string;
+  autoscroll?: boolean;
+  settle?: boolean;
+  initiallyOpen?: boolean;
+};
 
 export function GlassPreview({
   fullScreen,
   tier,
   autoscroll = false,
+  settle = false,
   initiallyOpen = false,
 }: Props) {
   const colors = useColors();
@@ -38,6 +45,7 @@ export function GlassPreview({
   const [report, setReport] = useState<string>();
   const start = useSharedValue<number | null>(null);
   const done = useSharedValue(false);
+  const waitUntil = useSharedValue(0);
   const intervals = useSharedValue<number[]>([]);
   const resolved = useSharedValue<GlassTier | null>(null);
   const measuring = useSharedValue<GlassTier | null>(null);
@@ -54,16 +62,30 @@ export function GlassPreview({
       // Compute the distribution after scrolling. Each sample measures UI callbacks, not GPU time.
       const sorted = [...samples].sort((a, b) => a - b);
       const frames = samples.length;
-      const dropped = samples.reduce(
-        (count, ms) => count + Math.max(0, Math.round(ms / FRAME_MS) - 1),
-        0,
-      );
+      let offset = 0;
+      let dropped = 0;
+      const missed: [number, number][] = [];
+      const bySecond = Array<number>(SCROLL_MS / 1000).fill(0);
+      for (const interval of samples) {
+        const slots = Math.max(0, Math.round(interval / FRAME_MS) - 1);
+        if (slots > 0) {
+          const second = Math.min(bySecond.length - 1, Math.floor(offset / 1000));
+          bySecond[second] = (bySecond[second] ?? 0) + slots;
+          dropped += slots;
+          if (missed.length < 12)
+            missed.push([Math.round(offset), Math.round(interval * 1000) / 1000]);
+        }
+        offset += interval;
+      }
       const result = {
         tier: actual,
         requestedTier: tier ?? "auto",
         elapsedMs,
         frames,
         dropped,
+        settleMs: settle ? 2000 : 0,
+        missed,
+        bySecond,
         p90Ms: sorted[Math.ceil(frames * 0.9) - 1],
         p99Ms: sorted[Math.ceil(frames * 0.99) - 1],
       };
@@ -71,7 +93,7 @@ export function GlassPreview({
       console.log(line);
       setReport(line);
     },
-    [tier],
+    [tier, settle],
   );
   // Start after layout, so mounting and navigation do not consume part of the 10-second run.
   useFrameCallback(({ timestamp, timeSincePreviousFrame }) => {
@@ -84,6 +106,14 @@ export function GlassPreview({
       measuring.set(actual);
       intervals.set([]);
       start.set(timestamp);
+      if (settle) waitUntil.set(timestamp + 2000);
+      return;
+    }
+    if (settle && waitUntil.get() > 0) {
+      if (timestamp >= waitUntil.get()) {
+        start.set(timestamp);
+        waitUntil.set(0);
+      }
       return;
     }
     const elapsed = timestamp - first;

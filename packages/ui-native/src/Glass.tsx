@@ -145,43 +145,44 @@ export function GlassMaterial({ corners, sheet, style, children, ...props }: Mat
       </GlassView>
     );
   }
+  // Keep the shadow and controls outside the mask. The backing alone must stop at the
+  // rounded edge; clipping a host with a boxShadow makes Fabric wrap all its content.
+  const backingClip = corners > 0 && {
+    borderRadius: Math.max(0, corners - border.width.thin),
+    overflow: "hidden" as const,
+  };
   return (
-    <View {...props} testID={testID} style={tier === "blur" ? [style, edge, styles.clip] : opaque}>
+    <View {...props} testID={testID} style={tier === "blur" ? [style, edge] : opaque}>
       {tier === "blur" && (
-        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-          <BlurView
-            style={StyleSheet.absoluteFill}
-            tint={scheme === "dark" ? "systemThinMaterialDark" : "systemThinMaterialLight"}
-            // Android's RenderEffect accepts a radius in device pixels. UIKit controls the
-            // Gaussian of its material and exposes only the intensity.
-            intensity={
-              Platform.OS === "android"
-                ? PixelRatio.getPixelSizeForLayoutSize((glass.blur - 0.5) / 0.57735)
-                : glass.blur
-            }
-            blurReductionFactor={1}
-            blurMethod="dimezisBlurViewSdk31Plus"
-            blurTarget={scene?.target}
-          />
+        <BlurView
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, backingClip]}
+          tint={scheme === "dark" ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+          // Android's RenderEffect accepts a radius in device pixels. UIKit controls the
+          // Gaussian of its material and exposes only the intensity.
+          intensity={
+            Platform.OS === "android"
+              ? PixelRatio.getPixelSizeForLayoutSize((glass.blur - 0.5) / 0.57735)
+              : glass.blur
+          }
+          blurReductionFactor={1}
+          blurMethod="dimezisBlurViewSdk31Plus"
+          blurTarget={scene?.target}
+        >
           {sheet && Platform.OS === "android" && (
             <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.scrim }]} />
           )}
-          <View
+          <LinearGradient
             style={[
               StyleSheet.absoluteFill,
               { backgroundColor: sheet ? colors.glassTintStrong : colors.glassTint },
             ]}
-          />
-          <LinearGradient
-            style={StyleSheet.absoluteFill}
             colors={[colors.glassHighlight, "transparent"]}
             locations={[0, 0.5]}
           />
-        </View>
+        </BlurView>
       )}
       <Fragment key="controls">{children}</Fragment>
     </View>
   );
 }
-
-const styles = StyleSheet.create({ clip: { overflow: "hidden" } });

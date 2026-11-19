@@ -18,14 +18,21 @@ import androidx.compose.runtime.setValue
  * @param mode Pins light or dark. Without it the app follows the system.
  */
 @Composable
-fun App(startInDesign: Boolean = false, mode: Mode? = null, section: String? = null, glass: String? = null, autoscroll: Boolean = false) {
+fun App(
+    startInDesign: Boolean = false,
+    mode: Mode? = null,
+    section: String? = null,
+    glass: String? = null,
+    autoscroll: Boolean = false,
+    sheet: Boolean = false,
+) {
     // Two screens need no navigation library: which one is showing is a single flag. It is
     // saved, so turning an Android phone does not drop back to the home screen.
     var design by rememberSaveable { mutableStateOf(startInDesign) }
     AcmeTheme(mode = mode ?: systemMode()) {
         if (design) {
             BackHandler { design = false }
-            DesignPreview(section, glass, autoscroll) { design = false }
+            DesignPreview(section, glass, autoscroll, sheet) { design = false }
         } else {
             Home(onOpenDesign = { design = true })
         }

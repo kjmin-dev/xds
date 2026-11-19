@@ -36,9 +36,9 @@
       "platform": "flutter",
       "client": "dart-flutter",
       "source": "the Flutter widget tests on Linux",
-      "date": "2026-11-19",
+      "date": "2026-11-20",
       "alt": "A single-date calendar sheet with month controls and a selected day.",
-      "inputs": "sha256:8c3e436d97b14ea8ad1793c457a0b6866a0b6bd3dd65950a0cdf3ebdd772f31e"
+      "inputs": "sha256:a9a94a7a96165593b3f7ada56dcde73c46eed5a3914946279508722d46923e0f"
     },
     {
       "name": "daterange",
@@ -76,9 +76,9 @@
       "platform": "flutter",
       "client": "dart-flutter",
       "source": "the Flutter widget tests on Linux",
-      "date": "2026-11-19",
+      "date": "2026-11-20",
       "alt": "A date range in a calendar sheet with the start, end, and days between them marked.",
-      "inputs": "sha256:8c3e436d97b14ea8ad1793c457a0b6866a0b6bd3dd65950a0cdf3ebdd772f31e"
+      "inputs": "sha256:0b96eea0ce1ebd25f0f3dc6f31157f447bb44650b031eef6b96be218d034759d"
     },
     {
       "name": "glass-blur",
@@ -96,9 +96,9 @@
       "platform": "flutter",
       "client": "dart-flutter",
       "source": "the Flutter widget tests on Linux",
-      "date": "2026-11-19",
+      "date": "2026-11-20",
       "alt": "The top bar and tab bar blur colored collection rows.",
-      "inputs": "sha256:03f50a72eaa54f99092b6fb2629903b707792f1cc021148be0465c25ea62a137"
+      "inputs": "sha256:f76deae27ac2c04ba7c0c1f7b3ad2643902ca86d2ad5cd210a507314ba4e28ad"
     },
     {
       "name": "glass-sheet-blur",
@@ -116,9 +116,9 @@
       "platform": "flutter",
       "client": "dart-flutter",
       "source": "the Flutter widget tests on Linux",
-      "date": "2026-11-19",
+      "date": "2026-11-20",
       "alt": "A tinted modal sheet over the dimmed collection.",
-      "inputs": "sha256:90e942f5160586368e0c34c74ba5b4a6aaa02dc4066f60685403504397429278"
+      "inputs": "sha256:edcd49e3b0ea6744596c197d63cae118e99cec4806a810e74a4b91596bc7786a"
     },
     {
       "name": "glass-sheet-solid",
@@ -136,9 +136,9 @@
       "platform": "flutter",
       "client": "dart-flutter",
       "source": "the Flutter widget tests on Linux",
-      "date": "2026-11-19",
+      "date": "2026-11-20",
       "alt": "An opaque modal sheet over the dimmed collection.",
-      "inputs": "sha256:90e942f5160586368e0c34c74ba5b4a6aaa02dc4066f60685403504397429278"
+      "inputs": "sha256:0f825e9b01a31c6198c05876479ac080a33de56cf8312e5e258f6a0457e3bbb9"
     },
     {
       "name": "glass-solid",
@@ -156,9 +156,9 @@
       "platform": "flutter",
       "client": "dart-flutter",
       "source": "the Flutter widget tests on Linux",
-      "date": "2026-11-19",
+      "date": "2026-11-20",
       "alt": "Opaque navigation bars over the collection rows.",
-      "inputs": "sha256:03f50a72eaa54f99092b6fb2629903b707792f1cc021148be0465c25ea62a137"
+      "inputs": "sha256:33ba001d9b40f7dd4017897781773d0c324a086ba3a42df2dcadfe01d3abf6d8"
     },
     {
       "name": "navigation",
@@ -196,9 +196,9 @@
       "platform": "flutter",
       "client": "dart-flutter",
       "source": "the Flutter widget tests on Linux",
-      "date": "2026-11-19",
+      "date": "2026-11-20",
       "alt": "The navigation samples show a top bar, a tab bar with its current destination selected, and an action to open a sheet.",
-      "inputs": "sha256:892b6b625f109ea0d377e72861a1bd2a14ac1f67580726b259d1bd9fcf0f82fa"
+      "inputs": "sha256:615100847b73ac87df30a69ffbfa0c01ba0d4f6d3a7641a990700bdc3d44a086"
     },
     {
       "name": "sheet",
@@ -237,9 +237,9 @@
       "platform": "flutter",
       "client": "dart-flutter",
       "source": "the Flutter widget tests on Linux",
-      "date": "2026-11-19",
+      "date": "2026-11-20",
       "alt": "An open bottom sheet with its title, actions and drag handle.",
-      "inputs": "sha256:3a7816909e3482cc21c70f4984b55c8974f403c01928c53184cd94cb7e27189a"
+      "inputs": "sha256:9538642b4c5f2038e9291ef0b43833bac3c840ae57fa2ad86117093c1ace20b3"
     }
   ]
 }

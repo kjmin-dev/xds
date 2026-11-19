@@ -38,7 +38,7 @@
       "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
       "date": "2026-11-19",
       "alt": "A tall bottom sheet titled Stay over the dimmed design preview: Check-in Mar 10, 2026 and Check-out Mar 14, 2026 at the top, the weekday initials, March 2026 with a band from the 10th to the 14th between two filled circles and the days before the 5th greyed out, April 2026 under it with the days after the 20th greyed out, and a Done button at the bottom.",
-      "inputs": "sha256:2b068f6d1b67737971bc8a18d17446c376b86417c3eaee597b37542b8e7f2f62"
+      "inputs": "sha256:d006fee481143dbc488a5880a481331ab452156ef97a9f0ce7b411f63f33108b"
     },
     {
       "name": "daterange",
@@ -48,7 +48,7 @@
       "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
       "date": "2026-11-19",
       "alt": "A tall bottom sheet titled Stay over the dimmed design preview: Check-in Mar 10, 2026 and Check-out Mar 14, 2026 at the top, the weekday initials, March 2026 with a band from the 10th to the 14th between two filled circles and the days before the 5th greyed out, April 2026 under it with the days after the 20th greyed out, and a Done button at the bottom.",
-      "inputs": "sha256:2b068f6d1b67737971bc8a18d17446c376b86417c3eaee597b37542b8e7f2f62"
+      "inputs": "sha256:d006fee481143dbc488a5880a481331ab452156ef97a9f0ce7b411f63f33108b"
     },
     {
       "name": "daterange",

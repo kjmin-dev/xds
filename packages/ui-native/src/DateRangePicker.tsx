@@ -202,6 +202,7 @@ function RangeCalendar({
     return months.map((month, index) => {
       const length = SECTION_SPACE + heading + gridHeight(monthWeeks(month, names.firstDay).length);
       const layout = { index, offset, length };
+      // oxlint-disable-next-line react/immutability -- Array.map runs synchronously, and offset is local to this layout calculation.
       offset += length;
       return layout;
     });

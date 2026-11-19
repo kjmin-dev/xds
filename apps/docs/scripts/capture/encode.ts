@@ -12,7 +12,10 @@ export async function encodeStill(png: string, webp: string, name: string) {
   const sheet = name.startsWith("glass-sheet-");
   const image = await readFile(png);
   // Flutter's reference image is already a one-to-one phone render.
-  const width = Math.min(image.readUInt32BE(16), sheet ? 440 : name.startsWith("glass-") ? 360 : 780);
+  const width = Math.min(
+    image.readUInt32BE(16),
+    sheet ? 440 : name.startsWith("glass-") ? 360 : 780,
+  );
   const crop: string[] = [];
   if (sheet) {
     // Keep the sheet and some of the dimmed backdrop. The ordinary sheet still shows the

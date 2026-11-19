@@ -1,5 +1,5 @@
 import { space } from "@acme/tokens";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   AccessibilityInfo,
   FlatList,
@@ -197,12 +197,15 @@ function RangeCalendar({
 
   // Every month's height is known beforehand, so that the list can open on the start's month.
   const heading = headingHeight(fontScale);
-  const heights = months.map(
-    (month) => SECTION_SPACE + heading + gridHeight(monthWeeks(month, names.firstDay).length),
-  );
-  const offsets = heights.map((_, index) =>
-    heights.slice(0, index).reduce((sum, height) => sum + height, 0),
-  );
+  const layouts = useMemo(() => {
+    let offset = 0;
+    return months.map((month, index) => {
+      const length = SECTION_SPACE + heading + gridHeight(monthWeeks(month, names.firstDay).length);
+      const layout = { index, offset, length };
+      offset += length;
+      return layout;
+    });
+  }, [heading, months, names.firstDay]);
   const list = useRef({ viewport: 0, content: 0 }).current;
   const keep = useListDrags(() => list.content > list.viewport + 1);
 
@@ -240,11 +243,7 @@ function RangeCalendar({
           // The days drawn depend on what is chosen, which the months themselves do not show.
           extraData={shown.join()}
           initialScrollIndex={Math.max(0, months.indexOf(opening))}
-          getItemLayout={(_, index) => ({
-            length: heights[index] ?? 0,
-            offset: offsets[index] ?? 0,
-            index,
-          })}
+          getItemLayout={(_, index) => layouts[index] ?? { index, length: 0, offset: 0 }}
           initialNumToRender={2}
           windowSize={5}
           style={styles.list}

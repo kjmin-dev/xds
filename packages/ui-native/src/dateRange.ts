@@ -134,7 +134,8 @@ export function monthsBetween(
   const first = min === undefined ? addMonths(opening, -12) : monthOf(min);
   const last = max === undefined ? addMonths(opening, 24) : monthOf(max);
   const months: IsoMonth[] = [];
-  for (let month = first; month <= last; month = addMonths(month, 1)) months.push(month);
+  for (let month = first; month < last; month = addMonths(month, 1)) months.push(month);
+  if (first <= last) months.push(last);
   return months;
 }
 

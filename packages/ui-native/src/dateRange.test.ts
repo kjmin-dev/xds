@@ -154,6 +154,8 @@ test("the ends are named after their labels", () => {
 
 test("the sheet's list runs from the month of min to the month of max", () => {
   assert.deepEqual(monthsBetween("2026-03-05", "2026-04-20", "2026-03"), ["2026-03", "2026-04"]);
+  assert.deepEqual(monthsBetween("9999-11-01", undefined, "9999-12"), ["9999-11", "9999-12"]);
+  assert.deepEqual(monthsBetween(undefined, "0000-02-29", "0000-01"), ["0000-01", "0000-02"]);
   // Without them, a year before the opening month and two years after it.
   const open = monthsBetween(undefined, undefined, "2026-03");
   assert.equal(open.length, 37);

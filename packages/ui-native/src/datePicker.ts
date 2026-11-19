@@ -18,10 +18,17 @@ function parts(day: IsoDate): [year: number, month: number, date: number] {
   return [year, month, date];
 }
 
-/** Noon UTC of `day`: the instant every formatter here is given, with the time zone UTC. */
+function utcDate(year: number, month: number, day: number): Date {
+  // Date.UTC treats years 0 through 99 as 1900 through 1999.
+  const date = new Date(12 * 60 * 60 * 1000);
+  date.setUTCFullYear(year, month, day);
+  return date;
+}
+
+/** Noon UTC keeps the day stable when formatted with the UTC time zone. */
 const noon = (day: IsoDate) => {
   const [year, month, date] = parts(day);
-  return new Date(Date.UTC(year, month - 1, date, 12));
+  return utcDate(year, month - 1, date);
 };
 
 const fromUtc = (date: Date): IsoDate =>
@@ -50,14 +57,16 @@ export const monthOf = (day: IsoDate): IsoMonth => day.slice(0, 7);
 /** The month `count` months after `month`, or before it for a negative count. */
 export function addMonths(month: IsoMonth, count: number): IsoMonth {
   const [year, number] = parts(`${month}-01`);
-  const date = new Date(Date.UTC(year, number - 1 + count, 1, 12));
-  return fromUtc(date).slice(0, 7);
+  const date = utcDate(year, number - 1 + count, 1);
+  if (date.getUTCFullYear() < 0) return "0000-01";
+  if (date.getUTCFullYear() > 9999) return "9999-12";
+  return monthOf(fromUtc(date));
 }
 
 /** How many days `month` has. */
 export function daysInMonth(month: IsoMonth): number {
   const [year, number] = parts(`${month}-01`);
-  return new Date(Date.UTC(year, number, 0, 12)).getUTCDate();
+  return utcDate(year, number, 0).getUTCDate();
 }
 
 /**
@@ -104,12 +113,12 @@ export function openingDay(
 
 /** Whether the month before `month` has a day on or after `min`, so its button is enabled. */
 export function hasMonthBefore(month: IsoMonth, min?: IsoDate): boolean {
-  return min === undefined || monthOf(min) < month;
+  return (min === undefined ? "0000-01" : monthOf(min)) < month;
 }
 
 /** Whether the month after `month` has a day on or before `max`, so its button is enabled. */
 export function hasMonthAfter(month: IsoMonth, max?: IsoDate): boolean {
-  return max === undefined || monthOf(max) > month;
+  return (max === undefined ? "9999-12" : monthOf(max)) > month;
 }
 
 /** The day it is on the device at the instant `now`. */

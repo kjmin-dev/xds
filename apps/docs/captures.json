@@ -26,9 +26,9 @@
       "platform": "compose",
       "client": "kotlin-compose",
       "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
-      "date": "2026-11-17",
+      "date": "2026-11-19",
       "alt": "A bottom sheet titled Due date over the dimmed design preview, holding the calendar for March 2026 drawn from the tokens between buttons for the months before and after, with the 10th chosen and the days before the 5th greyed out.",
-      "inputs": "sha256:6fd5c95bdcbd522ffe4a24a0fd7bd07cc491221a1e928c98bc12e30a2a1f1bf9"
+      "inputs": "sha256:cefb16815ed466b6a11409690df88ef5301088d4b86d638c0dd4565924849f46"
     },
     {
       "name": "daterange",
@@ -56,9 +56,49 @@
       "platform": "compose",
       "client": "kotlin-compose",
       "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
-      "date": "2026-11-17",
+      "date": "2026-11-19",
       "alt": "A tall bottom sheet titled Stay over the dimmed design preview: Check-in Mar 10, 2026 and Check-out Mar 14, 2026 at the top, the weekday initials, March 2026 with a band from the 10th to the 14th between two filled circles and the days before the 5th greyed out, April 2026 under it with the days after the 20th greyed out, and a Done button at the bottom.",
-      "inputs": "sha256:6fd5c95bdcbd522ffe4a24a0fd7bd07cc491221a1e928c98bc12e30a2a1f1bf9"
+      "inputs": "sha256:cefb16815ed466b6a11409690df88ef5301088d4b86d638c0dd4565924849f46"
+    },
+    {
+      "name": "glass-blur",
+      "components": ["TopBar", "TabBar"],
+      "platform": "compose",
+      "client": "kotlin-compose",
+      "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
+      "date": "2026-11-19",
+      "alt": "A blurred top bar and tab bar over a scrolling collection of colored rows.",
+      "inputs": "sha256:0312ff094431aba3dc01208c421bb8bac554d3a898a767bcadf52859739453d7"
+    },
+    {
+      "name": "glass-sheet-blur",
+      "components": ["BottomSheet"],
+      "platform": "compose",
+      "client": "kotlin-compose",
+      "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
+      "date": "2026-11-19",
+      "alt": "Collection details inside a strongly tinted glass sheet over the dimmed list.",
+      "inputs": "sha256:a9a29adb22f0e84b31471c4c63f55d17360197f6c736f897ea3a7dae9a56146d"
+    },
+    {
+      "name": "glass-sheet-solid",
+      "components": ["BottomSheet"],
+      "platform": "compose",
+      "client": "kotlin-compose",
+      "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
+      "date": "2026-11-19",
+      "alt": "Collection details inside the opaque fallback sheet over the dimmed list.",
+      "inputs": "sha256:a9a29adb22f0e84b31471c4c63f55d17360197f6c736f897ea3a7dae9a56146d"
+    },
+    {
+      "name": "glass-solid",
+      "components": ["TopBar", "TabBar"],
+      "platform": "compose",
+      "client": "kotlin-compose",
+      "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
+      "date": "2026-11-19",
+      "alt": "The same collection with opaque navigation bars for reduced transparency.",
+      "inputs": "sha256:0312ff094431aba3dc01208c421bb8bac554d3a898a767bcadf52859739453d7"
     },
     {
       "name": "navigation",
@@ -86,9 +126,9 @@
       "platform": "compose",
       "client": "kotlin-compose",
       "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
-      "date": "2026-11-15",
+      "date": "2026-11-19",
       "alt": "A phone screen showing the Navigation section of the design preview: a top bar titled Settings with a back button and an Edit button, a floating tab bar with Home, Search and Profile, Home selected, and a button labeled Open the sheet.",
-      "inputs": "sha256:18998330c9ef57e352777ca80b8d8fdd63bd9467b1e73c87090f829d7a8bf573"
+      "inputs": "sha256:9792f2260415d44d0402aefe00e0213e1533d801f167e1e54f1ac3f1ae34782d"
     },
     {
       "name": "sheet",
@@ -117,9 +157,9 @@
       "platform": "compose",
       "client": "kotlin-compose",
       "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
-      "date": "2026-11-15",
+      "date": "2026-11-19",
       "alt": "A bottom sheet risen from the bottom of a phone screen over the dimmed design preview, with a handle, the title Share the report, a line of text, a Copy the link button and a Cancel button.",
-      "inputs": "sha256:fec3236efb1439a677392fe19b650ee8345833fa67d725b198f2f84c0f5f82b1"
+      "inputs": "sha256:f91aee630e083e8ce90b0d5caf66091227b7433ac6fab404bb4064599e71a8cf"
     }
   ]
 }

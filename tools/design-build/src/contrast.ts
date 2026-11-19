@@ -4,7 +4,8 @@ import { MODES, type Mode, type Model, type Rgba } from "./model.ts";
 
 type Pair = {
   foreground: string;
-  background: string;
+  /** A surface, or its layers in drawing order from the backdrop to the foreground. */
+  background: string | string[];
   /** Minimum contrast ratio: 4.5 for body text, 3 for large text and interface parts. */
   minimum: number;
   /**
@@ -224,11 +225,24 @@ const PAIRS: Pair[] = [
   // decorative edge highlight, including the opaque surface used with reduced transparency.
   ...on("glass.foreground", ["glass.fallback"], TEXT),
   { foreground: "glass.foreground", background: "glass.tint", minimum: TEXT, over: [WHITE, BLACK] },
+  {
+    foreground: "glass.foreground",
+    background: ["glass.tint", "glass.highlight"],
+    minimum: TEXT,
+    over: [WHITE, BLACK],
+  },
   ...["text.primary", "text.secondary", "text.accent", "sheet.handle"].flatMap((foreground) => {
     const minimum = foreground === "sheet.handle" ? PART : TEXT;
     return [
       ...on(foreground, ["glass.fallback"], minimum),
       { foreground, background: "glass.tint-strong", minimum, over: [WHITE, BLACK] },
+      // The handle sits just below the strongest part of the edge highlight.
+      {
+        foreground,
+        background: ["scrim", "glass.tint-strong", "glass.highlight"],
+        minimum,
+        over: [WHITE, BLACK],
+      },
     ];
   }),
   // DatePicker: the days on the calendar's surface, on the sheet on touch, and under a pointer.
@@ -314,15 +328,19 @@ export function checkContrast(model: Model): string[] {
 
   const failures: string[] = [];
   for (const pair of PAIRS) {
+    const layers = typeof pair.background === "string" ? [pair.background] : pair.background;
     for (const mode of MODES) {
       for (const backdrop of pair.over ?? [WHITE]) {
-        const background = composite(color(pair.background, mode), backdrop);
+        const background = layers.reduce(
+          (under, layer) => composite(color(layer, mode), under),
+          backdrop,
+        );
         const foreground = composite(color(pair.foreground, mode), background);
         const ratio = contrastRatio(foreground, background);
         if (ratio < pair.minimum) {
           const where = pair.over ? ` over rgb(${backdrop.r} ${backdrop.g} ${backdrop.b})` : "";
           failures.push(
-            `${pair.foreground} on ${pair.background}${where} (${mode}): ` +
+            `${pair.foreground} on ${layers.toReversed().join(" over ")}${where} (${mode}): ` +
               `${ratio.toFixed(2)}:1, needs ${pair.minimum}:1`,
           );
         }

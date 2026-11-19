@@ -33,7 +33,9 @@ fun main(args: Array<String>) {
             title = "Acme",
             state = rememberWindowState(width = 960.dp, height = 720.dp),
         ) {
-            App(startInDesign = design, mode = mode)
+            val section = args.toList().zipWithNext().firstOrNull { it.first == "--section" }?.second
+            val glass = args.toList().zipWithNext().firstOrNull { it.first == "--glass" }?.second
+            App(startInDesign = design || section != null, mode = mode, section = section, glass = glass, autoscroll = "--autoscroll" in args, sheet = "--sheet" in args)
         }
     }
 }

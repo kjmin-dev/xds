@@ -54,9 +54,12 @@ export function GlassScene({ children }: { children: ReactNode }) {
 
 export function GlassBackdrop(props: ViewProps) {
   const scene = useContext(Scene);
-  // Keep the same host when battery saver changes so its scroll position and child state survive.
-  const TargetView =
-    scene && Platform.OS === "android" && Platform.Version >= 33 ? BlurTargetView : View;
+  const preview = useContext(PreviewGlassTier);
+  // The solid benchmark uses a plain View: a BlurTargetView records its children into a
+  // RenderNode even with no blur attached. Live power changes keep the same host and scroll state.
+  const tracksBackdrop =
+    scene && preview?.requested !== "solid" && Platform.OS === "android" && Platform.Version >= 33;
+  const TargetView = tracksBackdrop ? BlurTargetView : View;
   return (
     <TargetView {...props} collapsable={false} ref={scene?.register}>
       <Scene value={undefined}>{props.children}</Scene>

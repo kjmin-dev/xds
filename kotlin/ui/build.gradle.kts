@@ -32,6 +32,8 @@ kotlin {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.ui)
+            implementation(libs.haze.core)
+            implementation(libs.haze.blur)
             // The one thing not drawn from the tokens: an avatar's picture, which has to be
             // fetched, decoded and cached. Coil does that on every platform.
             implementation(libs.coil.compose)

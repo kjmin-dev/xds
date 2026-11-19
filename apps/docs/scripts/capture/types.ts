@@ -1,7 +1,15 @@
 import type { Mode } from "../captures.ts";
 
 /** The captures this task knows how to take. */
-export type CaptureName = "navigation" | "sheet" | "datepicker" | "daterange";
+export type CaptureName =
+  | "navigation"
+  | "sheet"
+  | "datepicker"
+  | "daterange"
+  | "glass-blur"
+  | "glass-solid"
+  | "glass-sheet-blur"
+  | "glass-sheet-solid";
 
 /** What a platform drew for one capture: a PNG per mode, and a recording per mode for a clip. */
 export type Raw = { still: Record<Mode, string>; clip?: Record<Mode, string> };

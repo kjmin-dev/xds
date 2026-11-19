@@ -5,6 +5,7 @@ android-minSdk = "24"
 android-targetSdk = "37"
 androidx-activity = "1.13.0"
 coil = "3.6.3"
+haze = "2.1.0"
 compose-multiplatform = "1.12.2"
 desugar-jdk-libs = "2.1.5"
 kotlin = "2.4.21"
@@ -13,6 +14,8 @@ kotlinx-datetime = "0.8.0"
 ktor = "3.6.1"
 
 [libraries]
+haze-blur = { module = "dev.chrisbanes.haze:haze-blur", version.ref = "haze" }
+haze-core = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }

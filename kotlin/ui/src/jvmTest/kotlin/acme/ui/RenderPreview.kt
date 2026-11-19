@@ -102,6 +102,17 @@ private fun captures(directory: File) {
         Triple("daterange", "controls", PreviewOverlay.DateRange),
     )
     for (mode in Mode.entries) {
+        for (tier in listOf("blur", "solid")) {
+            for (sheet in listOf(false, true)) {
+                val name = if (sheet) "glass-sheet-$tier" else "glass-$tier"
+                val file = File(directory, "$name-${mode.name.lowercase()}.png")
+                draw(file, 390, 844) {
+                    AcmeTheme(mode, TouchSizes) {
+                        DesignPreviewScreen(onBack = {}, scrolls = true, open = if (sheet) PreviewOverlay.Sheet else null, from = "glass", glass = tier)
+                    }
+                }
+            }
+        }
         for ((name, from, open) in screens) {
             val file = File(directory, "$name-${mode.name.lowercase()}.png")
             draw(file, 390, 844) {

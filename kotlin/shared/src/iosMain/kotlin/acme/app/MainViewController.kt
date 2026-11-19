@@ -8,5 +8,8 @@ import platform.Foundation.NSProcessInfo
  * design preview, as the desktop app does: `xcrun simctl launch booted com.example.acme --design`.
  */
 fun MainViewController() = ComposeUIViewController {
-    App(startInDesign = "--design" in NSProcessInfo.processInfo.arguments)
+    val args = NSProcessInfo.processInfo.arguments.filterIsInstance<String>()
+    val section = args.zipWithNext().firstOrNull { it.first == "--section" }?.second
+    val glass = args.zipWithNext().firstOrNull { it.first == "--glass" }?.second
+    App(startInDesign = "--design" in args || section != null, section = section, glass = glass, autoscroll = "--autoscroll" in args)
 }

@@ -7,9 +7,9 @@ import { run, words } from "./process.ts";
 /** The longest clip the site takes. */
 const CLIP_SECONDS = 3;
 
-export async function encodeStill(png: string, webp: string) {
+export async function encodeStill(png: string, webp: string, width = 780) {
   // sharp_yuv keeps the edges of thin colored text, which plain 4:2:0 conversion smears.
-  const options = words("-quiet -q 80 -m 6 -sharp_yuv -metadata none -resize 780 0");
+  const options = words(`-quiet -q 80 -m 6 -sharp_yuv -metadata none -resize ${width} 0`);
   await run("cwebp", [...options, png, "-o", webp]);
 }
 

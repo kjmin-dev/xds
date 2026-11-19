@@ -69,7 +69,18 @@ fun BottomSheet(
     title: String? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    BottomSheet(open, onDismiss, title, tall = false, content)
+    BottomSheet(open, onDismiss, title, tall = false, content = content)
+}
+
+@Composable
+fun BottomSheet(
+    open: Boolean,
+    onDismiss: () -> Unit,
+    surface: Surface,
+    title: String? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    BottomSheet(open, onDismiss, title, tall = false, surface = surface, content = content)
 }
 
 /**
@@ -83,6 +94,7 @@ internal fun BottomSheet(
     onDismiss: () -> Unit,
     title: String?,
     tall: Boolean,
+    surface: Surface = Surface.Solid,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     // How much of the sheet is off the bottom of the screen: 1 is all of it, 0 is none. One
@@ -178,8 +190,10 @@ internal fun BottomSheet(
                         .fillMaxWidth()
                         .then(if (tall) Modifier.fillMaxHeight(TallShare).nestedScroll(scrolling) else Modifier)
                         .onSizeChanged { height = it.height }
-                        .shadow(Shadow.overlay, shape)
-                        .background(colors.sheetBackground, shape)
+                        .then(
+                            if (surface == Surface.Glass) Modifier.glassSurface(shape, sheet = true)
+                            else Modifier.shadow(Shadow.overlay, shape).background(colors.sheetBackground, shape),
+                        )
                         // Also keeps taps on the sheet from reaching the scrim under it.
                         .draggable(
                             orientation = Orientation.Vertical,

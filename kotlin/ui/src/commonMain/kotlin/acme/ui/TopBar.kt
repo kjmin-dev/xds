@@ -39,13 +39,24 @@ fun TopBar(
     onBack: (() -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
+    TopBar(title, Surface.Solid, modifier, onBack, trailing)
+}
+
+@Composable
+fun TopBar(
+    title: String,
+    surface: Surface,
+    modifier: Modifier = Modifier,
+    onBack: (() -> Unit)? = null,
+    trailing: (@Composable () -> Unit)? = null,
+) {
     val colors = LocalColors.current
     val sizes = LocalSizes.current
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(sizes.bar)
-            .background(colors.topBarBackground)
+            .then(if (surface == Surface.Glass) Modifier.glassSurface(androidx.compose.ui.graphics.RectangleShape) else Modifier.background(colors.topBarBackground))
             .padding(horizontal = Space.s4),
         horizontalArrangement = Arrangement.spacedBy(Space.s3),
         verticalAlignment = Alignment.CenterVertically,
@@ -75,7 +86,7 @@ fun TopBar(
         BasicText(
             text = title,
             modifier = Modifier.weight(1f).semantics { heading() },
-            style = Typography.heading.resolved(colors.topBarText),
+            style = Typography.heading.resolved(if (surface == Surface.Glass) colors.glassForeground else colors.topBarText),
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
         )

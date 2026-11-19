@@ -94,6 +94,12 @@ export function captureInputs(capture: Capture, contract: Contract): string[] {
     return source;
   });
   const parts = sources.flatMap((source) => PARTS[source] ?? []);
+  if (capture.name.startsWith("glass-") && capture.client === "kotlin-compose") {
+    parts.push(
+      "kotlin/ui/src/commonMain/kotlin/acme/ui/Glass.kt",
+      "kotlin/ui/src/commonMain/kotlin/acme/ui/GlassPreview.kt",
+    );
+  }
   return [...new Set([...sources, ...parts, ...tokens])].sort();
 }
 

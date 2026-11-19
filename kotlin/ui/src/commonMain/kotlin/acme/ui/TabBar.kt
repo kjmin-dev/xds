@@ -52,6 +52,7 @@ fun <T> TabBar(
     selected: T,
     onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
+    surface: Surface = Surface.Solid,
 ) {
     val colors = LocalColors.current
     val sizes = LocalSizes.current
@@ -60,15 +61,22 @@ fun <T> TabBar(
             .fillMaxWidth()
             // The items keep the height of a bar; the capsule adds the inset around them.
             .height(sizes.bar + Inset * 2)
-            .shadow(Shadow.raised, CircleShape)
-            .background(colors.tabBarBackground, CircleShape)
-            .border(Border.widthThin, colors.tabBarBorder, CircleShape)
+            .then(
+                if (surface == Surface.Glass) Modifier.glassSurface(CircleShape)
+                else Modifier.shadow(Shadow.raised, CircleShape)
+                    .background(colors.tabBarBackground, CircleShape)
+                    .border(Border.widthThin, colors.tabBarBorder, CircleShape),
+            )
             .padding(Inset)
             .selectableGroup(),
     ) {
         for (item in items) {
             val isSelected = item.key == selected
-            val color = if (isSelected) colors.tabBarTextSelected else colors.tabBarText
+            val color = when {
+                isSelected -> colors.tabBarTextSelected
+                surface == Surface.Glass -> colors.glassForeground
+                else -> colors.tabBarText
+            }
             Box(
                 modifier = Modifier
                     .weight(1f)

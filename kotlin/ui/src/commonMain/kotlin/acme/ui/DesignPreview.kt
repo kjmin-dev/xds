@@ -137,8 +137,24 @@ private val Radii = listOf(
 
 /** Shows every token and every component. [onBack] is called by the back mark in its top bar. */
 @Composable
-fun DesignPreview(onBack: () -> Unit) {
-    DesignPreviewScreen(onBack = onBack, scrolls = true, open = null)
+fun DesignPreview(onBack: () -> Unit) = DesignPreview(null, null, false, onBack = onBack)
+
+@Composable
+fun DesignPreview(
+    section: String?,
+    glass: String?,
+    autoscroll: Boolean,
+    sheet: Boolean = false,
+    onBack: () -> Unit,
+) {
+    DesignPreviewScreen(
+        onBack = onBack,
+        scrolls = true,
+        open = if (sheet) PreviewOverlay.Sheet else null,
+        from = section,
+        glass = glass,
+        autoscroll = autoscroll,
+    )
 }
 
 /** What the preview can start with open, so that it can be drawn into an image open. */
@@ -151,7 +167,7 @@ internal enum class PreviewOverlay { Sheet, Menu, Select, DatePicker, DateRange,
  *   The sections above it are left out, so that one can be drawn at the top of a phone's screen.
  */
 @Composable
-internal fun DesignPreviewScreen(onBack: () -> Unit, scrolls: Boolean, open: PreviewOverlay?, from: String? = null) {
+internal fun DesignPreviewScreen(onBack: () -> Unit, scrolls: Boolean, open: PreviewOverlay?, from: String? = null, glass: String? = null, autoscroll: Boolean = false) {
     val ambient = if (LocalColors.current === DarkColors) Mode.Dark else Mode.Light
     // The switch in the top bar pins a mode for this screen only. Until it is used, the screen
     // follows the theme around it.
@@ -178,6 +194,10 @@ internal fun DesignPreviewScreen(onBack: () -> Unit, scrolls: Boolean, open: Pre
                     )
                 },
             )
+            if (from == "glass") {
+                GlassPreview(glass, autoscroll, open == PreviewOverlay.Sheet, Modifier.weight(1f).fillMaxWidth())
+                return@Column
+            }
             Column(
                 modifier = (if (scrolls) Modifier.weight(1f).verticalScroll(rememberScrollState()) else Modifier)
                     .padding(Space.s4),
@@ -212,6 +232,7 @@ internal fun DesignPreviewScreen(onBack: () -> Unit, scrolls: Boolean, open: Pre
                     "dialog" to { DialogSection(open = open == PreviewOverlay.Dialog) },
                     "toast" to { ToastSection(open = open == PreviewOverlay.Toast) },
                     "skeleton" to { SkeletonSection() },
+                    "glass" to { Section("Glass") { GlassPreview(null, false, false) } },
                 )
                 for ((name, section) in sections.dropWhile { from != null && it.first != from }) {
                     key(name) { section() }

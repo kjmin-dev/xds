@@ -71,17 +71,19 @@ Future<void> drawPreview(
           final colors = AcmeTheme.of(context).colors;
           final specimen = fullScreen
               ? child
-              : Align(
-                  alignment: Alignment.topCenter,
-                  child: RepaintBoundary(
-                    key: previewBoundary,
-                    child: ColoredBox(
-                      color: colors.backgroundBase,
-                      child: Padding(
-                        padding: EdgeInsets.all(
-                          viewportHeight > 844 ? 0 : SpaceTokens.s4,
+              : SingleChildScrollView(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: RepaintBoundary(
+                      key: previewBoundary,
+                      child: ColoredBox(
+                        color: colors.backgroundBase,
+                        child: Padding(
+                          padding: EdgeInsets.all(
+                            viewportHeight > 844 ? 0 : SpaceTokens.s4,
+                          ),
+                          child: SizedBox(width: double.infinity, child: child),
                         ),
-                        child: SizedBox(width: double.infinity, child: child),
                       ),
                     ),
                   ),

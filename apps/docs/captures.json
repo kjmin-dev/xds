@@ -8,7 +8,7 @@
       "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
       "date": "2026-11-19",
       "alt": "A bottom sheet titled Due date over the dimmed design preview, holding the calendar for March 2026 drawn from the tokens between buttons for the months before and after, with the 10th chosen and the days before the 5th greyed out.",
-      "inputs": "sha256:e45b5d87fdd8bb4d93cc67cac0d4d516770099af918b3bd323ae57c5005c8dc1"
+      "inputs": "sha256:b5b87054375b4980515a943402b62086fde980d7f088ea927cb090040234430a"
     },
     {
       "name": "datepicker",
@@ -18,7 +18,7 @@
       "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
       "date": "2026-11-19",
       "alt": "A bottom sheet titled Due date over the dimmed design preview, holding the calendar for March 2026 drawn from the tokens between buttons for the months before and after, with the 10th chosen and the days before the 5th greyed out.",
-      "inputs": "sha256:e45b5d87fdd8bb4d93cc67cac0d4d516770099af918b3bd323ae57c5005c8dc1"
+      "inputs": "sha256:b5b87054375b4980515a943402b62086fde980d7f088ea927cb090040234430a"
     },
     {
       "name": "datepicker",
@@ -38,7 +38,7 @@
       "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
       "date": "2026-11-19",
       "alt": "A tall bottom sheet titled Stay over the dimmed design preview: Check-in Mar 10, 2026 and Check-out Mar 14, 2026 at the top, the weekday initials, March 2026 with a band from the 10th to the 14th between two filled circles and the days before the 5th greyed out, April 2026 under it with the days after the 20th greyed out, and a Done button at the bottom.",
-      "inputs": "sha256:d006fee481143dbc488a5880a481331ab452156ef97a9f0ce7b411f63f33108b"
+      "inputs": "sha256:7d56d5999b24a9d5bb016327d4b754749aa3783910824935abc9f938a83f526e"
     },
     {
       "name": "daterange",
@@ -48,7 +48,7 @@
       "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
       "date": "2026-11-19",
       "alt": "A tall bottom sheet titled Stay over the dimmed design preview: Check-in Mar 10, 2026 and Check-out Mar 14, 2026 at the top, the weekday initials, March 2026 with a band from the 10th to the 14th between two filled circles and the days before the 5th greyed out, April 2026 under it with the days after the 20th greyed out, and a Done button at the bottom.",
-      "inputs": "sha256:d006fee481143dbc488a5880a481331ab452156ef97a9f0ce7b411f63f33108b"
+      "inputs": "sha256:7d56d5999b24a9d5bb016327d4b754749aa3783910824935abc9f938a83f526e"
     },
     {
       "name": "daterange",
@@ -63,12 +63,62 @@
     {
       "name": "glass-blur",
       "components": ["TopBar", "TabBar"],
+      "platform": "ios",
+      "client": "mobile-react-native",
+      "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
+      "date": "2026-11-19",
+      "alt": "A blurred top bar and tab bar over a scrolling collection of colored rows.",
+      "inputs": "sha256:f171cb5ee7ee2780dc7406843dbbbd3d6e72d10975cb1212fe0a55ba1e8eb0c7"
+    },
+    {
+      "name": "glass-blur",
+      "components": ["TopBar", "TabBar"],
+      "platform": "android",
+      "client": "mobile-react-native",
+      "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
+      "date": "2026-11-19",
+      "alt": "A blurred top bar and tab bar over a scrolling collection of colored rows.",
+      "inputs": "sha256:ce4bdb77fe6fe0aeca5c0fb4beb2ccc50d24ee7b7e9b1b7479cc134e7cc4a55b"
+    },
+    {
+      "name": "glass-blur",
+      "components": ["TopBar", "TabBar"],
       "platform": "compose",
       "client": "kotlin-compose",
       "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
       "date": "2026-11-19",
       "alt": "A blurred top bar and tab bar over a scrolling collection of colored rows.",
-      "inputs": "sha256:940ba24b82f80454204e6709c4d95a85272d19601d2031d1c8a5d63dd65f5564"
+      "inputs": "sha256:0312ff094431aba3dc01208c421bb8bac554d3a898a767bcadf52859739453d7"
+    },
+    {
+      "name": "glass-native",
+      "components": ["TopBar", "TabBar"],
+      "platform": "ios",
+      "client": "mobile-react-native",
+      "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
+      "date": "2026-11-19",
+      "alt": "Collections and its tabs drawn inside iOS Liquid Glass above colored rows.",
+      "inputs": "sha256:f171cb5ee7ee2780dc7406843dbbbd3d6e72d10975cb1212fe0a55ba1e8eb0c7"
+    },
+    {
+      "name": "glass-sheet-blur",
+      "components": ["BottomSheet"],
+      "platform": "ios",
+      "client": "mobile-react-native",
+      "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
+      "date": "2026-11-19",
+      "alt": "Collection details inside a strongly tinted glass sheet over the dimmed list.",
+      "inputs": "sha256:49f9ede78ed0b4fd633b95b4843aa5fb5d52150982fa1b06991094d0b3daea55"
+    },
+    {
+      "name": "glass-sheet-blur",
+      "components": ["BottomSheet"],
+      "platform": "android",
+      "client": "mobile-react-native",
+      "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
+      "date": "2026-11-19",
+      "alt": "Collection details inside a strongly tinted glass sheet over the dimmed list.",
+      "inputs": "sha256:38dc30a10394a4ef237abf6581973edf64df0583704228ad2ef6982131bd8639"
     },
     {
       "name": "glass-sheet-blur",
@@ -78,7 +128,37 @@
       "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
       "date": "2026-11-19",
       "alt": "Collection details inside a strongly tinted glass sheet over the dimmed list.",
-      "inputs": "sha256:7de8c0f4dab1b7d70a68cc6f9d986ae3fbf5458cca05773b16816933648d6a7d"
+      "inputs": "sha256:a9a29adb22f0e84b31471c4c63f55d17360197f6c736f897ea3a7dae9a56146d"
+    },
+    {
+      "name": "glass-sheet-native",
+      "components": ["BottomSheet"],
+      "platform": "ios",
+      "client": "mobile-react-native",
+      "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
+      "date": "2026-11-19",
+      "alt": "Collection details in a native Liquid Glass bottom sheet over the dimmed list.",
+      "inputs": "sha256:49f9ede78ed0b4fd633b95b4843aa5fb5d52150982fa1b06991094d0b3daea55"
+    },
+    {
+      "name": "glass-sheet-solid",
+      "components": ["BottomSheet"],
+      "platform": "ios",
+      "client": "mobile-react-native",
+      "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
+      "date": "2026-11-19",
+      "alt": "Collection details inside the opaque fallback sheet over the dimmed list.",
+      "inputs": "sha256:49f9ede78ed0b4fd633b95b4843aa5fb5d52150982fa1b06991094d0b3daea55"
+    },
+    {
+      "name": "glass-sheet-solid",
+      "components": ["BottomSheet"],
+      "platform": "android",
+      "client": "mobile-react-native",
+      "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
+      "date": "2026-11-19",
+      "alt": "Collection details inside the opaque fallback sheet over the dimmed list.",
+      "inputs": "sha256:38dc30a10394a4ef237abf6581973edf64df0583704228ad2ef6982131bd8639"
     },
     {
       "name": "glass-sheet-solid",
@@ -88,7 +168,27 @@
       "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
       "date": "2026-11-19",
       "alt": "Collection details inside the opaque fallback sheet over the dimmed list.",
-      "inputs": "sha256:7de8c0f4dab1b7d70a68cc6f9d986ae3fbf5458cca05773b16816933648d6a7d"
+      "inputs": "sha256:a9a29adb22f0e84b31471c4c63f55d17360197f6c736f897ea3a7dae9a56146d"
+    },
+    {
+      "name": "glass-solid",
+      "components": ["TopBar", "TabBar"],
+      "platform": "ios",
+      "client": "mobile-react-native",
+      "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
+      "date": "2026-11-19",
+      "alt": "The same collection with opaque navigation bars for reduced transparency.",
+      "inputs": "sha256:f171cb5ee7ee2780dc7406843dbbbd3d6e72d10975cb1212fe0a55ba1e8eb0c7"
+    },
+    {
+      "name": "glass-solid",
+      "components": ["TopBar", "TabBar"],
+      "platform": "android",
+      "client": "mobile-react-native",
+      "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
+      "date": "2026-11-19",
+      "alt": "The same collection with opaque navigation bars for reduced transparency.",
+      "inputs": "sha256:ce4bdb77fe6fe0aeca5c0fb4beb2ccc50d24ee7b7e9b1b7479cc134e7cc4a55b"
     },
     {
       "name": "glass-solid",
@@ -98,7 +198,7 @@
       "source": "an off-screen render of a 390 × 844 dp phone screen on the desktop JVM",
       "date": "2026-11-19",
       "alt": "The same collection with opaque navigation bars for reduced transparency.",
-      "inputs": "sha256:940ba24b82f80454204e6709c4d95a85272d19601d2031d1c8a5d63dd65f5564"
+      "inputs": "sha256:0312ff094431aba3dc01208c421bb8bac554d3a898a767bcadf52859739453d7"
     },
     {
       "name": "navigation",
@@ -106,9 +206,9 @@
       "platform": "ios",
       "client": "mobile-react-native",
       "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
-      "date": "2026-11-15",
+      "date": "2026-11-19",
       "alt": "A phone screen showing the Navigation section of the design preview: a top bar titled Settings with a back button and an Edit button, a button labeled Open a bottom sheet, and a floating tab bar with Home, Search and Profile, Home selected.",
-      "inputs": "sha256:276fe6dcae5cce5c97807a224f36151ead58fe34c0bf6a834481f14abdbf92f1"
+      "inputs": "sha256:89c1a8505df882a79a13578baf8a02815936d57295a80e5f91ed12250ac2d9f5"
     },
     {
       "name": "navigation",
@@ -116,9 +216,9 @@
       "platform": "android",
       "client": "mobile-react-native",
       "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
-      "date": "2026-11-15",
+      "date": "2026-11-19",
       "alt": "A phone screen showing the Navigation section of the design preview: a top bar titled Settings with a back button and an Edit button, a button labeled Open a bottom sheet, and a floating tab bar with Home, Search and Profile, Home selected.",
-      "inputs": "sha256:276fe6dcae5cce5c97807a224f36151ead58fe34c0bf6a834481f14abdbf92f1"
+      "inputs": "sha256:89c1a8505df882a79a13578baf8a02815936d57295a80e5f91ed12250ac2d9f5"
     },
     {
       "name": "navigation",
@@ -136,10 +236,10 @@
       "platform": "ios",
       "client": "mobile-react-native",
       "source": "a Release build in the iOS 26.5 Simulator (iPhone 17 Pro)",
-      "date": "2026-11-15",
+      "date": "2026-11-19",
       "alt": "A bottom sheet risen from the bottom of a phone screen over the dimmed design preview, with a handle, the title Share report, a line of text, a Copy link button and a Cancel button.",
       "clip": true,
-      "inputs": "sha256:2fd7bb08cc002b7c5fcea344a91137868033f5618ded46390d47439e7b9d6869"
+      "inputs": "sha256:1bb6d3e980d9aad0d754406ad1585dffe6f237703441abd9350d2277661efdb2"
     },
     {
       "name": "sheet",
@@ -147,9 +247,9 @@
       "platform": "android",
       "client": "mobile-react-native",
       "source": "a Release build in the Android 16 emulator (Pixel 10 Pro)",
-      "date": "2026-11-15",
+      "date": "2026-11-19",
       "alt": "A bottom sheet risen from the bottom of a phone screen over the dimmed design preview, with a handle, the title Share report, a line of text, a Copy link button and a Cancel button.",
-      "inputs": "sha256:2fd7bb08cc002b7c5fcea344a91137868033f5618ded46390d47439e7b9d6869"
+      "inputs": "sha256:1bb6d3e980d9aad0d754406ad1585dffe6f237703441abd9350d2277661efdb2"
     },
     {
       "name": "sheet",

@@ -283,7 +283,9 @@ Three additional navigation components exist only on the touch-oriented platform
 
 All three default to `solid`. With `surface="glass"`, a navigation bar uses `color.glass.tint` over the backdrop. The bottom sheet keeps its scrim and uses `tint-strong` so secondary text, links and the drag handle stay legible. Give a trailing action on a glass TopBar its own opaque fill. The back button and the selected tab already have one.
 
-In React Native, import `GlassScene` and `GlassBackdrop` from `@acme/ui-native/glass`. Put the content to blur inside the backdrop, and place the bars and sheet beside it inside the same scene. A native app build links the library's Expo module to observe power-saving and accessibility settings. Expo Go uses the opaque fallback because its binary omits that module. Open `/design?section=glass` in a native build to see the available material, and append `&sheet=1` to open its sheet.
+<!-- @if mobile-react-native -->
+In React Native, import `GlassScene` and `GlassBackdrop` from `@acme/ui-native/glass`. Put the content to blur inside the backdrop, and place the bars and sheet beside it inside the same scene. From `apps/mobile`, `pnpm exec expo run:ios` or `pnpm exec expo run:android` builds the app with the library's native settings module. It listens for changes to power-saving and accessibility settings. iOS Liquid Glass draws the system material. For the blur tier, Expo exposes an Android blur radius and an iOS material intensity. Saturation follows the platform material. Expo Go uses the opaque fallback because its binary omits the settings module. Open `/design?section=glass` in a native build to see the available material, and append `&sheet=1` to open its sheet.
+<!-- @endif -->
 
 The token build checks glass text on both black and white backdrops in each color mode and theme. The foreground needs 4.5:1 contrast and the sheet handle needs 3:1. The opaque fallback uses `color.glass.fallback`. `glass.blur` is the Gaussian standard deviation in logical pixels, and `glass.saturation` multiplies the blurred backdrop's saturation before tinting.
 

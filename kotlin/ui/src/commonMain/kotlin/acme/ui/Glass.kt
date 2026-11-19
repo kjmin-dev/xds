@@ -63,12 +63,15 @@ fun Modifier.glassBackdrop(): Modifier {
 }
 
 @Composable
+internal fun hasBlurredBackdrop(): Boolean = LocalBlur.current && (LocalGlass.current?.backdrops ?: 0) > 0
+
+@Composable
 internal fun Modifier.glassSurface(shape: Shape, sheet: Boolean = false): Modifier {
     val colors = LocalColors.current
     val state = LocalGlass.current
     val shadow = if (sheet) Shadow.overlay else Shadow.raised
     val frame = shadow(shadow.copy(color = colors.glassShadow), shape).clip(shape)
-    val fill = if (LocalBlur.current && state != null && state.backdrops > 0) {
+    val fill = if (state != null && hasBlurredBackdrop()) {
         val style = remember(colors, sheet) {
             HazeBlurStyle {
                 blurRadius((Glass.blur - 0.5.dp) / 0.57735f)

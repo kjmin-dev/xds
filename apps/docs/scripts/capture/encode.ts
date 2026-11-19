@@ -2,15 +2,27 @@
 // wide (a 390 pt phone screen at 2x), and H.264 clips 600 px wide that start playing before they
 // have finished loading. Stills go through cwebp: Homebrew's ffmpeg has no WebP encoder.
 
+import { readFile } from "node:fs/promises";
 import { run, words } from "./process.ts";
 
 /** The longest clip the site takes. */
 const CLIP_SECONDS = 3;
 
-export async function encodeStill(png: string, webp: string, width = 780) {
+export async function encodeStill(png: string, webp: string, name: string) {
+  const sheet = name.startsWith("glass-sheet-");
+  const width = sheet ? 440 : name.startsWith("glass-") ? 360 : 780;
+  const crop: string[] = [];
+  if (sheet) {
+    // Keep the sheet and some of the dimmed backdrop. The ordinary sheet still shows the
+    // whole screen, so tier comparisons can spend their shared page budget on legible text.
+    const image = await readFile(png);
+    const height = image.readUInt32BE(20);
+    const top = Math.floor((height * 0.54) / 2) * 2;
+    crop.push("-crop", "0", String(top), String(image.readUInt32BE(16)), String(height - top));
+  }
   // sharp_yuv keeps the edges of thin colored text, which plain 4:2:0 conversion smears.
-  const options = words(`-quiet -q 80 -m 6 -sharp_yuv -metadata none -resize ${width} 0`);
-  await run("cwebp", [...options, png, "-o", webp]);
+  const options = words(`-quiet -q ${sheet ? 75 : 80} -m 6 -sharp_yuv -metadata none`);
+  await run("cwebp", [...options, ...crop, "-resize", String(width), "0", png, "-o", webp]);
 }
 
 /**

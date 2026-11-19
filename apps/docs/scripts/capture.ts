@@ -247,7 +247,7 @@ async function record(platform: CapturePlatform, taken: Taken) {
       const still = join(out, stillPath(capture, mode));
       await mkdir(dirname(still), { recursive: true });
       // Tier comparisons share a page with the full-size navigation and sheet captures.
-      await encodeStill(raw.still[mode], still, name.startsWith("glass-") ? 360 : 780);
+      await encodeStill(raw.still[mode], still, name);
       if (raw.clip) {
         const clip = join(out, clipPath(capture, mode));
         await encodeClip(raw.clip[mode], clip);

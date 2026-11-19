@@ -45,6 +45,13 @@ export const colors = {
     "overlayBackground": "rgba(0, 0, 0, 0.72)",
     "overlayText": "#ffffff",
     "overlayAccent": "#a5b4fc",
+    "glassTint": "rgba(255, 255, 255, 0.72)",
+    "glassTintStrong": "rgba(255, 255, 255, 0.92)",
+    "glassHighlight": "rgba(255, 255, 255, 0.5)",
+    "glassBorder": "rgba(255, 255, 255, 0.6)",
+    "glassShadow": "rgba(0, 0, 0, 0.12)",
+    "glassFallback": "#ffffff",
+    "glassForeground": "#18181c",
     "buttonPrimaryBackground": "#4f46e5",
     "buttonPrimaryBackgroundHover": "#4338ca",
     "buttonPrimaryBackgroundPressed": "#3730a3",
@@ -254,6 +261,13 @@ export const colors = {
     "overlayBackground": "rgba(0, 0, 0, 0.72)",
     "overlayText": "#ffffff",
     "overlayAccent": "#a5b4fc",
+    "glassTint": "rgba(34, 34, 40, 0.72)",
+    "glassTintStrong": "rgba(34, 34, 40, 0.92)",
+    "glassHighlight": "rgba(255, 255, 255, 0.08)",
+    "glassBorder": "rgba(255, 255, 255, 0.12)",
+    "glassShadow": "rgba(0, 0, 0, 0.35)",
+    "glassFallback": "#222228",
+    "glassForeground": "#f5f5f7",
     "buttonPrimaryBackground": "#5b5ef0",
     "buttonPrimaryBackgroundHover": "#4f46e5",
     "buttonPrimaryBackgroundPressed": "#4338ca",
@@ -611,6 +625,11 @@ export const shadow = {
     "blur": 32,
     "spread": 0
   }
+} as const;
+
+export const glass = {
+  "blur": 12,
+  "saturation": 1.8
 } as const;
 
 /** Control sizes by input device: `pointer` for a mouse, `touch` for fingers. */

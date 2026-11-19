@@ -67,7 +67,48 @@ const STAY =
  * What each capture shows. React Native and Compose word some of their samples differently, so
  * each describes its own.
  */
-const NAMES: Record<CaptureName, { components: string[]; alt: Record<CapturePlatform, string> }> = {
+const NAMES: Record<
+  CaptureName,
+  { components: string[]; alt: Partial<Record<CapturePlatform, string>> }
+> = {
+  "glass-native": {
+    components: ["TopBar", "TabBar"],
+    alt: { ios: "Collections and its tabs drawn inside iOS Liquid Glass above colored rows." },
+  },
+  "glass-sheet-native": {
+    components: ["BottomSheet"],
+    alt: { ios: "Collection details in a native Liquid Glass bottom sheet over the dimmed list." },
+  },
+  "glass-blur": {
+    components: ["TopBar", "TabBar"],
+    alt: {
+      ...reactNative("A blurred top bar and tab bar over a scrolling collection of colored rows."),
+      compose: "A blurred top bar and tab bar over a scrolling collection of colored rows.",
+    },
+  },
+  "glass-solid": {
+    components: ["TopBar", "TabBar"],
+    alt: {
+      ...reactNative("The same collection with opaque navigation bars for reduced transparency."),
+      compose: "The same collection with opaque navigation bars for reduced transparency.",
+    },
+  },
+  "glass-sheet-blur": {
+    components: ["BottomSheet"],
+    alt: {
+      ...reactNative(
+        "Collection details inside a strongly tinted glass sheet over the dimmed list.",
+      ),
+      compose: "Collection details inside a strongly tinted glass sheet over the dimmed list.",
+    },
+  },
+  "glass-sheet-solid": {
+    components: ["BottomSheet"],
+    alt: {
+      ...reactNative("Collection details inside the opaque fallback sheet over the dimmed list."),
+      compose: "Collection details inside the opaque fallback sheet over the dimmed list.",
+    },
+  },
   navigation: {
     components: ["TopBar", "TabBar"],
     alt: {
@@ -186,6 +227,8 @@ async function record(platform: CapturePlatform, taken: Taken) {
   const client = CLIENT[platform];
   const captures: Capture[] = [];
   for (const [name, raw] of taken.shots) {
+    const alt = NAMES[name].alt[platform];
+    if (!alt) throw new Error(`No ${platform} capture for ${name}`);
     const shown = {
       name,
       components: NAMES[name].components,
@@ -193,7 +236,7 @@ async function record(platform: CapturePlatform, taken: Taken) {
       client,
       source: taken.source,
       date,
-      alt: NAMES[name].alt[platform],
+      alt,
       ...(raw.clip ? { clip: true } : {}),
     };
     const capture: Capture = {
@@ -203,7 +246,8 @@ async function record(platform: CapturePlatform, taken: Taken) {
     for (const mode of MODES) {
       const still = join(out, stillPath(capture, mode));
       await mkdir(dirname(still), { recursive: true });
-      await encodeStill(raw.still[mode], still);
+      // Tier comparisons share a page with the full-size navigation and sheet captures.
+      await encodeStill(raw.still[mode], still, name.startsWith("glass-") ? 360 : 780);
       if (raw.clip) {
         const clip = join(out, clipPath(capture, mode));
         await encodeClip(raw.clip[mode], clip);
@@ -287,6 +331,11 @@ try {
   await rm(join(build, "maestro"), { recursive: true, force: true });
   await rm(join(build, "out"), { recursive: true, force: true });
   for (const platform of platforms) {
+    const supported = names.filter((name) => NAMES[name].alt[platform] !== undefined);
+    if (supported.length === 0) {
+      if (values.platform) usage(`${asked} has no ${platform} capture.`);
+      continue;
+    }
     console.log(`${platform}:`);
     const workspace = workspaceOf(platform);
     await rm(workspace.raw, { recursive: true, force: true });
@@ -295,7 +344,7 @@ try {
     for (const log of ["build", "simulator", "emulator", "maestro", "render"])
       await rm(join(workspace.logs, `${platform}-${log}.log`), { force: true });
     try {
-      await record(platform, await TAKE[platform](names, workspace));
+      await record(platform, await TAKE[platform](supported, workspace));
     } catch (error) {
       console.error(`  ${(error as Error).message}`);
       failures.push(platform);

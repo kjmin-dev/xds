@@ -4,7 +4,9 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./scheme": "./src/scheme.ts"
+    "./scheme": "./src/scheme.ts",
+    "./glass-preview": "./src/glassPreview.ts",
+    "./glass": "./src/glassScene.ts"
   },
   "scripts": {
     "typecheck": "tsrs --noEmit",
@@ -18,7 +20,10 @@
     "react": "catalog:",
     "react-native": "0.88.1",
     "react-native-safe-area-context": "~5.11.1",
-    "react-native-svg": "15.16.0"
+    "react-native-svg": "15.16.0",
+    "expo-blur": "~58.0.6",
+    "expo-glass-effect": "~58.0.5",
+    "expo-linear-gradient": "~58.0.4"
   },
   "devDependencies": {
     "@types/react": "catalog:",
@@ -27,6 +32,9 @@
     "react-native": "0.88.1",
     "react-native-safe-area-context": "~5.11.1",
     "react-native-svg": "15.16.0",
-    "tsrs": "catalog:"
+    "tsrs": "catalog:",
+    "expo-blur": "~58.0.6",
+    "expo-glass-effect": "~58.0.5",
+    "expo-linear-gradient": "~58.0.4"
   }
 }

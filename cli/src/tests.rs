@@ -2297,6 +2297,7 @@ fn tokens_resolve_per_mode_with_their_tier() {
             .starts_with('#')
     );
 
+    assert_eq!(token("color.glass.tint").tier, "semantic");
     assert_eq!(token("palette.neutral.0").tier, "palette");
     assert_eq!(token("space.4").values["value"], "16px");
     assert_eq!(token("space.4").tier, "base");

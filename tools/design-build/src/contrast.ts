@@ -68,6 +68,12 @@ const PAIRS: Pair[] = [
   ...STATUSES.flatMap((status) =>
     on(`status.${status}`, [...SURFACES, `status.${status}-subtle`], TEXT),
   ),
+  // Glass previews scroll these colored rows underneath the navigation surfaces.
+  ...on(
+    "text.primary",
+    STATUSES.map((status) => `status.${status}-subtle`),
+    TEXT,
+  ),
   ...on("border.strong", SURFACES, PART),
   ...on("border.focus", SURFACES, PART),
   ...on("accent.default", SURFACES, PART),
@@ -220,6 +226,17 @@ const PAIRS: Pair[] = [
   ...on("tab-bar.text-selected", ["tab-bar.background"], TEXT),
   ...on("sheet.handle", ["sheet.background"], PART),
   ...["text.primary", "text.secondary"].flatMap((text) => on(text, ["sheet.background"], TEXT)),
+  // Glass may cover any content. Check both ends of the luminance range before the
+  // decorative edge highlight, including the opaque surface used with reduced transparency.
+  ...on("glass.foreground", ["glass.fallback"], TEXT),
+  { foreground: "glass.foreground", background: "glass.tint", minimum: TEXT, over: [WHITE, BLACK] },
+  ...["text.primary", "text.secondary", "text.accent", "sheet.handle"].flatMap((foreground) => {
+    const minimum = foreground === "sheet.handle" ? PART : TEXT;
+    return [
+      ...on(foreground, ["glass.fallback"], minimum),
+      { foreground, background: "glass.tint-strong", minimum, over: [WHITE, BLACK] },
+    ];
+  }),
   // DatePicker: the days on the calendar's surface, on the sheet on touch, and under a pointer.
   ...on(
     "date-picker.day-text",

@@ -77,6 +77,13 @@ pub struct Colors {
     pub overlay_text: Color,
     /// Accent-colored marks on the overlay background, such as how much of a video was watched. Light enough to read over any picture, so the same in both modes.
     pub overlay_accent: Color,
+    pub glass_tint: Color,
+    pub glass_tint_strong: Color,
+    pub glass_highlight: Color,
+    pub glass_border: Color,
+    pub glass_shadow: Color,
+    pub glass_fallback: Color,
+    pub glass_foreground: Color,
     pub button_primary_background: Color,
     pub button_primary_background_hover: Color,
     pub button_primary_background_pressed: Color,
@@ -305,7 +312,7 @@ pub struct Colors {
 
 impl Colors {
     /// Every color with its token name, in token order. For screens that list the colors.
-    pub const fn entries(&self) -> [(&'static str, Color); 207] {
+    pub const fn entries(&self) -> [(&'static str, Color); 214] {
         [
             ("scrim", self.scrim),
             ("background-base", self.background_base),
@@ -349,6 +356,13 @@ impl Colors {
             ("overlay-background", self.overlay_background),
             ("overlay-text", self.overlay_text),
             ("overlay-accent", self.overlay_accent),
+            ("glass-tint", self.glass_tint),
+            ("glass-tint-strong", self.glass_tint_strong),
+            ("glass-highlight", self.glass_highlight),
+            ("glass-border", self.glass_border),
+            ("glass-shadow", self.glass_shadow),
+            ("glass-fallback", self.glass_fallback),
+            ("glass-foreground", self.glass_foreground),
             ("button-primary-background", self.button_primary_background),
             ("button-primary-background-hover", self.button_primary_background_hover),
             ("button-primary-background-pressed", self.button_primary_background_pressed),
@@ -561,6 +575,13 @@ pub const LIGHT: Colors = Colors {
     overlay_background: Color::rgba(0, 0, 0, 0.72),
     overlay_text: Color::rgba(255, 255, 255, 1.0),
     overlay_accent: Color::rgba(165, 180, 252, 1.0),
+    glass_tint: Color::rgba(255, 255, 255, 0.72),
+    glass_tint_strong: Color::rgba(255, 255, 255, 0.92),
+    glass_highlight: Color::rgba(255, 255, 255, 0.5),
+    glass_border: Color::rgba(255, 255, 255, 0.6),
+    glass_shadow: Color::rgba(0, 0, 0, 0.12),
+    glass_fallback: Color::rgba(255, 255, 255, 1.0),
+    glass_foreground: Color::rgba(24, 24, 28, 1.0),
     button_primary_background: Color::rgba(79, 70, 229, 1.0),
     button_primary_background_hover: Color::rgba(67, 56, 202, 1.0),
     button_primary_background_pressed: Color::rgba(55, 48, 163, 1.0),
@@ -771,6 +792,13 @@ pub const DARK: Colors = Colors {
     overlay_background: Color::rgba(0, 0, 0, 0.72),
     overlay_text: Color::rgba(255, 255, 255, 1.0),
     overlay_accent: Color::rgba(165, 180, 252, 1.0),
+    glass_tint: Color::rgba(34, 34, 40, 0.72),
+    glass_tint_strong: Color::rgba(34, 34, 40, 0.92),
+    glass_highlight: Color::rgba(255, 255, 255, 0.08),
+    glass_border: Color::rgba(255, 255, 255, 0.12),
+    glass_shadow: Color::rgba(0, 0, 0, 0.35),
+    glass_fallback: Color::rgba(34, 34, 40, 1.0),
+    glass_foreground: Color::rgba(245, 245, 247, 1.0),
     button_primary_background: Color::rgba(91, 94, 240, 1.0),
     button_primary_background_hover: Color::rgba(79, 70, 229, 1.0),
     button_primary_background_pressed: Color::rgba(67, 56, 202, 1.0),
@@ -1049,6 +1077,11 @@ pub const SHADOW_SUBTLE: Shadow = Shadow { color: Color::rgba(0, 0, 0, 0.06), of
 pub const SHADOW_RAISED: Shadow = Shadow { color: Color::rgba(0, 0, 0, 0.12), offset_x: 0.0, offset_y: 4.0, blur: 16.0, spread: 0.0 };
 /// Dialogs and sheets, which sit above everything else on the screen.
 pub const SHADOW_OVERLAY: Shadow = Shadow { color: Color::rgba(0, 0, 0, 0.35), offset_x: 0.0, offset_y: 12.0, blur: 32.0, spread: 0.0 };
+
+/// Gaussian standard deviation for a blurred navigation surface.
+pub const GLASS_BLUR: f32 = 12.0;
+/// Backdrop saturation multiplier before the glass tint is drawn.
+pub const GLASS_SATURATION: f32 = 1.8;
 
 /// Control sizes, for one input device.
 #[derive(Debug, Clone, Copy, PartialEq)]

@@ -174,6 +174,21 @@ export async function shoot(
   await mkdir(context.raw, { recursive: true });
   for (const mode of MODES) {
     await device.setMode(mode);
+    for (const name of names.filter((name) => name.startsWith("glass-"))) {
+      const tier = name.split("-").at(-1);
+      const sheet = name.startsWith("glass-sheet-");
+      await maestro(
+        device,
+        "glass.yaml",
+        {
+          LINK: `${scheme}://design?section=glass&glass=${tier}${sheet ? "&sheet=1" : ""}`,
+          TEXT: sheet ? "Collection details" : "Collections",
+          MATERIAL: `glass-${sheet ? "sheet" : "bar"}-${tier}`,
+        },
+        context,
+      );
+      await device.screenshot(file(name, mode, "png"));
+    }
     for (const name of ["datepicker", "daterange"] as const) {
       if (!names.includes(name)) continue;
       await maestro(

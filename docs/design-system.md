@@ -277,9 +277,15 @@ Three additional navigation components exist only on the touch-oriented platform
 
 | Component | Options | Rule |
 | --- | --- | --- |
-| TopBar | title, back action, trailing | Matches the page background with no bottom border. The back button is a circular control whose press area is as large as the minimum touch target |
-| TabBar | items (label and icon), value | Holds three to five top-level destinations. Floats above the bottom edge as a capsule, with the active tab enclosed in its own pill so selection does not depend on color |
-| BottomSheet | open, title, content | Floats inset from the screen edges. Closes when tapping the scrim, dragging down, or pressing the back button |
+| TopBar | title, back action, trailing, surface | Matches the page background with no bottom border. The back button is a circular control whose press area is as large as the minimum touch target |
+| TabBar | items (label and icon), value, surface | Holds three to five top-level destinations. Floats above the bottom edge as a capsule, with the active tab enclosed in its own pill so selection does not depend on color |
+| BottomSheet | open, title, content, surface | Floats inset from the screen edges. Closes when tapping the scrim, dragging down, or pressing the back button |
+
+All three default to `solid`. With `surface="glass"`, a navigation bar uses `color.glass.tint` over the backdrop. The bottom sheet keeps its scrim and uses `tint-strong` so secondary text, links and the drag handle stay legible. Give a trailing action on a glass TopBar its own opaque fill. The back button and the selected tab already have one.
+
+In React Native, import `GlassScene` and `GlassBackdrop` from `@acme/ui-native/glass`. Put the content to blur inside the backdrop, and place the bars and sheet beside it inside the same scene. A native app build links the library's Expo module to observe power-saving and accessibility settings. Expo Go uses the opaque fallback because its binary omits that module. Open `/design?section=glass` in a native build to see the available material, and append `&sheet=1` to open its sheet.
+
+The token build checks glass text on both black and white backdrops in each color mode and theme. The foreground needs 4.5:1 contrast and the sheet handle needs 3:1. The opaque fallback uses `color.glass.fallback`. `glass.blur` is the Gaussian standard deviation in logical pixels, and `glass.saturation` multiplies the blurred backdrop's saturation before tinting.
 
 Two components exist only on the pointer-oriented platforms (the web clients and GPUI):
 

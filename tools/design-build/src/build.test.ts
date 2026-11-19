@@ -104,6 +104,20 @@ test("a low-contrast pairing is reported with its mode", async () => {
   );
 });
 
+test("glass tints must carry text on both extremes of the backdrop", async () => {
+  const model = await loadModel(tokensDir);
+  const colors = model.colors.map((token) =>
+    token.path[0] === "glass" && token.path[1]?.startsWith("tint")
+      ? { ...token, light: { ...token.light, a: 0 }, dark: { ...token.dark, a: 0 } }
+      : token,
+  );
+  const failures = checkContrast({ ...model, colors }).join("\n");
+  for (const pair of ["glass.foreground on glass.tint", "text.secondary on glass.tint-strong"]) {
+    assert.ok(failures.includes(`${pair} over rgb(0 0 0) (light)`));
+    assert.ok(failures.includes(`${pair} over rgb(255 255 255) (dark)`));
+  }
+});
+
 test("contrast ratio matches the WCAG reference values", () => {
   const black = { r: 0, g: 0, b: 0, a: 1 };
   const white = { r: 255, g: 255, b: 255, a: 1 };

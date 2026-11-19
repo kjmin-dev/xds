@@ -22,9 +22,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 private val destinations = listOf(
     TabItem("home", "Home") { Icon(IconName.House) },
@@ -44,13 +51,17 @@ internal fun GlassPreview(tier: String?, autoscroll: Boolean, sheetOpen: Boolean
         "Warning" to colors.statusWarningSubtle,
         "Review" to colors.statusDangerSubtle,
     )
-    LaunchedEffect(autoscroll, scroll.maxValue) {
-        if (autoscroll && scroll.maxValue in 1 until Int.MAX_VALUE) {
-            scroll.animateScrollTo(scroll.maxValue, tween(10_000, easing = LinearEasing))
-        }
-    }
     CompositionLocalProvider(LocalPreviewBlur provides (tier != "solid")) {
         GlassScene {
+            val blur = hasBlurredBackdrop()
+            LaunchedEffect(autoscroll, scroll.maxValue, blur) {
+                if (autoscroll && scroll.maxValue in 1 until Int.MAX_VALUE) {
+                    scroll.scrollTo(0)
+                    measureScroll(if (blur) "blur" else "solid") {
+                        scroll.animateScrollTo(scroll.maxValue, tween(10_000, easing = LinearEasing))
+                    }
+                }
+            }
             Box(modifier) {
                 Column(Modifier.fillMaxSize().glassBackdrop().verticalScroll(scroll)) {
                     repeat(24) { index ->
@@ -74,5 +85,33 @@ internal fun GlassPreview(tier: String?, autoscroll: Boolean, sheetOpen: Boolean
                 }
             }
         }
+    }
+}
+
+
+// Capture callback intervals from the same frame clock as the animation. Instruments and
+// FrameTimeline measure presentation hitches separately. Samples go into one buffer and are logged after the scroll.
+private suspend fun measureScroll(tier: String, animate: suspend () -> Unit) = coroutineScope {
+    val intervals = LongArray(4096)
+    var count = 0
+    val sampler = launch(start = CoroutineStart.UNDISPATCHED) {
+        var previous = withFrameNanos { it }
+        while (count < intervals.size) {
+            val now = withFrameNanos { it }
+            intervals[count++] = now - previous
+            previous = now
+        }
+    }
+    try {
+        animate()
+    } finally {
+        sampler.cancelAndJoin()
+    }
+    if (count > 0) {
+        val samples = intervals.copyOf(count).sortedArray()
+        val duration = samples.sum() / 1_000_000.0
+        val p99 = samples[ceil(count * 0.99).toInt() - 1] / 1_000_000.0
+        val missed = samples.sumOf { ((it / (1_000_000_000.0 / 120)).roundToInt() - 1).coerceAtLeast(0) }
+        println("XDS_GLASS_FRAMES tier=$tier intervals=$count elapsed_ms=$duration callback_p99_ms=$p99 missed_120hz=$missed")
     }
 }

@@ -1,26 +1,38 @@
-import { radius, space } from "@acme/tokens";
+import { space } from "@acme/tokens";
 import { useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
-import { fieldName, formatDay, type IsoDate, localDay } from "./datePicker.ts";
-// No extension, so that Metro takes DatePickerCalendar.ios.tsx or DatePickerCalendar.android.tsx
-// for the platform it bundles. A bundler for the web takes DatePickerCalendar.tsx, which loads
-// no native view.
-import { DatePickerCalendar } from "./DatePickerCalendar";
-import { Icon } from "./Icon.tsx";
-import { Text } from "./Text.tsx";
-import { FieldMessage, fieldOutline } from "./TextField.tsx";
-import { CONTROL_HEIGHT, useColors } from "./theme.ts";
+import { AccessibilityInfo, I18nManager, Platform, StyleSheet, View } from "react-native";
+import { BottomSheet } from "./BottomSheet.tsx";
+import {
+  cellSize,
+  DateField,
+  MonthGrid,
+  MonthHeading,
+  useCalendarNames,
+  useCalendarOpen,
+  useSheetWidth,
+  WeekdayRow,
+} from "./Calendar.tsx";
+import {
+  addMonths,
+  hasMonthAfter,
+  hasMonthBefore,
+  type IsoDate,
+  monthOf,
+  openingDay,
+} from "./datePicker.ts";
+import { CHOSEN, UNMARKED } from "./dateRange.ts";
+import { IconButton } from "./IconButton.tsx";
 
 export type { IsoDate };
 
 export type DatePickerProps = {
-  /** Always visible, like a TextField's. On iOS it is also the title of the sheet. */
+  /** Always visible, like a TextField's. It is also the title of the calendar's sheet. */
   label: string;
   /** The chosen day, as `YYYY-MM-DD`. Leave it out while none is chosen. */
   value?: IsoDate | undefined;
-  /** Called with the day the person chooses. */
+  /** Called with the day the person chooses. The calendar closes itself. */
   onChange: (value: IsoDate) => void;
-  /** The first day that can be chosen. */
+  /** The first day that can be chosen. Days before it are shown and cannot be chosen. */
   min?: IsoDate | undefined;
   /** The last day that can be chosen. */
   max?: IsoDate | undefined;
@@ -31,17 +43,9 @@ export type DatePickerProps = {
   /** What is wrong and how to fix it. Clear it when the value changes. */
   error?: string | undefined;
   disabled?: boolean;
-  /**
-   * The button under the calendar that closes the sheet on iOS, where a day is chosen as soon
-   * as it is pressed. Android's dialog has its own buttons, in the system's language.
-   */
-  doneLabel?: string;
-  /**
-   * Taken so that a screen written for the other clients compiles, and ignored: the system's
-   * calendar names its own buttons to the months before and after, in the device's language.
-   */
+  /** Names the button that shows the month before, for a screen reader. */
   previousLabel?: string;
-  /** Ignored, as `previousLabel` is. */
+  /** Names the button that shows the month after. */
   nextLabel?: string;
   /** Starts with the calendar open, for a preview or a screenshot. */
   defaultOpen?: boolean;
@@ -49,16 +53,13 @@ export type DatePickerProps = {
 
 /**
  * A field for choosing one day. Closed, it looks like a Select, with the day in the locale's
- * medium form. Pressed, it shows the system's calendar through Expo UI, which every other
- * component leaves alone: Material 3's date dialog on Android, in the `date-picker` colors, and
- * the iOS calendar in a bottom sheet titled with the label, tinted with the accent. The calendar
- * follows the device's language, region and calendar, so the names of the months, the first
- * day of the week and the buttons to other months are the system's.
+ * medium form. Pressed, it opens a calendar of one month in a bottom sheet titled with the label,
+ * on the chosen day, or on today while none is, held between `min` and `max`. Days outside them
+ * are dimmed and cannot be chosen; today has a ring and the chosen day a filled circle.
  *
- * On Android, OK chooses the day and closes the dialog, and Cancel, Back or a tap outside
- * closes it without choosing. On iOS a press on a day chooses it at once and the sheet stays
- * for another; Done, a drag down or a tap outside closes it. A drag that starts on the calendar
- * stays the calendar's, so the sheet is dragged by its handle, its title or the space around.
+ * Pressing a day chooses it and closes the sheet; a tap outside, a drag down or Back closes it
+ * without choosing. The names of the months and the days and the first day of the week are the
+ * device locale's.
  */
 export function DatePicker({
   label,
@@ -70,77 +71,114 @@ export function DatePicker({
   description,
   error,
   disabled = false,
-  doneLabel = "Done",
+  previousLabel = "Previous month",
+  nextLabel = "Next month",
   defaultOpen = false,
 }: DatePickerProps) {
-  const colors = useColors();
-  const [open, setOpen] = useState(defaultOpen && !disabled);
-  // Read when the calendar opens rather than while drawing: a screen can stay up past midnight.
-  const [today, setToday] = useState(() => localDay(new Date()));
-  const shown = value === undefined ? placeholder : formatDay(value);
-  // While its calendar is open the field is the one in use, and is outlined as a TextField is
-  // while it has focus.
-  const outline = fieldOutline(colors, open, error !== undefined);
+  const names = useCalendarNames();
+  const calendar = useCalendarOpen(defaultOpen && !disabled);
 
   return (
     <View style={styles.field}>
-      <Text variant="label" tone={disabled ? "secondary" : "primary"}>
-        {label}
-      </Text>
-      <Pressable
-        role="button"
-        // The day comes first: it is what changes, and what a person listens for.
-        aria-label={fieldName(label, shown)}
-        // React Native has no ARIA prop for a hint.
-        accessibilityHint={error ?? description}
-        aria-disabled={disabled}
-        aria-expanded={open}
-        disabled={disabled}
-        onPress={() => {
-          setToday(localDay(new Date()));
-          setOpen(true);
-        }}
-        style={[
-          styles.box,
-          {
-            borderWidth: outline.width,
-            borderColor: outline.color,
-            backgroundColor: disabled ? colors.backgroundDisabled : colors.fieldBackground,
-            paddingHorizontal: outline.edge,
-          },
-        ]}
-      >
-        <Text
-          tone="inherit"
-          numberOfLines={1}
-          style={[
-            styles.value,
-            {
-              color:
-                value === undefined
-                  ? colors.fieldPlaceholder
-                  : disabled
-                    ? colors.textDisabled
-                    : colors.fieldText,
-            },
-          ]}
-        >
-          {shown}
-        </Text>
-        <Icon name="calendar" size="sm" color={colors.fieldPlaceholder} />
-      </Pressable>
-      <FieldMessage error={error} description={description} />
-      <DatePickerCalendar
-        open={open}
+      <DateField
         label={label}
-        value={value}
-        min={min}
-        max={max}
-        today={today}
-        doneLabel={doneLabel}
-        onChange={onChange}
-        onClose={() => setOpen(false)}
+        shown={value === undefined ? undefined : names.medium(value)}
+        placeholder={placeholder}
+        description={description}
+        error={error}
+        disabled={disabled}
+        open={calendar.open}
+        onOpen={calendar.show}
       />
+      <BottomSheet open={calendar.open} onClose={calendar.hide} title={label}>
+        <Month
+          key={calendar.openings}
+          value={value}
+          min={min}
+          max={max}
+          today={calendar.today}
+          previousLabel={previousLabel}
+          nextLabel={nextLabel}
+          onChoose={(day) => {
+            onChange(day);
+            calendar.hide();
+          }}
+        />
+      </BottomSheet>
+    </View>
+  );
+}
+
+/** One month, between buttons that show the months before and after it. */
+function Month({
+  value,
+  min,
+  max,
+  today,
+  previousLabel,
+  nextLabel,
+  onChoose,
+}: {
+  value: IsoDate | undefined;
+  min: IsoDate | undefined;
+  max: IsoDate | undefined;
+  today: IsoDate;
+  previousLabel: string;
+  nextLabel: string;
+  onChoose: (day: IsoDate) => void;
+}) {
+  const names = useCalendarNames();
+  const [month, setMonth] = useState(() => monthOf(openingDay({ value, min, max }, today)));
+  const [width, measure] = useSheetWidth();
+  const cell = cellSize(width);
+  const page = (count: number) => {
+    const shown = addMonths(month, count);
+    setMonth(shown);
+    // VoiceOver has no live regions: it is told the month the button showed.
+    if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibility(names.month(shown));
+  };
+  // The chevrons point the way the months run, which is mirrored right to left.
+  const [back, on] = I18nManager.isRTL
+    ? (["chevron-right", "chevron-left"] as const)
+    : (["chevron-left", "chevron-right"] as const);
+
+  return (
+    <View style={styles.calendar} onLayout={(event) => measure(event.nativeEvent.layout.width)}>
+      <View style={[styles.month, { width: cell * 7 }]}>
+        {/* As the other clients lay it out: the month between the buttons that change it. */}
+        <View style={styles.header}>
+          <IconButton
+            icon={back}
+            label={previousLabel}
+            size="sm"
+            disabled={!hasMonthBefore(month, min)}
+            onPress={() => page(-1)}
+          />
+          <View style={styles.title}>
+            <MonthHeading title={names.month(month)} live />
+          </View>
+          <IconButton
+            icon={on}
+            label={nextLabel}
+            size="sm"
+            disabled={!hasMonthAfter(month, max)}
+            onPress={() => page(1)}
+          />
+        </View>
+        <View>
+          <WeekdayRow initials={names.initials} cell={cell} />
+          <MonthGrid
+            month={month}
+            cell={cell}
+            names={names}
+            today={today}
+            min={min}
+            max={max}
+            marks={(day) => (day === value ? CHOSEN : UNMARKED)}
+            onPress={onChoose}
+          />
+        </View>
+      </View>
     </View>
   );
 }
@@ -150,16 +188,17 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     gap: space[1],
   },
-  // The outline is drawn inside this height, so the box is as tall as a TextField's whatever
-  // its state.
-  box: {
+  calendar: {
+    alignItems: "center",
+  },
+  month: {
+    gap: space[2],
+  },
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: space[2],
-    minHeight: CONTROL_HEIGHT.md,
-    borderRadius: radius.md,
   },
-  value: {
+  title: {
     flex: 1,
   },
 });

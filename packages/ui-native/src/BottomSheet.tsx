@@ -35,13 +35,28 @@ export type BottomSheetProps = {
  * a press. A control that keeps its drags, as a slider does, keeps them here too, and so does a
  * list that scrolls.
  */
-export function BottomSheet({
+export function BottomSheet(props: BottomSheetProps) {
+  return <Sheet {...props} tall={false} />;
+}
+
+/**
+ * A BottomSheet that takes most of the screen's height whatever its content's, for a list that
+ * scrolls inside it: the content's column fills what the title leaves, so give the list
+ * `flex: 1`. As in a Menu's sheet, a list that scrolls keeps the drags that start on it, and the
+ * sheet is dragged by its handle, its title and what is around the list.
+ */
+export function TallSheet(props: BottomSheetProps) {
+  return <Sheet {...props} tall />;
+}
+
+function Sheet({
   open,
   onClose,
   title,
   closeLabel = "Close",
   children,
-}: BottomSheetProps) {
+  tall,
+}: BottomSheetProps & { tall: boolean }) {
   const colors = useColors();
   const reduced = useReducedMotion();
   const insets = useSafeAreaInsets();
@@ -69,6 +84,12 @@ export function BottomSheet({
     });
   }, [open, progress, reduced, releases]);
 
+  const bottom = Math.max(insets.bottom, space[2]);
+  // A tall sheet stops short of the status bar, with the margin it keeps from the other edges.
+  const tallHeight = Math.min(
+    windowHeight * TALL_SHARE,
+    windowHeight - insets.top - space[2] - bottom,
+  );
   // How far the sheet moves from open to gone, which a drag divides to move `progress`.
   const travel = height + insets.bottom + space[4];
   // The responder is created once, so it reads what changes through refs.
@@ -167,7 +188,8 @@ export function BottomSheet({
         style={[
           styles.sheet,
           {
-            bottom: Math.max(insets.bottom, space[2]),
+            bottom,
+            ...(tall && { height: tallHeight }),
             backgroundColor: colors.sheetBackground,
             transform: [
               {
@@ -181,7 +203,7 @@ export function BottomSheet({
         <View style={styles.grip}>
           <View style={[styles.handle, { backgroundColor: colors.sheetHandle }]} />
         </View>
-        <View style={styles.content}>
+        <View style={[styles.content, tall && styles.fill]}>
           {title && (
             <Text variant="heading" heading>
               {title}
@@ -193,6 +215,31 @@ export function BottomSheet({
     </Modal>
   );
 }
+
+/**
+ * The responder handlers for a View inside a list in a sheet, around what the list scrolls. The
+ * sheet around the list moves with any drag down, a drag that starts on a row included. A list
+ * that `scrolls` keeps the drags that start on it instead, even at its top: Android's scroll view
+ * takes them for itself before the sheet could ask, and both systems then agree.
+ */
+export function useListDrags(scrolls: () => boolean) {
+  // The handlers are made once, so they call the latest `scrolls`.
+  const latest = useRef(scrolls);
+  latest.current = scrolls;
+  return useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => latest.current(),
+      onMoveShouldSetPanResponder: (_, gesture) =>
+        latest.current() && Math.abs(gesture.dy) > DRAG_SLOP,
+      onPanResponderTerminationRequest: () => !latest.current(),
+      // The scroll view scrolls by itself; this only keeps the drag from the sheet.
+      onShouldBlockNativeResponder: () => false,
+    }),
+  ).current.panHandlers;
+}
+
+/** How much of the screen's height a TallSheet takes, as Compose's tall sheet does. */
+const TALL_SHARE = 0.9;
 
 /** How far a finger goes before the sheet decides whether it is being dragged, in points. */
 export const DRAG_SLOP = 8;
@@ -247,5 +294,8 @@ const styles = StyleSheet.create({
     gap: space[4],
     paddingHorizontal: space[4],
     paddingBottom: space[4],
+  },
+  fill: {
+    flex: 1,
   },
 });

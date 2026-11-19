@@ -4,8 +4,9 @@
 //
 //   navigation  TopBar and TabBar: the design preview's Navigation section at the top of a phone
 //   sheet       BottomSheet: the same screen with the sheet open, and on iOS a clip of it rising
-//   datepicker  DatePicker: the preview's first date picker with its calendar open, which on iOS
-//               and Android is the system's
+//   datepicker  DatePicker: the preview's first date picker with its calendar open
+//   daterange   DateRangePicker: the preview's first date range picker with its sheet of months
+//               open
 //
 // Besides ffmpeg and cwebp (`brew install ffmpeg webp`), each platform needs:
 //
@@ -49,9 +50,22 @@ const manifestFile = join(docs, "captures.json");
 /** The same words for iOS and Android, where React Native draws the same thing on both. */
 const reactNative = (alt: string) => ({ ios: alt, android: alt });
 
+/** The date picker's sheet, which React Native and Compose draw from the same tokens. */
+const DUE =
+  "A bottom sheet titled Due date over the dimmed design preview, holding the calendar for " +
+  "March 2026 drawn from the tokens between buttons for the months before and after, with the " +
+  "10th chosen and the days before the 5th greyed out.";
+
+/** The range picker's sheet, which React Native and Compose draw from the same tokens. */
+const STAY =
+  "A tall bottom sheet titled Stay over the dimmed design preview: Check-in Mar 10, 2026 and " +
+  "Check-out Mar 14, 2026 at the top, the weekday initials, March 2026 with a band from the " +
+  "10th to the 14th between two filled circles and the days before the 5th greyed out, April " +
+  "2026 under it with the days after the 20th greyed out, and a Done button at the bottom.";
+
 /**
- * What each capture shows. React Native and Compose word their samples differently, so each
- * describes its own, and where the system draws a part, iOS and Android differ too.
+ * What each capture shows. React Native and Compose word some of their samples differently, so
+ * each describes its own.
  */
 const NAMES: Record<CaptureName, { components: string[]; alt: Record<CapturePlatform, string> }> = {
   navigation: {
@@ -85,18 +99,15 @@ const NAMES: Record<CaptureName, { components: string[]; alt: Record<CapturePlat
   datepicker: {
     components: ["DatePicker"],
     alt: {
-      ios:
-        "A bottom sheet titled Due date over the dimmed design preview, holding the iOS " +
-        "calendar for March 2026 with the 10th chosen and the days before the 5th greyed out, " +
-        "and a Done button under it.",
-      android:
-        "Material's date dialog over the dimmed design preview: the title Select date, the " +
-        "chosen day Mar 10, 2026, the calendar for March 2026 with the 10th chosen and the days " +
-        "before the 5th greyed out, and Cancel and OK buttons.",
-      compose:
-        "A bottom sheet titled Due date over the dimmed design preview, holding the calendar " +
-        "for March 2026 drawn from the tokens, with the 10th chosen and the days before the 5th " +
-        "greyed out.",
+      ...reactNative(DUE),
+      compose: DUE,
+    },
+  },
+  daterange: {
+    components: ["DateRangePicker"],
+    alt: {
+      ...reactNative(STAY),
+      compose: STAY,
     },
   },
 };

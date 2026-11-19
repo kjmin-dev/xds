@@ -1597,7 +1597,7 @@
     },
     {
       "name": "DatePicker",
-      "purpose": "A field for choosing one day. Closed, it looks like a Select. Pressed, it opens a calendar of one month: a popup where a pointer is used, a bottom sheet where fingers are. On React Native the calendar is the system's.",
+      "purpose": "A field for choosing one day. Closed, it looks like a Select. Pressed, it opens a calendar of one month: a popup where a pointer is used, a bottom sheet where fingers are.",
       "options": {
         "fields": [
           "label",
@@ -1608,8 +1608,7 @@
           "description",
           "error",
           "previousLabel",
-          "nextLabel",
-          "doneLabel"
+          "nextLabel"
         ],
         "flags": [
           "disabled"
@@ -1660,25 +1659,11 @@
       "differences": [
         {
           "clients": [
+            "mobile-react-native",
             "kotlin-compose"
           ],
           "kind": "adapts",
           "note": "The calendar opens in a BottomSheet titled with `label` instead of a popup under the field, its days at the touch value of `size.calendar-day` (48) unless seven of them are wider than the sheet. A tap outside, a drag down or Back closes it without choosing. Compose on the desktop opens the popup, as the pointer clients do. The web clients keep the popup on a touch screen, with the touch day size (`pointer: coarse`)."
-        },
-        {
-          "clients": [
-            "mobile-react-native"
-          ],
-          "kind": "system",
-          "note": "The calendar is the system's, shown through Expo UI: Material 3's date dialog on Android, where OK chooses the day and Cancel, Back or a tap outside closes it without choosing, and the iOS calendar in a BottomSheet titled with `label`, where a press on a day chooses it at once and Done, a drag down or a tap outside closes the sheet. A drag that starts on the calendar stays the calendar's: the sheet is dragged by its handle, its title or the space around the calendar. The calendar follows the device's language, region and calendar, so the names, the first day of the week, the keys and what a screen reader hears are the system's, and `previousLabel` and `nextLabel` are ignored. `color.date-picker` colors Android's dialog and tints the iOS calendar; their shapes, type and sizes are the system's, so `size.calendar-day` does not apply. The field is drawn from the tokens, like Select's."
-        },
-        {
-          "clients": [
-            "mobile-react-native"
-          ],
-          "option": "doneLabel",
-          "kind": "only",
-          "note": "Names the button under the iOS calendar that closes the sheet; `Done` unless it is given. Android's dialog has its own OK and Cancel, in the device's language."
         }
       ]
     },
@@ -1739,6 +1724,10 @@
           "source": "crates/acme-ui/src/date_range_picker.rs",
           "symbol": "DateRangePicker"
         },
+        "mobile-react-native": {
+          "source": "packages/ui-native/src/DateRangePicker.tsx",
+          "symbol": "DateRangePicker"
+        },
         "kotlin-compose": {
           "source": "kotlin/ui/src/commonMain/kotlin/acme/ui/DateRangePicker.kt",
           "symbol": "DateRangePicker"
@@ -1758,6 +1747,7 @@
         {
           "option": "doneLabel",
           "clients": [
+            "mobile-react-native",
             "kotlin-compose"
           ],
           "kind": "only",
@@ -1766,10 +1756,11 @@
         {
           "clients": [
             "desktop-gpui",
+            "mobile-react-native",
             "kotlin-compose"
           ],
           "kind": "adapts",
-          "note": "Where the platform has no formatter for a range of days (GPUI, and Compose on the desktop JVM), the field shows both days in the medium form joined by an en dash, \"Mar 10, 2026 – Mar 14, 2026\", where the others shorten what the two share, \"Mar 10 – 14, 2026\"."
+          "note": "Where the platform has no formatter for a range of days (GPUI, Compose on the desktop JVM, and React Native, whose JavaScript engine Hermes has none), the field shows both days in the medium form joined by an en dash, \"Mar 10, 2026 – Mar 14, 2026\", where the others shorten what the two share, \"Mar 10 – 14, 2026\"."
         }
       ]
     },

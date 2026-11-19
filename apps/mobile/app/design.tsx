@@ -5,8 +5,9 @@
 // `/design?section=navigation` starts at the section with that key, and `/design?from=3` at the
 // third section, for taking screenshots from a script, which can neither scroll nor tap. For the
 // same reason `/design?sheet=1` opens the bottom sheet, `?menu=1` the menu, `?select=1` the
-// select's list, `?datepicker=1` the system's calendar on the first date picker, `?dialog=1` the
-// dialog and `?toast=1` the toast, which then stays.
+// select's list, `?datepicker=1` the calendar of the first date picker, `?daterange=1` the
+// calendar of the first date range picker, `?dialog=1` the dialog and `?toast=1` the toast, which
+// then stays.
 
 import {
   border,
@@ -37,6 +38,8 @@ import {
   type ControlSize,
   CountBadge,
   DatePicker,
+  type DateRange,
+  DateRangePicker,
   Dialog,
   Divider,
   EmptyState,
@@ -294,10 +297,12 @@ export default function Design() {
   const [country, setCountry] = useState<(typeof COUNTRIES)[number]["value"]>();
   const [zone, setZone] = useState<(typeof TIME_ZONES)[number]["value"]>("seoul");
   const [language, setLanguage] = useState<(typeof LANGUAGES)[number]["value"]>();
-  // Fixed days, in a month that is over: the system's calendars mark today, and a picture of
-  // them must not change from one day to the next.
+  // Fixed days, in months that are over: the calendars mark today, and a picture of them must
+  // not change from one day to the next.
   const [due, setDue] = useState<IsoDate>("2026-03-10");
   const [starts, setStarts] = useState<IsoDate>();
+  const [stay, setStay] = useState<DateRange>({ start: "2026-03-10", end: "2026-03-14" });
+  const [leave, setLeave] = useState<DateRange>();
   const [volume, setVolume] = useState(40);
   const [speed, setSpeed] = useState(1.25);
   const [question, setQuestion] = useState<readonly string[]>(["refund"]);
@@ -309,6 +314,7 @@ export default function Design() {
     menu?: string;
     select?: string;
     datepicker?: string;
+    daterange?: string;
     dialog?: string;
     toast?: string;
   }>();
@@ -593,8 +599,6 @@ export default function Design() {
         error={language === undefined ? "Choose a language to continue." : undefined}
       />
       <Select label="Currency" options={CURRENCIES} value="krw" onChange={() => {}} disabled />
-      {/* The calendar is the system's, through Expo UI. A development or release build shows
-          it as the installed @expo/ui draws it; Expo Go carries its own, older copy. */}
       <DatePicker
         label="Due date"
         description="Within the current sprint."
@@ -612,6 +616,34 @@ export default function Design() {
         error={starts === undefined ? "Choose when the project starts." : undefined}
       />
       <DatePicker label="Locked" value="2026-03-10" onChange={() => {}} disabled />
+      {/* A stay of two nights at least inside March and April, a leave with no bounds and no
+          minimum, where the same day twice is a range of one day, and a locked range. */}
+      <DateRangePicker
+        label="Stay"
+        value={stay}
+        onChange={setStay}
+        min="2026-03-05"
+        max="2026-04-20"
+        minLength={2}
+        maxLength={14}
+        startLabel="Check-in"
+        endLabel="Check-out"
+        description="Two nights at least."
+        defaultOpen={params.daterange === "1"}
+      />
+      <DateRangePicker
+        label="Leave"
+        placeholder="Choose the days"
+        value={leave}
+        onChange={setLeave}
+        error={leave === undefined ? "Choose the days of your leave." : undefined}
+      />
+      <DateRangePicker
+        label="Locked range"
+        value={{ start: "2026-03-10", end: "2026-03-14" }}
+        onChange={() => {}}
+        disabled
+      />
       <Slider label="Volume" value={volume} onChange={setVolume} showValue />
       <Slider
         label="Playback speed"

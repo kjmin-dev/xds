@@ -15,6 +15,7 @@ export { Chip, type ChipProps } from "./Chip.tsx";
 export { ChipBar, type ChipBarProps } from "./ChipBar.tsx";
 export { CountBadge, type CountBadgeProps } from "./CountBadge.tsx";
 export { DatePicker, type DatePickerProps, type IsoDate } from "./DatePicker.tsx";
+export { type DateRange, DateRangePicker, type DateRangePickerProps } from "./DateRangePicker.tsx";
 export { Dialog, type DialogProps } from "./Dialog.tsx";
 export { EmptyState, type EmptyStateProps } from "./EmptyState.tsx";
 export { Icon, type IconName, type IconProps, type IconSize } from "./Icon.tsx";

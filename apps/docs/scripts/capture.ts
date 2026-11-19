@@ -71,23 +71,43 @@ const NAMES: Record<
   CaptureName,
   { components: string[]; alt: Partial<Record<CapturePlatform, string>> }
 > = {
+  "glass-native": {
+    components: ["TopBar", "TabBar"],
+    alt: { ios: "Collections and its tabs drawn inside iOS Liquid Glass above colored rows." },
+  },
+  "glass-sheet-native": {
+    components: ["BottomSheet"],
+    alt: { ios: "Collection details in a native Liquid Glass bottom sheet over the dimmed list." },
+  },
   "glass-blur": {
     components: ["TopBar", "TabBar"],
-    alt: { compose: "A blurred top bar and tab bar over a scrolling collection of colored rows." },
+    alt: {
+      ...reactNative("A blurred top bar and tab bar over a scrolling collection of colored rows."),
+      compose: "A blurred top bar and tab bar over a scrolling collection of colored rows.",
+    },
   },
   "glass-solid": {
     components: ["TopBar", "TabBar"],
-    alt: { compose: "The same collection with opaque navigation bars for reduced transparency." },
+    alt: {
+      ...reactNative("The same collection with opaque navigation bars for reduced transparency."),
+      compose: "The same collection with opaque navigation bars for reduced transparency.",
+    },
   },
   "glass-sheet-blur": {
     components: ["BottomSheet"],
     alt: {
+      ...reactNative(
+        "Collection details inside a strongly tinted glass sheet over the dimmed list.",
+      ),
       compose: "Collection details inside a strongly tinted glass sheet over the dimmed list.",
     },
   },
   "glass-sheet-solid": {
     components: ["BottomSheet"],
-    alt: { compose: "Collection details inside the opaque fallback sheet over the dimmed list." },
+    alt: {
+      ...reactNative("Collection details inside the opaque fallback sheet over the dimmed list."),
+      compose: "Collection details inside the opaque fallback sheet over the dimmed list.",
+    },
   },
   navigation: {
     components: ["TopBar", "TabBar"],

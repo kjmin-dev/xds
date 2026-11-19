@@ -37,6 +37,9 @@ const webFiles = {
     // Rolldown applies `resolve.extensions` to bare imports only, not to a relative import
     // inside node_modules, so `./elements` would be the native file rather than
     // `./elements.web.js`, and the native one pulls in React Native's Fabric code.
+    if (importer && id === "./Glass" && importer.includes("/packages/ui-native/src/")) {
+      return resolve(dirname(importer), "Glass.web.tsx");
+    }
     if (!importer || !id.startsWith(".") || !IN_LIBRARY.test(importer)) return null;
     const base = resolve(dirname(importer), id);
     for (const candidate of [`${base}.web.js`, `${base}/index.web.js`]) {

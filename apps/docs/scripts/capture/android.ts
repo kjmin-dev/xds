@@ -69,8 +69,10 @@ async function build(workspace: Workspace) {
   await run(
     join(android, process.platform === "win32" ? "gradlew.bat" : "gradlew"),
     // Neither a Gradle daemon nor a Kotlin one is left running after the build.
+    // Metro also reads workspace packages outside the app. Gradle tracks the app directory
+    // only, so refresh just this bundle task when reusing a release build for captures.
     words(
-      `assembleRelease -PreactNativeArchitectures=${ABI} --console=plain --no-daemon ` +
+      `:app:createBundleReleaseJsAndAssets --rerun :app:assembleRelease -PreactNativeArchitectures=${ABI} --console=plain --no-daemon ` +
         "-Pkotlin.compiler.execution.strategy=in-process",
     ),
     { cwd: android, log },

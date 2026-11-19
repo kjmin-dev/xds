@@ -2323,7 +2323,18 @@
           "source": "flutter/ui/lib/src/navigation.dart",
           "symbol": "TopBar"
         }
-      }
+      },
+      "differences": [
+        {
+          "option": "surface",
+          "value": "glass",
+          "clients": [
+            "mobile-react-native"
+          ],
+          "kind": "system",
+          "note": "On iOS 26 and later, the content sits inside a system Liquid Glass view when transparency is allowed. Earlier iOS and Android 33 or later can blur the marked backdrop. Power saving, accessibility settings, low-memory Android devices and an unmarked backdrop use the opaque fallback."
+        }
+      ]
     },
     {
       "name": "TabBar",
@@ -2362,7 +2373,18 @@
           "source": "flutter/ui/lib/src/navigation.dart",
           "symbol": "TabBar"
         }
-      }
+      },
+      "differences": [
+        {
+          "option": "surface",
+          "value": "glass",
+          "clients": [
+            "mobile-react-native"
+          ],
+          "kind": "system",
+          "note": "On iOS 26 and later, the content sits inside a system Liquid Glass view when transparency is allowed. Earlier iOS and Android 33 or later can blur the marked backdrop. Power saving, accessibility settings, low-memory Android devices and an unmarked backdrop use the opaque fallback."
+        }
+      ]
     },
     {
       "name": "BottomSheet",
@@ -2404,7 +2426,18 @@
           "source": "flutter/ui/lib/src/modals.dart",
           "symbol": "BottomSheet"
         }
-      }
+      },
+      "differences": [
+        {
+          "option": "surface",
+          "value": "glass",
+          "clients": [
+            "mobile-react-native"
+          ],
+          "kind": "system",
+          "note": "On iOS 26 and later, the content sits inside a system Liquid Glass view when transparency is allowed. Earlier iOS and Android 33 or later can blur the marked backdrop. Power saving, accessibility settings, low-memory Android devices and an unmarked backdrop use the opaque fallback."
+        }
+      ]
     }
   ]
 }

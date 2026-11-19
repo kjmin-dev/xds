@@ -14,6 +14,8 @@
 | `web-solid` | 브라우저 | SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js | `packages/ui-solid`, `packages/ui-core` | `apps/web-solid` |
 | `web-vue` | 브라우저 | Vue 3, Vite, Tailwind v4, Zag.js | `packages/ui-vue`, `packages/ui-core` | `apps/web-vue` |
 | `web-svelte` | 브라우저 | Svelte 5, Vite, Tailwind v4, Zag.js | `packages/ui-svelte`, `packages/ui-core` | `apps/web-svelte` |
+| `desktop-electron` | macOS, Windows, Linux | Electron, Chromium | 선택한 웹 앱 | `apps/desktop-electron` |
+| `desktop-tauri` | macOS, Windows, Linux | Tauri 2, WebView | 선택한 웹 앱 | `apps/desktop-tauri` |
 | `desktop-gpui` | macOS | Rust, GPUI, GPUI Component | `crates/acme-ui` | `apps/desktop` |
 | `mobile-react-native` | iOS, Android | React Native, Expo | `packages/ui-native` | `apps/mobile` |
 | `kotlin-compose` | Android, iOS, 데스크톱 | Kotlin Multiplatform, Compose Multiplatform | `kotlin/ui` | `kotlin/androidApp`, `kotlin/iosApp`, `kotlin/desktopApp` |
@@ -33,6 +35,7 @@ xds create my-app
 ```sh
 # 질문 없이 만들기:
 xds create my-app --name orbit --targets web-react,kotlin-compose --theme ocean
+xds create orbit-desktop --name orbit --targets desktop-electron --wrap web-vue
 xds add desktop-gpui          # 나중에 클라이언트 추가
 xds theme sunset              # 나중에 테마 변경
 ```

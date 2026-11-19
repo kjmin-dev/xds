@@ -486,7 +486,13 @@ pub fn difference_problems(component: &Value) -> Vec<String> {
                         match id.as_str() {
                             Some(id) if manifest().target(id).is_none() => problems.push(format!(
                                 "{at} names \"{id}\", which is not a client. Clients: {}",
-                                manifest().target_ids().join(", ")
+                                manifest()
+                                    .targets
+                                    .iter()
+                                    .filter(|target| target.wraps.is_empty())
+                                    .map(|target| target.id.as_str())
+                                    .collect::<Vec<_>>()
+                                    .join(", ")
                             )),
                             Some(id) if !has.iter().any(|client| *client == id) => {
                                 problems.push(format!("{at} names {id}, which has no {name}"));
@@ -616,12 +622,27 @@ fn reach(component: &Value, scope: &BTreeSet<&str>) -> Option<String> {
 pub fn components(args: &ComponentsArgs, out: Out) -> Result<Value> {
     let style = out.style;
     let location = Location::find(args.project.as_deref())?;
+    if let Some(target) = args.client.as_deref().and_then(|id| manifest().target(id))
+        && !target.wraps.is_empty()
+    {
+        return Err(Error::Message(format!(
+            "{} runs a web app. Use --client with its web target: {}.",
+            target.id,
+            target.wraps.join(", ")
+        )));
+    }
     if let Some(client) = &args.client
         && manifest().target(client).is_none()
     {
         return Err(Error::Message(format!(
             "There is no target \"{client}\". Targets: {}",
-            manifest().target_ids().join(", ")
+            manifest()
+                .targets
+                .iter()
+                .filter(|target| target.wraps.is_empty())
+                .map(|target| target.id.as_str())
+                .collect::<Vec<_>>()
+                .join(", ")
         )));
     }
     let mut all = load_components(&location)?;
@@ -1030,7 +1051,7 @@ pub fn doctor(args: &DoctorArgs, out: Out) -> Result<Value> {
     // The record.
     let record = Record::read(&project);
     match &record {
-        Ok(record) => match manifest().select(&record.targets) {
+        Ok(record) => match record.validated_wraps(manifest()) {
             Ok(_) => check(
                 "record",
                 "ok",

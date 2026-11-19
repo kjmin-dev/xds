@@ -63,6 +63,7 @@
   "targets": [
     {
       "id": "web-react",
+      "package": "@acme/web",
       "default": true,
       "title": "Web",
       "stack": "React 19, Vite, Tailwind v4, Zag.js",
@@ -81,6 +82,7 @@
     },
     {
       "id": "web-solid",
+      "package": "@acme/web-solid",
       "title": "Web",
       "stack": "SolidJS 2 (release candidate), Vite, Tailwind v4, Zag.js",
       "platforms": ["Web"],
@@ -98,6 +100,7 @@
     },
     {
       "id": "web-vue",
+      "package": "@acme/web-vue",
       "title": "Web",
       "stack": "Vue 3, Vite, Tailwind v4, Zag.js",
       "platforms": ["Web"],
@@ -115,6 +118,7 @@
     },
     {
       "id": "web-svelte",
+      "package": "@acme/web-svelte",
       "title": "Web",
       "stack": "Svelte 5, Vite, Tailwind v4, Zag.js",
       "platforms": ["Web"],
@@ -128,6 +132,34 @@
           "command": "mise run //web-svelte:dev",
           "description": "Start the Svelte web app on http://localhost:5176"
         }
+      ]
+    },
+    {
+      "id": "desktop-electron",
+      "title": "Desktop",
+      "stack": "Electron, Electron Forge (wraps a web app)",
+      "platforms": ["macOS", "Windows", "Linux"],
+      "input": "pointer",
+      "wraps": ["web-react", "web-solid", "web-vue", "web-svelte"],
+      "paths": ["apps/desktop-electron"],
+      "requires": ["js-workspace"],
+      "format": "mise run fmt",
+      "run": [
+        { "command": "mise run //desktop-electron:dev", "description": "Open the wrapped web app" }
+      ]
+    },
+    {
+      "id": "desktop-tauri",
+      "title": "Desktop",
+      "stack": "Tauri 2 (wraps a web app)",
+      "platforms": ["macOS", "Windows", "Linux"],
+      "input": "pointer",
+      "wraps": ["web-react", "web-solid", "web-vue", "web-svelte"],
+      "paths": ["apps/desktop-tauri"],
+      "requires": ["js-workspace", "rust-workspace"],
+      "format": "mise run fmt",
+      "run": [
+        { "command": "mise run //desktop-tauri:dev", "description": "Open the wrapped web app" }
       ]
     },
     {

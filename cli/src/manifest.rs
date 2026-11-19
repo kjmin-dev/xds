@@ -51,6 +51,10 @@ pub struct Target {
     pub title: String,
     pub stack: String,
     pub platforms: Vec<String>,
+    /// The npm workspace package of a web app that a desktop shell can run.
+    pub package: Option<String>,
+    #[serde(default)]
+    pub wraps: Vec<String>,
     /// What its components are designed for. `differences` in the component contract may name
     /// it instead of listing clients.
     pub input: Input,
@@ -180,6 +184,32 @@ impl Manifest {
             .flat_map(|target| target.outputs.iter().map(String::as_str))
             .collect()
     }
+}
+
+/// An existing shell keeps its recorded choice when another web app is added.
+pub fn shell_wraps(
+    targets: &[&Target],
+    previous: &BTreeMap<String, String>,
+    requested: Option<&str>,
+) -> Result<BTreeMap<String, String>> {
+    let mut wraps = BTreeMap::new();
+    for shell in targets.iter().filter(|target| !target.wraps.is_empty()) {
+        let choice = previous.get(&shell.id).map(String::as_str).or(requested);
+        let web = targets
+            .iter()
+            .find(|target| {
+                shell.wraps.contains(&target.id) && choice.is_none_or(|id| id == target.id)
+            })
+            .ok_or_else(|| {
+                Error::Message(format!(
+                    "{} needs a web app. Select one of {} or pass --wrap WEB_TARGET.",
+                    shell.id,
+                    shell.wraps.join(", ")
+                ))
+            })?;
+        wraps.insert(shell.id.clone(), web.id.clone());
+    }
+    Ok(wraps)
 }
 
 /// Whether `path` is `prefix` itself or lies below it.

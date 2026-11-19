@@ -321,14 +321,14 @@ Clearing the error state on edit avoids a common web form trap: when an invalid 
 
 ### Platform implementations
 
-| | Web (React) | Web (Solid) | Web (Vue) | Web (Svelte) | Desktop | Mobile | Kotlin |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Package | `@acme/ui` on `@acme/ui-core` | `@acme/ui-solid` on `@acme/ui-core` | `@acme/ui-vue` on `@acme/ui-core` | `@acme/ui-svelte` on `@acme/ui-core` | `acme-ui` | `@acme/ui-native` | `kotlin/ui` |
-| Built on | Zag.js state machines and native inputs | Zag.js state machines and native inputs | Zag.js state machines and native inputs | Zag.js state machines and native inputs | GPUI Component | React Native primitives | Compose foundation |
-| Runs on | Browsers | Browsers | Browsers | Browsers | macOS | iOS, Android | Android, iOS, desktop (JVM) |
-| Tokens arrive as | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | Rust constants | TypeScript constants | Compose values (`Color`, `Dp`, `TextStyle`) |
-| Sizes | Follow the input device | Follow the input device | Follow the input device | Follow the input device | Pointer | Touch | Touch on phones, pointer on desktop |
-| Design preview | `/design` | `/design` | `/design` | `/design` | `acme --design` | `/design` | The button on the home screen |
+| | Web (React) | Web (Solid) | Web (Vue) | Web (Svelte) | Desktop | Mobile | Kotlin | Flutter |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Package | `@acme/ui` on `@acme/ui-core` | `@acme/ui-solid` on `@acme/ui-core` | `@acme/ui-vue` on `@acme/ui-core` | `@acme/ui-svelte` on `@acme/ui-core` | `acme-ui` | `@acme/ui-native` | `kotlin/ui` | `acme_ui` |
+| Built on | Zag.js state machines and native inputs | Zag.js state machines and native inputs | Zag.js state machines and native inputs | Zag.js state machines and native inputs | GPUI Component | React Native primitives | Compose foundation | Flutter widgets |
+| Runs on | Browsers | Browsers | Browsers | Browsers | macOS | iOS, Android | Android, iOS, desktop (JVM) | iOS, Android |
+| Tokens arrive as | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | Rust constants | TypeScript constants | Compose values (`Color`, `Dp`, `TextStyle`) | Dart constants (`Color`, `TextStyle`, `Duration`) |
+| Sizes | Follow the input device | Follow the input device | Follow the input device | Follow the input device | Pointer | Touch | Touch on phones, pointer on desktop | Touch |
+| Design preview | `/design` | `/design` | `/design` | `/design` | `acme --design` | `/design` | The button on the home screen | The button on the home screen or `/design` |
 
 On the web, the React, Solid, Vue, and Svelte clients share their framework-free half, `@acme/ui-core`, and must look and behave the same. It holds each component's prop types, the Tailwind class strings of the components drawn with utilities, pure helpers, the steps on the page that the state machines leave to each library (an overlay's exit animation, an accordion panel's height, the page keys of a list), and a stylesheet for each component with states of its own. That CSS selects on the library's own part classes, native pseudo-classes, `aria-*` attributes, and Zag.js state attributes, never on a framework's. `@acme/ui` adds the React components, `@acme/ui-solid` the Solid ones, `@acme/ui-vue` the Vue ones, and `@acme/ui-svelte` the Svelte ones. Dialog, Menu, Select, Slider, Tabs, Tooltip, and Accordion take their keyboard, focus, and dismissal behavior from Zag.js state machines, with an adapter for each framework. Switch, Checkbox, RadioGroup, SegmentedControl, and the text fields are native HTML inputs with custom visuals drawn alongside or around them, so keyboard navigation, forms, and screen readers interact with standard controls. The remaining components are plain HTML elements styled with Tailwind utilities. A library for another framework can be built on the same core.
 

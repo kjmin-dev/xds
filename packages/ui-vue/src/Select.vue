@@ -123,7 +123,7 @@ const content = computed(() => {
   return {
     ...rest,
     onKeydown: (event: KeyboardEvent) => {
-      keepListKeys(event, surface.value, ".select__item:not([data-disabled])", (next) =>
+      keepListKeys(event, surface.value, ".acme-select__item:not([data-disabled])", (next) =>
         api.value.setHighlightedValue(next),
       );
       (current().getContentProps().onKeydown as KeyHandler | undefined)?.(event);
@@ -133,25 +133,25 @@ const content = computed(() => {
 </script>
 
 <template>
-  <div v-bind="api.getRootProps()" class="select">
-    <span v-bind="labelProps" class="select__label">{{ label }}</span>
+  <div v-bind="api.getRootProps()" class="acme-select">
+    <span v-bind="labelProps" class="acme-select__label">{{ label }}</span>
     <button
       v-bind="triggerProps"
       :aria-labelledby="`${valueId} ${labelProps.id}`"
       :aria-describedby="invalid ? errorId : description ? descriptionId : undefined"
-      class="select__trigger"
+      class="acme-select__trigger"
     >
       <!-- The chosen option's label alone: the list's rows also hold a description and a
            check, which do not belong in the field. -->
-      <span v-bind="api.getValueTextProps()" :id="valueId" class="select__value">
+      <span v-bind="api.getValueTextProps()" :id="valueId" class="acme-select__value">
         {{ api.valueAsString || placeholder }}
       </span>
       <Icon name="chevrons-up-down" size="sm" class="text-acme-field-placeholder" />
     </button>
     <!-- One line under the box: the help, or the error in its place. -->
-    <div v-if="invalid || description" class="select__footer">
-      <span v-if="invalid" :id="errorId" class="select__error">{{ error }}</span>
-      <span v-else :id="descriptionId" class="select__description">{{ description }}</span>
+    <div v-if="invalid || description" class="acme-select__footer">
+      <span v-if="invalid" :id="errorId" class="acme-select__error">{{ error }}</span>
+      <span v-else :id="descriptionId" class="acme-select__description">{{ description }}</span>
     </div>
     <!-- What a form submits; the first option stands for no choice. Zag's props hide it from
          assistive technology, which uses the trigger. -->
@@ -164,11 +164,11 @@ const content = computed(() => {
     <Teleport to="body">
       <!-- Takes a press outside, which then only closes the list. The focus stays in the list
            until the list hands it back to the field. -->
-      <div v-if="api.open" class="select__underlay" @mousedown.prevent />
-      <div ref="positioner" v-bind="api.getPositionerProps()" class="select__positioner">
+      <div v-if="api.open" class="acme-select__underlay" @mousedown.prevent />
+      <div ref="positioner" v-bind="api.getPositionerProps()" class="acme-select__positioner">
         <!-- Shown until its exit animation ends; Zag would hide it as it closes. -->
-        <div v-bind="content" ref="surface" :hidden="!present" class="select__content">
-          <div v-bind="api.getListProps()" class="select__list">
+        <div v-bind="content" ref="surface" :hidden="!present" class="acme-select__content">
+          <div v-bind="api.getListProps()" class="acme-select__list">
             <!-- Named by its label alone, as the field shows it; the help line describes it. -->
             <div
               v-for="(option, index) in collection.items"
@@ -178,20 +178,20 @@ const content = computed(() => {
               :aria-describedby="
                 option.description ? selectOptionIds(id, index).description : undefined
               "
-              class="select__item"
+              class="acme-select__item"
             >
-              <span class="select__item-words">
+              <span class="acme-select__item-words">
                 <span
                   v-bind="api.getItemTextProps({ item: option })"
                   :id="selectOptionIds(id, index).label"
-                  class="select__item-label"
+                  class="acme-select__item-label"
                 >
                   {{ option.label }}
                 </span>
                 <span
                   v-if="option.description"
                   :id="selectOptionIds(id, index).description"
-                  class="select__item-description"
+                  class="acme-select__item-description"
                 >
                   {{ option.description }}
                 </span>

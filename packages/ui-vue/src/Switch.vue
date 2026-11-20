@@ -5,6 +5,8 @@
 // It is a native checkbox with the switch role, so the keyboard, forms and screen readers
 // treat it as one. The input is hidden and the track is drawn beside it.
 import {
+  classes,
+  rootPart,
   type SwitchBaseProps,
   switchClass,
   switchLabelClass,
@@ -28,7 +30,7 @@ function change(event: Event) {
 </script>
 
 <template>
-  <label :class="switchClass">
+  <label :class="classes(rootPart('Switch'), switchClass)">
     <input
       type="checkbox"
       role="switch"

@@ -1,4 +1,6 @@
 import {
+  classes,
+  rootPart,
   type SegmentedControlBaseProps,
   segmentedControlClass,
   segmentedControlOptionClass,
@@ -6,10 +8,14 @@ import {
 } from "@acme/ui-core";
 import { createUniqueId, For } from "solid-js";
 import { keepChecked } from "./controlled.ts";
+import type { RootProps } from "./root.ts";
 
-export type SegmentedControlProps<Value extends string> = SegmentedControlBaseProps<Value> & {
-  onChange: (value: Value) => void;
-};
+export type SegmentedControlProps<Value extends string> = SegmentedControlBaseProps<Value> &
+  RootProps & {
+    onChange: (value: Value) => void;
+  };
+
+const ROOT = rootPart("SegmentedControl");
 
 /**
  * A choice between a few views or modes, all visible at once. The selected segment is outlined
@@ -25,7 +31,8 @@ export function SegmentedControl<Value extends string>(props: SegmentedControlPr
       ref={(element) => (group = element)}
       aria-label={props["aria-label"]}
       role="radiogroup"
-      class={segmentedControlClass(props.fullWidth)}
+      class={classes(ROOT, segmentedControlClass(props.fullWidth), props.class)}
+      style={props.style}
     >
       <For each={props.options}>
         {(option) => (

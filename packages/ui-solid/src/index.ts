@@ -7,6 +7,10 @@
 // the Compose ones under kotlin/ui. All of them take the same variants, sizes and tones, and draw
 // them from the same design tokens.
 
+// Every component takes `class` and `style` for its root element, which also carries the
+// component's root part, `acme-` and its name in kebab case (`acme-icon-button`). `Defaults`
+// gives the components inside it the options an app leaves out.
+
 export type { IconName, IconSize, TextTone, TextVariant } from "@acme/ui-core";
 export { Accordion, type AccordionItem, type AccordionProps } from "./Accordion.tsx";
 export { Avatar, type AvatarProps, type AvatarSize } from "./Avatar.tsx";
@@ -21,15 +25,16 @@ export { ChipBar, type ChipBarProps } from "./ChipBar.tsx";
 export { CountBadge, type CountBadgeProps } from "./CountBadge.tsx";
 export { DatePicker, type DatePickerProps, type IsoDate } from "./DatePicker.tsx";
 export { type DateRange, DateRangePicker, type DateRangePickerProps } from "./DateRangePicker.tsx";
+export { type ComponentDefaults, Defaults, type DefaultsProps } from "./Defaults.tsx";
 export { Dialog, type DialogProps } from "./Dialog.tsx";
-export { Divider } from "./Divider.tsx";
+export { Divider, type DividerProps } from "./Divider.tsx";
 export { EmptyState, type EmptyStateProps } from "./EmptyState.tsx";
 export { Icon, type IconProps } from "./Icon.tsx";
 export { IconButton, type IconButtonProps } from "./IconButton.tsx";
 export { ListRow, type ListRowProps } from "./ListRow.tsx";
 export { MediaCard, type MediaCardProps } from "./MediaCard.tsx";
 export { Menu, type MenuItem, type MenuProps } from "./Menu.tsx";
-export { ProgressBar } from "./ProgressBar.tsx";
+export { ProgressBar, type ProgressBarProps } from "./ProgressBar.tsx";
 export { RadioGroup, type RadioGroupProps, type RadioOption } from "./RadioGroup.tsx";
 export { SearchField, type SearchFieldProps } from "./SearchField.tsx";
 export { SectionHeader, type SectionHeaderProps } from "./SectionHeader.tsx";

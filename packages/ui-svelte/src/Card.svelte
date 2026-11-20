@@ -7,21 +7,22 @@
 <script module lang="ts">
   import type { CardBaseProps } from "@acme/ui-core";
   import type { Snippet } from "svelte";
+  import type { RootProps } from "./root.ts";
 
-  export type CardProps = CardBaseProps & {
-    /** Sit across from the title. A pressable card takes none: it is one button already. */
-    actions?: Snippet;
-    /** A picture or a drawing at the top, running edge to edge above the padding. */
-    media?: Snippet;
-    /** Makes the whole card one button. Put no other control inside it then. */
-    onPress?: () => void;
-    class?: string;
-    children?: Snippet;
-  };
+  export type CardProps = CardBaseProps &
+    RootProps & {
+      /** Sit across from the title. A pressable card takes none: it is one button already. */
+      actions?: Snippet;
+      /** A picture or a drawing at the top, running edge to edge above the padding. */
+      media?: Snippet;
+      /** Makes the whole card one button. Put no other control inside it then. */
+      onPress?: () => void;
+      children?: Snippet;
+    };
 </script>
 
 <script lang="ts">
-  import { CARD_PARTS, cardClass, cardMediaClass } from "@acme/ui-core";
+  import { CARD_PARTS, cardClass, cardMediaClass, classes, rootPart } from "@acme/ui-core";
 
   let {
     title,
@@ -32,6 +33,7 @@
     media,
     onPress,
     class: className,
+    style,
     children,
   }: CardProps = $props();
 
@@ -43,7 +45,9 @@
       ? { header: "span", box: "span", title: "span", line: "span" }
       : { header: "header", box: "div", title: "h2", line: "p" },
   );
-  const surface = $derived(cardClass({ selected, flush, pressable }));
+  const surface = $derived(
+    classes(rootPart("Card"), cardClass({ selected, flush, pressable }), className),
+  );
 </script>
 
 {#snippet parts()}
@@ -83,12 +87,13 @@
     type="button"
     onclick={() => onPress?.()}
     aria-pressed={selected === undefined ? undefined : selected ? "true" : "false"}
-    class={[surface, className]}
+    class={surface}
+    {style}
   >
     {@render content()}
   </button>
 {:else}
-  <section aria-current={selected ? "true" : undefined} class={[surface, className]}>
+  <section aria-current={selected ? "true" : undefined} class={surface} {style}>
     {@render content()}
   </section>
 {/if}

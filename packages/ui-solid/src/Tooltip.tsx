@@ -1,16 +1,18 @@
 import { motion, space } from "@acme/tokens";
-import { type TooltipBaseProps, tooltipEndSide } from "@acme/ui-core";
+import { classes, type TooltipBaseProps, tooltipEndSide } from "@acme/ui-core";
 import { Portal } from "@solidjs/web";
 import { normalizeProps, useMachine } from "@zag-js/solid";
 import * as tooltip from "@zag-js/tooltip";
 import { createMemo, createUniqueId, type Element, Show } from "solid-js";
 import { createPresence } from "./presence.ts";
+import { type RootProps, withStyle } from "./root.ts";
 import { provideTrigger, TriggerContext, type TriggerProps } from "./trigger.ts";
 
-export type TooltipProps = TooltipBaseProps & {
-  /** The control it describes: a Button or an IconButton. */
-  children: Element;
-};
+export type TooltipProps = TooltipBaseProps &
+  RootProps & {
+    /** The control it describes: a Button or an IconButton. */
+    children: Element;
+  };
 
 /**
  * Names a control when the pointer rests on it or the keyboard focuses it. It appears after a
@@ -19,6 +21,9 @@ export type TooltipProps = TooltipBaseProps & {
  *
  * It describes the control and is not its name: an IconButton still needs its `label`. It
  * never holds anything pressable, and touch input has no hover, so nothing may depend on it.
+ *
+ * Its `class` and `style` are the tooltip's, not the control's, and it is in the page only
+ * while it shows.
  */
 export function Tooltip(props: TooltipProps) {
   return (
@@ -26,6 +31,8 @@ export function Tooltip(props: TooltipProps) {
       label={props.label}
       shortcut={props.shortcut}
       placement={() => props.placement ?? "top"}
+      class={props.class}
+      style={props.style}
     >
       {props.children}
     </Overlay>
@@ -45,12 +52,15 @@ export function TooltipBeside(props: { label: string; children: Element }) {
   );
 }
 
-function Overlay(props: {
-  label: string;
-  shortcut?: string | undefined;
-  placement: () => tooltip.Placement;
-  children: Element;
-}) {
+/** The root element is the tooltip itself, which is in the page only while it shows. */
+function Overlay(
+  props: RootProps & {
+    label: string;
+    shortcut?: string | undefined;
+    placement: () => tooltip.Placement;
+    children: Element;
+  },
+) {
   const id = createUniqueId();
   const service = useMachine(tooltip.machine, () => ({
     id,
@@ -64,6 +74,10 @@ function Overlay(props: {
   }));
   const api = createMemo(() => tooltip.connect(service, normalizeProps));
   const trigger = provideTrigger(() => api().getTriggerProps() as TriggerProps);
+  const contentProps = withStyle(
+    () => api().getContentProps(),
+    () => props.style,
+  );
   let content: HTMLDivElement | undefined;
   const present = createPresence(
     () => api().open,
@@ -75,17 +89,17 @@ function Overlay(props: {
       <Show when={present()}>
         <Portal>
           <TriggerContext value={null}>
-            <div {...api().getPositionerProps()} class="tooltip__positioner">
+            <div {...api().getPositionerProps()} class="acme-tooltip__positioner">
               {/* Shown until its exit animation ends; Zag would hide it as it closes. */}
               <div
-                {...api().getContentProps()}
+                {...contentProps}
                 ref={(element) => (content = element)}
                 hidden={false}
-                class="tooltip"
+                class={classes("acme-tooltip", props.class)}
               >
                 {props.label}
                 <Show when={props.shortcut}>
-                  {(shortcut) => <kbd class="tooltip__shortcut">{shortcut()}</kbd>}
+                  {(shortcut) => <kbd class="acme-tooltip__shortcut">{shortcut()}</kbd>}
                 </Show>
               </div>
             </div>

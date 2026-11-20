@@ -100,22 +100,22 @@ watch(
 </script>
 
 <template>
-  <div v-bind="api.getRootProps()" class="date-picker">
+  <div v-bind="api.getRootProps()" class="acme-date-picker">
     <!-- A span: the field is a button, which a <label> cannot point at. -->
-    <span :id="ids.label" class="date-picker__label">{{ label }}</span>
+    <span :id="ids.label" class="acme-date-picker__label">{{ label }}</span>
     <!-- What Zag places the calendar against. -->
-    <div v-bind="api.getControlProps()" class="date-picker__control">
-      <button v-bind="trigger" type="button" class="date-picker__trigger">
-        <span :id="ids.value" class="date-picker__value">
+    <div v-bind="api.getControlProps()" class="acme-date-picker__control">
+      <button v-bind="trigger" type="button" class="acme-date-picker__trigger">
+        <span :id="ids.value" class="acme-date-picker__value">
           {{ value === undefined ? placeholder : formatDay(value, locale) }}
         </span>
         <Icon name="calendar" size="sm" class="text-acme-field-placeholder" />
       </button>
     </div>
     <!-- One line under the box: the help, or the error in its place. -->
-    <div v-if="invalid || description" class="date-picker__footer">
-      <span v-if="invalid" :id="ids.error" class="date-picker__error">{{ error }}</span>
-      <span v-else :id="ids.description" class="date-picker__description">
+    <div v-if="invalid || description" class="acme-date-picker__footer">
+      <span v-if="invalid" :id="ids.error" class="acme-date-picker__error">{{ error }}</span>
+      <span v-else :id="ids.description" class="acme-date-picker__description">
         {{ description }}
       </span>
     </div>
@@ -124,11 +124,11 @@ watch(
     <Teleport to="body">
       <!-- Takes a press outside, which then only closes the calendar. The focus stays in the
            calendar until it hands it back to the field. -->
-      <div v-if="api.open" class="date-picker__underlay" @mousedown.prevent />
-      <div ref="positioner" v-bind="api.getPositionerProps()" class="date-picker__positioner">
+      <div v-if="api.open" class="acme-date-picker__underlay" @mousedown.prevent />
+      <div ref="positioner" v-bind="api.getPositionerProps()" class="acme-date-picker__positioner">
         <!-- Shown until its exit animation ends; Zag would hide it as it closes. -->
-        <div v-bind="content" ref="surface" :hidden="!present" class="date-picker__content">
-          <div class="date-picker__header">
+        <div v-bind="content" ref="surface" :hidden="!present" class="acme-date-picker__content">
+          <div class="acme-date-picker__header">
             <button
               v-bind="api.getPreviousTriggerProps()"
               type="button"
@@ -136,21 +136,21 @@ watch(
             >
               <Icon name="chevron-left" size="sm" />
             </button>
-            <span v-bind="api.getRangeTextProps()" class="date-picker__heading">
+            <span v-bind="api.getRangeTextProps()" class="acme-date-picker__heading">
               {{ api.visibleRangeText.start }}
             </span>
             <button v-bind="api.getNextTriggerProps()" type="button" :class="DATE_PICKER_NAV_CLASS">
               <Icon name="chevron-right" size="sm" />
             </button>
           </div>
-          <table v-bind="api.getTableProps({ view: 'day' })" class="date-picker__grid">
+          <table v-bind="api.getTableProps({ view: 'day' })" class="acme-date-picker__grid">
             <thead v-bind="api.getTableHeadProps({ view: 'day' })">
               <tr v-bind="api.getTableRowProps({ view: 'day' })">
                 <th
                   v-for="weekDay in api.weekDays"
                   :key="weekDay.long"
                   scope="col"
-                  class="date-picker__weekday"
+                  class="acme-date-picker__weekday"
                 >
                   {{ weekDay.narrow }}
                 </th>
@@ -169,11 +169,11 @@ watch(
                   v-for="date in week"
                   :key="date.toString()"
                   v-bind="api.getDayTableCellProps({ value: date })"
-                  class="date-picker__cell"
+                  class="acme-date-picker__cell"
                 >
                   <div
                     v-bind="api.getDayTableCellTriggerProps({ value: date })"
-                    class="date-picker__day"
+                    class="acme-date-picker__day"
                   >
                     {{ date.day }}
                   </div>

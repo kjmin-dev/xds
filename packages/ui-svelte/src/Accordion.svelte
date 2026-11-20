@@ -10,26 +10,35 @@
 <script module lang="ts">
   import type { AccordionBaseProps, AccordionItemBase } from "@acme/ui-core";
   import type { Snippet } from "svelte";
+  import type { RootProps } from "./root.ts";
 
   export type AccordionItem<Value extends string = string> = AccordionItemBase<Value> & {
     /** The body, shown under the title while the item is open: text, or a snippet. */
     content: string | Snippet;
   };
 
-  export type AccordionProps<Value extends string = string> = AccordionBaseProps<Value> & {
-    items: readonly AccordionItem<Value>[];
-    onChange: (expanded: Value[]) => void;
-  };
+  export type AccordionProps<Value extends string = string> = AccordionBaseProps<Value> &
+    RootProps & {
+      items: readonly AccordionItem<Value>[];
+      onChange: (expanded: Value[]) => void;
+    };
 </script>
 
 <script lang="ts" generics="Value extends string = string">
-  import { ACCORDION_PARTS, focusTitleOnClick } from "@acme/ui-core";
+  import { ACCORDION_PARTS, classes, focusTitleOnClick } from "@acme/ui-core";
   import * as accordion from "@zag-js/accordion";
   import { mergeProps, normalizeProps, useMachine } from "@zag-js/svelte";
   import AccordionPanel from "./AccordionPanel.svelte";
   import Icon from "./Icon.svelte";
 
-  let { items, expanded, multiple = false, onChange }: AccordionProps<Value> = $props();
+  let {
+    items,
+    expanded,
+    multiple = false,
+    onChange,
+    class: className,
+    style,
+  }: AccordionProps<Value> = $props();
 
   const id = $props.id();
   const service = useMachine(accordion.machine, () => ({
@@ -41,6 +50,10 @@
     hiddenUntilFound: true,
   }));
   const api = $derived(accordion.connect(service, normalizeProps));
+  // Merged, so that the app's style joins any the machine writes on the root.
+  const root = $derived(
+    mergeProps(api.getRootProps(), { class: classes("acme-accordion", className), style }),
+  );
   const body = (value: Value) => {
     // The panel hides itself once it has finished closing; see AccordionPanel.
     const { hidden: _hidden, ...attributes } = api.getItemContentProps({ value });
@@ -48,16 +61,16 @@
   };
 </script>
 
-<div {...api.getRootProps()} class="accordion">
+<div {...root}>
   {#each items as item (item.value)}
-    <div {...api.getItemProps({ value: item.value })} class="accordion__item">
-      <h3 {...api.getItemHeaderProps({ value: item.value })} class="accordion__heading">
+    <div {...api.getItemProps({ value: item.value })} class="acme-accordion__item">
+      <h3 {...api.getItemHeaderProps({ value: item.value })} class="acme-accordion__heading">
         <button
           {...mergeProps(api.getItemTriggerProps({ value: item.value }), {
             // Runs before Zag's handler.
             onclick: focusTitleOnClick,
           })}
-          class="accordion__trigger group"
+          class="acme-accordion__trigger group"
         >
           <span class={ACCORDION_PARTS.text}>
             <span class={ACCORDION_PARTS.title}>{item.title}</span>

@@ -5,6 +5,7 @@
 // of.
 import { buttonClass, ICON_BUTTON_BOX, type IconButtonBaseProps, isHeld } from "@acme/ui-core";
 import type { ButtonHTMLAttributes } from "vue";
+import { useDefaults } from "./defaults.ts";
 import Icon from "./Icon.vue";
 import Spinner from "./Spinner.vue";
 import { useTrigger } from "./trigger.ts";
@@ -14,19 +15,23 @@ export type IconButtonProps = IconButtonBaseProps;
 const {
   icon,
   label,
-  variant = "ghost",
-  size = "md",
+  variant,
+  size,
   // Undefined unless given, so that only a toggle says whether it is pressed.
   selected = undefined,
   disabled = false,
   loading = false,
 } = defineProps<IconButtonProps>();
 const emit = defineEmits<{ press: [] }>();
+const options = useDefaults("IconButton", () => ({ variant, size }), {
+  variant: "ghost",
+  size: "md",
+});
 
 const attributes = useTrigger(
   (): ButtonHTMLAttributes & { "data-pending"?: "" } => ({
     type: "button",
-    class: buttonClass({ variant, size, iconButton: true }),
+    class: buttonClass({ ...options.value, iconButton: true }),
     disabled,
     "aria-disabled": loading ? "true" : undefined,
     "data-pending": loading ? "" : undefined,
@@ -42,7 +47,12 @@ const attributes = useTrigger(
 
 <template>
   <button v-bind="attributes">
-    <span v-if="loading" :class="ICON_BUTTON_BOX[size]"><Spinner size="sm" /></span>
-    <Icon v-else :name="icon" :size="size" :filled="isHeld({ variant, selected, disabled })" />
+    <span v-if="loading" :class="ICON_BUTTON_BOX[options.size]"><Spinner size="sm" /></span>
+    <Icon
+      v-else
+      :name="icon"
+      :size="options.size"
+      :filled="isHeld({ variant: options.variant, selected, disabled })"
+    />
   </button>
 </template>

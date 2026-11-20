@@ -1,14 +1,18 @@
 import {
+  classes,
+  rootPart,
   type SwitchBaseProps,
   switchClass,
   switchLabelClass,
   switchThumbClass,
   switchTrackClass,
 } from "@acme/ui-core";
+import type { RootProps } from "./root.ts";
 
-export type SwitchProps = SwitchBaseProps & {
-  onChange: (checked: boolean) => void;
-};
+export type SwitchProps = SwitchBaseProps &
+  RootProps & {
+    onChange: (checked: boolean) => void;
+  };
 
 /**
  * Turns a setting on or off, and takes effect at once. For a choice that is applied later,
@@ -17,9 +21,17 @@ export type SwitchProps = SwitchBaseProps & {
  * It is a native checkbox with the switch role, so the keyboard, forms and screen readers
  * treat it as one. The input is hidden and the track is drawn beside it.
  */
-export function Switch({ checked, onChange, label, disabled = false, ...aria }: SwitchProps) {
+export function Switch({
+  checked,
+  onChange,
+  label,
+  disabled = false,
+  className,
+  style,
+  ...aria
+}: SwitchProps) {
   return (
-    <label className={switchClass}>
+    <label className={classes(rootPart("Switch"), switchClass, className)} style={style}>
       <input
         {...aria}
         type="checkbox"

@@ -7,14 +7,18 @@
 -->
 <script module lang="ts">
   import type { SegmentedControlBaseProps } from "@acme/ui-core";
+  import type { RootProps } from "./root.ts";
 
-  export type SegmentedControlProps<Value extends string> = SegmentedControlBaseProps<Value> & {
-    onChange: (value: Value) => void;
-  };
+  export type SegmentedControlProps<Value extends string> = SegmentedControlBaseProps<Value> &
+    RootProps & {
+      onChange: (value: Value) => void;
+    };
 </script>
 
 <script lang="ts" generics="Value extends string">
   import {
+    classes,
+    rootPart,
     segmentedControlClass,
     segmentedControlOptionClass,
     segmentedControlSegmentClass,
@@ -27,6 +31,8 @@
     "aria-label": ariaLabel,
     fullWidth,
     onChange,
+    class: className,
+    style,
   }: SegmentedControlProps<Value> = $props();
 
   const name = $props.id();
@@ -37,7 +43,8 @@
   bind:this={group}
   aria-label={ariaLabel}
   role="radiogroup"
-  class={segmentedControlClass(fullWidth)}
+  class={classes(rootPart("SegmentedControl"), segmentedControlClass(fullWidth), className)}
+  {style}
 >
   {#each options as option (option.value)}
     <label class={segmentedControlOptionClass(fullWidth)}>

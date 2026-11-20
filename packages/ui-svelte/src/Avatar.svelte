@@ -5,22 +5,31 @@
 -->
 <script module lang="ts">
   import type { AvatarBaseProps } from "@acme/ui-core";
+  import type { RootProps } from "./root.ts";
 
   export type { AvatarSize } from "@acme/ui-core";
 
-  export type AvatarProps = AvatarBaseProps;
+  export type AvatarProps = AvatarBaseProps & RootProps;
 </script>
 
 <script lang="ts">
-  import { avatarClass, avatarInitials, pictureClass } from "@acme/ui-core";
+  import { avatarClass, avatarInitials, classes, pictureClass, rootPart } from "@acme/ui-core";
+  import { useDefaults } from "./defaults.svelte.ts";
   import { createPicture } from "./picture.svelte.ts";
 
-  let { name, src, size }: AvatarProps = $props();
+  let { name, src, size: ownSize, class: className, style }: AvatarProps = $props();
+
+  const defaults = useDefaults("Avatar");
+  const size = $derived(ownSize ?? defaults().size);
 
   const picture = createPicture(() => src);
 </script>
 
-<span role="img" aria-label={name} class={avatarClass(size)}
+<span
+  role="img"
+  aria-label={name}
+  class={classes(rootPart("Avatar"), avatarClass(size), className)}
+  {style}
   >{avatarInitials(name, size)}{#if picture.loaded() !== false && src}
     {@const address = src}
     <!-- The name is on the avatar itself; a second one on the picture would be read twice. -->

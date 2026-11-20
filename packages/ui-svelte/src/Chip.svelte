@@ -7,17 +7,27 @@
 -->
 <script module lang="ts">
   import type { ChipBaseProps } from "@acme/ui-core";
+  import type { RootProps } from "./root.ts";
 
-  export type ChipProps = ChipBaseProps & {
-    onPress?: () => void;
-  };
+  export type ChipProps = ChipBaseProps &
+    RootProps & {
+      onPress?: () => void;
+    };
 </script>
 
 <script lang="ts">
-  import { chipClass, chipIcon } from "@acme/ui-core";
+  import { chipClass, chipIcon, classes, rootPart } from "@acme/ui-core";
   import Icon from "./Icon.svelte";
 
-  let { label, selected, iconStart, disabled, onPress }: ChipProps = $props();
+  let {
+    label,
+    selected,
+    iconStart,
+    disabled,
+    onPress,
+    class: className,
+    style,
+  }: ChipProps = $props();
 
   const icon = $derived(chipIcon({ selected, iconStart }));
 </script>
@@ -27,6 +37,7 @@
   aria-pressed={selected ? "true" : "false"}
   {disabled}
   onclick={() => onPress?.()}
-  class={chipClass(selected)}
+  class={classes(rootPart("Chip"), chipClass(selected), className)}
+  {style}
   >{#if icon}<Icon name={icon} size="sm" />{/if}{label}</button
 >

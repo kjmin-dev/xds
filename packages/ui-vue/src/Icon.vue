@@ -3,11 +3,13 @@
 // mirrors itself in a right-to-left layout when given `rtl:-scale-x-100` in `class`, which
 // falls through to the drawing.
 import { icons } from "@acme/tokens";
-import { type IconBaseProps, iconClass } from "@acme/ui-core";
+import { classes, type IconBaseProps, iconClass, rootPart } from "@acme/ui-core";
+import { useDefaults } from "./defaults.ts";
 
 export type IconProps = IconBaseProps;
 
 const { name, size, filled = false, label } = defineProps<IconProps>();
+const options = useDefaults("Icon", () => ({ size }));
 </script>
 
 <template>
@@ -18,7 +20,7 @@ const { name, size, filled = false, label } = defineProps<IconProps>();
     stroke-width="2"
     stroke-linecap="round"
     stroke-linejoin="round"
-    :class="iconClass(size)"
+    :class="classes(rootPart('Icon'), iconClass(options.size))"
     :role="label ? 'img' : undefined"
     :aria-label="label || undefined"
     :aria-hidden="label ? undefined : 'true'"

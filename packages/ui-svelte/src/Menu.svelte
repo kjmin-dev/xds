@@ -9,18 +9,22 @@
 <script module lang="ts">
   import type { MenuBaseProps } from "@acme/ui-core";
   import type { Snippet } from "svelte";
+  import type { RootProps } from "./root.ts";
 
   export type { MenuItem } from "@acme/ui-core";
 
-  export type MenuProps = MenuBaseProps & {
-    /** The control that opens the menu: a Button or an IconButton. */
-    trigger: Snippet;
-  };
+  /** Its root is the menu, while it is open, not its trigger. */
+  export type MenuProps = MenuBaseProps &
+    RootProps & {
+      /** The control that opens the menu: a Button or an IconButton. */
+      trigger: Snippet;
+    };
 </script>
 
 <script lang="ts">
   import { space } from "@acme/tokens";
   import {
+    classes,
     firstMenuValue,
     keepListKeys,
     layoutRect,
@@ -36,7 +40,7 @@
   import { createPresence } from "./presence.svelte.ts";
   import { provideTrigger, type TriggerProps } from "./trigger.svelte.ts";
 
-  let { label, items, align = "start", trigger }: MenuProps = $props();
+  let { label, items, align = "start", trigger, class: className, style }: MenuProps = $props();
 
   const id = $props.id();
   const service = useMachine(menu.machine, () => ({
@@ -66,7 +70,7 @@
     const { onpointerdown: _onPointerDown, ...rest } = api.getTriggerProps() as TriggerProps;
     return mergeProps(rest, {
       // Added to the control's own class; the trigger looks pressed while its menu is open.
-      class: "menu__trigger",
+      class: "acme-menu__trigger",
       // A mouse opens the menu as its button goes down; touch and pen open it on the click, as
       // Zag does.
       onpointerdown: (event: PointerEvent & { currentTarget: HTMLElement }) => {
@@ -106,9 +110,11 @@
   );
   const content = $derived(
     mergeProps(api.getContentProps(), {
+      class: classes("acme-menu", className),
+      style,
       // This handler runs before Zag's.
       onkeydown: (event: KeyboardEvent) =>
-        keepListKeys(event, surface, ".menu__item:not([data-disabled])", (value) =>
+        keepListKeys(event, surface, ".acme-menu__item:not([data-disabled])", (value) =>
           api.setHighlightedValue(value),
         ),
     }),
@@ -121,21 +127,21 @@
     <!-- Takes a press outside, which then only closes the menu. The focus stays in the menu until
        the menu hands it back to the trigger. -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="menu__underlay" onmousedown={(event) => event.preventDefault()}></div>
+    <div class="acme-menu__underlay" onmousedown={(event) => event.preventDefault()}></div>
   {/if}
-  <div {...api.getPositionerProps()} bind:this={positioner} class="menu__positioner">
+  <div {...api.getPositionerProps()} bind:this={positioner} class="acme-menu__positioner">
     <!-- Shown until its exit animation ends; Zag would hide it as it closes. -->
-    <div {...content} bind:this={surface} hidden={!present()} class="menu">
+    <div {...content} bind:this={surface} hidden={!present()}>
       {#each items as item, index (index)}
         {#if item === "separator"}
-          <div {...api.getSeparatorProps()} class="menu__separator"></div>
+          <div {...api.getSeparatorProps()} class="acme-menu__separator"></div>
         {:else}
           <div
             {...api.getItemProps({ value: String(index), disabled: item.disabled })}
             class={menuItemClass(item.danger)}
           >
             {#if item.icon}
-              <Icon name={item.icon} size="sm" class="menu__item-icon" />
+              <Icon name={item.icon} size="sm" class="acme-menu__item-icon" />
             {/if}
             <span class="flex-1">{item.label}</span>
             <!-- Named, so a screen reader hears the state that the check shows. -->

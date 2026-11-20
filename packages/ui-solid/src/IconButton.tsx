@@ -1,13 +1,22 @@
-import { buttonClass, ICON_BUTTON_BOX, type IconButtonBaseProps, isHeld } from "@acme/ui-core";
+import {
+  buttonClass,
+  classes,
+  ICON_BUTTON_BOX,
+  type IconButtonBaseProps,
+  isHeld,
+} from "@acme/ui-core";
 import type { JSX } from "@solidjs/web";
 import { createMemo, Show } from "solid-js";
+import { useDefaults } from "./Defaults.tsx";
 import { Icon } from "./Icon.tsx";
+import type { RootProps } from "./root.ts";
 import { Spinner } from "./Spinner.tsx";
 import { withTrigger } from "./trigger.ts";
 
-export type IconButtonProps = IconButtonBaseProps & {
-  onPress?: () => void;
-};
+export type IconButtonProps = IconButtonBaseProps &
+  RootProps & {
+    onPress?: () => void;
+  };
 
 /**
  * A button that holds only an icon, in Button's variants, sizes and states. It is a square as
@@ -16,12 +25,18 @@ export type IconButtonProps = IconButtonBaseProps & {
  * of.
  */
 export function IconButton(props: IconButtonProps) {
-  const variant = () => props.variant ?? "ghost";
-  const size = () => props.size ?? "md";
+  const defaults = useDefaults("IconButton");
+  const variant = () => props.variant ?? defaults().variant ?? "ghost";
+  const size = () => props.size ?? defaults().size ?? "md";
   const attributes = withTrigger(
     createMemo((): JSX.ButtonHTMLAttributes<HTMLButtonElement> => ({
       type: "button",
-      class: buttonClass({ variant: variant(), size: size(), iconButton: true }),
+      // Its root part, `acme-icon-button`, is in the recipe.
+      class: classes(
+        buttonClass({ variant: variant(), size: size(), iconButton: true }),
+        props.class,
+      ),
+      style: props.style,
       disabled: props.disabled,
       "aria-disabled": props.loading ? "true" : undefined,
       "data-pending": props.loading ? "" : undefined,

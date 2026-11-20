@@ -17,16 +17,19 @@
 -->
 <script module lang="ts">
   import type { DateRange, DateRangePickerBaseProps } from "@acme/ui-core";
+  import type { RootProps } from "./root.ts";
 
   export type { DateRange } from "@acme/ui-core";
 
-  export type DateRangePickerProps = DateRangePickerBaseProps & {
-    onChange: (value: DateRange) => void;
-  };
+  export type DateRangePickerProps = DateRangePickerBaseProps &
+    RootProps & {
+      onChange: (value: DateRange) => void;
+    };
 </script>
 
 <script lang="ts">
   import {
+    classes,
     DATE_PICKER_NAV_CLASS,
     dateRangeMachineProps,
     datePickerContentAttrs,
@@ -48,7 +51,7 @@
     shownRange,
   } from "@acme/ui-core";
   import * as datePicker from "@zag-js/date-picker";
-  import { normalizeProps, useMachine } from "@zag-js/svelte";
+  import { mergeProps, normalizeProps, useMachine } from "@zag-js/svelte";
   import { untrack } from "svelte";
   import Icon from "./Icon.svelte";
   import { modalPopover } from "./modal-popover.svelte.ts";
@@ -56,7 +59,7 @@
   import { createPresence } from "./presence.svelte.ts";
 
   // The rest stays reactive: the machine's props read it each time it changes.
-  let { onChange, ...props }: DateRangePickerProps = $props();
+  let { onChange, class: className, style, ...props }: DateRangePickerProps = $props();
 
   const id = $props.id();
   const ids = datePickerIds(id);
@@ -110,11 +113,17 @@
   });
 </script>
 
-<div {...api.getRootProps()} class="date-picker date-range-picker">
+<!-- Merged, so that the app's style joins any the machine writes on the root. -->
+<div
+  {...mergeProps(api.getRootProps(), {
+    class: classes("acme-date-picker acme-date-range-picker", className),
+    style,
+  })}
+>
   <!-- A span: the field is a button, which a <label> cannot point at. -->
-  <span id={ids.label} class="date-picker__label">{props.label}</span>
+  <span id={ids.label} class="acme-date-picker__label">{props.label}</span>
   <!-- What Zag places the calendar against. -->
-  <div {...api.getControlProps()} class="date-picker__control">
+  <div {...api.getControlProps()} class="acme-date-picker__control">
     <button
       {...trigger}
       {...datePickerTriggerAttrs(props, ids)}
@@ -124,9 +133,9 @@
         focusOpeningDay(api, { ...props, value: props.value?.start });
         trigger.onclick?.(event);
       }}
-      class="date-picker__trigger"
+      class="acme-date-picker__trigger"
     >
-      <span id={ids.value} class="date-picker__value"
+      <span id={ids.value} class="acme-date-picker__value"
         >{props.value === undefined ? props.placeholder : formatRange(props.value, locale)}</span
       >
       <Icon name="calendar" size="sm" class="text-acme-field-placeholder" />
@@ -134,11 +143,11 @@
   </div>
   <!-- One line under the box: the help, or the error in its place. -->
   {#if invalid || props.description}
-    <div class="date-picker__footer">
+    <div class="acme-date-picker__footer">
       {#if invalid}
-        <span id={ids.error} class="date-picker__error">{props.error}</span>
+        <span id={ids.error} class="acme-date-picker__error">{props.error}</span>
       {:else}
-        <span id={ids.description} class="date-picker__description">{props.description}</span>
+        <span id={ids.description} class="acme-date-picker__description">{props.description}</span>
       {/if}
     </div>
   {/if}
@@ -154,9 +163,9 @@
       <!-- Takes a press outside, which then only closes the calendar. The focus stays in the
          calendar until it hands it back to the field. -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <div class="date-picker__underlay" onmousedown={(event) => event.preventDefault()}></div>
+      <div class="acme-date-picker__underlay" onmousedown={(event) => event.preventDefault()}></div>
     {/if}
-    <div {...api.getPositionerProps()} bind:this={positioner} class="date-picker__positioner">
+    <div {...api.getPositionerProps()} bind:this={positioner} class="acme-date-picker__positioner">
       <!-- Shown until its exit animation ends; Zag would hide it as it closes. -->
       <div
         {...api.getContentProps()}
@@ -164,17 +173,17 @@
         bind:this={surface}
         hidden={!present()}
         onkeydown={(event) => keepCalendarFocus(event, surface)}
-        class="date-picker__content date-range-picker__content"
+        class="acme-date-picker__content acme-date-range-picker__content"
       >
-        <div class="date-range-picker__summary" aria-live="polite">
+        <div class="acme-date-range-picker__summary" aria-live="polite">
           <span>{summary.start}</span>
           <span>{summary.end}</span>
         </div>
-        <div class="date-range-picker__months">
+        <div class="acme-date-range-picker__months">
           {#each views as view (view.index)}
             {@const table = api.getTableProps({ view: "day", id: view.table.id })}
-            <div class="date-range-picker__month">
-              <div class="date-picker__header">
+            <div class="acme-date-range-picker__month">
+              <div class="acme-date-picker__header">
                 {#if view.index === 0}
                   <button
                     {...api.getPreviousTriggerProps()}
@@ -184,9 +193,11 @@
                     <Icon name="chevron-left" size="sm" />
                   </button>
                 {:else}
-                  <span class="date-range-picker__nav-space"></span>
+                  <span class="acme-date-range-picker__nav-space"></span>
                 {/if}
-                <span {...api.getRangeTextProps()} class="date-picker__heading">{view.name}</span>
+                <span {...api.getRangeTextProps()} class="acme-date-picker__heading"
+                  >{view.name}</span
+                >
                 {#if view.index === months - 1}
                   <button
                     {...api.getNextTriggerProps()}
@@ -196,19 +207,19 @@
                     <Icon name="chevron-right" size="sm" />
                   </button>
                 {:else}
-                  <span class="date-range-picker__nav-space"></span>
+                  <span class="acme-date-range-picker__nav-space"></span>
                 {/if}
               </div>
               <table
                 {...table}
                 {...view.table}
                 onkeydown={(event) => rangeGridKeyDown(event, api, shown, props, table.onkeydown)}
-                class="date-picker__grid"
+                class="acme-date-picker__grid"
               >
                 <thead {...api.getTableHeadProps({ view: "day" })}>
                   <tr {...api.getTableRowProps({ view: "day" })}>
                     {#each api.weekDays as weekDay (weekDay.long)}
-                      <th scope="col" class="date-picker__weekday">{weekDay.narrow}</th>
+                      <th scope="col" class="acme-date-picker__weekday">{weekDay.narrow}</th>
                     {/each}
                   </tr>
                 </thead>
@@ -220,7 +231,7 @@
                       {#each week as value (value.toString())}
                         {@const cell = { value, visibleRange: view.visibleRange }}
                         {@const day = api.getDayTableCellTriggerProps(cell)}
-                        <td {...api.getDayTableCellProps(cell)} class="date-picker__cell">
+                        <td {...api.getDayTableCellProps(cell)} class="acme-date-picker__cell">
                           <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
                           <div
                             {...day}
@@ -234,7 +245,7 @@
                                 view.visibleRange,
                                 day.onclick,
                               )}
-                            class="date-picker__day"
+                            class="acme-date-picker__day"
                           >
                             {value.day}
                           </div>

@@ -8,19 +8,30 @@
 -->
 <script module lang="ts">
   import type { ToastBaseProps } from "@acme/ui-core";
+  import type { RootProps } from "./root.ts";
 
-  export type ToastProps = ToastBaseProps & {
-    /** Called when the time is up and after the action. Set `open` to false in it. */
-    onClose: () => void;
-  };
+  /** Its root is the toast, while it is open, not the region it appears in. */
+  export type ToastProps = ToastBaseProps &
+    RootProps & {
+      /** Called when the time is up and after the action. Set `open` to false in it. */
+      onClose: () => void;
+    };
 </script>
 
 <script lang="ts">
   import { motion } from "@acme/tokens";
-  import { TOAST_PARTS } from "@acme/ui-core";
+  import { classes, rootPart, TOAST_PARTS } from "@acme/ui-core";
   import type { Attachment } from "svelte/attachments";
 
-  let { open, message, action, duration = motion.duration.toast, onClose }: ToastProps = $props();
+  let {
+    open,
+    message,
+    action,
+    duration = motion.duration.toast,
+    onClose,
+    class: className,
+    style,
+  }: ToastProps = $props();
 
   // The toast the pointer is over and the one focus is in. A toast that closed under the pointer
   // gets no event to say that the pointer left, so only one still in the page counts.
@@ -53,7 +64,8 @@
       onpointerleave={() => (hovered = undefined)}
       onfocusin={(event) => (focused = event.currentTarget)}
       onfocusout={() => (focused = undefined)}
-      class={TOAST_PARTS.toast}
+      class={classes(rootPart("Toast"), TOAST_PARTS.toast, className)}
+      {style}
     >
       <span class={TOAST_PARTS.message}>{message}</span>
       {#if action}

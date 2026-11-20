@@ -1,12 +1,14 @@
-import type { SearchFieldBaseProps } from "@acme/ui-core";
+import { classes, rootPart, type SearchFieldBaseProps } from "@acme/ui-core";
 import { useRef } from "react";
 import { Icon } from "./Icon.tsx";
+import type { RootProps } from "./root.ts";
 
-export type SearchFieldProps = SearchFieldBaseProps & {
-  onChange: (value: string) => void;
-  /** Called with the query on Enter, or on the search key of a software keyboard. */
-  onSubmit?: (value: string) => void;
-};
+export type SearchFieldProps = SearchFieldBaseProps &
+  RootProps & {
+    onChange: (value: string) => void;
+    /** Called with the query on Enter, or on the search key of a software keyboard. */
+    onSubmit?: (value: string) => void;
+  };
 
 /**
  * A text field for a query: TextField's box as a pill, with a search icon in front and, while
@@ -23,18 +25,21 @@ export function SearchField({
   placeholder,
   disabled = false,
   clearLabel = "Clear",
+  className,
+  style,
 }: SearchFieldProps) {
   const input = useRef<HTMLInputElement>(null);
   return (
-    <div className="text-field">
-      <div className="text-field__control text-field__control--pill text-field__group">
-        <span className="text-field__slot text-field__slot--leading">
+    // A TextField's root, drawn by its stylesheet, with a root part of its own.
+    <div className={classes("acme-text-field", rootPart("SearchField"), className)} style={style}>
+      <div className="acme-text-field__control acme-text-field__control--pill acme-text-field__group">
+        <span className="acme-text-field__slot acme-text-field__slot--leading">
           <Icon name="search" size="sm" />
         </span>
         <input
           ref={input}
           type="text"
-          className="text-field__input"
+          className="acme-text-field__input"
           aria-label={label}
           enterKeyHint="search"
           placeholder={placeholder}
@@ -55,7 +60,7 @@ export function SearchField({
           }}
         />
         {value !== "" && !disabled && (
-          <span className="text-field__slot text-field__slot--trailing">
+          <span className="acme-text-field__slot acme-text-field__slot--trailing">
             <button
               type="button"
               aria-label={clearLabel}

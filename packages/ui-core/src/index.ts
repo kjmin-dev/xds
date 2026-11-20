@@ -105,6 +105,12 @@ export {
   restartRange,
   shownRange,
 } from "./date-range-picker.ts";
+export {
+  type ComponentDefaults,
+  DEFAULT_OPTIONS,
+  type DefaultedComponent,
+  mergeDefaults,
+} from "./defaults.ts";
 export type { DialogBaseProps } from "./dialog.ts";
 export { dividerClass } from "./divider.ts";
 export { EMPTY_STATE_PARTS, type EmptyStateBaseProps } from "./empty-state.ts";
@@ -197,5 +203,6 @@ export {
   thumbnailClass,
   thumbnailWatched,
 } from "./thumbnail.ts";
+export { classes, rootPart } from "./parts.ts";
 export { TOAST_PARTS, type ToastAction, type ToastBaseProps } from "./toast.ts";
 export { type TooltipBaseProps, tooltipEndSide } from "./tooltip.ts";

@@ -9,20 +9,23 @@
 <script module lang="ts">
   import type { TextFieldBaseProps } from "@acme/ui-core";
   import type { Snippet } from "svelte";
+  import type { RootProps } from "./root.ts";
 
-  export type TextFieldProps = TextFieldBaseProps & {
-    onChange: (value: string) => void;
-    /**
-     * Inside the box, in front of the text: an icon, a unit. It takes the placeholder's color
-     * unless it sets its own.
-     */
-    leading?: Snippet;
-    /** Inside the box, after the text: an icon, a unit, a small button. */
-    trailing?: Snippet;
-  };
+  export type TextFieldProps = TextFieldBaseProps &
+    RootProps & {
+      onChange: (value: string) => void;
+      /**
+       * Inside the box, in front of the text: an icon, a unit. It takes the placeholder's color
+       * unless it sets its own.
+       */
+      leading?: Snippet;
+      /** Inside the box, after the text: an icon, a unit, a small button. */
+      trailing?: Snippet;
+    };
 </script>
 
 <script lang="ts">
+  import { classes } from "@acme/ui-core";
   import { untrack } from "svelte";
   import type { Attachment } from "svelte/attachments";
   import { keepValue } from "./controlled.ts";
@@ -46,6 +49,8 @@
     onChange,
     leading,
     trailing,
+    class: className,
+    style,
   }: TextFieldProps = $props();
 
   const id = $props.id();
@@ -85,7 +90,7 @@
       {@attach settle}
       {rows}
       {id}
-      class={box ? "text-field__input text-field__control" : "text-field__input"}
+      class={box ? "acme-text-field__input acme-text-field__control" : "acme-text-field__input"}
       {value}
       defaultValue={value}
       {placeholder}
@@ -105,7 +110,7 @@
       {@attach settle}
       {type}
       {id}
-      class={box ? "text-field__input text-field__control" : "text-field__input"}
+      class={box ? "acme-text-field__input acme-text-field__control" : "acme-text-field__input"}
       {value}
       defaultValue={value}
       {placeholder}
@@ -124,16 +129,19 @@
   {/if}
 {/snippet}
 
-<div class="text-field">
-  <label for={id} class="text-field__label">{label}</label>
+<div class={classes("acme-text-field", className)} {style}>
+  <label for={id} class="acme-text-field__label">{label}</label>
   {#if leading || trailing}
-    <div class="text-field__control text-field__group">
+    <div class="acme-text-field__control acme-text-field__group">
       {#if leading}
-        <span class="text-field__slot text-field__slot--leading">{@render leading()}</span>
+        <span class="acme-text-field__slot acme-text-field__slot--leading">{@render leading()}</span
+        >
       {/if}
       {@render field(false)}
       {#if trailing}
-        <span class="text-field__slot text-field__slot--trailing">{@render trailing()}</span>
+        <span class="acme-text-field__slot acme-text-field__slot--trailing"
+          >{@render trailing()}</span
+        >
       {/if}
     </div>
   {:else}
@@ -141,11 +149,11 @@
   {/if}
   <!-- One line under the box: the help or the error at the start edge, the count at the end.
        The error is a live region, so it is announced when it appears. -->
-  <div class="text-field__footer">
+  <div class="acme-text-field__footer">
     {#if !invalid && description}
-      <span id={descriptionId} class="text-field__description">{description}</span>
+      <span id={descriptionId} class="acme-text-field__description">{description}</span>
     {/if}
-    <span id={errorId} class="text-field__error" aria-live="polite">{error}</span>
+    <span id={errorId} class="acme-text-field__error" aria-live="polite">{error}</span>
     {#if maxLength !== undefined}
       <span class="ms-auto shrink-0 text-acme-footnote text-acme-text-secondary tabular-nums"
         >{value.length}/{maxLength}</span

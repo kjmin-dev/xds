@@ -1,17 +1,19 @@
-import type { TextFieldBaseProps } from "@acme/ui-core";
+import { classes, type TextFieldBaseProps } from "@acme/ui-core";
 import { children, createUniqueId, type Element, onSettled, Show } from "solid-js";
 import { keepValue } from "./controlled.ts";
+import type { RootProps } from "./root.ts";
 
-export type TextFieldProps = TextFieldBaseProps & {
-  onChange: (value: string) => void;
-  /**
-   * Inside the box, in front of the text: an icon, a unit. It takes the placeholder's color
-   * unless it sets its own.
-   */
-  leading?: Element;
-  /** Inside the box, after the text: an icon, a unit, a small button. */
-  trailing?: Element;
-};
+export type TextFieldProps = TextFieldBaseProps &
+  RootProps & {
+    onChange: (value: string) => void;
+    /**
+     * Inside the box, in front of the text: an icon, a unit. It takes the placeholder's color
+     * unless it sets its own.
+     */
+    leading?: Element;
+    /** Inside the box, after the text: an icon, a unit, a small button. */
+    trailing?: Element;
+  };
 
 /**
  * A labelled text field, of one line or several. The label, the description and the error
@@ -43,7 +45,7 @@ export function TextField(props: TextFieldProps) {
   // itself, which it does until something sits inside the box beside the text.
   const shared = (box: boolean) => ({
     id,
-    class: box ? "text-field__input text-field__control" : "text-field__input",
+    class: box ? "acme-text-field__input acme-text-field__control" : "acme-text-field__input",
     value: props.value,
     defaultValue: props.value,
     placeholder: props.placeholder,
@@ -74,34 +76,34 @@ export function TextField(props: TextFieldProps) {
     );
 
   return (
-    <div class="text-field">
-      <label for={id} class="text-field__label">
+    <div class={classes("acme-text-field", props.class)} style={props.style}>
+      <label for={id} class="acme-text-field__label">
         {props.label}
       </label>
       <Show when={leading() != null || trailing() != null} fallback={field(true)}>
-        <div class="text-field__control text-field__group">
+        <div class="acme-text-field__control acme-text-field__group">
           <Show when={leading()}>
             {(content) => (
-              <span class="text-field__slot text-field__slot--leading">{content()}</span>
+              <span class="acme-text-field__slot acme-text-field__slot--leading">{content()}</span>
             )}
           </Show>
           {field(false)}
           <Show when={trailing()}>
             {(content) => (
-              <span class="text-field__slot text-field__slot--trailing">{content()}</span>
+              <span class="acme-text-field__slot acme-text-field__slot--trailing">{content()}</span>
             )}
           </Show>
         </div>
       </Show>
       {/* One line under the box: the help or the error at the start edge, the count at the
           end. The error is a live region, so it is announced when it appears. */}
-      <div class="text-field__footer">
+      <div class="acme-text-field__footer">
         <Show when={!invalid() && props.description}>
-          <span id={descriptionId} class="text-field__description">
+          <span id={descriptionId} class="acme-text-field__description">
             {props.description}
           </span>
         </Show>
-        <span id={errorId} class="text-field__error" aria-live="polite">
+        <span id={errorId} class="acme-text-field__error" aria-live="polite">
           {props.error}
         </span>
         <Show when={props.maxLength !== undefined}>

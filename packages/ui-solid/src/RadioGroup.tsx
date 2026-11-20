@@ -1,12 +1,14 @@
-import type { RadioGroupBaseProps } from "@acme/ui-core";
+import { classes, type RadioGroupBaseProps } from "@acme/ui-core";
 import { createUniqueId, For, Show } from "solid-js";
 import { keepChecked } from "./controlled.ts";
+import type { RootProps } from "./root.ts";
 
 export type { RadioOption } from "@acme/ui-core";
 
-export type RadioGroupProps<Value extends string = string> = RadioGroupBaseProps<Value> & {
-  onChange: (value: Value) => void;
-};
+export type RadioGroupProps<Value extends string = string> = RadioGroupBaseProps<Value> &
+  RootProps & {
+    onChange: (value: Value) => void;
+  };
 
 /**
  * One choice among a few, applied later with the form it belongs to. For a choice that takes
@@ -31,18 +33,19 @@ export function RadioGroup<Value extends string = string>(props: RadioGroupProps
       aria-invalid={invalid() ? "true" : undefined}
       aria-disabled={props.disabled ? "true" : undefined}
       aria-orientation="vertical"
-      class="radio-group"
+      class={classes("acme-radio-group", props.class)}
+      style={props.style}
     >
-      <span id={labelId} class="radio-group__label">
+      <span id={labelId} class="acme-radio-group__label">
         {props.label}
       </span>
-      <div class="radio-group__options">
+      <div class="acme-radio-group__options">
         <For each={props.options}>
           {(option, index) => (
-            <label class="radio-group__option">
+            <label class="acme-radio-group__option">
               <input
                 type="radio"
-                class="radio-group__input sr-only"
+                class="acme-radio-group__input sr-only"
                 // Radios group by name, which is what makes the arrow keys move between them.
                 name={props.name ?? id}
                 value={option.value}
@@ -71,18 +74,18 @@ export function RadioGroup<Value extends string = string>(props: RadioGroupProps
                   }
                 }}
               />
-              <span class="radio-group__row">
-                <span class="radio-group__circle-line">
-                  <span class="radio-group__circle">
-                    <span class="radio-group__dot" />
+              <span class="acme-radio-group__row">
+                <span class="acme-radio-group__circle-line">
+                  <span class="acme-radio-group__circle">
+                    <span class="acme-radio-group__dot" />
                   </span>
                 </span>
-                <span class="radio-group__words">
-                  <span id={`${id}-${index()}`} class="radio-group__text">
+                <span class="acme-radio-group__words">
+                  <span id={`${id}-${index()}`} class="acme-radio-group__text">
                     {option.label}
                   </span>
                   <Show when={option.description}>
-                    <span id={`${id}-${index()}-description`} class="radio-group__description">
+                    <span id={`${id}-${index()}-description`} class="acme-radio-group__description">
                       {option.description}
                     </span>
                   </Show>
@@ -96,7 +99,7 @@ export function RadioGroup<Value extends string = string>(props: RadioGroupProps
           appears. Empty, it takes no room. */}
       <div aria-live="polite">
         <Show when={invalid()}>
-          <span id={errorId} class="radio-group__error">
+          <span id={errorId} class="acme-radio-group__error">
             {props.error}
           </span>
         </Show>

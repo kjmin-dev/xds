@@ -24,7 +24,7 @@ export type MenuBaseProps = {
 
 /** The class of a row of the menu. The highlight and the disabled look come from attributes. */
 export function menuItemClass(danger = false): string {
-  return danger ? "menu__item menu__item--danger" : "menu__item";
+  return danger ? "acme-menu__item acme-menu__item--danger" : "acme-menu__item";
 }
 
 /**

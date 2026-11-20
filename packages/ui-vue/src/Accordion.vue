@@ -56,15 +56,15 @@ const body = (value: Value) => {
 </script>
 
 <template>
-  <div v-bind="api.getRootProps()" class="accordion">
+  <div v-bind="api.getRootProps()" class="acme-accordion">
     <div
       v-for="item in items"
       :key="item.value"
       v-bind="api.getItemProps({ value: item.value })"
-      class="accordion__item"
+      class="acme-accordion__item"
     >
-      <h3 v-bind="api.getItemHeaderProps({ value: item.value })" class="accordion__heading">
-        <button v-bind="trigger(item.value)" class="accordion__trigger group">
+      <h3 v-bind="api.getItemHeaderProps({ value: item.value })" class="acme-accordion__heading">
+        <button v-bind="trigger(item.value)" class="acme-accordion__trigger group">
           <span :class="ACCORDION_PARTS.text">
             <span :class="ACCORDION_PARTS.title">{{ item.title }}</span>
             <span v-if="item.description" :class="ACCORDION_PARTS.description">

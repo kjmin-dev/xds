@@ -1,16 +1,18 @@
-import type { TextFieldBaseProps } from "@acme/ui-core";
+import { classes, type TextFieldBaseProps } from "@acme/ui-core";
 import { type ReactNode, useId } from "react";
+import type { RootProps } from "./root.ts";
 
-export type TextFieldProps = TextFieldBaseProps & {
-  onChange: (value: string) => void;
-  /**
-   * Inside the box, in front of the text: an icon, a unit. It takes the placeholder's color
-   * unless it sets its own.
-   */
-  leading?: ReactNode;
-  /** Inside the box, after the text: an icon, a unit, a small button. */
-  trailing?: ReactNode;
-};
+export type TextFieldProps = TextFieldBaseProps &
+  RootProps & {
+    onChange: (value: string) => void;
+    /**
+     * Inside the box, in front of the text: an icon, a unit. It takes the placeholder's color
+     * unless it sets its own.
+     */
+    leading?: ReactNode;
+    /** Inside the box, after the text: an icon, a unit, a small button. */
+    trailing?: ReactNode;
+  };
 
 /**
  * A labelled text field, of one line or several. The label, the description and the error
@@ -39,6 +41,8 @@ export function TextField({
   autoFocus = false,
   required = false,
   disabled = false,
+  className,
+  style,
 }: TextFieldProps) {
   const id = useId();
   const descriptionId = `${id}-description`;
@@ -49,7 +53,9 @@ export function TextField({
   const grouped = leading != null || trailing != null;
   const shared = {
     id,
-    className: grouped ? "text-field__input" : "text-field__input text-field__control",
+    className: grouped
+      ? "acme-text-field__input"
+      : "acme-text-field__input acme-text-field__control",
     value,
     placeholder,
     name,
@@ -69,18 +75,20 @@ export function TextField({
     <input {...shared} type={type} onChange={(event) => onChange(event.currentTarget.value)} />
   );
   return (
-    <div className="text-field">
-      <label htmlFor={id} className="text-field__label">
+    <div className={classes("acme-text-field", className)} style={style}>
+      <label htmlFor={id} className="acme-text-field__label">
         {label}
       </label>
       {grouped ? (
-        <div className="text-field__control text-field__group">
+        <div className="acme-text-field__control acme-text-field__group">
           {leading != null && (
-            <span className="text-field__slot text-field__slot--leading">{leading}</span>
+            <span className="acme-text-field__slot acme-text-field__slot--leading">{leading}</span>
           )}
           {field}
           {trailing != null && (
-            <span className="text-field__slot text-field__slot--trailing">{trailing}</span>
+            <span className="acme-text-field__slot acme-text-field__slot--trailing">
+              {trailing}
+            </span>
           )}
         </div>
       ) : (
@@ -88,13 +96,13 @@ export function TextField({
       )}
       {/* One line under the box: the help or the error at the start edge, the count at the
           end. The error is a live region, so it is announced when it appears. */}
-      <div className="text-field__footer">
+      <div className="acme-text-field__footer">
         {!invalid && description && (
-          <span id={descriptionId} className="text-field__description">
+          <span id={descriptionId} className="acme-text-field__description">
             {description}
           </span>
         )}
-        <span id={errorId} className="text-field__error" aria-live="polite">
+        <span id={errorId} className="acme-text-field__error" aria-live="polite">
           {error}
         </span>
         {maxLength !== undefined && (

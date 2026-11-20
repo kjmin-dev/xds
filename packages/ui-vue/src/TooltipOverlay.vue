@@ -9,6 +9,9 @@ import { computed, useId, useTemplateRef } from "vue";
 import { usePresence } from "./presence.ts";
 import { type TriggerProps, TriggerScope } from "./trigger.ts";
 
+// The class and style a Tooltip is given go on the tooltip itself: the root is the control it
+// describes and a Teleport.
+defineOptions({ inheritAttrs: false });
 const { label, shortcut, placement } = defineProps<{
   label: string;
   shortcut?: string | undefined;
@@ -43,10 +46,17 @@ const present = usePresence(
   <TriggerScope :trigger="trigger"><slot /></TriggerScope>
   <Teleport v-if="present" to="body">
     <TriggerScope :trigger="null">
-      <div v-bind="api.getPositionerProps()" class="tooltip__positioner">
+      <div v-bind="api.getPositionerProps()" class="acme-tooltip__positioner">
         <!-- Shown until its exit animation ends; Zag would hide it as it closes. -->
-        <div v-bind="api.getContentProps()" ref="content" :hidden="false" class="tooltip">
-          {{ label }}<kbd v-if="shortcut" class="tooltip__shortcut">{{ shortcut }}</kbd>
+        <div
+          v-bind="api.getContentProps()"
+          ref="content"
+          :hidden="false"
+          class="acme-tooltip"
+          :class="$attrs.class"
+          :style="$attrs.style"
+        >
+          {{ label }}<kbd v-if="shortcut" class="acme-tooltip__shortcut">{{ shortcut }}</kbd>
         </div>
       </div>
     </TriggerScope>

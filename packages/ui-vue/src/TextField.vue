@@ -62,7 +62,9 @@ onMounted(() => {
 // The attributes the input and the text area share.
 const shared = computed(() => ({
   id,
-  class: grouped.value ? "text-field__input" : "text-field__input text-field__control",
+  class: grouped.value
+    ? "acme-text-field__input"
+    : "acme-text-field__input acme-text-field__control",
   value: value.value,
   // A form's reset puts a field back to its default value: for an input its `value` attribute,
   // which Vue writes, but for a text area its text, which Vue leaves empty. React keeps both
@@ -93,10 +95,10 @@ function settle(event: CompositionEvent) {
 </script>
 
 <template>
-  <div class="text-field">
-    <label :for="id" class="text-field__label">{{ label }}</label>
-    <div v-if="grouped" class="text-field__control text-field__group">
-      <span v-if="slots.leading" class="text-field__slot text-field__slot--leading">
+  <div class="acme-text-field">
+    <label :for="id" class="acme-text-field__label">{{ label }}</label>
+    <div v-if="grouped" class="acme-text-field__control acme-text-field__group">
+      <span v-if="slots.leading" class="acme-text-field__slot acme-text-field__slot--leading">
         <slot name="leading" />
       </span>
       <textarea
@@ -115,7 +117,7 @@ function settle(event: CompositionEvent) {
         @input="edit"
         @compositionend="settle"
       />
-      <span v-if="slots.trailing" class="text-field__slot text-field__slot--trailing">
+      <span v-if="slots.trailing" class="acme-text-field__slot acme-text-field__slot--trailing">
         <slot name="trailing" />
       </span>
     </div>
@@ -130,11 +132,11 @@ function settle(event: CompositionEvent) {
     <input v-else ref="input" :type="type" v-bind="shared" @input="edit" @compositionend="settle" />
     <!-- One line under the box: the help or the error at the start edge, the count at the end.
          The error is a live region, so it is announced when it appears. -->
-    <div class="text-field__footer">
-      <span v-if="!invalid && description" :id="descriptionId" class="text-field__description">
+    <div class="acme-text-field__footer">
+      <span v-if="!invalid && description" :id="descriptionId" class="acme-text-field__description">
         {{ description }}
       </span>
-      <span :id="errorId" class="text-field__error" aria-live="polite">{{ error }}</span>
+      <span :id="errorId" class="acme-text-field__error" aria-live="polite">{{ error }}</span>
       <span
         v-if="maxLength !== undefined"
         class="ms-auto shrink-0 text-acme-footnote text-acme-text-secondary tabular-nums"

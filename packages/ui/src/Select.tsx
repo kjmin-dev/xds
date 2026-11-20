@@ -1,23 +1,27 @@
 import { space } from "@acme/tokens";
 import {
+  classes,
   keepListKeys,
   type SelectBaseProps,
   type SelectOption,
   selectOptionIds,
 } from "@acme/ui-core";
-import { normalizeProps, useMachine } from "@zag-js/react";
+import { mergeProps, normalizeProps, useMachine } from "@zag-js/react";
 import * as select from "@zag-js/select";
 import { type KeyboardEvent, useId, useMemo, useRef } from "react";
 import { Icon } from "./Icon.tsx";
 import { useModalPopover } from "./modal-popover.ts";
 import { Portal } from "./portal.tsx";
 import { usePresence } from "./presence.ts";
+import type { RootProps } from "./root.ts";
 
 export type { SelectOption } from "@acme/ui-core";
 
-export type SelectProps<Value extends string = string> = SelectBaseProps<Value> & {
-  onChange: (value: Value) => void;
-};
+/** `className` and `style` are for the field, not for the list that opens from it. */
+export type SelectProps<Value extends string = string> = SelectBaseProps<Value> &
+  RootProps & {
+    onChange: (value: Value) => void;
+  };
 
 type KeyHandler = (event: KeyboardEvent) => void;
 
@@ -41,6 +45,8 @@ export function Select<Value extends string = string>({
   error,
   name,
   disabled = false,
+  className,
+  style,
 }: SelectProps<Value>) {
   const id = useId();
   const valueId = `${id}-value`;
@@ -101,7 +107,7 @@ export function Select<Value extends string = string>({
     ...contentProps,
     onKeyDown: (event: KeyboardEvent) => {
       // Ahead of Zag's handler, which skips a key that was already handled.
-      keepListKeys(event, surface.current, ".select__item:not([data-disabled])", (row) =>
+      keepListKeys(event, surface.current, ".acme-select__item:not([data-disabled])", (row) =>
         api.setHighlightedValue(row),
       );
       (current().getContentProps().onKeyDown as KeyHandler | undefined)?.(event);
@@ -110,8 +116,10 @@ export function Select<Value extends string = string>({
   useModalPopover(api.open, () => positioner.current);
   const present = usePresence(api.open, () => [surface.current]);
   return (
-    <div {...api.getRootProps()} className="select">
-      <span {...labelProps} className="select__label">
+    <div
+      {...mergeProps(api.getRootProps(), { className: classes("acme-select", className), style })}
+    >
+      <span {...labelProps} className="acme-select__label">
         {label}
       </span>
       <button
@@ -126,24 +134,24 @@ export function Select<Value extends string = string>({
           (now.getTriggerProps().onKeyDown as KeyHandler | undefined)?.(event);
         }}
         type="button"
-        className="select__trigger"
+        className="acme-select__trigger"
       >
         {/* The chosen option's label alone: the list's rows also hold a description and a
             check, which do not belong in the field. */}
-        <span {...api.getValueTextProps()} id={valueId} className="select__value">
+        <span {...api.getValueTextProps()} id={valueId} className="acme-select__value">
           {api.valueAsString || placeholder}
         </span>
         <Icon name="chevrons-up-down" size="sm" className="text-acme-field-placeholder" />
       </button>
       {/* One line under the box: the help, or the error in its place. */}
       {(invalid || description) && (
-        <div className="select__footer">
+        <div className="acme-select__footer">
           {invalid ? (
-            <span id={errorId} className="select__error">
+            <span id={errorId} className="acme-select__error">
               {error}
             </span>
           ) : (
-            <span id={descriptionId} className="select__description">
+            <span id={descriptionId} className="acme-select__description">
               {description}
             </span>
           )}
@@ -164,12 +172,12 @@ export function Select<Value extends string = string>({
           // Takes a press outside, which then only closes the list. The focus stays in the
           // list until the list hands it back to the field.
           // oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- not a control: the handler only keeps the focus where it is
-          <div className="select__underlay" onMouseDown={(event) => event.preventDefault()} />
+          <div className="acme-select__underlay" onMouseDown={(event) => event.preventDefault()} />
         )}
-        <div {...api.getPositionerProps()} ref={positioner} className="select__positioner">
+        <div {...api.getPositionerProps()} ref={positioner} className="acme-select__positioner">
           {/* Shown until its exit animation ends; Zag would hide it as it closes. */}
-          <div {...content} ref={surface} hidden={!present} className="select__content">
-            <div {...api.getListProps()} className="select__list">
+          <div {...content} ref={surface} hidden={!present} className="acme-select__content">
+            <div {...api.getListProps()} className="acme-select__list">
               {collection.items.map((option, index) => {
                 const ids = selectOptionIds(id, index);
                 return (
@@ -179,18 +187,18 @@ export function Select<Value extends string = string>({
                     {...api.getItemProps({ item: option })}
                     aria-labelledby={ids.label}
                     aria-describedby={option.description ? ids.description : undefined}
-                    className="select__item"
+                    className="acme-select__item"
                   >
-                    <span className="select__item-words">
+                    <span className="acme-select__item-words">
                       <span
                         {...api.getItemTextProps({ item: option })}
                         id={ids.label}
-                        className="select__item-label"
+                        className="acme-select__item-label"
                       >
                         {option.label}
                       </span>
                       {option.description && (
-                        <span id={ids.description} className="select__item-description">
+                        <span id={ids.description} className="acme-select__item-description">
                           {option.description}
                         </span>
                       )}

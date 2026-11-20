@@ -2,6 +2,7 @@ import {
   ACCORDION_PARTS,
   type AccordionBaseProps,
   type AccordionItemBase,
+  classes,
   focusTitleOnClick,
   setPanelOpen,
 } from "@acme/ui-core";
@@ -16,16 +17,18 @@ import {
   useState,
 } from "react";
 import { Icon } from "./Icon.tsx";
+import type { RootProps } from "./root.ts";
 
 export type AccordionItem<Value extends string = string> = AccordionItemBase<Value> & {
   /** The body, shown under the title while the item is open. */
   content: ReactNode;
 };
 
-export type AccordionProps<Value extends string = string> = AccordionBaseProps<Value> & {
-  items: readonly AccordionItem<Value>[];
-  onChange: (expanded: Value[]) => void;
-};
+export type AccordionProps<Value extends string = string> = AccordionBaseProps<Value> &
+  RootProps & {
+    items: readonly AccordionItem<Value>[];
+    onChange: (expanded: Value[]) => void;
+  };
 
 /**
  * Items whose bodies open and close under their titles, separated by hairlines. The chevron
@@ -40,6 +43,8 @@ export function Accordion<Value extends string = string>({
   expanded,
   onChange,
   multiple = false,
+  className,
+  style,
 }: AccordionProps<Value>) {
   const service = useMachine(accordion.machine, {
     id: useId(),
@@ -51,7 +56,12 @@ export function Accordion<Value extends string = string>({
   });
   const api = accordion.connect(service, normalizeProps);
   return (
-    <div {...api.getRootProps()} className="accordion">
+    <div
+      {...mergeProps(api.getRootProps(), {
+        className: classes("acme-accordion", className),
+        style,
+      })}
+    >
       {items.map((item) => {
         // The panel hides itself once it has finished closing; see Panel.
         const { hidden: _hidden, ...body } = api.getItemContentProps({ value: item.value });
@@ -59,16 +69,19 @@ export function Accordion<Value extends string = string>({
           <div
             key={item.value}
             {...api.getItemProps({ value: item.value })}
-            className="accordion__item"
+            className="acme-accordion__item"
           >
-            <h3 {...api.getItemHeaderProps({ value: item.value })} className="accordion__heading">
+            <h3
+              {...api.getItemHeaderProps({ value: item.value })}
+              className="acme-accordion__heading"
+            >
               <button
                 {...mergeProps(api.getItemTriggerProps({ value: item.value }), {
                   // Runs before Zag's handler.
                   onClick: focusTitleOnClick,
                 })}
                 type="button"
-                className="accordion__trigger group"
+                className="acme-accordion__trigger group"
               >
                 <span className={ACCORDION_PARTS.text}>
                   <span className={ACCORDION_PARTS.title}>{item.title}</span>
@@ -133,9 +146,9 @@ function Panel({
       hidden={closedAtFirst || undefined}
       role="group"
       aria-hidden={open ? undefined : true}
-      className="accordion__panel"
+      className="acme-accordion__panel"
     >
-      <div className="accordion__body">{children}</div>
+      <div className="acme-accordion__body">{children}</div>
     </div>
   );
 }

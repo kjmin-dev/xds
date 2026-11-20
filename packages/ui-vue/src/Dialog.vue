@@ -13,6 +13,8 @@ import { TriggerScope } from "./trigger.ts";
 
 export type DialogProps = DialogBaseProps;
 
+// The app's class and style go on the dialog: the Teleport, its root, has no element of its own.
+defineOptions({ inheritAttrs: false });
 const { open, title, description, dismissible = true } = defineProps<DialogProps>();
 const emit = defineEmits<{
   /** On Escape and on a press outside the dialog. Set `open` to false in it. */
@@ -63,17 +65,24 @@ const present = usePresence(
         v-bind="api.getBackdropProps()"
         ref="backdrop"
         :hidden="false"
-        class="dialog__backdrop"
+        class="acme-dialog__backdrop"
         @mousedown.prevent
       />
-      <div v-bind="api.getPositionerProps()" ref="positioner" class="dialog__positioner">
-        <section v-bind="api.getContentProps()" ref="content" :hidden="false" class="dialog">
-          <h2 v-bind="api.getTitleProps()" class="dialog__title">{{ title }}</h2>
-          <p v-if="description" v-bind="api.getDescriptionProps()" class="dialog__description">
+      <div v-bind="api.getPositionerProps()" ref="positioner" class="acme-dialog__positioner">
+        <section
+          v-bind="api.getContentProps()"
+          ref="content"
+          :hidden="false"
+          class="acme-dialog"
+          :class="$attrs.class"
+          :style="$attrs.style"
+        >
+          <h2 v-bind="api.getTitleProps()" class="acme-dialog__title">{{ title }}</h2>
+          <p v-if="description" v-bind="api.getDescriptionProps()" class="acme-dialog__description">
             {{ description }}
           </p>
-          <div v-if="slots.default" class="dialog__body"><slot /></div>
-          <div v-if="slots.actions" class="dialog__actions"><slot name="actions" /></div>
+          <div v-if="slots.default" class="acme-dialog__body"><slot /></div>
+          <div v-if="slots.actions" class="acme-dialog__actions"><slot name="actions" /></div>
         </section>
       </div>
     </TriggerScope>

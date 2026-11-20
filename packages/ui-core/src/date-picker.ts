@@ -241,7 +241,7 @@ export function keepDayFocused(open: boolean, content: HTMLElement | null | unde
  * The classes of the calendar's month buttons: the `__nav` part, which button.css draws as a
  * small ghost IconButton.
  */
-export const DATE_PICKER_NAV_CLASS = `date-picker__nav ${buttonClass({
+export const DATE_PICKER_NAV_CLASS = `acme-date-picker__nav ${buttonClass({
   variant: "ghost",
   size: "sm",
   iconButton: true,

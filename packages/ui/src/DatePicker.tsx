@@ -1,4 +1,5 @@
 import {
+  classes,
   DATE_PICKER_NAV_CLASS,
   type DatePickerBaseProps,
   datePickerContentAttrs,
@@ -13,18 +14,20 @@ import {
   keepDayFocused,
 } from "@acme/ui-core";
 import * as datePicker from "@zag-js/date-picker";
-import { normalizeProps, useMachine } from "@zag-js/react";
+import { mergeProps, normalizeProps, useMachine } from "@zag-js/react";
 import { type MouseEvent, useEffect, useId, useRef } from "react";
 import { Icon } from "./Icon.tsx";
 import { useModalPopover } from "./modal-popover.ts";
 import { Portal } from "./portal.tsx";
 import { usePresence } from "./presence.ts";
+import type { RootProps } from "./root.ts";
 
 export type { IsoDate } from "@acme/ui-core";
 
-export type DatePickerProps = DatePickerBaseProps & {
-  onChange: (value: IsoDate) => void;
-};
+export type DatePickerProps = DatePickerBaseProps &
+  RootProps & {
+    onChange: (value: IsoDate) => void;
+  };
 
 /**
  * A field for choosing one day. Closed, it looks like a Select: the chosen day in the locale's
@@ -39,7 +42,7 @@ export type DatePickerProps = DatePickerBaseProps & {
  * the month buttons and the focused day. The chosen day is selected for assistive technology,
  * and today is the current date.
  */
-export function DatePicker({ onChange, ...props }: DatePickerProps) {
+export function DatePicker({ onChange, className, style, ...props }: DatePickerProps) {
   const { label, value, placeholder, description, error, name } = props;
   const id = useId();
   const ids = datePickerIds(id);
@@ -59,13 +62,18 @@ export function DatePicker({ onChange, ...props }: DatePickerProps) {
   useEffect(() => keepDayFocused(api.open, surface.current), [api.open, focused, month]);
   const invalid = error !== undefined;
   return (
-    <div {...api.getRootProps()} className="date-picker">
+    <div
+      {...mergeProps(api.getRootProps(), {
+        className: classes("acme-date-picker", className),
+        style,
+      })}
+    >
       {/* A span: the field is a button, which a <label> cannot point at. */}
-      <span id={ids.label} className="date-picker__label">
+      <span id={ids.label} className="acme-date-picker__label">
         {label}
       </span>
       {/* What Zag places the calendar against. */}
-      <div {...api.getControlProps()} className="date-picker__control">
+      <div {...api.getControlProps()} className="acme-date-picker__control">
         <button
           {...trigger}
           {...datePickerTriggerAttrs(props, ids)}
@@ -74,9 +82,9 @@ export function DatePicker({ onChange, ...props }: DatePickerProps) {
             focusOpeningDay(api, props);
             trigger.onClick?.(event);
           }}
-          className="date-picker__trigger"
+          className="acme-date-picker__trigger"
         >
-          <span id={ids.value} className="date-picker__value">
+          <span id={ids.value} className="acme-date-picker__value">
             {value === undefined ? placeholder : formatDay(value, locale)}
           </span>
           <Icon name="calendar" size="sm" className="text-acme-field-placeholder" />
@@ -84,13 +92,13 @@ export function DatePicker({ onChange, ...props }: DatePickerProps) {
       </div>
       {/* One line under the box: the help, or the error in its place. */}
       {(invalid || description) && (
-        <div className="date-picker__footer">
+        <div className="acme-date-picker__footer">
           {invalid ? (
-            <span id={ids.error} className="date-picker__error">
+            <span id={ids.error} className="acme-date-picker__error">
               {error}
             </span>
           ) : (
-            <span id={ids.description} className="date-picker__description">
+            <span id={ids.description} className="acme-date-picker__description">
               {description}
             </span>
           )}
@@ -103,9 +111,16 @@ export function DatePicker({ onChange, ...props }: DatePickerProps) {
           // Takes a press outside, which then only closes the calendar. The focus stays in the
           // calendar until it hands it back to the field.
           // oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- not a control: the handler only keeps the focus where it is
-          <div className="date-picker__underlay" onMouseDown={(event) => event.preventDefault()} />
+          <div
+            className="acme-date-picker__underlay"
+            onMouseDown={(event) => event.preventDefault()}
+          />
         )}
-        <div {...api.getPositionerProps()} ref={positioner} className="date-picker__positioner">
+        <div
+          {...api.getPositionerProps()}
+          ref={positioner}
+          className="acme-date-picker__positioner"
+        >
           {/* Shown until its exit animation ends; Zag would hide it as it closes. */}
           {/* oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- a dialog: datePickerContentAttrs gives it the role */}
           <div
@@ -114,9 +129,9 @@ export function DatePicker({ onChange, ...props }: DatePickerProps) {
             ref={surface}
             hidden={!present}
             onKeyDown={(event) => keepCalendarFocus(event, surface.current)}
-            className="date-picker__content"
+            className="acme-date-picker__content"
           >
-            <div className="date-picker__header">
+            <div className="acme-date-picker__header">
               <button
                 {...api.getPreviousTriggerProps()}
                 type="button"
@@ -124,7 +139,7 @@ export function DatePicker({ onChange, ...props }: DatePickerProps) {
               >
                 <Icon name="chevron-left" size="sm" />
               </button>
-              <span {...api.getRangeTextProps()} className="date-picker__heading">
+              <span {...api.getRangeTextProps()} className="acme-date-picker__heading">
                 {api.visibleRangeText.start}
               </span>
               <button
@@ -135,11 +150,11 @@ export function DatePicker({ onChange, ...props }: DatePickerProps) {
                 <Icon name="chevron-right" size="sm" />
               </button>
             </div>
-            <table {...api.getTableProps({ view: "day" })} className="date-picker__grid">
+            <table {...api.getTableProps({ view: "day" })} className="acme-date-picker__grid">
               <thead {...api.getTableHeadProps({ view: "day" })}>
                 <tr {...api.getTableRowProps({ view: "day" })}>
                   {api.weekDays.map((weekDay) => (
-                    <th key={weekDay.long} scope="col" className="date-picker__weekday">
+                    <th key={weekDay.long} scope="col" className="acme-date-picker__weekday">
                       {weekDay.narrow}
                     </th>
                   ))}
@@ -155,11 +170,11 @@ export function DatePicker({ onChange, ...props }: DatePickerProps) {
                       <td
                         key={date.toString()}
                         {...api.getDayTableCellProps({ value: date })}
-                        className="date-picker__cell"
+                        className="acme-date-picker__cell"
                       >
                         <div
                           {...api.getDayTableCellTriggerProps({ value: date })}
-                          className="date-picker__day"
+                          className="acme-date-picker__day"
                         >
                           {date.day}
                         </div>

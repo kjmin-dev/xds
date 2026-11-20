@@ -5,10 +5,12 @@
 -->
 <script module lang="ts">
   import type { CheckboxBaseProps } from "@acme/ui-core";
+  import type { RootProps } from "./root.ts";
 
-  export type CheckboxProps = CheckboxBaseProps & {
-    onChange: (checked: boolean) => void;
-  };
+  export type CheckboxProps = CheckboxBaseProps &
+    RootProps & {
+      onChange: (checked: boolean) => void;
+    };
 </script>
 
 <script lang="ts">
@@ -18,6 +20,8 @@
     checkboxClass,
     checkboxLabelClass,
     checkboxMarkClass,
+    classes,
+    rootPart,
   } from "@acme/ui-core";
   import { keepChecked } from "./controlled.ts";
 
@@ -28,10 +32,12 @@
     name,
     disabled,
     onChange,
+    class: className,
+    style,
   }: CheckboxProps = $props();
 </script>
 
-<label class={checkboxClass}>
+<label class={classes(rootPart("Checkbox"), checkboxClass, className)} {style}>
   <input
     type="checkbox"
     aria-label={ariaLabel}

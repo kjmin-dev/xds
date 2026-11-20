@@ -1,0 +1,36 @@
+/*
+ * What every overlay shares: the level it is drawn on and how it leaves.
+ *
+ * The level: a dialog's scrim and the dialog, a menu, a select's list, a tooltip. Zag puts
+ * `--layer-index` on each layer it opens (0 for the first, 1 for one opened from it), and an
+ * overlay adds it, so the later one is on top. The design tokens have no z-index: only the web
+ * needs one. A toast needs none, as it is in the top layer.
+ */
+:root {
+  --acme-layer-overlay: 100000;
+}
+
+/* How every overlay leaves: a menu, a select's list, a tooltip and a dialog fade and shrink a
+   little, a dialog's scrim fades. Each starts it on `[data-state="closed"]`, and its component
+   keeps it on the page until it ends. Each holds the last frame (`forwards`): a framework may
+   paint once more before it removes the overlay, which would otherwise show again for that
+   frame. Both ends are set: WebKit does not run a transform animation that starts from an
+   implicit `none`.
+   The scale is a literal because a custom property inside a keyframe keeps WebKit from running
+   the animation on the compositor. */
+@keyframes acme-overlay-exit {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes acme-fade-out {
+  to {
+    opacity: 0;
+  }
+}

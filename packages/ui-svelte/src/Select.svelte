@@ -11,17 +11,19 @@
 -->
 <script module lang="ts">
   import type { SelectBaseProps } from "@acme/ui-core";
+  import type { RootProps } from "./root.ts";
 
   export type { SelectOption } from "@acme/ui-core";
 
-  export type SelectProps<Value extends string = string> = SelectBaseProps<Value> & {
-    onChange: (value: Value) => void;
-  };
+  export type SelectProps<Value extends string = string> = SelectBaseProps<Value> &
+    RootProps & {
+      onChange: (value: Value) => void;
+    };
 </script>
 
 <script lang="ts" generics="Value extends string = string">
   import { space } from "@acme/tokens";
-  import { keepListKeys, type SelectOption, selectOptionIds } from "@acme/ui-core";
+  import { classes, keepListKeys, type SelectOption, selectOptionIds } from "@acme/ui-core";
   import * as select from "@zag-js/select";
   import { mergeProps, normalizeProps, useMachine } from "@zag-js/svelte";
   import type { HTMLAttributes, HTMLLabelAttributes } from "svelte/elements";
@@ -42,6 +44,8 @@
     name,
     disabled,
     onChange,
+    class: className,
+    style,
   }: SelectProps<Value> = $props();
 
   const id = $props.id();
@@ -122,7 +126,7 @@
     const { onkeydown: _onKeyDown, ...rest } = api.getContentProps();
     return mergeProps(rest, {
       onkeydown: (event: KeyboardEvent) => {
-        keepListKeys(event, surface, ".select__item:not([data-disabled])", (value) =>
+        keepListKeys(event, surface, ".acme-select__item:not([data-disabled])", (value) =>
           api.setHighlightedValue(value),
         );
         (current().getContentProps().onkeydown as KeyHandler | undefined)?.(event);
@@ -131,28 +135,29 @@
   });
 </script>
 
-<div {...api.getRootProps()} class="select">
-  <span {...labelProps} class="select__label">{label}</span>
+<!-- Merged, so that the app's style joins any the machine writes on the root. -->
+<div {...mergeProps(api.getRootProps(), { class: classes("acme-select", className), style })}>
+  <span {...labelProps} class="acme-select__label">{label}</span>
   <button
     {...triggerProps}
     aria-labelledby={`${valueId} ${labelProps.id}`}
     aria-describedby={invalid ? errorId : description ? descriptionId : undefined}
-    class="select__trigger"
+    class="acme-select__trigger"
   >
     <!-- The chosen option's label alone: the list's rows also hold a description and a check,
          which do not belong in the field. -->
-    <span {...api.getValueTextProps()} id={valueId} class="select__value"
+    <span {...api.getValueTextProps()} id={valueId} class="acme-select__value"
       >{api.valueAsString || placeholder}</span
     >
     <Icon name="chevrons-up-down" size="sm" class="text-acme-field-placeholder" />
   </button>
   <!-- One line under the box: the help, or the error in its place. -->
   {#if invalid || description}
-    <div class="select__footer">
+    <div class="acme-select__footer">
       {#if invalid}
-        <span id={errorId} class="select__error">{error}</span>
+        <span id={errorId} class="acme-select__error">{error}</span>
       {:else}
-        <span id={descriptionId} class="select__description">{description}</span>
+        <span id={descriptionId} class="acme-select__description">{description}</span>
       {/if}
     </div>
   {/if}
@@ -169,12 +174,12 @@
       <!-- Takes a press outside, which then only closes the list. The focus stays in the list
          until the list hands it back to the field. -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <div class="select__underlay" onmousedown={(event) => event.preventDefault()}></div>
+      <div class="acme-select__underlay" onmousedown={(event) => event.preventDefault()}></div>
     {/if}
-    <div {...api.getPositionerProps()} bind:this={positioner} class="select__positioner">
+    <div {...api.getPositionerProps()} bind:this={positioner} class="acme-select__positioner">
       <!-- Shown until its exit animation ends; Zag would hide it as it closes. -->
-      <div {...content} bind:this={surface} hidden={!present()} class="select__content">
-        <div {...api.getListProps()} class="select__list">
+      <div {...content} bind:this={surface} hidden={!present()} class="acme-select__content">
+        <div {...api.getListProps()} class="acme-select__list">
           {#each collection.items as option, index (option.value)}
             {@const ids = selectOptionIds(id, index)}
             <!-- Named by its label alone, as the field shows it; the help line describes it. -->
@@ -182,16 +187,16 @@
               {...api.getItemProps({ item: option })}
               aria-labelledby={ids.label}
               aria-describedby={option.description ? ids.description : undefined}
-              class="select__item"
+              class="acme-select__item"
             >
-              <span class="select__item-words">
+              <span class="acme-select__item-words">
                 <span
                   {...api.getItemTextProps({ item: option })}
                   id={ids.label}
-                  class="select__item-label">{option.label}</span
+                  class="acme-select__item-label">{option.label}</span
                 >
                 {#if option.description}
-                  <span id={ids.description} class="select__item-description"
+                  <span id={ids.description} class="acme-select__item-description"
                     >{option.description}</span
                   >
                 {/if}

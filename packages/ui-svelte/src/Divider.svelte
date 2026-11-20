@@ -2,8 +2,16 @@
   @component
   A line between groups of content. Decorative lines use the low-contrast border color.
 -->
-<script lang="ts">
-  import { dividerClass } from "@acme/ui-core";
+<script module lang="ts">
+  import type { RootProps } from "./root.ts";
+
+  export type DividerProps = RootProps;
 </script>
 
-<hr class={dividerClass} />
+<script lang="ts">
+  import { classes, dividerClass, rootPart } from "@acme/ui-core";
+
+  let { class: className, style }: DividerProps = $props();
+</script>
+
+<hr class={classes(rootPart("Divider"), dividerClass, className)} {style} />

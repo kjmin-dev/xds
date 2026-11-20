@@ -3,6 +3,7 @@
 // it through provide and inject.
 import { BUTTON_ICON, type ButtonBaseProps, buttonClass, isHeld } from "@acme/ui-core";
 import { type ButtonHTMLAttributes, computed } from "vue";
+import { useDefaults } from "./defaults.ts";
 import Icon from "./Icon.vue";
 import Spinner from "./Spinner.vue";
 import { useTrigger } from "./trigger.ts";
@@ -12,8 +13,8 @@ import { useTrigger } from "./trigger.ts";
 export type ButtonProps = Omit<ButtonBaseProps, "aria-label"> & { ariaLabel?: string };
 
 const {
-  variant = "secondary",
-  size = "md",
+  variant,
+  size,
   iconStart,
   iconEnd,
   // Undefined unless given, so that only a toggle says whether it is pressed.
@@ -30,14 +31,18 @@ const slots = defineSlots<{
   default?(): unknown;
 }>();
 
-const icon = computed(() => BUTTON_ICON[size]);
-const held = computed(() => isHeld({ variant, selected, disabled }));
+const options = useDefaults("Button", () => ({ variant, size }), {
+  variant: "secondary",
+  size: "md",
+});
+const icon = computed(() => BUTTON_ICON[options.value.size]);
+const held = computed(() => isHeld({ variant: options.value.variant, selected, disabled }));
 const attributes = useTrigger(
   (): ButtonHTMLAttributes & { "data-pending"?: "" } => ({
     type,
     class: buttonClass({
-      variant,
-      size,
+      variant: options.value.variant,
+      size: options.value.size,
       iconOnly: !slots.default && (iconStart !== undefined || iconEnd !== undefined),
       fullWidth,
     }),

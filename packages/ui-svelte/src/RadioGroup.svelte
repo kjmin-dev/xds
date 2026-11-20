@@ -9,18 +9,31 @@
 -->
 <script module lang="ts">
   import type { RadioGroupBaseProps } from "@acme/ui-core";
+  import type { RootProps } from "./root.ts";
 
   export type { RadioOption } from "@acme/ui-core";
 
-  export type RadioGroupProps<Value extends string = string> = RadioGroupBaseProps<Value> & {
-    onChange: (value: Value) => void;
-  };
+  export type RadioGroupProps<Value extends string = string> = RadioGroupBaseProps<Value> &
+    RootProps & {
+      onChange: (value: Value) => void;
+    };
 </script>
 
 <script lang="ts" generics="Value extends string = string">
+  import { classes } from "@acme/ui-core";
   import { keepChecked } from "./controlled.ts";
 
-  let { label, options, value, disabled, error, name, onChange }: RadioGroupProps<Value> = $props();
+  let {
+    label,
+    options,
+    value,
+    disabled,
+    error,
+    name,
+    onChange,
+    class: className,
+    style,
+  }: RadioGroupProps<Value> = $props();
 
   const id = $props.id();
   const labelId = `${id}-label`;
@@ -37,12 +50,13 @@
   aria-invalid={invalid ? "true" : undefined}
   aria-disabled={disabled ? "true" : undefined}
   aria-orientation="vertical"
-  class="radio-group"
+  class={classes("acme-radio-group", className)}
+  {style}
 >
-  <span id={labelId} class="radio-group__label">{label}</span>
-  <div class="radio-group__options">
+  <span id={labelId} class="acme-radio-group__label">{label}</span>
+  <div class="acme-radio-group__options">
     {#each options as option, index (option.value)}
-      <label class="radio-group__option">
+      <label class="acme-radio-group__option">
         <!-- The description is inside the pressable row, so the row's text would name the radio
              together with it. The label alone names it; the description describes it.
              aria-invalid is on each radio as well as the group, so it is heard on the radio that
@@ -50,7 +64,7 @@
         <!-- svelte-ignore a11y_role_supports_aria_props_implicit -->
         <input
           type="radio"
-          class="radio-group__input sr-only"
+          class="acme-radio-group__input sr-only"
           name={name ?? id}
           value={option.value}
           checked={option.value === value}
@@ -73,14 +87,15 @@
             }
           }}
         />
-        <span class="radio-group__row">
-          <span class="radio-group__circle-line">
-            <span class="radio-group__circle"><span class="radio-group__dot"></span></span>
+        <span class="acme-radio-group__row">
+          <span class="acme-radio-group__circle-line">
+            <span class="acme-radio-group__circle"><span class="acme-radio-group__dot"></span></span
+            >
           </span>
-          <span class="radio-group__words">
-            <span id={`${id}-${index}`} class="radio-group__text">{option.label}</span>
+          <span class="acme-radio-group__words">
+            <span id={`${id}-${index}`} class="acme-radio-group__text">{option.label}</span>
             {#if option.description}
-              <span id={`${id}-${index}-description`} class="radio-group__description"
+              <span id={`${id}-${index}-description`} class="acme-radio-group__description"
                 >{option.description}</span
               >
             {/if}
@@ -93,7 +108,7 @@
        Empty, it takes no room. -->
   <div aria-live="polite">
     {#if invalid}
-      <span id={errorId} class="radio-group__error">{error}</span>
+      <span id={errorId} class="acme-radio-group__error">{error}</span>
     {/if}
   </div>
 </div>

@@ -34,7 +34,7 @@ const trigger = (item: Value) => {
 
 <template>
   <div v-bind="api.getRootProps()" :class="tabsClass(fullWidth)">
-    <div v-bind="api.getListProps()" :aria-label="label" class="tabs__list">
+    <div v-bind="api.getListProps()" :aria-label="label" class="acme-tabs__list">
       <!-- Zag points the selected tab at its panel, which this row never renders: the app
            shows the view. A reference to an element that does not exist is invalid. -->
       <button
@@ -43,11 +43,11 @@ const trigger = (item: Value) => {
         v-bind="trigger(item.value)"
         :aria-controls="undefined"
         type="button"
-        class="tabs__tab"
+        class="acme-tabs__tab"
       >
         <Icon v-if="item.icon" :name="item.icon" size="sm" />{{ item.label }}
       </button>
-      <div v-bind="api.getIndicatorProps()" class="tabs__indicator" />
+      <div v-bind="api.getIndicatorProps()" class="acme-tabs__indicator" />
     </div>
   </div>
 </template>

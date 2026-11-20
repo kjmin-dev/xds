@@ -8,6 +8,11 @@
 // them from the same design tokens. Where the React components take an element, these take a slot
 // of the same name (`children` is the default slot), and where they take `onChange` with `value`,
 // `checked` or `expanded`, these take `v-model` of that name: `v-model:checked`.
+//
+// Every component puts the `class` and `style` it is given on its root element, beside its root
+// part (`acme-icon-button`); an overlay puts them on its surface, the menu, the tooltip or the
+// dialog. A `Defaults` around components gives them the variants, sizes and tones they are not
+// given.
 
 export type { IconName, IconSize, TextTone, TextVariant } from "@acme/ui-core";
 export { default as Accordion, type AccordionItem, type AccordionProps } from "./Accordion.vue";
@@ -28,6 +33,8 @@ export {
   default as DateRangePicker,
   type DateRangePickerProps,
 } from "./DateRangePicker.vue";
+export type { ComponentDefaults } from "@acme/ui-core";
+export { default as Defaults, type DefaultsProps } from "./Defaults.vue";
 export { default as Dialog, type DialogProps } from "./Dialog.vue";
 export { default as Divider } from "./Divider.vue";
 export { default as EmptyState, type EmptyStateProps } from "./EmptyState.vue";

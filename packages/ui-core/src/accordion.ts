@@ -28,7 +28,7 @@ export const ACCORDION_PARTS = {
 } as const;
 
 /**
- * Opens or closes an item's panel (`.accordion__panel`): its height moves between zero and the
+ * Opens or closes an item's panel (`.acme-accordion__panel`): its height moves between zero and the
  * height of what it holds, and it is hidden only once it has finished closing, with
  * `hidden="until-found"`, so the browser's find in page still opens it. Call it on every change
  * of `open`, with `animate` false the first time, when there is nothing to move from. Returns

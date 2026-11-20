@@ -34,12 +34,12 @@ export const OVERLAYS: {
   menu: { section: "Menu", press: "click" },
   select: { section: "Controls", press: "click" },
   // The first date picker's field, after the section's selects.
-  datepicker: { section: "Controls", press: "click", control: ".date-picker__trigger" },
+  datepicker: { section: "Controls", press: "click", control: ".acme-date-picker__trigger" },
   // The first date range picker's field, Stay.
   daterange: {
     section: "Controls",
     press: "click",
-    control: ".date-range-picker .date-picker__trigger",
+    control: ".acme-date-range-picker .acme-date-picker__trigger",
   },
   tooltip: { section: "Buttons", press: "focus" },
   dialog: { section: undefined, press: undefined },

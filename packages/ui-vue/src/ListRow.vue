@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // One line of a list or a settings screen. Separate rows with a Divider.
-import type { ListRowBaseProps } from "@acme/ui-core";
+import { type ListRowBaseProps, rootPart } from "@acme/ui-core";
 import PlaceRow from "./PlaceRow.vue";
 
 export type ListRowProps = ListRowBaseProps & {
@@ -21,7 +21,7 @@ defineSlots<{
 </script>
 
 <template>
-  <PlaceRow v-bind="props" current="true">
+  <PlaceRow v-bind="props" current="true" :class="rootPart('ListRow')">
     <template v-if="$slots.leading" #leading><slot name="leading" /></template>
     <template v-if="$slots.trailing" #trailing><slot name="trailing" /></template>
   </PlaceRow>

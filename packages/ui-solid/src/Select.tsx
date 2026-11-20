@@ -1,5 +1,6 @@
 import { space } from "@acme/tokens";
 import {
+  classes,
   keepListKeys,
   type SelectBaseProps,
   type SelectOption,
@@ -12,12 +13,14 @@ import { createMemo, createUniqueId, For, Show } from "solid-js";
 import { Icon } from "./Icon.tsx";
 import { modalPopover } from "./modal-popover.ts";
 import { createPresence } from "./presence.ts";
+import { type RootProps, withStyle } from "./root.ts";
 
 export type { SelectOption } from "@acme/ui-core";
 
-export type SelectProps<Value extends string = string> = SelectBaseProps<Value> & {
-  onChange: (value: Value) => void;
-};
+export type SelectProps<Value extends string = string> = SelectBaseProps<Value> &
+  RootProps & {
+    onChange: (value: Value) => void;
+  };
 
 type KeyHandler = (event: KeyboardEvent) => void;
 
@@ -64,6 +67,10 @@ export function Select<Value extends string = string>(props: SelectProps<Value>)
     },
   }));
   const api = createMemo(() => select.connect(service, normalizeProps));
+  const root = withStyle(
+    () => api().getRootProps(),
+    () => props.style,
+  );
   // Zag's key handlers read whether a search by typing is under way when the field renders,
   // and a search ends on a timer, which renders nothing: long after a search, Space would
   // still search for a space instead of opening the list or choosing. A handler taken from
@@ -113,7 +120,7 @@ export function Select<Value extends string = string>(props: SelectProps<Value>)
     },
     {
       onKeyDown: (event: KeyboardEvent) => {
-        keepListKeys(event, surface, ".select__item:not([data-disabled])", (value) =>
+        keepListKeys(event, surface, ".acme-select__item:not([data-disabled])", (value) =>
           api().setHighlightedValue(value),
         );
         (current().getContentProps().onKeyDown as KeyHandler | undefined)?.(event);
@@ -121,35 +128,35 @@ export function Select<Value extends string = string>(props: SelectProps<Value>)
     },
   );
   return (
-    <div {...api().getRootProps()} class="select">
-      <span {...labelProps()} class="select__label">
+    <div {...root} class={classes("acme-select", props.class)}>
+      <span {...labelProps()} class="acme-select__label">
         {props.label}
       </span>
       <button
         {...triggerProps()}
         aria-labelledby={`${valueId} ${labelProps().id}`}
         aria-describedby={invalid() ? errorId : props.description ? descriptionId : undefined}
-        class="select__trigger"
+        class="acme-select__trigger"
       >
         {/* The chosen option's label alone: the list's rows also hold a description and a
             check, which do not belong in the field. */}
-        <span {...api().getValueTextProps()} id={valueId} class="select__value">
+        <span {...api().getValueTextProps()} id={valueId} class="acme-select__value">
           {api().valueAsString || props.placeholder}
         </span>
         <Icon name="chevrons-up-down" size="sm" class="text-acme-field-placeholder" />
       </button>
       {/* One line under the box: the help, or the error in its place. */}
       <Show when={invalid() || props.description}>
-        <div class="select__footer">
+        <div class="acme-select__footer">
           <Show
             when={invalid()}
             fallback={
-              <span id={descriptionId} class="select__description">
+              <span id={descriptionId} class="acme-select__description">
                 {props.description}
               </span>
             }
           >
-            <span id={errorId} class="select__error">
+            <span id={errorId} class="acme-select__error">
               {props.error}
             </span>
           </Show>
@@ -168,21 +175,21 @@ export function Select<Value extends string = string>(props: SelectProps<Value>)
           {/* Takes a press outside, which then only closes the list. The focus stays in the
               list until the list hands it back to the field. */}
           {/* oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- not a control: the handler only keeps the focus where it is */}
-          <div class="select__underlay" onMouseDown={(event) => event.preventDefault()} />
+          <div class="acme-select__underlay" onMouseDown={(event) => event.preventDefault()} />
         </Show>
         <div
           ref={(element) => (positioner = element)}
           {...api().getPositionerProps()}
-          class="select__positioner"
+          class="acme-select__positioner"
         >
           {/* Shown until its exit animation ends; Zag would hide it as it closes. */}
           <div
             {...content}
             ref={(element) => (surface = element)}
             hidden={!present()}
-            class="select__content"
+            class="acme-select__content"
           >
-            <div {...api().getListProps()} class="select__list">
+            <div {...api().getListProps()} class="acme-select__list">
               <For each={collection().items}>
                 {(option, index) => {
                   const ids = () => selectOptionIds(id, index());
@@ -192,18 +199,18 @@ export function Select<Value extends string = string>(props: SelectProps<Value>)
                       {...api().getItemProps({ item: option })}
                       aria-labelledby={ids().label}
                       aria-describedby={option.description ? ids().description : undefined}
-                      class="select__item"
+                      class="acme-select__item"
                     >
-                      <span class="select__item-words">
+                      <span class="acme-select__item-words">
                         <span
                           {...api().getItemTextProps({ item: option })}
                           id={ids().label}
-                          class="select__item-label"
+                          class="acme-select__item-label"
                         >
                           {option.label}
                         </span>
                         <Show when={option.description}>
-                          <span id={ids().description} class="select__item-description">
+                          <span id={ids().description} class="acme-select__item-description">
                             {option.description}
                           </span>
                         </Show>

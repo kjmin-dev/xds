@@ -3,7 +3,7 @@
 // outlined and marked with a check, so the state does not depend on color.
 //
 // It is a toggle button: assistive technology hears whether it is pressed.
-import { type ChipBaseProps, chipClass, chipIcon } from "@acme/ui-core";
+import { type ChipBaseProps, chipClass, chipIcon, classes, rootPart } from "@acme/ui-core";
 import { computed } from "vue";
 import Icon from "./Icon.vue";
 
@@ -19,7 +19,7 @@ const icon = computed(() => chipIcon({ selected, iconStart }));
     type="button"
     :aria-pressed="selected ? 'true' : 'false'"
     :disabled="disabled"
-    :class="chipClass(selected)"
+    :class="classes(rootPart('Chip'), chipClass(selected))"
     @click="emit('press')"
   >
     <Icon v-if="icon" :name="icon" size="sm" />{{ label }}

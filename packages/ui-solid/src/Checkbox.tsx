@@ -5,13 +5,19 @@ import {
   checkboxClass,
   checkboxLabelClass,
   checkboxMarkClass,
+  classes,
+  rootPart,
 } from "@acme/ui-core";
 import { Show } from "solid-js";
 import { keepChecked } from "./controlled.ts";
+import type { RootProps } from "./root.ts";
 
-export type CheckboxProps = CheckboxBaseProps & {
-  onChange: (checked: boolean) => void;
-};
+export type CheckboxProps = CheckboxBaseProps &
+  RootProps & {
+    onChange: (checked: boolean) => void;
+  };
+
+const ROOT = rootPart("Checkbox");
 
 /**
  * A choice that is applied later, with the form it belongs to. A native checkbox: the input is
@@ -19,7 +25,7 @@ export type CheckboxProps = CheckboxBaseProps & {
  */
 export function Checkbox(props: CheckboxProps) {
   return (
-    <label class={checkboxClass}>
+    <label class={classes(ROOT, checkboxClass, props.class)} style={props.style}>
       <input
         type="checkbox"
         aria-label={props["aria-label"]}

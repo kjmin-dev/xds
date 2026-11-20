@@ -32,8 +32,8 @@ watch(
     ref="panel"
     role="group"
     :aria-hidden="open ? undefined : 'true'"
-    class="accordion__panel"
+    class="acme-accordion__panel"
   >
-    <div class="accordion__body"><slot /></div>
+    <div class="acme-accordion__body"><slot /></div>
   </div>
 </template>

@@ -1,0 +1,18 @@
+/* The page itself: its font and how its text breaks, and the body's colors and text. An app
+   that takes the components as a library may leave these to its own page. */
+
+:root {
+  font-family: var(--acme-font-family-sans);
+  /* Korean breaks between words, not between syllables. */
+  word-break: keep-all;
+  /* Long unbroken strings (URLs, email addresses) still wrap instead of overflowing. */
+  overflow-wrap: anywhere;
+}
+
+body {
+  margin: 0;
+  background-color: var(--acme-color-background-base);
+  color: var(--acme-color-text-primary);
+  font-size: var(--acme-typography-body-size);
+  line-height: var(--acme-typography-body-line-height);
+}

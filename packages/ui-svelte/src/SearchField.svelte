@@ -8,33 +8,48 @@
 -->
 <script module lang="ts">
   import type { SearchFieldBaseProps } from "@acme/ui-core";
+  import type { RootProps } from "./root.ts";
 
-  export type SearchFieldProps = SearchFieldBaseProps & {
-    onChange: (value: string) => void;
-    /** Called with the query on Enter, or on the search key of a software keyboard. */
-    onSubmit?: (value: string) => void;
-  };
+  export type SearchFieldProps = SearchFieldBaseProps &
+    RootProps & {
+      onChange: (value: string) => void;
+      /** Called with the query on Enter, or on the search key of a software keyboard. */
+      onSubmit?: (value: string) => void;
+    };
 </script>
 
 <script lang="ts">
+  import { classes, rootPart } from "@acme/ui-core";
   import { keepValue } from "./controlled.ts";
   import Icon from "./Icon.svelte";
 
-  let { value, label, placeholder, disabled, clearLabel, onChange, onSubmit }: SearchFieldProps =
-    $props();
+  let {
+    value,
+    label,
+    placeholder,
+    disabled,
+    clearLabel,
+    onChange,
+    onSubmit,
+    class: className,
+    style,
+  }: SearchFieldProps = $props();
 
   let input = $state<HTMLInputElement>();
 </script>
 
-<div class="text-field">
-  <div class="text-field__control text-field__control--pill text-field__group">
-    <span class="text-field__slot text-field__slot--leading"><Icon name="search" size="sm" /></span>
+<!-- TextField's box, so its part as well as its own. -->
+<div class={classes("acme-text-field", rootPart("SearchField"), className)} {style}>
+  <div class="acme-text-field__control acme-text-field__control--pill acme-text-field__group">
+    <span class="acme-text-field__slot acme-text-field__slot--leading"
+      ><Icon name="search" size="sm" /></span
+    >
     <!-- Escape clears only while there is something to clear; an empty field lets Escape
          through to whatever it sits in, such as a dialog. -->
     <input
       bind:this={input}
       type="text"
-      class="text-field__input"
+      class="acme-text-field__input"
       aria-label={label}
       enterkeyhint="search"
       {placeholder}
@@ -59,7 +74,7 @@
       }}
     />
     {#if value !== "" && !disabled}
-      <span class="text-field__slot text-field__slot--trailing">
+      <span class="acme-text-field__slot acme-text-field__slot--trailing">
         <button
           type="button"
           aria-label={clearLabel ?? "Clear"}

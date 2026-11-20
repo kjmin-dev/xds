@@ -1,9 +1,11 @@
-import { type ChipBaseProps, chipClass, chipIcon } from "@acme/ui-core";
+import { type ChipBaseProps, chipClass, chipIcon, classes, rootPart } from "@acme/ui-core";
 import { Icon } from "./Icon.tsx";
+import type { RootProps } from "./root.ts";
 
-export type ChipProps = ChipBaseProps & {
-  onPress?: () => void;
-};
+export type ChipProps = ChipBaseProps &
+  RootProps & {
+    onPress?: () => void;
+  };
 
 /**
  * A choice that filters what is shown. Unlike a Badge it is pressed. A selected chip is tinted,
@@ -11,7 +13,15 @@ export type ChipProps = ChipBaseProps & {
  *
  * It is a toggle button: assistive technology hears whether it is pressed.
  */
-export function Chip({ label, selected = false, onPress, iconStart, disabled = false }: ChipProps) {
+export function Chip({
+  label,
+  selected = false,
+  onPress,
+  iconStart,
+  disabled = false,
+  className,
+  style,
+}: ChipProps) {
   const icon = chipIcon({ selected, iconStart });
   return (
     <button
@@ -19,7 +29,8 @@ export function Chip({ label, selected = false, onPress, iconStart, disabled = f
       aria-pressed={selected}
       disabled={disabled}
       onClick={onPress}
-      className={chipClass(selected)}
+      className={classes(rootPart("Chip"), chipClass(selected), className)}
+      style={style}
     >
       {icon && <Icon name={icon} size="sm" />}
       {label}

@@ -1,6 +1,16 @@
-import { type SkeletonBaseProps, skeletonClass, skeletonSize } from "@acme/ui-core";
+import {
+  classes,
+  rootPart,
+  type SkeletonBaseProps,
+  skeletonClass,
+  skeletonSize,
+} from "@acme/ui-core";
+import { useDefaults } from "./Defaults.tsx";
+import { layStyle, type RootProps } from "./root.ts";
 
-export type SkeletonProps = SkeletonBaseProps;
+export type SkeletonProps = SkeletonBaseProps & RootProps;
+
+const ROOT = rootPart("Skeleton");
 
 /**
  * Holds the place of content that is loading, in the shape the content will have. It pulses,
@@ -10,11 +20,16 @@ export type SkeletonProps = SkeletonBaseProps;
  * loading, once, instead of every placeholder saying so.
  */
 export function Skeleton(props: SkeletonProps) {
+  const defaults = useDefaults("Skeleton");
+  const shape = () => props.shape ?? defaults().shape;
   return (
     <span
       aria-hidden="true"
-      class={skeletonClass(props.shape)}
-      style={skeletonSize({ shape: props.shape, width: props.width, height: props.height })}
+      class={classes(ROOT, skeletonClass(shape()), props.class)}
+      style={layStyle(
+        skeletonSize({ shape: shape(), width: props.width, height: props.height }),
+        props.style,
+      )}
     />
   );
 }

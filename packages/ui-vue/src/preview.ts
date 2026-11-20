@@ -20,7 +20,6 @@ import {
   type State,
 } from "@acme/ui-core/preview";
 import {
-  type AllowedComponentProps,
   camelize,
   type Component,
   defineComponent,
@@ -48,6 +47,7 @@ import {
   CountBadge,
   DatePicker,
   DateRangePicker,
+  Defaults,
   Dialog,
   Divider,
   EmptyState,
@@ -97,27 +97,17 @@ type SlotsOf<C> = C extends new (...args: never) => { $slots: infer S }
 // The slots a component names, without the index signature every component's slots have.
 type Named<T> = { [K in keyof T as string extends K ? never : K]: T[K] };
 
-// Vue puts `class` and `style` in the props' type of every component, but only a component
-// with one root element passes them on: one whose template is a fragment, such as Menu or
-// Tooltip, drops them with a warning. So only these components take them in the check below.
-// Add a component here once the data gives it a class and its template has one root.
-type Rooted = "Card" | "Icon" | "Text";
-
 /**
  * What a component takes, under the names the data gives it: its props; its slots as props
  * that take a node, the default one as `children`; and its model's update event as `onChange`.
+ * Vue puts `class` and `style` in the props' type of every component, and each of them puts
+ * them on its root element, the overlays on their surface.
  */
-type Taken<C, N extends ComponentName> = Omit<
-  PropsOf<C>,
-  `onUpdate:${string}` | keyof AllowedComponentProps
-> &
-  (N extends Rooted ? AllowedComponentProps : {}) & {
-    [S in keyof Named<SlotsOf<C>> as S extends "default" ? "children" : S]: Drawn;
-  } & {
-    [
-      E in keyof PropsOf<C> as E extends `onUpdate:${Controlled}` ? "onChange" : never
-    ]: PropsOf<C>[E];
-  };
+type Taken<C> = Omit<PropsOf<C>, `onUpdate:${string}`> & {
+  [S in keyof Named<SlotsOf<C>> as S extends "default" ? "children" : S]: Drawn;
+} & {
+  [E in keyof PropsOf<C> as E extends `onUpdate:${Controlled}` ? "onChange" : never]: PropsOf<C>[E];
+};
 
 // Vue keeps a prop under its camelized name, which is the one the component's type has:
 // `aria-label` is `ariaLabel`.
@@ -154,6 +144,7 @@ const COMPONENTS = {
   CountBadge,
   DatePicker,
   DateRangePicker,
+  Defaults,
   Dialog,
   Divider,
   EmptyState,
@@ -186,7 +177,7 @@ const COMPONENTS = {
 // It has to be empty.
 type Misfit<N extends ComponentName> = Misfits<
   Camelized<Components<Drawn>[N]>,
-  Taken<(typeof COMPONENTS)[N], N>
+  Taken<(typeof COMPONENTS)[N]>
 >;
 ({}) satisfies { [N in ComponentName as [Misfit<N>] extends [never] ? never : N]: Misfit<N> };
 

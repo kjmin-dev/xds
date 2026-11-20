@@ -1,12 +1,17 @@
-import { type BadgeBaseProps, badgeClass, badgeDotClass } from "@acme/ui-core";
+import { type BadgeBaseProps, badgeClass, badgeDotClass, classes, rootPart } from "@acme/ui-core";
 import { type Element, Show } from "solid-js";
+import { useDefaults } from "./Defaults.tsx";
 import { Icon } from "./Icon.tsx";
+import type { RootProps } from "./root.ts";
 
 export type { BadgeTone } from "@acme/ui-core";
 
-export type BadgeProps = BadgeBaseProps & {
-  children: Element;
-};
+export type BadgeProps = BadgeBaseProps &
+  RootProps & {
+    children: Element;
+  };
+
+const ROOT = rootPart("Badge");
 
 /**
  * A short status or category. The words carry the meaning; the color only reinforces it, so a
@@ -14,8 +19,12 @@ export type BadgeProps = BadgeBaseProps & {
  * live states such as "connected", and `icon` a drawing in front of the words.
  */
 export function Badge(props: BadgeProps) {
+  const defaults = useDefaults("Badge");
   return (
-    <span class={badgeClass(props.tone)}>
+    <span
+      class={classes(ROOT, badgeClass(props.tone ?? defaults().tone), props.class)}
+      style={props.style}
+    >
       <Show when={props.dot}>
         <span aria-hidden="true" class={badgeDotClass} />
       </Show>

@@ -1,0 +1,15 @@
+/* Every component's own stylesheet, for the components drawn with more than utilities. */
+@import "./components/overlay.css";
+@import "./components/accordion.css";
+@import "./components/button.css";
+@import "./components/date-picker.css";
+@import "./components/dialog.css";
+@import "./components/menu.css";
+@import "./components/radio-group.css";
+@import "./components/select.css";
+@import "./components/skeleton.css";
+@import "./components/slider.css";
+@import "./components/tabs.css";
+@import "./components/text-field.css";
+@import "./components/toast.css";
+@import "./components/tooltip.css";

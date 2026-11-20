@@ -2,10 +2,12 @@
 // A count of something waiting: unread messages, items in a cart. On its own it is laid out
 // inline; around a child it sits on the child's top end corner.
 import {
+  classes,
   type CountBadgeBaseProps,
   countBadgeAnchorClass,
   countBadgeClass,
   countBadgeText,
+  rootPart,
 } from "@acme/ui-core";
 
 export type CountBadgeProps = CountBadgeBaseProps;
@@ -18,7 +20,7 @@ const slots = defineSlots<{
 </script>
 
 <template>
-  <span v-if="slots.default" :class="countBadgeAnchorClass">
+  <span v-if="slots.default" :class="classes(rootPart('CountBadge'), countBadgeAnchorClass)">
     <slot />
     <span
       v-if="count > 0"
@@ -33,7 +35,7 @@ const slots = defineSlots<{
     v-else-if="count > 0"
     :role="label ? 'img' : undefined"
     :aria-label="label || undefined"
-    :class="countBadgeClass(false)"
+    :class="classes(rootPart('CountBadge'), countBadgeClass(false))"
   >
     {{ countBadgeText(count, max) }}
   </span>

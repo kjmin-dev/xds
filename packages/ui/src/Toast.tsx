@@ -1,11 +1,13 @@
 import { motion } from "@acme/tokens";
-import { TOAST_PARTS, type ToastBaseProps } from "@acme/ui-core";
+import { classes, rootPart, TOAST_PARTS, type ToastBaseProps } from "@acme/ui-core";
 import { useEffect, useRef, useState } from "react";
+import type { RootProps } from "./root.ts";
 
-export type ToastProps = ToastBaseProps & {
-  /** Called when the time is up and after the action. Set `open` to false in it. */
-  onClose: () => void;
-};
+export type ToastProps = ToastBaseProps &
+  RootProps & {
+    /** Called when the time is up and after the action. Set `open` to false in it. */
+    onClose: () => void;
+  };
 
 /**
  * A short message about what just happened, which leaves on its own. It sits at the bottom
@@ -20,6 +22,8 @@ export function Toast({
   message,
   action,
   duration = motion.duration.toast,
+  className,
+  style,
 }: ToastProps) {
   const region = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
@@ -53,12 +57,14 @@ export function Toast({
     <div ref={region} role="status" popover="manual" className={TOAST_PARTS.region}>
       {open && (
         // No role: hover and focus only pause the timer, and the action inside is a real button.
+        // The root: the region around it only places it, and spans the window.
         <div
           onPointerEnter={() => setHovered(true)}
           onPointerLeave={() => setHovered(false)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          className={TOAST_PARTS.toast}
+          className={classes(rootPart("Toast"), TOAST_PARTS.toast, className)}
+          style={style}
         >
           <span className={TOAST_PARTS.message}>{message}</span>
           {action && (

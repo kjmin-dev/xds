@@ -1,16 +1,21 @@
-import { type SpinnerBaseProps, spinnerClass } from "@acme/ui-core";
+import { classes, rootPart, type SpinnerBaseProps, spinnerClass } from "@acme/ui-core";
+import { useDefaults } from "./Defaults.tsx";
+import type { RootProps } from "./root.ts";
 
-export type SpinnerProps = SpinnerBaseProps;
+export type SpinnerProps = SpinnerBaseProps & RootProps;
 
 /**
  * Says that something is in progress and how long is unknown. Takes the color of the text around
  * it. With `label` it is announced; without one it is decoration next to text that already says
  * what is happening.
  */
-export function Spinner({ size, label }: SpinnerProps) {
+export function Spinner(props: SpinnerProps) {
+  const defaults = useDefaults("Spinner");
+  const { size = defaults.size, label, className, style } = props;
   return (
     <span
-      className="inline-flex shrink-0"
+      className={classes(rootPart("Spinner"), "inline-flex shrink-0", className)}
+      style={style}
       {...(label ? { role: "status", "aria-label": label } : { "aria-hidden": true })}
     >
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={spinnerClass(size)}>

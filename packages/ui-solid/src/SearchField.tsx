@@ -1,13 +1,17 @@
-import type { SearchFieldBaseProps } from "@acme/ui-core";
+import { classes, rootPart, type SearchFieldBaseProps } from "@acme/ui-core";
 import { Show } from "solid-js";
 import { keepValue } from "./controlled.ts";
 import { Icon } from "./Icon.tsx";
+import type { RootProps } from "./root.ts";
 
-export type SearchFieldProps = SearchFieldBaseProps & {
-  onChange: (value: string) => void;
-  /** Called with the query on Enter, or on the search key of a software keyboard. */
-  onSubmit?: (value: string) => void;
-};
+export type SearchFieldProps = SearchFieldBaseProps &
+  RootProps & {
+    onChange: (value: string) => void;
+    /** Called with the query on Enter, or on the search key of a software keyboard. */
+    onSubmit?: (value: string) => void;
+  };
+
+const ROOT = rootPart("SearchField");
 
 /**
  * A text field for a query: TextField's box as a pill, with a search icon in front and, while
@@ -19,15 +23,16 @@ export type SearchFieldProps = SearchFieldBaseProps & {
 export function SearchField(props: SearchFieldProps) {
   let input!: HTMLInputElement;
   return (
-    <div class="text-field">
-      <div class="text-field__control text-field__control--pill text-field__group">
-        <span class="text-field__slot text-field__slot--leading">
+    // TextField's block, which draws the box, and its own root part beside it.
+    <div class={classes("acme-text-field", ROOT, props.class)} style={props.style}>
+      <div class="acme-text-field__control acme-text-field__control--pill acme-text-field__group">
+        <span class="acme-text-field__slot acme-text-field__slot--leading">
           <Icon name="search" size="sm" />
         </span>
         <input
           ref={(element) => (input = element)}
           type="text"
-          class="text-field__input"
+          class="acme-text-field__input"
           aria-label={props.label}
           enterkeyhint="search"
           placeholder={props.placeholder}
@@ -53,7 +58,7 @@ export function SearchField(props: SearchFieldProps) {
           }}
         />
         <Show when={props.value !== "" && !props.disabled}>
-          <span class="text-field__slot text-field__slot--trailing">
+          <span class="acme-text-field__slot acme-text-field__slot--trailing">
             <button
               type="button"
               aria-label={props.clearLabel ?? "Clear"}

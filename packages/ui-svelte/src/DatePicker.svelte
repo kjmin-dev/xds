@@ -14,16 +14,19 @@
 -->
 <script module lang="ts">
   import type { DatePickerBaseProps, IsoDate } from "@acme/ui-core";
+  import type { RootProps } from "./root.ts";
 
   export type { IsoDate } from "@acme/ui-core";
 
-  export type DatePickerProps = DatePickerBaseProps & {
-    onChange: (value: IsoDate) => void;
-  };
+  export type DatePickerProps = DatePickerBaseProps &
+    RootProps & {
+      onChange: (value: IsoDate) => void;
+    };
 </script>
 
 <script lang="ts">
   import {
+    classes,
     DATE_PICKER_NAV_CLASS,
     datePickerContentAttrs,
     datePickerIds,
@@ -36,7 +39,7 @@
     keepDayFocused,
   } from "@acme/ui-core";
   import * as datePicker from "@zag-js/date-picker";
-  import { normalizeProps, useMachine } from "@zag-js/svelte";
+  import { mergeProps, normalizeProps, useMachine } from "@zag-js/svelte";
   import { untrack } from "svelte";
   import Icon from "./Icon.svelte";
   import { modalPopover } from "./modal-popover.svelte.ts";
@@ -44,7 +47,7 @@
   import { createPresence } from "./presence.svelte.ts";
 
   // The rest stays reactive: the machine's props read it each time it changes.
-  let { onChange, ...props }: DatePickerProps = $props();
+  let { onChange, class: className, style, ...props }: DatePickerProps = $props();
 
   const id = $props.id();
   const ids = datePickerIds(id);
@@ -77,11 +80,12 @@
   });
 </script>
 
-<div {...api.getRootProps()} class="date-picker">
+<!-- Merged, so that the app's style joins any the machine writes on the root. -->
+<div {...mergeProps(api.getRootProps(), { class: classes("acme-date-picker", className), style })}>
   <!-- A span: the field is a button, which a <label> cannot point at. -->
-  <span id={ids.label} class="date-picker__label">{props.label}</span>
+  <span id={ids.label} class="acme-date-picker__label">{props.label}</span>
   <!-- What Zag places the calendar against. -->
-  <div {...api.getControlProps()} class="date-picker__control">
+  <div {...api.getControlProps()} class="acme-date-picker__control">
     <button
       {...trigger}
       {...datePickerTriggerAttrs(props, ids)}
@@ -90,9 +94,9 @@
         focusOpeningDay(api, props);
         trigger.onclick?.(event);
       }}
-      class="date-picker__trigger"
+      class="acme-date-picker__trigger"
     >
-      <span id={ids.value} class="date-picker__value"
+      <span id={ids.value} class="acme-date-picker__value"
         >{props.value === undefined ? props.placeholder : formatDay(props.value, locale)}</span
       >
       <Icon name="calendar" size="sm" class="text-acme-field-placeholder" />
@@ -100,11 +104,11 @@
   </div>
   <!-- One line under the box: the help, or the error in its place. -->
   {#if invalid || props.description}
-    <div class="date-picker__footer">
+    <div class="acme-date-picker__footer">
       {#if invalid}
-        <span id={ids.error} class="date-picker__error">{props.error}</span>
+        <span id={ids.error} class="acme-date-picker__error">{props.error}</span>
       {:else}
-        <span id={ids.description} class="date-picker__description">{props.description}</span>
+        <span id={ids.description} class="acme-date-picker__description">{props.description}</span>
       {/if}
     </div>
   {/if}
@@ -117,9 +121,9 @@
       <!-- Takes a press outside, which then only closes the calendar. The focus stays in the
          calendar until it hands it back to the field. -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <div class="date-picker__underlay" onmousedown={(event) => event.preventDefault()}></div>
+      <div class="acme-date-picker__underlay" onmousedown={(event) => event.preventDefault()}></div>
     {/if}
-    <div {...api.getPositionerProps()} bind:this={positioner} class="date-picker__positioner">
+    <div {...api.getPositionerProps()} bind:this={positioner} class="acme-date-picker__positioner">
       <!-- Shown until its exit animation ends; Zag would hide it as it closes. -->
       <div
         {...api.getContentProps()}
@@ -127,24 +131,24 @@
         bind:this={surface}
         hidden={!present()}
         onkeydown={(event) => keepCalendarFocus(event, surface)}
-        class="date-picker__content"
+        class="acme-date-picker__content"
       >
-        <div class="date-picker__header">
+        <div class="acme-date-picker__header">
           <button {...api.getPreviousTriggerProps()} type="button" class={DATE_PICKER_NAV_CLASS}>
             <Icon name="chevron-left" size="sm" />
           </button>
-          <span {...api.getRangeTextProps()} class="date-picker__heading"
+          <span {...api.getRangeTextProps()} class="acme-date-picker__heading"
             >{api.visibleRangeText.start}</span
           >
           <button {...api.getNextTriggerProps()} type="button" class={DATE_PICKER_NAV_CLASS}>
             <Icon name="chevron-right" size="sm" />
           </button>
         </div>
-        <table {...api.getTableProps({ view: "day" })} class="date-picker__grid">
+        <table {...api.getTableProps({ view: "day" })} class="acme-date-picker__grid">
           <thead {...api.getTableHeadProps({ view: "day" })}>
             <tr {...api.getTableRowProps({ view: "day" })}>
               {#each api.weekDays as weekDay (weekDay.long)}
-                <th scope="col" class="date-picker__weekday">{weekDay.narrow}</th>
+                <th scope="col" class="acme-date-picker__weekday">{weekDay.narrow}</th>
               {/each}
             </tr>
           </thead>
@@ -155,8 +159,11 @@
             {#each api.weeks as week (week[0]?.toString())}
               <tr {...api.getTableRowProps({ view: "day" })}>
                 {#each week as value (value.toString())}
-                  <td {...api.getDayTableCellProps({ value })} class="date-picker__cell">
-                    <div {...api.getDayTableCellTriggerProps({ value })} class="date-picker__day">
+                  <td {...api.getDayTableCellProps({ value })} class="acme-date-picker__cell">
+                    <div
+                      {...api.getDayTableCellTriggerProps({ value })}
+                      class="acme-date-picker__day"
+                    >
                       {value.day}
                     </div>
                   </td>

@@ -1,5 +1,6 @@
 import { space } from "@acme/tokens";
 import {
+  classes,
   firstMenuValue,
   keepListKeys,
   layoutRect,
@@ -15,14 +16,16 @@ import { createMemo, createUniqueId, type Element, For, Show } from "solid-js";
 import { Icon } from "./Icon.tsx";
 import { modalPopover } from "./modal-popover.ts";
 import { createPresence } from "./presence.ts";
+import type { RootProps } from "./root.ts";
 import { provideTrigger, TriggerContext, type TriggerProps } from "./trigger.ts";
 
 export type { MenuItem } from "@acme/ui-core";
 
-export type MenuProps = MenuBaseProps & {
-  /** The control that opens the menu: a Button or an IconButton. */
-  trigger: Element;
-};
+export type MenuProps = MenuBaseProps &
+  RootProps & {
+    /** The control that opens the menu: a Button or an IconButton. */
+    trigger: Element;
+  };
 
 /**
  * A list of actions that opens from a control. Choosing an item calls its `onSelect` and
@@ -31,6 +34,8 @@ export type MenuProps = MenuBaseProps & {
  *
  * The trigger reports that it opens a menu and whether the menu is open. The arrow keys move
  * the highlight and Enter chooses.
+ *
+ * Its `class` and `style` are the menu's surface's, which is in the page only while it is open.
  */
 export function Menu(props: MenuProps) {
   const id = createUniqueId();
@@ -61,7 +66,7 @@ export function Menu(props: MenuProps) {
     const { onPointerDown: _onPointerDown, ...rest } = api().getTriggerProps() as TriggerProps;
     return mergeProps(rest, {
       // Added to the control's own class; the trigger looks pressed while its menu is open.
-      class: "menu__trigger",
+      class: "acme-menu__trigger",
       // A mouse opens the menu as its button goes down; touch and pen open it on the click,
       // as Zag does.
       onPointerDown: (event: PointerEvent & { currentTarget: HTMLElement }) => {
@@ -102,9 +107,13 @@ export function Menu(props: MenuProps) {
   const content = mergeProps(() => api().getContentProps(), {
     // This handler runs before Zag's.
     onKeyDown: (event: KeyboardEvent) =>
-      keepListKeys(event, surface, ".menu__item:not([data-disabled])", (value) =>
+      keepListKeys(event, surface, ".acme-menu__item:not([data-disabled])", (value) =>
         api().setHighlightedValue(value),
       ),
+    // The app's, laid over Zag's.
+    get style() {
+      return props.style;
+    },
   });
   return (
     <>
@@ -116,31 +125,31 @@ export function Menu(props: MenuProps) {
             {/* Takes a press outside, which then only closes the menu. The focus stays in the
                 menu until the menu hands it back to the trigger. */}
             {/* oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- not a control: the handler only keeps the focus where it is */}
-            <div class="menu__underlay" onMouseDown={(event) => event.preventDefault()} />
+            <div class="acme-menu__underlay" onMouseDown={(event) => event.preventDefault()} />
           </Show>
           <div
             ref={(element) => (positioner = element)}
             {...api().getPositionerProps()}
-            class="menu__positioner"
+            class="acme-menu__positioner"
           >
             {/* Shown until its exit animation ends; Zag would hide it as it closes. */}
             <div
               {...content}
               ref={(element) => (surface = element)}
               hidden={!present()}
-              class="menu"
+              class={classes("acme-menu", props.class)}
             >
               <For each={props.items}>
                 {(item, index) =>
                   item === "separator" ? (
-                    <div {...api().getSeparatorProps()} class="menu__separator" />
+                    <div {...api().getSeparatorProps()} class="acme-menu__separator" />
                   ) : (
                     <div
                       {...api().getItemProps({ value: String(index()), disabled: item.disabled })}
                       class={menuItemClass(item.danger)}
                     >
                       <Show when={item.icon}>
-                        {(name) => <Icon name={name()} size="sm" class="menu__item-icon" />}
+                        {(name) => <Icon name={name()} size="sm" class="acme-menu__item-icon" />}
                       </Show>
                       <span class="flex-1">{item.label}</span>
                       {/* Named, so a screen reader hears the state that the check shows. */}

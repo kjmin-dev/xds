@@ -5,11 +5,14 @@
 //
 // Do not put the only way to do something in a toast: it is gone in a few seconds.
 import { motion } from "@acme/tokens";
-import { TOAST_PARTS, type ToastBaseProps } from "@acme/ui-core";
+import { rootPart, TOAST_PARTS, type ToastBaseProps } from "@acme/ui-core";
 import { onBeforeUnmount, onMounted, ref, useTemplateRef, watchEffect } from "vue";
 
 export type ToastProps = ToastBaseProps;
 
+// The app's class and style go on the toast itself, not on the region across the bottom of the
+// window that it rises in.
+defineOptions({ inheritAttrs: false });
 const { open, message, action, duration = motion.duration.toast } = defineProps<ToastProps>();
 const emit = defineEmits<{
   /** When the time is up and after the action. Set `open` to false in it. */
@@ -47,7 +50,8 @@ function press(run: () => void) {
     <!-- Hover and focus only pause the timer; the action inside is a real button. -->
     <div
       v-if="open"
-      :class="TOAST_PARTS.toast"
+      :class="[rootPart('Toast'), TOAST_PARTS.toast, $attrs.class]"
+      :style="$attrs.style"
       @pointerenter="hovered = $event.currentTarget as Element"
       @pointerleave="hovered = undefined"
       @focusin="focused = $event.currentTarget as Element"

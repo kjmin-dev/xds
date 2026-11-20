@@ -1,21 +1,28 @@
 import {
+  classes,
   MEDIA_CARD_PARTS,
   type MediaCardBaseProps,
   mediaCardContentClass,
   mediaCardIds,
   mediaCardThumbnailClass,
+  rootPart,
 } from "@acme/ui-core";
 import { createMemo, createUniqueId, type Element, For, Show } from "solid-js";
+import { useDefaults } from "./Defaults.tsx";
+import type { RootProps } from "./root.ts";
 import { Thumbnail } from "./Thumbnail.tsx";
 
-export type MediaCardProps = MediaCardBaseProps & {
-  /** Before the text in the vertical layout, such as an Avatar. */
-  leading?: Element;
-  /** At the end of the text: an IconButton or a Menu. It stays a control of its own. */
-  action?: Element;
-  /** Makes the whole card one button. */
-  onPress?: () => void;
-};
+export type MediaCardProps = MediaCardBaseProps &
+  RootProps & {
+    /** Before the text in the vertical layout, such as an Avatar. */
+    leading?: Element;
+    /** At the end of the text: an IconButton or a Menu. It stays a control of its own. */
+    action?: Element;
+    /** Makes the whole card one button. */
+    onPress?: () => void;
+  };
+
+const ROOT = rootPart("MediaCard");
 
 /**
  * A thumbnail with its title and details: a video in a feed, an article in a list.
@@ -28,7 +35,8 @@ export type MediaCardProps = MediaCardBaseProps & {
 export function MediaCard(props: MediaCardProps) {
   const id = createUniqueId();
   const ids = createMemo(() => mediaCardIds(id, props.meta));
-  const horizontal = () => props.layout === "horizontal";
+  const defaults = useDefaults("MediaCard");
+  const horizontal = () => (props.layout ?? defaults().layout) === "horizontal";
   const pressable = () => props.onPress !== undefined;
   // On a pressable card the button says all of this, so the parts are hidden from assistive
   // technology and only the action is left beside it.
@@ -39,7 +47,8 @@ export function MediaCard(props: MediaCardProps) {
         <Thumbnail
           src={props.src}
           alt={props.alt ?? ""}
-          ratio={props.ratio}
+          // The card's own ratio, not one the app gives its other thumbnails.
+          ratio={props.ratio ?? "16:9"}
           badge={props.badge}
           progress={props.progress}
         />
@@ -77,12 +86,17 @@ export function MediaCard(props: MediaCardProps) {
       fallback={
         // A group, not a fieldset: a fieldset groups form controls, and sizes itself to its
         // content, which would undo the ellipses.
-        <div role="group" aria-labelledby={ids().names} class={MEDIA_CARD_PARTS.group}>
+        <div
+          role="group"
+          aria-labelledby={ids().names}
+          class={classes(ROOT, MEDIA_CARD_PARTS.group, props.class)}
+          style={props.style}
+        >
           {content()}
         </div>
       }
     >
-      <div class={MEDIA_CARD_PARTS.pressable}>
+      <div class={classes(ROOT, MEDIA_CARD_PARTS.pressable, props.class)} style={props.style}>
         <button
           type="button"
           onClick={() => props.onPress?.()}

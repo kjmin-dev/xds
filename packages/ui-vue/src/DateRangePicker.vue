@@ -168,22 +168,22 @@ watch(
 </script>
 
 <template>
-  <div v-bind="api.getRootProps()" class="date-picker date-range-picker">
+  <div v-bind="api.getRootProps()" class="acme-date-picker acme-date-range-picker">
     <!-- A span: the field is a button, which a <label> cannot point at. -->
-    <span :id="ids.label" class="date-picker__label">{{ label }}</span>
+    <span :id="ids.label" class="acme-date-picker__label">{{ label }}</span>
     <!-- What Zag places the calendar against. -->
-    <div v-bind="api.getControlProps()" class="date-picker__control">
-      <button v-bind="trigger" type="button" class="date-picker__trigger">
-        <span :id="ids.value" class="date-picker__value">
+    <div v-bind="api.getControlProps()" class="acme-date-picker__control">
+      <button v-bind="trigger" type="button" class="acme-date-picker__trigger">
+        <span :id="ids.value" class="acme-date-picker__value">
           {{ value === undefined ? placeholder : formatRange(value, locale) }}
         </span>
         <Icon name="calendar" size="sm" class="text-acme-field-placeholder" />
       </button>
     </div>
     <!-- One line under the box: the help, or the error in its place. -->
-    <div v-if="invalid || description" class="date-picker__footer">
-      <span v-if="invalid" :id="ids.error" class="date-picker__error">{{ error }}</span>
-      <span v-else :id="ids.description" class="date-picker__description">
+    <div v-if="invalid || description" class="acme-date-picker__footer">
+      <span v-if="invalid" :id="ids.error" class="acme-date-picker__error">{{ error }}</span>
+      <span v-else :id="ids.description" class="acme-date-picker__description">
         {{ description }}
       </span>
     </div>
@@ -198,22 +198,22 @@ watch(
     <Teleport to="body">
       <!-- Takes a press outside, which then only closes the calendar. The focus stays in the
            calendar until it hands it back to the field. -->
-      <div v-if="api.open" class="date-picker__underlay" @mousedown.prevent />
-      <div ref="positioner" v-bind="api.getPositionerProps()" class="date-picker__positioner">
+      <div v-if="api.open" class="acme-date-picker__underlay" @mousedown.prevent />
+      <div ref="positioner" v-bind="api.getPositionerProps()" class="acme-date-picker__positioner">
         <!-- Shown until its exit animation ends; Zag would hide it as it closes. -->
         <div
           v-bind="content"
           ref="surface"
           :hidden="!present"
-          class="date-picker__content date-range-picker__content"
+          class="acme-date-picker__content acme-date-range-picker__content"
         >
-          <div class="date-range-picker__summary" aria-live="polite">
+          <div class="acme-date-range-picker__summary" aria-live="polite">
             <span>{{ summary.start }}</span>
             <span>{{ summary.end }}</span>
           </div>
-          <div class="date-range-picker__months">
-            <div v-for="view in views" :key="view.index" class="date-range-picker__month">
-              <div class="date-picker__header">
+          <div class="acme-date-range-picker__months">
+            <div v-for="view in views" :key="view.index" class="acme-date-range-picker__month">
+              <div class="acme-date-picker__header">
                 <button
                   v-if="view.index === 0"
                   v-bind="api.getPreviousTriggerProps()"
@@ -222,8 +222,8 @@ watch(
                 >
                   <Icon name="chevron-left" size="sm" />
                 </button>
-                <span v-else class="date-range-picker__nav-space" />
-                <span v-bind="api.getRangeTextProps()" class="date-picker__heading">
+                <span v-else class="acme-date-range-picker__nav-space" />
+                <span v-bind="api.getRangeTextProps()" class="acme-date-picker__heading">
                   {{ view.name }}
                 </span>
                 <button
@@ -234,16 +234,16 @@ watch(
                 >
                   <Icon name="chevron-right" size="sm" />
                 </button>
-                <span v-else class="date-range-picker__nav-space" />
+                <span v-else class="acme-date-range-picker__nav-space" />
               </div>
-              <table v-bind="table(view)" class="date-picker__grid">
+              <table v-bind="table(view)" class="acme-date-picker__grid">
                 <thead v-bind="api.getTableHeadProps({ view: 'day' })">
                   <tr v-bind="api.getTableRowProps({ view: 'day' })">
                     <th
                       v-for="weekDay in api.weekDays"
                       :key="weekDay.long"
                       scope="col"
-                      class="date-picker__weekday"
+                      class="acme-date-picker__weekday"
                     >
                       {{ weekDay.narrow }}
                     </th>
@@ -263,9 +263,9 @@ watch(
                       v-bind="
                         api.getDayTableCellProps({ value: date, visibleRange: view.visibleRange })
                       "
-                      class="date-picker__cell"
+                      class="acme-date-picker__cell"
                     >
-                      <div v-bind="day(view, date)" class="date-picker__day">
+                      <div v-bind="day(view, date)" class="acme-date-picker__day">
                         {{ date.day }}
                       </div>
                     </td>

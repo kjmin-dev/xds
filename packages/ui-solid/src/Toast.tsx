@@ -1,11 +1,15 @@
 import { motion } from "@acme/tokens";
-import { TOAST_PARTS, type ToastBaseProps } from "@acme/ui-core";
+import { classes, rootPart, TOAST_PARTS, type ToastBaseProps } from "@acme/ui-core";
 import { createEffect, createSignal, onSettled, Show } from "solid-js";
+import type { RootProps } from "./root.ts";
 
-export type ToastProps = ToastBaseProps & {
-  /** Called when the time is up and after the action. Set `open` to false in it. */
-  onClose: () => void;
-};
+export type ToastProps = ToastBaseProps &
+  RootProps & {
+    /** Called when the time is up and after the action. Set `open` to false in it. */
+    onClose: () => void;
+  };
+
+const ROOT = rootPart("Toast");
 
 /**
  * A short message about what just happened, which leaves on its own. It sits at the bottom
@@ -13,6 +17,8 @@ export type ToastProps = ToastBaseProps & {
  * focus. The time does not run while the pointer is over it or focus is inside it.
  *
  * Do not put the only way to do something in a toast: it is gone in a few seconds.
+ *
+ * Its `class` and `style` are the toast's surface's, which is in the page only while it is open.
  */
 export function Toast(props: ToastProps) {
   let region!: HTMLDivElement;
@@ -58,7 +64,10 @@ export function Toast(props: ToastProps) {
           onPointerLeave={() => setHovered(undefined)}
           onFocusIn={(event) => setFocused(event.currentTarget)}
           onFocusOut={() => setFocused(undefined)}
-          class={TOAST_PARTS.toast}
+          // The root is the toast, not the region around it: the region is see-through and
+          // spans the window, so a class or a style for the toast means the surface.
+          class={classes(ROOT, TOAST_PARTS.toast, props.class)}
+          style={props.style}
         >
           <span class={TOAST_PARTS.message}>{props.message}</span>
           <Show when={props.action}>

@@ -9,6 +9,7 @@ import { checkContrast } from "./contrast.ts";
 import { emitCss, emitDart, emitKotlin, emitRust, emitTailwind, emitTypeScript } from "./emit.ts";
 import { loadIcons } from "./icons.ts";
 import { loadModel, type Model, TokenError } from "./model.ts";
+import { themeContract } from "./theme-contract.ts";
 
 const root = join(import.meta.dirname, "../../..");
 const check = process.argv.includes("--check");
@@ -37,9 +38,18 @@ async function main(): Promise<number> {
   }
 
   const config = JSON.parse(await readFile(join(root, "design/build.json"), "utf8")) as {
+    contractVersion?: string;
     outputs: Record<string, string>;
   };
   const outputs: [path: string, content: string][] = [];
+  // @if template
+  const { releaseVersion } = await import("../../../npm/release-version.ts");
+  config.contractVersion = await releaseVersion(root);
+  // @endif
+  if (config.contractVersion) {
+    const contract = themeContract(model, config.contractVersion);
+    outputs.push(["design/theme-contract.json", `${JSON.stringify(contract, null, 2)}\n`]);
+  }
   for (const [kind, path] of Object.entries(config.outputs)) {
     const emit = EMITTERS[kind];
     if (!emit) {

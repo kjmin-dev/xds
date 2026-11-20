@@ -1,6 +1,6 @@
 # xds as a library
 
-Status: a design, not yet built. Today xds reaches an app only one way: `xds create` copies the sources into a new project. This document defines a second way, in which an existing app installs xds from its platform's package registry and imports the components. It fixes the concepts, the names, the customization model, the version policy and the order of work. It names no files and no build tools on purpose, so that it stays true while the code moves.
+The CLI ships the theme contract and can check a custom theme file. Apps get the components through `xds create` today. The platform packages below are planned. The [CLI guide](cli.md#xds-check-theme-file) describes the theme file format and the [changelog](../CHANGELOG.md) tracks changes across channels.
 
 ## Two ways to take xds
 
@@ -46,7 +46,7 @@ The two are the same components at the same version. A team may start with the l
 | npm, React Native | React Native and Expo apps | One | Installs it, wraps the app in the theme provider, imports components | React Native; the safe-area and SVG libraries |
 | crates.io | GPUI desktop apps | Components, tokens | Adds the dependency and registers the theme at startup | The GPUI component kit, at one exact version per release |
 | Maven Central | Compose Multiplatform apps (Android, iOS, desktop JVM) | One multiplatform library | Adds the dependency and wraps content in the theme | Compose Multiplatform, Kotlin |
-| pub.dev | Flutter apps (when the Flutter client exists) | Components, tokens | Adds the dependency and wraps the app in the theme | Flutter |
+| pub.dev | Flutter apps | Components, tokens | Adds the dependency and wraps the app in the theme | Flutter |
 | CLI | New projects | The `xds` binary | `xds create` | None |
 
 Decisions that hold for every channel:
@@ -65,20 +65,22 @@ Decisions that hold for every channel:
 | npm, React Native | The theme moves from generated constants to a provider; the exact React Native pin becomes a range |
 | crates.io | The theme moves from generated constants to a registered value; the one-to-one tie to the GPUI kit's version is documented and enforced |
 | Maven Central | Publication metadata and signing; the theme accepts a color set, not only a mode |
-| pub.dev | The Flutter client itself |
+| pub.dev | Build and publish the Flutter component and token packages, and verify them in an external app |
 
 ## Names and ownership
 
-Checked on 2026-11-15 by querying the public registries. A name marked free is not reserved until it is registered, and registering is the maintainer's action.
+The maintainer owns the GitHub repository and npm scope. The crates.io and pub.dev package records were checked again on 2026-11-20. Those registries assign names on first publication. A lookup returning no package leaves ownership open.
 
 | Channel | Proposed | State | Notes |
 | --- | --- | --- | --- |
 | npm scope | `@xds` | Registered on 2026-11-16 as an npm organization of the maintainer | Every npm package is published under it |
 | npm packages | `@xds/react`, `@xds/solid`, `@xds/vue`, `@xds/svelte`, `@xds/core`, `@xds/tokens`, `@xds/react-native` | Held by the scope | The unscoped name `xds` is taken by an unrelated Vue state library, so nothing is published unscoped |
-| crates.io | `xds-ui`, `xds-tokens` | Free | `xds` is taken by an unrelated crate |
-| Maven Central | group `io.github.kjmin-dev`, artifact `xds-ui` | The group is verified through the GitHub account that owns this repository | A group under a domain the maintainer controls is the alternative, verified through DNS |
-| pub.dev | `xds_ui`, `xds_tokens` | Free | A verified publisher needs a domain |
+| crates.io | `xds-ui`, `xds-tokens` | Unregistered | Claim with the first functional L4 packages. The unsuffixed `xds` belongs to another crate |
+| Maven Central | group `io.github.kjmin-dev`, artifact `xds-ui` | The group corresponds to the maintainer’s GitHub account | Confirm publishing access in Central Portal before L2. [Namespace verification](https://central.sonatype.org/register/namespace/) |
+| pub.dev | `xds_ui`, `xds_tokens` | Unregistered | Claim with the first functional L5 packages. A verified publisher needs a domain |
 | GitHub | `kjmin-dev/xds` | Owned | The source of truth for every channel |
+
+The Rust and Dart channels each need their first usable release before both package names can be recorded as held. pub.dev prohibits publication solely to reserve a name. [Cargo publishing guide](https://doc.rust-lang.org/cargo/reference/publishing.html), [pub.dev naming policy](https://pub.dev/policy#name-squatting).
 
 "xDS" is also the name of a family of service-mesh APIs. The scoped and suffixed names above avoid a clash in the registries; search results will still mix the two.
 
@@ -121,7 +123,7 @@ Rules that make the layers hold together:
 | Compose | The theme composable | Any subtree |
 | Flutter | A theme extension | Any subtree |
 
-The CLI turns a theme file into each carrier's form, and runs the contrast check on it. It already generates themes from a hue for scaffolded projects.
+The L0 CLI checks a theme file against the versioned contract and all contrast pairs. Each channel adds its runtime carrier in its own phase. Scaffolded projects can already generate color ramps from a hue.
 
 ### Against other systems
 
@@ -149,8 +151,8 @@ The one deliberate gap is new variants declared in the theme. It is the feature 
 
 - Every package on every channel, and the CLI, share one version, following semantic versioning.
 - A release publishes every channel, including channels with no change of their own. "Is my phone app on the same xds as my web app" is then answered by comparing two numbers.
-- There is one changelog. Each entry says which channels it touches.
-- A scaffolded project records the version it was created from, so its distance from the current release can be told.
+- The root `CHANGELOG.md` is shared by all channels. Each entry names the affected channels. The release workflow takes its GitHub release notes from the section for the tagged version.
+- A scaffolded project records its creation version in `.xds.json` as `createdWith`. Older records retain their last known writer in `xds`.
 
 ### What counts as breaking
 
@@ -190,7 +192,7 @@ A change that needs trying before it is promised goes out as a prerelease of the
 
 ## Order of work
 
-The library work runs beside the existing roadmap (the React Native date picker, glass, the desktop shells, Flutter), not ahead of it. Two dependencies set the order: the theme contract should be fixed after glass adds its material tokens, and the pub.dev channel needs the Flutter client.
+Glass material tokens and the Flutter scaffold are in the template. The L0 contract, checker, version source and changelog are implemented. Registry ownership is recorded above. The CLI release workflow ships the binary and its npm launchers. Each library channel joins the same tag when its external consumer check passes.
 
 | Phase | Work | Done when | Depends on |
 | --- | --- | --- | --- |

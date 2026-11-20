@@ -30,6 +30,13 @@ pub const RECORD: &str = ".xds.json";
 pub struct Record {
     /// The version of `xds` that last wrote the project.
     pub xds: String,
+    /// Older records only identified the last writer, so their creation version is unknown.
+    #[serde(
+        default,
+        rename = "createdWith",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub created_with: Option<String>,
     pub name: String,
     pub title: String,
     pub targets: Vec<String>,
@@ -42,6 +49,7 @@ impl Record {
     pub fn new(names: &Names, targets: &[&Target], theme: &str) -> Self {
         Self {
             xds: env!("CARGO_PKG_VERSION").to_owned(),
+            created_with: Some(env!("CARGO_PKG_VERSION").to_owned()),
             name: names.name.clone(),
             title: names.title.clone(),
             targets: targets.iter().map(|target| target.id.clone()).collect(),
@@ -288,6 +296,7 @@ fn filter_build_config(contents: &[u8], keep: impl Fn(&str) -> bool) -> Result<S
         .filter(|(kind, _)| keep(kind))
         .collect();
     config["outputs"] = Value::Object(outputs);
+    config["contractVersion"] = env!("CARGO_PKG_VERSION").into();
     Ok(json::stringify(&config))
 }
 

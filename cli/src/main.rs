@@ -1,6 +1,7 @@
 //! `xds` scaffolds a project from the cross-platform design system template: pick the client
 //! stacks, a name and a color theme, and get a repository that holds only those.
 
+mod check_theme;
 mod commands;
 mod error;
 mod inspect;
@@ -70,6 +71,8 @@ enum Command {
     Components(ComponentsArgs),
     /// Measure the WCAG contrast between two colors or color tokens
     Contrast(ContrastArgs),
+    /// Check a theme file against the token contract and every contrast requirement
+    CheckTheme(check_theme::Args),
     /// Check a project: its record, its tokens, and whether the generated files are current
     Doctor(DoctorArgs),
     /// Serve the commands to an agent as a Model Context Protocol server on stdin and stdout
@@ -114,6 +117,7 @@ fn main() -> ExitCode {
         Command::Tokens(args) => inspect::tokens(args, out),
         Command::Components(args) => inspect::components(args, out),
         Command::Contrast(args) => inspect::contrast(args, out),
+        Command::CheckTheme(args) => check_theme::run(args, out),
         Command::Doctor(args) => inspect::doctor(args, out),
         // The protocol owns stdout until the client hangs up; there is no result to print.
         Command::Mcp => {

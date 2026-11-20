@@ -335,7 +335,7 @@ pub fn regenerate(project: &Path) -> Regenerated {
 /// Whether `node` on PATH can run the generator, or why not.
 pub fn check_node() -> std::result::Result<(), String> {
     let (major, minor) = MIN_NODE;
-    let needed = format!("Node {major}.{minor} or newer is needed to regenerate them");
+    let needed = format!("Node {major}.{minor} or newer is needed to run the token tools");
     let output = Command::new("node")
         .arg("--version")
         .stdin(Stdio::null())

@@ -26,6 +26,15 @@ fn main() -> io::Result<()> {
         .to_path_buf();
     let out_dir = PathBuf::from(env::var_os("OUT_DIR").expect("set by cargo"));
 
+    // A binary publishes its embedded theme contract under its own release version.
+    let contract: serde_json::Value =
+        serde_json::from_slice(&fs::read(root.join("design/theme-contract.json"))?)?;
+    assert_eq!(
+        contract["version"].as_str(),
+        Some(env!("CARGO_PKG_VERSION")),
+        "run `mise run tokens` after changing the release version in cli/Cargo.toml"
+    );
+
     let manifest_path = root.join("template.json");
     println!("cargo:rerun-if-changed={}", manifest_path.display());
     let manifest: serde_json::Value = serde_json::from_slice(&fs::read(&manifest_path)?)

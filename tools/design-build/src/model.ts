@@ -7,6 +7,7 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { isDeepStrictEqual } from "node:util";
 import type { Icon } from "./icons.ts";
 
 export type Mode = "light" | "dark";
@@ -63,14 +64,21 @@ export type Model = {
 
 type RawToken = { path: string[]; $type?: string; $value: unknown; $description?: string };
 
+export type TokenOverrides = Record<string, { $type: string; $value: unknown }>;
+export type ThemeOverrides = Partial<Record<Mode | InputMode | "values", TokenOverrides>>;
+
 export class TokenError extends Error {}
 
 function fail(path: string[], message: string): never {
   throw new TokenError(`${path.join(".")}: ${message}`);
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function finite(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
 }
 
 function toHex(channels: number[]): string {
@@ -88,24 +96,27 @@ function parseColor(path: string[], value: unknown): Rgba {
     fail(path, "an sRGB color needs exactly three components");
   }
   const channels = components.map((component) => {
-    if (typeof component !== "number" || component < 0 || component > 1) {
+    if (!finite(component) || component < 0 || component > 1) {
       fail(path, "sRGB components must be numbers between 0 and 1");
     }
     return Math.round(component * 255);
   });
-  const alpha = value.alpha ?? 1;
-  if (typeof alpha !== "number" || alpha < 0 || alpha > 1) {
+  const alpha = value.alpha === undefined ? 1 : value.alpha;
+  if (!finite(alpha) || alpha < 0 || alpha > 1) {
     fail(path, "alpha must be a number between 0 and 1");
   }
-  if (typeof value.hex === "string" && value.hex.toLowerCase() !== toHex(channels)) {
-    fail(path, `hex ${value.hex} does not match the components, which give ${toHex(channels)}`);
+  if (value.hex !== undefined) {
+    if (typeof value.hex !== "string") fail(path, "hex must be a string");
+    if (value.hex.toLowerCase() !== toHex(channels)) {
+      fail(path, `hex ${value.hex} does not match the components, which give ${toHex(channels)}`);
+    }
   }
   const [r, g, b] = channels as [number, number, number];
   return { r, g, b, a: alpha };
 }
 
 function parseUnit(path: string[], value: unknown, unit: string, what: string): number {
-  if (!isRecord(value) || typeof value.value !== "number" || value.unit !== unit) {
+  if (!isRecord(value) || !finite(value.value) || value.unit !== unit) {
     fail(path, `${what} must be written as { "value": <number>, "unit": "${unit}" }`);
   }
   return value.value;
@@ -120,7 +131,7 @@ function parseValue(token: RawToken): Value {
       return { kind: "duration", ms: parseUnit(path, value, "ms", "a duration") };
     case "number":
     case "fontWeight":
-      if (typeof value !== "number") fail(path, `a ${token.$type} must be a number`);
+      if (!finite(value)) fail(path, `a ${token.$type} must be a number`);
       return { kind: token.$type, value };
     case "fontFamily": {
       const families = typeof value === "string" ? [value] : value;
@@ -130,11 +141,7 @@ function parseValue(token: RawToken): Value {
       return { kind: "fontFamily", families };
     }
     case "cubicBezier":
-      if (
-        !Array.isArray(value) ||
-        value.length !== 4 ||
-        !value.every((point) => typeof point === "number")
-      ) {
+      if (!Array.isArray(value) || value.length !== 4 || !value.every(finite)) {
         fail(path, "a cubicBezier must be four numbers");
       }
       return { kind: "cubicBezier", points: value as [number, number, number, number] };
@@ -225,7 +232,11 @@ const ALIAS = /^\{([^{}]+)\}$/;
  * An alias is a whole value, such as "{palette.accent.600}", or a part of a composite value,
  * such as the `fontSize` of a typography token.
  */
-async function loadFiles(tokensDir: string, files: string[]): Promise<RawToken[]> {
+async function loadFiles(
+  tokensDir: string,
+  files: string[],
+  overrides: TokenOverrides = {},
+): Promise<RawToken[]> {
   const root: Group = {};
   for (const file of files) {
     const path = resolve(tokensDir, file);
@@ -243,6 +254,14 @@ async function loadFiles(tokensDir: string, files: string[]): Promise<RawToken[]
   flatten(root, [], undefined, tokens);
   const byPath = new Map(tokens.map((token) => [token.path.join("."), token]));
 
+  // Apply raw values before resolving aliases so component roles follow a changed foundation.
+  for (const [path, value] of Object.entries(overrides)) {
+    const token = byPath.get(path);
+    if (!token) throw new TokenError(`unknown token "${path}"`);
+    token.$type = value.$type;
+    token.$value = value.$value;
+  }
+
   const resolved = new Map<string, unknown>();
   const resolveToken = (token: RawToken, trail: string[]): unknown => {
     const key = token.path.join(".");
@@ -258,11 +277,14 @@ async function loadFiles(tokensDir: string, files: string[]): Promise<RawToken[]
       if (target === undefined) return value;
       const token = byPath.get(target);
       if (!token) fail(owner.path, `refers to ${value}, which does not exist`);
-      // A token that is nothing but an alias takes the type of what it points to.
-      if (value === owner.$value && owner.$type === undefined && token.$type) {
+      const resolvedValue = resolveToken(token, trail);
+      if (value === owner.$value && token.$type) {
+        if (owner.$type && owner.$type !== token.$type) {
+          fail(owner.path, `a ${owner.$type} cannot refer to ${value} of type ${token.$type}`);
+        }
         owner.$type = token.$type;
       }
-      return resolveToken(token, trail);
+      return resolvedValue;
     }
     if (Array.isArray(value)) return value.map((item) => resolveValue(owner, item, trail));
     if (isRecord(value)) {
@@ -287,6 +309,9 @@ function pairUp<M extends string>(
     const key = token.path.join(".");
     const counterpart = others.get(key);
     if (!counterpart) fail(token.path, `is defined for ${first} mode but not for ${second} mode`);
+    if (token.$type !== counterpart.$type) {
+      fail(token.path, `must have the same type in ${first} and ${second} mode`);
+    }
     others.delete(key);
     each(token, counterpart);
   }
@@ -299,7 +324,11 @@ function pairUp<M extends string>(
  * `theme` is the path of a theme file to use in place of the palette's accent and neutral ramps,
  * for checking a theme without applying it.
  */
-export async function loadModel(tokensDir: string, theme?: string): Promise<Model> {
+export async function loadModel(
+  tokensDir: string,
+  theme?: string,
+  overrides: ThemeOverrides = {},
+): Promise<Model> {
   // The palette is loaded so that the color files can refer to it, and then left out: only
   // colors with a meaning reach the platforms.
   const colorFiles = (mode: Mode) => [
@@ -309,10 +338,10 @@ export async function loadModel(tokensDir: string, theme?: string): Promise<Mode
     `color.${mode}.json`,
   ];
   const [light, dark, pointer, touch] = await Promise.all([
-    loadFiles(tokensDir, colorFiles("light")),
-    loadFiles(tokensDir, colorFiles("dark")),
-    loadFiles(tokensDir, ["size.pointer.json"]),
-    loadFiles(tokensDir, ["size.touch.json"]),
+    loadFiles(tokensDir, colorFiles("light"), { ...overrides.values, ...overrides.light }),
+    loadFiles(tokensDir, colorFiles("dark"), { ...overrides.values, ...overrides.dark }),
+    loadFiles(tokensDir, ["size.pointer.json"], overrides.pointer),
+    loadFiles(tokensDir, ["size.touch.json"], overrides.touch),
   ]);
 
   const colors: ColorToken[] = [];
@@ -331,7 +360,12 @@ export async function loadModel(tokensDir: string, theme?: string): Promise<Mode
         dark: parseColor(token.path, counterpart.$value),
       });
     } else {
-      values.push({ path: token.path, ...description, value: parseValue(token) });
+      const value = parseValue(token);
+      // A shared shadow can reference a color. Every client emits one value for it.
+      if (!isDeepStrictEqual(value, parseValue(counterpart))) {
+        fail(token.path, "a shared value must resolve identically in light and dark mode");
+      }
+      values.push({ path: token.path, ...description, value });
     }
   });
 

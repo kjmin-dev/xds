@@ -1,0 +1,22 @@
+{
+  "name": "@acme/web-packages",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.ts",
+    "consumer": "node consumer.ts",
+    "typecheck": "tsrs --noEmit"
+  },
+  "devDependencies": {
+    "@sveltejs/package": "3.0.3",
+    "@tailwindcss/node": "4.3.5",
+    "@tailwindcss/oxide": "4.3.5",
+    "@types/node": "^26.0.0",
+    "playwright": "1.65.0",
+    "svelte": "catalog:",
+    "tailwindcss": "^4.3.5",
+    "tsrs": "catalog:",
+    "typescript": "6.0.3",
+    "vite": "^8.3.8"
+  }
+}

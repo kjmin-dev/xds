@@ -1,0 +1,36 @@
+/*
+ * The base of the published library's stylesheet, in place of the page that a scaffolded app's
+ * stylesheet styles (packages/ui-core/src/styles/base.css). The library styles only its own
+ * elements: an element with a class that starts with `acme-` (a component's root and its parts)
+ * and what is inside one. Renamed `xds-` when it is published.
+ */
+@layer base {
+  /* The outermost component takes the page font of a scaffolded app, so it looks the same in any
+     page. The components inside it inherit it as they do there. */
+  :where([class^="acme-"], [class*=" acme-"]):not(:where([class^="acme-"], [class*=" acme-"]) *) {
+    font-family: var(--acme-font-family-sans);
+    /* Korean breaks between words, not between syllables. */
+    word-break: keep-all;
+    /* Long unbroken strings (URLs, email addresses) still wrap instead of overflowing. */
+    overflow-wrap: anywhere;
+    -webkit-text-size-adjust: 100%;
+    tab-size: 4;
+    font-feature-settings: normal;
+    font-variation-settings: normal;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* A border without a color of its own is a divider, not text-colored. */
+  :where([class^="acme-"], [class*=" acme-"]),
+  :where([class^="acme-"], [class*=" acme-"]) *,
+  :where([class^="acme-"], [class*=" acme-"])::after,
+  :where([class^="acme-"], [class*=" acme-"]) ::after,
+  :where([class^="acme-"], [class*=" acme-"])::before,
+  :where([class^="acme-"], [class*=" acme-"]) ::before,
+  :where([class^="acme-"], [class*=" acme-"])::backdrop,
+  :where([class^="acme-"], [class*=" acme-"]) ::backdrop,
+  :where([class^="acme-"], [class*=" acme-"])::file-selector-button,
+  :where([class^="acme-"], [class*=" acme-"]) ::file-selector-button {
+    border-color: var(--acme-color-border-default);
+  }
+}

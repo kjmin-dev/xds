@@ -173,6 +173,10 @@ run = [
   # @if web-svelte
   "pnpm --filter @acme/web-svelte build",
   # @endif
+  # @if template
+  # The web library's npm packages: it fails when the build leaves the placeholder name in them.
+  "node npm/web/build.ts",
+  # @endif
   # @if mobile-react-native
   # Neither is visible to the type checker: a native package that has moved off the version the
   # Expo SDK expects, and an import that Metro cannot resolve for iOS or Android.
@@ -232,6 +236,15 @@ run = [
 description = "Build the documentation site, which fails on a page whose source is missing"
 depends = ["install"]
 run = "pnpm --filter @acme/docs build"
+
+# What the release workflow runs before it publishes the web packages: it builds them, installs
+# them with npm in apps outside the repository, and compares those apps' design previews with
+# scaffolded ones, pixel by pixel. It needs the network and Google Chrome, and is not part of
+# `check`. docs/web-library.md says what it compares.
+[tasks."check:library-web"]
+description = "Install the web library's packages in new apps and compare their design previews with scaffolded apps"
+depends = ["install"]
+run = "node npm/web/consumer.ts"
 
 # The pictures of the iOS, Android and Compose apps on the component pages. It needs ffmpeg and
 # cwebp; iOS needs macOS with Xcode and CocoaPods, and Android an emulator system image already

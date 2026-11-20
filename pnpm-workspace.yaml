@@ -25,6 +25,9 @@ packages:
   # @endif
   - packages/*
   - tools/*
+  # @if template
+  - npm/web
+  # @endif
 
 # One version of each of these across the workspace.
 catalog:

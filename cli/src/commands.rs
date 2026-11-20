@@ -761,6 +761,7 @@ pub fn add(args: &AddArgs, out: Out) -> Result<Value> {
     }
 
     let new_record = Record {
+        created_with: record.created_with.clone(),
         wraps,
         ..Record::new(&names, &wanted, &record.theme)
     };
@@ -792,7 +793,7 @@ pub fn add(args: &AddArgs, out: Out) -> Result<Value> {
             say!(out,
                 "{}",
                 style.dim(&format!(
-                    "(The project was created with xds {}, and this is {}: files may differ for that reason alone.)",
+                    "(The project record was written by xds {}, and this is {}: files may differ for that reason alone.)",
                     record.xds,
                     env!("CARGO_PKG_VERSION")
                 ))

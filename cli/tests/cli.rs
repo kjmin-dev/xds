@@ -45,6 +45,7 @@ fn every_command_has_help() {
         vec!["create", "--help"],
         vec!["add", "--help"],
         vec!["theme", "--help"],
+        vec!["check-theme", "--help"],
         vec!["tokens", "--help"],
         vec!["components", "--help"],
         vec!["contrast", "--help"],
@@ -695,4 +696,96 @@ fn mcp_serves_the_tools_over_stdio() {
 
     drop(stdin);
     assert!(child.wait().expect("xds mcp exits").success());
+}
+
+#[test]
+fn checks_a_theme_from_a_project_or_the_embedded_release_without_applying_it() {
+    let temp = TempDir::new().unwrap();
+    let theme = temp.path().join("brand theme.json");
+    let project = temp.path().join("my-project");
+    let (created, _, stderr) =
+        run(xds()
+            .arg("create")
+            .arg(&project)
+            .args(["--targets", "web-react", "--yes"]));
+    assert!(created.status.success(), "{stderr}");
+    let check = |root: &Path| {
+        run(xds()
+            .current_dir(root)
+            .args(["check-theme", "--json"])
+            .arg(&theme))
+    };
+    let version = env!("CARGO_PKG_VERSION");
+    let mut file = serde_json::json!({ "version": version, "preset": "ocean" });
+    fs::write(&theme, file.to_string()).unwrap();
+    for (dir, source) in [(temp.path(), "template"), (project.as_path(), "project")] {
+        let (output, stdout, stderr) = check(dir);
+        assert!(output.status.success(), "{stderr}");
+        let report: Value = serde_json::from_str(&stdout).unwrap();
+        assert_eq!(
+            report,
+            serde_json::json!({ "source": source, "version": version, "ok": true, "failures": [] })
+        );
+    }
+
+    let palette = project.join("design/tokens/palette.json");
+    let before = fs::read(&palette).unwrap();
+    file["dark"] = serde_json::json!({ "color.text.primary": "{color.background.base}" });
+    fs::write(&theme, file.to_string()).unwrap();
+    let (output, stdout, stderr) = run(xds()
+        .current_dir(temp.path())
+        .args(["--json", "check-theme"])
+        .arg(&theme)
+        .arg("--project")
+        .arg(&project));
+    assert_eq!(output.status.code(), Some(1));
+    assert!(stderr.is_empty(), "{stderr}");
+    let report: Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(report["ok"], false);
+    assert!(
+        report["failures"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| s.as_str().unwrap().contains("(dark)"))
+    );
+    assert_eq!(fs::read(palette).unwrap(), before);
+
+    // A versioned project must regenerate a missing or stale contract. Legacy projects
+    // can derive it from their DTCG sources using the checker's release version.
+    let contract = project.join("design/theme-contract.json");
+    let mut data: Value = serde_json::from_slice(&fs::read(&contract).unwrap()).unwrap();
+    data["version"] = "99.0.0".into();
+    fs::write(&contract, data.to_string()).unwrap();
+    let (output, _, stderr) = check(&project);
+    assert_eq!(output.status.code(), Some(1));
+    assert!(stderr.contains("requires xds 99.0.0"), "{stderr}");
+    data["version"] = version.into();
+    data["colors"]
+        .as_object_mut()
+        .unwrap()
+        .shift_remove("color.glass.tint");
+    fs::write(&contract, data.to_string()).unwrap();
+    assert!(check(&project).2.contains("differs from the tokens"));
+    fs::remove_file(&contract).unwrap();
+    assert!(check(&project).2.contains("is missing"));
+    let config = project.join("design/build.json");
+    let mut old: Value = serde_json::from_slice(&fs::read(&config).unwrap()).unwrap();
+    old.as_object_mut().unwrap().shift_remove("contractVersion");
+    fs::write(&config, old.to_string()).unwrap();
+    fs::write(
+        &theme,
+        serde_json::json!({ "version": version, "preset": "indigo" }).to_string(),
+    )
+    .unwrap();
+    assert!(check(&project).0.status.success());
+
+    fs::write(&theme, "{").unwrap();
+    let (output, stdout, stderr) = check(temp.path());
+    assert_eq!(output.status.code(), Some(1));
+    assert!(stdout.is_empty());
+    assert_eq!(
+        serde_json::from_str::<Value>(&stderr).unwrap()["error"]["kind"],
+        "error"
+    );
 }

@@ -42,6 +42,7 @@ const TEMPLATE_ONLY_PATHS: &[&str] = &[
     "template.json",
     "README.ko.md",
     "CONTRIBUTING.md",
+    "CHANGELOG.md",
     "skills",
     ".claude-plugin",
     "LICENSE",
@@ -233,6 +234,10 @@ fn assert_clean(tree: &Tree, ids: &[&str]) {
 
     let record: Record = serde_json::from_str(&text(tree, RECORD)).expect("a valid record");
     assert_eq!(record.xds, env!("CARGO_PKG_VERSION"));
+    assert_eq!(
+        record.created_with.as_deref(),
+        Some(env!("CARGO_PKG_VERSION"))
+    );
     assert_eq!(record.name, "orbit");
     assert_eq!(record.title, "Orbit");
     assert_eq!(
@@ -1817,6 +1822,21 @@ fn add(directory: &Path, targets: &[&str]) {
         dry_run: false,
     };
     commands::add(&args, Out::plain()).expect("add succeeds");
+}
+
+#[test]
+fn adding_targets_preserves_creation_history_including_unknown_legacy_origins() {
+    for origin in [None, Some("0.0.5")] {
+        let (_temp, directory) = project(&[WEB]);
+        let mut record = Record::read(&directory).unwrap();
+        record.xds = "0.0.9".into();
+        record.created_with = origin.map(str::to_owned);
+        render::write_file(&directory, RECORD, &record.to_file()).unwrap();
+        add(&directory, &[SOLID]);
+        let updated = Record::read(&directory).unwrap();
+        assert_eq!(updated.xds, env!("CARGO_PKG_VERSION"));
+        assert_eq!(updated.created_with, record.created_with);
+    }
 }
 
 #[test]

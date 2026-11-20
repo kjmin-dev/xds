@@ -14,6 +14,7 @@
 import { chmod, copyFile, cp, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
+import { releaseVersion } from "./release-version.ts";
 
 const root = resolve(import.meta.dirname, "..");
 
@@ -41,14 +42,6 @@ if (!options.binaries) {
 }
 const binaries = resolve(options.binaries);
 const out = resolve(options.out);
-
-/** The version of the crate: every package of a release carries the same one. */
-async function crateVersion() {
-  const manifest = await readFile(join(root, "cli/Cargo.toml"), "utf8");
-  const version = manifest.match(/^\[package\][^[]*?^version\s*=\s*"([^"]+)"/ms)?.[1];
-  if (!version) throw new Error("cli/Cargo.toml has no version in [package]");
-  return version;
-}
 
 async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
@@ -111,7 +104,7 @@ async function buildPlatformPackage(platform, version, launcher) {
   return name;
 }
 
-const version = await crateVersion();
+const version = await releaseVersion(root);
 await rm(out, { recursive: true, force: true });
 await mkdir(out, { recursive: true });
 

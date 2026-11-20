@@ -7,6 +7,7 @@ import {
   type Model,
   type Rgba,
   type SizeToken,
+  TokenError,
   type Typography,
   type Value,
   type ValueToken,
@@ -84,55 +85,104 @@ function valueVariable(token: ValueToken): string {
   return `--acme-${kebab(token.path)}`;
 }
 
+/** Every token as a custom property: colors and the other values, then sizes per input. */
+function declarations(model: Model) {
+  const shared: [string, string][] = [];
+  for (const token of model.colors) {
+    const [light, dark] = [cssColor(token.light), cssColor(token.dark)];
+    shared.push([colorVariable(token), light === dark ? light : `light-dark(${light}, ${dark})`]);
+  }
+  const values: [string, string][] = [];
+  for (const token of model.values) {
+    if (token.value.kind === "typography") {
+      values.push(...typographyVariables(token, token.value.typography));
+    } else {
+      values.push([valueVariable(token), cssValue(token.value)]);
+    }
+  }
+  const pointer = model.sizes.map((token): [string, string] => [
+    sizeVariable(token),
+    `${token.pointer}px`,
+  ]);
+  const touch = model.sizes.map((token): [string, string] => [
+    sizeVariable(token),
+    `${token.touch}px`,
+  ]);
+  return { colors: shared, values, pointer, touch };
+}
+
+const TOUCH_COMMENT = [
+  "/* Fingers need larger controls than a mouse. This asks about the primary input, not the",
+  "   screen width: a small window on a laptop keeps the pointer sizes. */",
+];
+
 /**
  * Custom properties for every token. Colors follow the color scheme through `light-dark()`, and
  * sizes follow the input device through a media query.
  */
 export function emitCss(model: Model): string {
+  const { colors, values, pointer, touch } = declarations(model);
+  const block = (list: [string, string][], indent: string) =>
+    list.map(([name, value]) => `${indent}${name}: ${value};`);
   const lines = [`/* ${HEADER} */`, "", ":root {", "  color-scheme: light dark;", ""];
-  for (const token of model.colors) {
-    const [light, dark] = [cssColor(token.light), cssColor(token.dark)];
-    const value = light === dark ? light : `light-dark(${light}, ${dark})`;
-    lines.push(`  ${colorVariable(token)}: ${value};`);
-  }
-  lines.push("");
-  for (const token of model.values) {
-    if (token.value.kind === "typography") {
-      for (const [name, value] of typographyVariables(token, token.value.typography)) {
-        lines.push(`  ${name}: ${value};`);
-      }
-    } else {
-      lines.push(`  ${valueVariable(token)}: ${cssValue(token.value)};`);
-    }
-  }
-  if (model.sizes.length > 0) lines.push("");
-  for (const token of model.sizes) {
-    lines.push(`  ${sizeVariable(token)}: ${token.pointer}px;`);
-  }
+  lines.push(...block(colors, "  "), "", ...block(values, "  "));
+  if (pointer.length > 0) lines.push("", ...block(pointer, "  "));
   lines.push("}", "");
-  if (model.sizes.length > 0) {
-    lines.push(
-      "/* Fingers need larger controls than a mouse. This asks about the primary input, not the",
-      "   screen width: a small window on a laptop keeps the pointer sizes. */",
-      "@media (pointer: coarse) {",
-      "  :root {",
-    );
-    for (const token of model.sizes) {
-      lines.push(`    ${sizeVariable(token)}: ${token.touch}px;`);
-    }
-    lines.push("  }", "}", "");
+  if (touch.length > 0) {
+    lines.push(...TOUCH_COMMENT, "@media (pointer: coarse) {", "  :root {");
+    lines.push(...block(touch, "    "), "  }", "}", "");
   }
   lines.push(
-    "/* Set data-theme on the root element to override the system color scheme. */",
-    ':root[data-theme="light"] {',
+    "/* Set data-theme to override the system color scheme, on the root element for the whole",
+    "   page or on any element for what is inside it. */",
+    '[data-theme="light"] {',
     "  color-scheme: light;",
     "}",
     "",
-    ':root[data-theme="dark"] {',
+    '[data-theme="dark"] {',
     "  color-scheme: dark;",
     "}",
     "",
   );
+  return lines.join("\n");
+}
+
+/**
+ * A theme as a stylesheet of its own: every token's value, on the elements that name the theme
+ * with `data-acme-theme="<name>"`, which may be the root element or any element inside. Every
+ * token is written, not only those that differ from the default theme, so a theme inside another
+ * takes nothing from the outer one. `layer` puts the rules in a cascade layer; `prefix` replaces
+ * `acme` in the names, for a library published under another name.
+ */
+export function emitThemeCss(
+  model: Model,
+  options: { name: string; source: string; layer?: string; prefix?: string },
+): string {
+  if (!/^[a-z][a-z0-9-]*$/.test(options.name)) {
+    throw new TokenError(
+      `a theme name is lowercase letters, digits and hyphens: "${options.name}"`,
+    );
+  }
+  const prefix = options.prefix ?? "acme";
+  const rename = (text: string) => text.replace(/^--acme-/, `--${prefix}-`);
+  const { colors, values, pointer, touch } = declarations(model);
+  const outer = options.layer ? "  " : "";
+  const selector = (indent: string) => [
+    `${indent}:root[data-${prefix}-theme="${options.name}"],`,
+    `${indent}[data-${prefix}-theme="${options.name}"] {`,
+  ];
+  const block = (list: [string, string][], indent: string) =>
+    list.map(([name, value]) => `${indent}${rename(name)}: ${value};`);
+  const body = [...selector(outer), ...block([...colors, ...values, ...pointer], `${outer}  `)];
+  body.push(`${outer}}`);
+  if (touch.length > 0) {
+    body.push("", ...TOUCH_COMMENT.map((line) => `${outer}${line}`));
+    body.push(`${outer}@media (pointer: coarse) {`, ...selector(`${outer}  `));
+    body.push(...block(touch, `${outer}    `), `${outer}  }`, `${outer}}`);
+  }
+  const lines = [`/* Generated by xds from ${options.source}. Do not edit. */`, ""];
+  if (options.layer) lines.push(`@layer ${options.layer} {`, ...body, "}", "");
+  else lines.push(...body, "");
   return lines.join("\n");
 }
 

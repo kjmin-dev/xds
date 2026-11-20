@@ -73,6 +73,8 @@ enum Command {
     Contrast(ContrastArgs),
     /// Check a theme file against the token contract and every contrast requirement
     CheckTheme(check_theme::Args),
+    /// Check a theme file, then write it as a stylesheet that applies it to part of a web page
+    ExportTheme(check_theme::ExportArgs),
     /// Check a project: its record, its tokens, and whether the generated files are current
     Doctor(DoctorArgs),
     /// Serve the commands to an agent as a Model Context Protocol server on stdin and stdout
@@ -118,6 +120,7 @@ fn main() -> ExitCode {
         Command::Components(args) => inspect::components(args, out),
         Command::Contrast(args) => inspect::contrast(args, out),
         Command::CheckTheme(args) => check_theme::run(args, out),
+        Command::ExportTheme(args) => check_theme::export(args, out),
         Command::Doctor(args) => inspect::doctor(args, out),
         // The protocol owns stdout until the client hangs up; there is no result to print.
         Command::Mcp => {

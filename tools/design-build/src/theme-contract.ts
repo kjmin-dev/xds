@@ -124,23 +124,25 @@ export async function readContract(root: string, cliVersion?: string): Promise<C
   return expected;
 }
 
-export async function checkTheme(root: string, input: unknown, contract: Contract) {
+/** The tokens a theme file gives: a preset with its overrides laid over, or a palette. */
+export async function themeModel(root: string, input: unknown, contract: Contract): Promise<Model> {
   const file = object(input, "theme");
   const presets = await listThemes(root);
   const tokens = join(root, "design/tokens");
-  let model: Model;
   if (Object.hasOwn(file, "palette")) {
     const reference = presets.find(({ name }) => name === "indigo");
     if (!reference) throw new TokenError("the indigo reference preset is missing");
-    model = await loadModel(tokens, undefined, { values: rampOverrides(file, reference.palette) });
-  } else {
-    const preset = file.preset === undefined ? "indigo" : file.preset;
-    if (!presets.some(({ name }) => name === preset) || typeof preset !== "string") {
-      throw new TokenError(`unknown preset; choose ${presets.map(({ name }) => name).join(", ")}`);
-    }
-    const theme = join(root, "design/themes", `${preset}.json`);
-    model = await loadModel(tokens, theme, overrides(file, contract));
+    return loadModel(tokens, undefined, { values: rampOverrides(file, reference.palette) });
   }
-  const failures = checkContrast(model);
+  const preset = file.preset === undefined ? "indigo" : file.preset;
+  if (!presets.some(({ name }) => name === preset) || typeof preset !== "string") {
+    throw new TokenError(`unknown preset; choose ${presets.map(({ name }) => name).join(", ")}`);
+  }
+  const theme = join(root, "design/themes", `${preset}.json`);
+  return loadModel(tokens, theme, overrides(file, contract));
+}
+
+export async function checkTheme(root: string, input: unknown, contract: Contract) {
+  const failures = checkContrast(await themeModel(root, input, contract));
   return { version: contract.version, ok: failures.length === 0, failures };
 }

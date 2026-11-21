@@ -10,17 +10,31 @@
 <script module lang="ts">
   import type { TooltipBaseProps } from "@acme/ui-core";
   import type { Snippet } from "svelte";
+  import type { RootProps } from "./root.ts";
 
-  export type TooltipProps = TooltipBaseProps & {
-    /** The control it describes: a Button or an IconButton. */
-    children: Snippet;
-  };
+  /** Its root is the tooltip, while it shows, not the control it describes. */
+  export type TooltipProps = TooltipBaseProps &
+    RootProps & {
+      /** The control it describes: a Button or an IconButton. */
+      children: Snippet;
+    };
 </script>
 
 <script lang="ts">
   import TooltipOverlay from "./TooltipOverlay.svelte";
 
-  let { label, shortcut, placement = "top", children }: TooltipProps = $props();
+  let {
+    label,
+    shortcut,
+    placement = "top",
+    class: className,
+    style,
+    children,
+  }: TooltipProps = $props();
 </script>
 
-<TooltipOverlay {label} {shortcut} placement={() => placement}>{@render children()}</TooltipOverlay>
+<!-- The overlay gives the root part, `acme-tooltip`, to every tooltip, a collapsed Sidebar's
+     too. -->
+<TooltipOverlay {label} {shortcut} placement={() => placement} class={className} {style}
+  >{@render children()}</TooltipOverlay
+>

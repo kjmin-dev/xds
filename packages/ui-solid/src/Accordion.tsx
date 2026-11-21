@@ -2,6 +2,7 @@ import {
   ACCORDION_PARTS,
   type AccordionBaseProps,
   type AccordionItemBase,
+  classes,
   focusTitleOnClick,
   setPanelOpen,
 } from "@acme/ui-core";
@@ -10,16 +11,18 @@ import * as accordion from "@zag-js/accordion";
 import { mergeProps, normalizeProps, useMachine } from "@zag-js/solid";
 import { createEffect, createMemo, createUniqueId, type Element, For, Show } from "solid-js";
 import { Icon } from "./Icon.tsx";
+import { type RootProps, withStyle } from "./root.ts";
 
 export type AccordionItem<Value extends string = string> = AccordionItemBase<Value> & {
   /** The body, shown under the title while the item is open. */
   content: Element;
 };
 
-export type AccordionProps<Value extends string = string> = AccordionBaseProps<Value> & {
-  items: readonly AccordionItem<Value>[];
-  onChange: (expanded: Value[]) => void;
-};
+export type AccordionProps<Value extends string = string> = AccordionBaseProps<Value> &
+  RootProps & {
+    items: readonly AccordionItem<Value>[];
+    onChange: (expanded: Value[]) => void;
+  };
 
 /**
  * Items whose bodies open and close under their titles, separated by hairlines. The chevron
@@ -41,23 +44,30 @@ export function Accordion<Value extends string = string>(props: AccordionProps<V
     hiddenUntilFound: true,
   }));
   const api = createMemo(() => accordion.connect(service, normalizeProps));
+  const root = withStyle(
+    () => api().getRootProps(),
+    () => props.style,
+  );
   const body = (value: Value) => {
     // The panel hides itself once it has finished closing; see Panel.
     const { hidden: _hidden, ...attributes } = api().getItemContentProps({ value });
     return attributes as JSX.HTMLAttributes<HTMLDivElement>;
   };
   return (
-    <div {...api().getRootProps()} class="accordion">
+    <div {...root} class={classes("acme-accordion", props.class)}>
       <For each={props.items}>
         {(item) => (
-          <div {...api().getItemProps({ value: item.value })} class="accordion__item">
-            <h3 {...api().getItemHeaderProps({ value: item.value })} class="accordion__heading">
+          <div {...api().getItemProps({ value: item.value })} class="acme-accordion__item">
+            <h3
+              {...api().getItemHeaderProps({ value: item.value })}
+              class="acme-accordion__heading"
+            >
               <button
                 {...mergeProps(() => api().getItemTriggerProps({ value: item.value }), {
                   // Runs before Zag's handler.
                   onClick: focusTitleOnClick,
                 })}
-                class="accordion__trigger group"
+                class="acme-accordion__trigger group"
               >
                 <span class={ACCORDION_PARTS.text}>
                   <span class={ACCORDION_PARTS.title}>{item.title}</span>
@@ -110,9 +120,9 @@ function Panel(props: {
       ref={(element) => (panel = element)}
       role="group"
       aria-hidden={props.open ? undefined : "true"}
-      class="accordion__panel"
+      class="acme-accordion__panel"
     >
-      <div class="accordion__body">{props.children}</div>
+      <div class="acme-accordion__body">{props.children}</div>
     </div>
   );
 }

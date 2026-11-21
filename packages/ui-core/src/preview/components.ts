@@ -18,6 +18,7 @@ import type { ChipBaseProps } from "../chip.ts";
 import type { CountBadgeBaseProps } from "../count-badge.ts";
 import type { DatePickerBaseProps, IsoDate } from "../date-picker.ts";
 import type { DateRange, DateRangePickerBaseProps } from "../date-range-picker.ts";
+import type { ComponentDefaults } from "../defaults.ts";
 import type { DialogBaseProps } from "../dialog.ts";
 import type { EmptyStateBaseProps } from "../empty-state.ts";
 import type { IconBaseProps } from "../icon.ts";
@@ -51,7 +52,7 @@ type Action = { label: string; onPress: () => void };
  */
 export type Controlled = "value" | "checked" | "expanded";
 
-export interface Components<N> {
+interface Own<N> {
   Accordion: AccordionBaseProps & {
     items: readonly (AccordionItemBase & { content: string })[];
     onChange: (expanded: string[]) => void;
@@ -107,6 +108,14 @@ export interface Components<N> {
   Toast: ToastBaseProps & { onClose: () => void };
   Tooltip: TooltipBaseProps & { children: N };
 }
+
+/** The class an app adds to a component's root element, beside its root part: React's `className`. */
+type Root = { class?: string };
+
+export type Components<N> = { [K in keyof Own<N>]: Own<N>[K] & Root } & {
+  /** What the components inside take for an option the screen leaves out. */
+  Defaults: { value: ComponentDefaults; children: N };
+};
 
 export type ComponentName = keyof Components<unknown>;
 

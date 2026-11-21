@@ -1,7 +1,12 @@
 <script setup lang="ts">
 // The title row of a group of content. The title is a heading at `level`; the action is a quiet
 // button with a chevron at its end edge, which points the other way in a right-to-left layout.
-import { SECTION_HEADER_PARTS, type SectionHeaderBaseProps } from "@acme/ui-core";
+import {
+  classes,
+  rootPart,
+  SECTION_HEADER_PARTS,
+  type SectionHeaderBaseProps,
+} from "@acme/ui-core";
 import Button from "./Button.vue";
 import Icon from "./Icon.vue";
 
@@ -14,7 +19,7 @@ const { title, description, icon, level = 2, action } = defineProps<SectionHeade
 </script>
 
 <template>
-  <div :class="SECTION_HEADER_PARTS.root">
+  <div :class="classes(rootPart('SectionHeader'), SECTION_HEADER_PARTS.root)">
     <div :class="SECTION_HEADER_PARTS.lead">
       <span v-if="icon" :class="SECTION_HEADER_PARTS.icon"><Icon :name="icon" size="md" /></span>
       <div :class="SECTION_HEADER_PARTS.text">

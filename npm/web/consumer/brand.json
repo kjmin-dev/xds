@@ -1,0 +1,18 @@
+{
+  "version": "0.1.0",
+  "preset": "forest",
+  "values": {
+    "radius.md": { "value": 4, "unit": "px" },
+    "radius.lg": { "value": 6, "unit": "px" },
+    "font.family.sans": ["Georgia", "serif"]
+  },
+  "light": {
+    "color.button.secondary.border": "{color.border.strong}"
+  },
+  "dark": {
+    "color.background.base": "{palette.neutral.950}"
+  },
+  "pointer": {
+    "size.control.md": { "value": 40, "unit": "px" }
+  }
+}

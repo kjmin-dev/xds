@@ -2,7 +2,14 @@
 // A surface that groups related content. A hairline outline and a trace of shadow lift it off
 // the page; in dark mode, where shadows barely show, the lighter fill does that. `title`
 // renders as a heading; `actions` sit across from it.
-import { CARD_PARTS, type CardBaseProps, cardClass, cardMediaClass } from "@acme/ui-core";
+import {
+  CARD_PARTS,
+  type CardBaseProps,
+  cardClass,
+  cardMediaClass,
+  classes,
+  rootPart,
+} from "@acme/ui-core";
 import { computed } from "vue";
 import { Wrap } from "./wrap.ts";
 
@@ -53,7 +60,7 @@ const surface = computed(() =>
   <component
     :is="pressable ? 'button' : 'section'"
     v-bind="surface"
-    :class="cardClass({ selected, flush, pressable })"
+    :class="classes(rootPart('Card'), cardClass({ selected, flush, pressable }))"
   >
     <Wrap :when="flush" :tag="tags.box" :wrapper="CARD_PARTS.flush">
       <component :is="tags.box" v-if="slots.media" :class="cardMediaClass(flush)">

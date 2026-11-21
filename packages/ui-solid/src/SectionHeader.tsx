@@ -1,13 +1,22 @@
-import { SECTION_HEADER_PARTS, type SectionHeaderBaseProps } from "@acme/ui-core";
+import {
+  classes,
+  rootPart,
+  SECTION_HEADER_PARTS,
+  type SectionHeaderBaseProps,
+} from "@acme/ui-core";
 import { dynamic } from "@solidjs/web";
 import { Show } from "solid-js";
 import { Button } from "./Button.tsx";
 import { Icon } from "./Icon.tsx";
+import type { RootProps } from "./root.ts";
 
-export type SectionHeaderProps = SectionHeaderBaseProps & {
-  /** A link-like action at the end, such as "See all". */
-  action?: { label: string; onPress: () => void };
-};
+export type SectionHeaderProps = SectionHeaderBaseProps &
+  RootProps & {
+    /** A link-like action at the end, such as "See all". */
+    action?: { label: string; onPress: () => void };
+  };
+
+const ROOT = rootPart("SectionHeader");
 
 /**
  * The title row of a group of content. The title is a heading at `level`; the action is a quiet
@@ -16,7 +25,7 @@ export type SectionHeaderProps = SectionHeaderBaseProps & {
 export function SectionHeader(props: SectionHeaderProps) {
   const Heading = dynamic(() => `h${props.level ?? 2}` as const);
   return (
-    <div class={SECTION_HEADER_PARTS.root}>
+    <div class={classes(ROOT, SECTION_HEADER_PARTS.root, props.class)} style={props.style}>
       <div class={SECTION_HEADER_PARTS.lead}>
         <Show when={props.icon}>
           {(icon) => (

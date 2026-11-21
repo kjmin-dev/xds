@@ -8,6 +8,8 @@ import {
   checkboxClass,
   checkboxLabelClass,
   checkboxMarkClass,
+  classes,
+  rootPart,
 } from "@acme/ui-core";
 import { keepChecked } from "./controlled.ts";
 
@@ -28,7 +30,7 @@ function change(event: Event) {
 </script>
 
 <template>
-  <label :class="checkboxClass">
+  <label :class="classes(rootPart('Checkbox'), checkboxClass)">
     <input
       type="checkbox"
       :aria-label="ariaLabel"

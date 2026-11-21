@@ -66,10 +66,10 @@ export function buttonClass(options: {
   fullWidth?: boolean;
 }): string {
   const { variant, size, iconOnly = false, iconButton = false, fullWidth = false } = options;
-  let classes = `button button--${variant} button--${size}`;
-  if (iconButton) classes += " icon-button";
-  else if (iconOnly) classes += " button--icon-only";
-  if (fullWidth) classes += " button--full-width";
+  let classes = `acme-button acme-button--${variant} acme-button--${size}`;
+  if (iconButton) classes += " acme-icon-button";
+  else if (iconOnly) classes += " acme-button--icon-only";
+  if (fullWidth) classes += " acme-button--full-width";
   return classes;
 }
 

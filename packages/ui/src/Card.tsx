@@ -1,16 +1,24 @@
-import { CARD_PARTS, type CardBaseProps, cardClass, cardMediaClass } from "@acme/ui-core";
+import {
+  CARD_PARTS,
+  type CardBaseProps,
+  cardClass,
+  cardMediaClass,
+  classes,
+  rootPart,
+} from "@acme/ui-core";
 import type { ReactNode } from "react";
+import type { RootProps } from "./root.ts";
 
-export type CardProps = CardBaseProps & {
-  /** Sit across from the title. A pressable card takes none: it is one button already. */
-  actions?: ReactNode;
-  /** A picture or a drawing at the top, running edge to edge above the padding. */
-  media?: ReactNode;
-  /** Makes the whole card one button. Put no other control inside it then. */
-  onPress?: () => void;
-  className?: string;
-  children?: ReactNode;
-};
+export type CardProps = CardBaseProps &
+  RootProps & {
+    /** Sit across from the title. A pressable card takes none: it is one button already. */
+    actions?: ReactNode;
+    /** A picture or a drawing at the top, running edge to edge above the padding. */
+    media?: ReactNode;
+    /** Makes the whole card one button. Put no other control inside it then. */
+    onPress?: () => void;
+    children?: ReactNode;
+  };
 
 /**
  * A surface that groups related content. A hairline outline and a trace of shadow lift it off
@@ -25,10 +33,15 @@ export function Card({
   flush = false,
   onPress,
   selected,
-  className = "",
+  className,
+  style,
   children,
 }: CardProps) {
-  const surface = `${cardClass({ selected, flush, pressable: onPress !== undefined })} ${className}`;
+  const surface = classes(
+    rootPart("Card"),
+    cardClass({ selected, flush, pressable: onPress !== undefined }),
+    className,
+  );
   // A button may hold only phrasing content, so inside one the parts are spans. Its heading
   // would not be reachable as a heading anyway: a button reads as its text.
   const [Header, Box, Title, Line] = onPress
@@ -52,7 +65,11 @@ export function Card({
   const content = flush ? <Box className={CARD_PARTS.flush}>{parts}</Box> : parts;
   if (!onPress) {
     return (
-      <section {...(selected ? { "aria-current": "true" as const } : {})} className={surface}>
+      <section
+        {...(selected ? { "aria-current": "true" as const } : {})}
+        className={surface}
+        style={style}
+      >
         {content}
       </section>
     );
@@ -63,6 +80,7 @@ export function Card({
       onClick={onPress}
       {...(selected === undefined ? {} : { "aria-pressed": selected })}
       className={surface}
+      style={style}
     >
       {content}
     </button>

@@ -5,11 +5,15 @@ import {
   checkboxClass,
   checkboxLabelClass,
   checkboxMarkClass,
+  classes,
+  rootPart,
 } from "@acme/ui-core";
+import type { RootProps } from "./root.ts";
 
-export type CheckboxProps = CheckboxBaseProps & {
-  onChange: (checked: boolean) => void;
-};
+export type CheckboxProps = CheckboxBaseProps &
+  RootProps & {
+    onChange: (checked: boolean) => void;
+  };
 
 /**
  * A choice that is applied later, with the form it belongs to. A native checkbox: the input is
@@ -21,10 +25,12 @@ export function Checkbox({
   label,
   name,
   disabled = false,
+  className,
+  style,
   ...aria
 }: CheckboxProps) {
   return (
-    <label className={checkboxClass}>
+    <label className={classes(rootPart("Checkbox"), checkboxClass, className)} style={style}>
       <input
         {...aria}
         type="checkbox"

@@ -1,20 +1,38 @@
-import { SECTION_HEADER_PARTS, type SectionHeaderBaseProps } from "@acme/ui-core";
+import {
+  classes,
+  rootPart,
+  SECTION_HEADER_PARTS,
+  type SectionHeaderBaseProps,
+} from "@acme/ui-core";
 import { Button } from "./Button.tsx";
 import { Icon } from "./Icon.tsx";
+import type { RootProps } from "./root.ts";
 
-export type SectionHeaderProps = SectionHeaderBaseProps & {
-  /** A link-like action at the end, such as "See all". */
-  action?: { label: string; onPress: () => void };
-};
+export type SectionHeaderProps = SectionHeaderBaseProps &
+  RootProps & {
+    /** A link-like action at the end, such as "See all". */
+    action?: { label: string; onPress: () => void };
+  };
 
 /**
  * The title row of a group of content. The title is a heading at `level`; the action is a quiet
  * button with a chevron at its end edge, which points the other way in a right-to-left layout.
  */
-export function SectionHeader({ title, description, icon, action, level = 2 }: SectionHeaderProps) {
+export function SectionHeader({
+  title,
+  description,
+  icon,
+  action,
+  level = 2,
+  className,
+  style,
+}: SectionHeaderProps) {
   const Heading = `h${level}` as const;
   return (
-    <div className={SECTION_HEADER_PARTS.root}>
+    <div
+      className={classes(rootPart("SectionHeader"), SECTION_HEADER_PARTS.root, className)}
+      style={style}
+    >
       <div className={SECTION_HEADER_PARTS.lead}>
         {icon && (
           <span className={SECTION_HEADER_PARTS.icon}>

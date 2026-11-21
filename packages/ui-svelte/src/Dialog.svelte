@@ -9,26 +9,39 @@
 <script module lang="ts">
   import type { DialogBaseProps } from "@acme/ui-core";
   import type { Snippet } from "svelte";
+  import type { RootProps } from "./root.ts";
 
-  export type DialogProps = DialogBaseProps & {
-    /** Called on Escape and on a press outside the dialog. Set `open` to false in it. */
-    onClose: () => void;
-    /** The body, between the description and the actions. It scrolls when it is too tall. */
-    children?: Snippet;
-    /** Buttons, in a row at the end edge. Put the main action last. */
-    actions?: Snippet;
-  };
+  /** Its root is the dialog itself, while it is open, not the scrim around it. */
+  export type DialogProps = DialogBaseProps &
+    RootProps & {
+      /** Called on Escape and on a press outside the dialog. Set `open` to false in it. */
+      onClose: () => void;
+      /** The body, between the description and the actions. It scrolls when it is too tall. */
+      children?: Snippet;
+      /** Buttons, in a row at the end edge. Put the main action last. */
+      actions?: Snippet;
+    };
 </script>
 
 <script lang="ts">
-  import { leaveEscapeToFields } from "@acme/ui-core";
+  import { classes, leaveEscapeToFields } from "@acme/ui-core";
   import * as dialog from "@zag-js/dialog";
-  import { normalizeProps, useMachine } from "@zag-js/svelte";
+  import { mergeProps, normalizeProps, useMachine } from "@zag-js/svelte";
   import Portal from "./Portal.svelte";
   import { createPresence } from "./presence.svelte.ts";
   import { resetTrigger } from "./trigger.svelte.ts";
 
-  let { open, title, description, dismissible, onClose, children, actions }: DialogProps = $props();
+  let {
+    open,
+    title,
+    description,
+    dismissible,
+    onClose,
+    class: className,
+    style,
+    children,
+    actions,
+  }: DialogProps = $props();
 
   const id = $props.id();
   let backdrop = $state<HTMLDivElement>();
@@ -67,19 +80,23 @@
       bind:this={backdrop}
       hidden={false}
       onmousedown={(event) => event.preventDefault()}
-      class="dialog__backdrop"
+      class="acme-dialog__backdrop"
     ></div>
-    <div {...api.getPositionerProps()} bind:this={positioner} class="dialog__positioner">
-      <section {...api.getContentProps()} bind:this={content} hidden={false} class="dialog">
-        <h2 {...api.getTitleProps()} class="dialog__title">{title}</h2>
+    <div {...api.getPositionerProps()} bind:this={positioner} class="acme-dialog__positioner">
+      <section
+        {...mergeProps(api.getContentProps(), { class: classes("acme-dialog", className), style })}
+        bind:this={content}
+        hidden={false}
+      >
+        <h2 {...api.getTitleProps()} class="acme-dialog__title">{title}</h2>
         {#if description}
-          <p {...api.getDescriptionProps()} class="dialog__description">{description}</p>
+          <p {...api.getDescriptionProps()} class="acme-dialog__description">{description}</p>
         {/if}
         {#if children}
-          <div class="dialog__body">{@render children()}</div>
+          <div class="acme-dialog__body">{@render children()}</div>
         {/if}
         {#if actions}
-          <div class="dialog__actions">{@render actions()}</div>
+          <div class="acme-dialog__actions">{@render actions()}</div>
         {/if}
       </section>
     </div>

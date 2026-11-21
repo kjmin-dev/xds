@@ -81,24 +81,24 @@ const control = computed(() =>
     v-bind="api.getRootProps()"
     role="group"
     :aria-labelledby="api.getLabelProps().id"
-    class="slider"
+    class="acme-slider"
   >
     <!-- Zag's props give it `for`, the hidden input's id. -->
-    <label v-bind="api.getLabelProps()" class="slider__label">{{ label }}</label>
+    <label v-bind="api.getLabelProps()" class="acme-slider__label">{{ label }}</label>
     <!-- Read when asked for, not at every step: the slider itself announces its value. -->
     <output
       v-if="showValue"
       v-bind="api.getValueTextProps()"
       aria-live="off"
-      class="slider__output"
+      class="acme-slider__output"
     >
       {{ sliderValueText(api.value[0] ?? value) }}
     </output>
-    <div v-bind="control" class="slider__control">
-      <div v-bind="api.getTrackProps()" class="slider__track">
-        <div v-bind="api.getRangeProps()" class="slider__range" />
+    <div v-bind="control" class="acme-slider__control">
+      <div v-bind="api.getTrackProps()" class="acme-slider__track">
+        <div v-bind="api.getRangeProps()" class="acme-slider__range" />
       </div>
-      <div v-bind="thumb" ref="thumb" class="slider__thumb">
+      <div v-bind="thumb" ref="thumb" class="acme-slider__thumb">
         <input v-bind="api.getHiddenInputProps({ index: 0 })" />
       </div>
     </div>

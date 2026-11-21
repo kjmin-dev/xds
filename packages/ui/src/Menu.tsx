@@ -1,5 +1,6 @@
 import { space } from "@acme/tokens";
 import {
+  classes,
   firstMenuValue,
   keepListKeys,
   layoutRect,
@@ -15,14 +16,17 @@ import { Icon } from "./Icon.tsx";
 import { useModalPopover } from "./modal-popover.ts";
 import { Portal } from "./portal.tsx";
 import { usePresence } from "./presence.ts";
+import type { RootProps } from "./root.ts";
 import { TriggerContext, type TriggerProps, useProvideTrigger } from "./trigger.ts";
 
 export type { MenuItem } from "@acme/ui-core";
 
-export type MenuProps = MenuBaseProps & {
-  /** The control that opens the menu: a Button or an IconButton. */
-  trigger: ReactNode;
-};
+/** `className` and `style` are for the menu itself, the list that opens, not for its trigger. */
+export type MenuProps = MenuBaseProps &
+  RootProps & {
+    /** The control that opens the menu: a Button or an IconButton. */
+    trigger: ReactNode;
+  };
 
 /**
  * A list of actions that opens from a control. Choosing an item calls its `onSelect` and
@@ -32,7 +36,7 @@ export type MenuProps = MenuBaseProps & {
  * The trigger reports that it opens a menu and whether the menu is open. The arrow keys move
  * the highlight and Enter chooses.
  */
-export function Menu({ trigger, label, items, align = "start" }: MenuProps) {
+export function Menu({ trigger, label, items, align = "start", className, style }: MenuProps) {
   const service = useMachine(menu.machine, {
     id: useId(),
     "aria-label": label,
@@ -60,7 +64,7 @@ export function Menu({ trigger, label, items, align = "start" }: MenuProps) {
   const provided = useProvideTrigger(
     mergeProps<TriggerProps>(triggerProps, {
       // Added to the control's own class; the trigger looks pressed while its menu is open.
-      className: "menu__trigger",
+      className: "acme-menu__trigger",
       // A mouse opens the menu as its button goes down; touch and pen open it on the click,
       // as Zag does.
       onPointerDown: (event: PointerEvent<HTMLButtonElement>) => {
@@ -94,9 +98,11 @@ export function Menu({ trigger, label, items, align = "start" }: MenuProps) {
   useModalPopover(api.open, () => positioner.current);
   const present = usePresence(api.open, () => [surface.current]);
   const content = mergeProps(api.getContentProps(), {
+    className: classes("acme-menu", className),
+    style,
     // This handler runs before Zag's.
     onKeyDown: (event: { key: string; preventDefault(): void }) =>
-      keepListKeys(event, surface.current, ".menu__item:not([data-disabled])", (value) =>
+      keepListKeys(event, surface.current, ".acme-menu__item:not([data-disabled])", (value) =>
         api.setHighlightedValue(value),
       ),
   });
@@ -110,22 +116,24 @@ export function Menu({ trigger, label, items, align = "start" }: MenuProps) {
             // Takes a press outside, which then only closes the menu. The focus stays in the
             // menu until the menu hands it back to the trigger.
             // oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- not a control: the handler only keeps the focus where it is
-            <div className="menu__underlay" onMouseDown={(event) => event.preventDefault()} />
+            <div className="acme-menu__underlay" onMouseDown={(event) => event.preventDefault()} />
           )}
-          <div {...api.getPositionerProps()} ref={positioner} className="menu__positioner">
+          <div {...api.getPositionerProps()} ref={positioner} className="acme-menu__positioner">
             {/* Shown until its exit animation ends; Zag would hide it as it closes. */}
-            <div {...content} ref={surface} hidden={!present} className="menu">
+            <div {...content} ref={surface} hidden={!present}>
               {items.map((item, index) =>
                 item === "separator" ? (
                   // A separator has nothing but its position to tell it apart.
-                  <div key={index} {...api.getSeparatorProps()} className="menu__separator" />
+                  <div key={index} {...api.getSeparatorProps()} className="acme-menu__separator" />
                 ) : (
                   <div
                     key={index}
                     {...api.getItemProps({ value: String(index), disabled: item.disabled })}
                     className={menuItemClass(item.danger)}
                   >
-                    {item.icon && <Icon name={item.icon} size="sm" className="menu__item-icon" />}
+                    {item.icon && (
+                      <Icon name={item.icon} size="sm" className="acme-menu__item-icon" />
+                    )}
                     <span className="flex-1">{item.label}</span>
                     {/* Named, so a screen reader hears the state that the check shows. */}
                     {item.selected && <Icon name="check" size="sm" label="Selected" />}

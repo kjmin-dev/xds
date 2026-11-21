@@ -3,7 +3,7 @@
  * draws the calendar, which is rendered into the body, always, hidden while closed once it has
  * animated out.
  *
- * Parts: `.date-picker__underlay` (over the page while the calendar is open),
+ * Parts: `.acme-date-picker__underlay` (over the page while the calendar is open),
  * `__positioner`, `__content` (the surface, a dialog), `__header`, `__nav` (the two month
  * buttons, which button.css draws as small ghost IconButtons: DATE_PICKER_NAV_CLASS gives them
  * both classes), `__heading` (the month and year), `__grid` (a table), `__weekday` (a column
@@ -11,10 +11,10 @@
  * States on a day: `:hover`, `:active`, `:focus-visible`, `[data-selected]`, `[data-today]`,
  * `[data-disabled]` (outside `min`..`max`), `[data-outside-range]` (a day of the month before
  * or after). On the content: `[data-side]`, and `[data-state="closed"]` while it animates out.
- * The positioner stacks by `--layer-overlay` and Zag's `--layer-index`.
+ * The positioner stacks by `--acme-layer-overlay` and Zag's `--layer-index`.
  *
- * DateRangePicker draws the same calendar under `.date-range-picker` (its root, beside
- * `.date-picker`) and `.date-range-picker__content`, with more parts: `__summary` (the two ends
+ * DateRangePicker draws the same calendar under `.acme-date-range-picker` (its root, beside
+ * `.acme-date-picker`) and `.acme-date-range-picker__content`, with more parts: `__summary` (the two ends
  * named), `__months` (the months side by side), `__month` (one month: its header and its grid),
  * and `__nav-space` (where the other month has a month button). States on a day, from Zag's
  * range mode: `[data-in-range]` (in the range, or in the preview of one), `[data-range-start]`
@@ -26,18 +26,18 @@
 @layer components {
   /* Over the page and under the open calendar, as under a Select's list: a press outside only
      closes the calendar, and the field under the pointer keeps its own border meanwhile. */
-  .date-picker__underlay {
+  .acme-date-picker__underlay {
     position: fixed;
     inset: 0;
-    z-index: var(--layer-overlay);
+    z-index: var(--acme-layer-overlay);
   }
 
-  .date-picker__positioner {
-    z-index: calc(var(--layer-overlay) + var(--layer-index, 0));
+  .acme-date-picker__positioner {
+    z-index: calc(var(--acme-layer-overlay) + var(--layer-index, 0));
   }
 
   /* A raised surface, as wide as seven days and its inset. */
-  .date-picker__content {
+  .acme-date-picker__content {
     display: flex;
     flex-direction: column;
     gap: var(--acme-space-2);
@@ -53,32 +53,32 @@
     animation: acme-select-enter var(--acme-motion-duration-fast) var(--acme-motion-easing-enter);
   }
 
-  .date-picker__content[data-side="top"] {
+  .acme-date-picker__content[data-side="top"] {
     animation-name: acme-select-enter-above;
   }
 
   /* After the rules above, which it replaces. A closing calendar takes no more presses. */
-  .date-picker__content[data-state="closed"] {
+  .acme-date-picker__content[data-state="closed"] {
     animation: acme-overlay-exit var(--acme-motion-duration-fast) var(--acme-motion-easing-exit)
       forwards;
     pointer-events: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .date-picker__content,
-    .date-picker__content[data-state="closed"] {
+    .acme-date-picker__content,
+    .acme-date-picker__content[data-state="closed"] {
       animation: none;
     }
   }
 
   /* The month between its two buttons. */
-  .date-picker__header {
+  .acme-date-picker__header {
     display: flex;
     align-items: center;
     gap: var(--acme-space-2);
   }
 
-  .date-picker__heading {
+  .acme-date-picker__heading {
     flex: 1 1 0%;
     min-width: 0;
     text-align: center;
@@ -90,21 +90,21 @@
   }
 
   /* Seven columns of one day's side; the rows of days are as tall. */
-  .date-picker__grid {
+  .acme-date-picker__grid {
     border-collapse: collapse;
     border-spacing: 0;
     table-layout: fixed;
   }
 
-  .date-picker__weekday,
-  .date-picker__cell {
+  .acme-date-picker__weekday,
+  .acme-date-picker__cell {
     width: var(--acme-size-calendar-day);
     height: var(--acme-size-calendar-day);
     padding: 0;
     text-align: center;
   }
 
-  .date-picker__weekday {
+  .acme-date-picker__weekday {
     font-size: var(--acme-typography-footnote-size);
     font-weight: var(--acme-typography-footnote-weight);
     line-height: var(--acme-typography-footnote-line-height);
@@ -112,7 +112,7 @@
   }
 
   /* A circle inset a little into its cell, so that two marked days side by side stay apart. */
-  .date-picker__day {
+  .acme-date-picker__day {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -136,67 +136,67 @@
   }
 
   /* The days of the months around this one are not drawn; their cells keep the grid's shape. */
-  .date-picker__day[data-outside-range] {
+  .acme-date-picker__day[data-outside-range] {
     visibility: hidden;
   }
 
   /* Bolder as well as in the accent, so that today does not depend on telling colors apart,
      and ringed, as a phone's calendar marks it. */
-  .date-picker__day[data-today] {
+  .acme-date-picker__day[data-today] {
     font-weight: var(--acme-typography-body-strong-weight);
     color: var(--acme-color-date-picker-today-text);
     box-shadow: inset 0 0 0 var(--acme-border-width-thin) var(--acme-color-date-picker-today-border);
   }
 
   @media (hover: hover) {
-    .date-picker__day:hover {
+    .acme-date-picker__day:hover {
       background-color: var(--acme-color-date-picker-day-background-hover);
     }
   }
 
   /* The keyboard's day: the pointer's fill, and the ring a gap away from the circle, in the
      surface's color, as around a Button. */
-  .date-picker__day:focus-visible {
+  .acme-date-picker__day:focus-visible {
     background-color: var(--acme-color-date-picker-day-background-hover);
     box-shadow:
       0 0 0 var(--acme-focus-offset) var(--acme-color-date-picker-background),
       0 0 0 calc(var(--acme-focus-width) + var(--acme-focus-offset)) var(--acme-color-border-focus);
   }
 
-  .date-picker__day[data-today]:focus-visible {
+  .acme-date-picker__day[data-today]:focus-visible {
     box-shadow:
       inset 0 0 0 var(--acme-border-width-thin) var(--acme-color-date-picker-today-border),
       0 0 0 var(--acme-focus-offset) var(--acme-color-date-picker-background),
       0 0 0 calc(var(--acme-focus-width) + var(--acme-focus-offset)) var(--acme-color-border-focus);
   }
 
-  .date-picker__day:active {
+  .acme-date-picker__day:active {
     background-color: var(--acme-color-date-picker-day-background-pressed);
   }
 
   /* The chosen day: a filled circle, which today's ring would only repeat. */
-  .date-picker__day[data-selected] {
+  .acme-date-picker__day[data-selected] {
     background-color: var(--acme-color-date-picker-selected-background);
     color: var(--acme-color-date-picker-selected-text);
   }
 
-  .date-picker__day[data-selected][data-today]:not(:focus-visible) {
+  .acme-date-picker__day[data-selected][data-today]:not(:focus-visible) {
     box-shadow: none;
   }
 
   @media (hover: hover) {
-    .date-picker__day[data-selected]:hover {
+    .acme-date-picker__day[data-selected]:hover {
       background-color: var(--acme-color-date-picker-selected-background-hover);
     }
   }
 
-  .date-picker__day[data-selected]:active {
+  .acme-date-picker__day[data-selected]:active {
     background-color: var(--acme-color-date-picker-selected-background-pressed);
   }
 
   /* DateRangePicker. A day in the band: its number in the band's text color, and the band's own
      fills under the pointer and the keyboard. The ends keep the chosen day's circle. */
-  .date-picker__day[data-in-range]:not(
+  .acme-date-picker__day[data-in-range]:not(
       [data-selected],
       [data-hover-range-end],
       [data-disabled],
@@ -206,7 +206,7 @@
   }
 
   @media (hover: hover) {
-    .date-picker__day[data-in-range]:not(
+    .acme-date-picker__day[data-in-range]:not(
         [data-selected],
         [data-hover-range-end],
         [data-disabled]
@@ -215,7 +215,7 @@
     }
   }
 
-  .date-picker__day[data-in-range]:not(
+  .acme-date-picker__day[data-in-range]:not(
       [data-selected],
       [data-hover-range-end],
       [data-disabled]
@@ -223,7 +223,7 @@
     background-color: var(--acme-color-date-picker-range-background-hover);
   }
 
-  .date-picker__day[data-in-range]:not(
+  .acme-date-picker__day[data-in-range]:not(
       [data-selected],
       [data-hover-range-end],
       [data-disabled]
@@ -232,35 +232,35 @@
   }
 
   /* The day a preview runs to is drawn as the end it would be. */
-  .date-picker__day[data-hover-range-end] {
+  .acme-date-picker__day[data-hover-range-end] {
     background-color: var(--acme-color-date-picker-selected-background);
     color: var(--acme-color-date-picker-selected-text);
   }
 
-  .date-picker__day[data-hover-range-end][data-today]:not(:focus-visible) {
+  .acme-date-picker__day[data-hover-range-end][data-today]:not(:focus-visible) {
     box-shadow: none;
   }
 
   @media (hover: hover) {
-    .date-picker__day[data-hover-range-end]:hover {
+    .acme-date-picker__day[data-hover-range-end]:hover {
       background-color: var(--acme-color-date-picker-selected-background-hover);
     }
   }
 
-  .date-picker__day[data-hover-range-end]:active {
+  .acme-date-picker__day[data-hover-range-end]:active {
     background-color: var(--acme-color-date-picker-selected-background-pressed);
   }
 
   /* Outside `min`..`max`: dimmed, and nothing under the pointer. Last, so it outranks the
      states above. A range's start alone is unavailable as its own end while the length rules
      it out, and stays the start's circle. */
-  .date-picker__day[data-disabled]:not([data-selected][data-unavailable]) {
+  .acme-date-picker__day[data-disabled]:not([data-selected][data-unavailable]) {
     background-color: transparent;
     color: var(--acme-color-date-picker-disabled-text);
     cursor: default;
   }
 
-  .date-picker__day[data-selected][data-unavailable] {
+  .acme-date-picker__day[data-selected][data-unavailable] {
     background-color: var(--acme-color-date-picker-selected-background);
     cursor: default;
   }
@@ -276,7 +276,7 @@
  */
 @layer components {
   /* As wide as the months, which it does not widen: the two ends go on two lines over one. */
-  .date-range-picker__summary {
+  .acme-date-range-picker__summary {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -289,33 +289,33 @@
     color: var(--acme-color-date-picker-weekday);
   }
 
-  .date-range-picker__months {
+  .acme-date-range-picker__months {
     display: flex;
     gap: var(--acme-space-4);
   }
 
-  .date-range-picker__month {
+  .acme-date-range-picker__month {
     display: flex;
     flex-direction: column;
     gap: var(--acme-space-2);
   }
 
   /* As wide as a month button, so that each heading is centered over its grid. */
-  .date-range-picker__nav-space {
+  .acme-date-range-picker__nav-space {
     flex: none;
     width: var(--acme-size-control-sm);
   }
 
   /* Above the band, which is positioned. */
-  .date-range-picker__content .date-picker__day {
+  .acme-date-range-picker__content .acme-date-picker__day {
     position: relative;
   }
 
-  .date-range-picker__content .date-picker__cell {
+  .acme-date-range-picker__content .acme-date-picker__cell {
     position: relative;
   }
 
-  .date-picker__cell:has(> [data-in-range]:not([data-outside-range]))::before {
+  .acme-date-picker__cell:has(> [data-in-range]:not([data-outside-range]))::before {
     content: "";
     position: absolute;
     inset-block: var(--acme-space-0-5);
@@ -324,22 +324,24 @@
   }
 
   /* A range of one day has both, and no band. */
-  .date-picker__cell:has(
+  .acme-date-picker__cell:has(
       > [data-in-range]:is([data-range-start], [data-hover-range-start])
     )::before {
     inset-inline-start: 50%;
   }
 
-  .date-picker__cell:has(> [data-in-range]:is([data-range-end], [data-hover-range-end]))::before {
+  .acme-date-picker__cell:has(
+      > [data-in-range]:is([data-range-end], [data-hover-range-end])
+    )::before {
     inset-inline-end: 50%;
   }
 
-  .date-picker__cell:first-child::before {
+  .acme-date-picker__cell:first-child::before {
     border-start-start-radius: var(--acme-radius-full);
     border-end-start-radius: var(--acme-radius-full);
   }
 
-  .date-picker__cell:last-child::before {
+  .acme-date-picker__cell:last-child::before {
     border-start-end-radius: var(--acme-radius-full);
     border-end-end-radius: var(--acme-radius-full);
   }

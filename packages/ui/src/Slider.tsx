@@ -1,4 +1,5 @@
 import {
+  classes,
   focusThumbOnPress,
   type SliderBaseProps,
   sliderArrowValue,
@@ -8,10 +9,12 @@ import {
 import { mergeProps, normalizeProps, useMachine } from "@zag-js/react";
 import * as slider from "@zag-js/slider";
 import { useId, useRef } from "react";
+import type { RootProps } from "./root.ts";
 
-export type SliderProps = SliderBaseProps & {
-  onChange: (value: number) => void;
-};
+export type SliderProps = SliderBaseProps &
+  RootProps & {
+    onChange: (value: number) => void;
+  };
 
 /**
  * Picks a number in a range by dragging the thumb, or by pressing the track where it should
@@ -29,6 +32,8 @@ export function Slider({
   step = 1,
   disabled = false,
   showValue = false,
+  className,
+  style,
 }: SliderProps) {
   const pageSize = sliderPageSize({ min, max, step });
   const service = useMachine(slider.machine, {
@@ -71,26 +76,25 @@ export function Slider({
     // A group named by the label, around the label, the value and the slider. Not a fieldset:
     // that is for a set of fields, and this is one slider and its label.
     <div
-      {...api.getRootProps()}
+      {...mergeProps(api.getRootProps(), { className: classes("acme-slider", className), style })}
       role="group"
       aria-labelledby={api.getLabelProps().id}
-      className="slider"
     >
       {/* Zag's props give it `htmlFor`, the hidden input's id. */}
-      <label {...api.getLabelProps()} className="slider__label">
+      <label {...api.getLabelProps()} className="acme-slider__label">
         {label}
       </label>
       {showValue && (
         // Read when asked for, not at every step: the slider itself announces its value.
-        <output {...api.getValueTextProps()} aria-live="off" className="slider__output">
+        <output {...api.getValueTextProps()} aria-live="off" className="acme-slider__output">
           {sliderValueText(api.value[0] ?? value)}
         </output>
       )}
-      <div {...control} className="slider__control">
-        <div {...api.getTrackProps()} className="slider__track">
-          <div {...api.getRangeProps()} className="slider__range" />
+      <div {...control} className="acme-slider__control">
+        <div {...api.getTrackProps()} className="acme-slider__track">
+          <div {...api.getRangeProps()} className="acme-slider__range" />
         </div>
-        <div {...thumb} ref={thumbElement} className="slider__thumb">
+        <div {...thumb} ref={thumbElement} className="acme-slider__thumb">
           <input {...api.getHiddenInputProps({ index: 0 })} />
         </div>
       </div>

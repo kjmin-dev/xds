@@ -1,10 +1,14 @@
-import { type ChipBaseProps, chipClass, chipIcon } from "@acme/ui-core";
+import { type ChipBaseProps, chipClass, chipIcon, classes, rootPart } from "@acme/ui-core";
 import { Show } from "solid-js";
 import { Icon } from "./Icon.tsx";
+import type { RootProps } from "./root.ts";
 
-export type ChipProps = ChipBaseProps & {
-  onPress?: () => void;
-};
+export type ChipProps = ChipBaseProps &
+  RootProps & {
+    onPress?: () => void;
+  };
+
+const ROOT = rootPart("Chip");
 
 /**
  * A choice that filters what is shown. Unlike a Badge it is pressed. A selected chip is tinted,
@@ -19,7 +23,8 @@ export function Chip(props: ChipProps) {
       aria-pressed={props.selected ? "true" : "false"}
       disabled={props.disabled}
       onClick={() => props.onPress?.()}
-      class={chipClass(props.selected)}
+      class={classes(ROOT, chipClass(props.selected), props.class)}
+      style={props.style}
     >
       <Show when={chipIcon({ selected: props.selected, iconStart: props.iconStart })}>
         {(name) => <Icon name={name()} size="sm" />}

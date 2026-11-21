@@ -1,6 +1,6 @@
 # xds as a library
 
-The CLI ships the theme contract and can check a custom theme file. Apps get the components through `xds create` today. The platform packages below are planned. The [CLI guide](cli.md#xds-check-theme-file) describes the theme file format and the [changelog](../CHANGELOG.md) tracks changes across channels.
+The CLI ships the theme contract and can check a custom theme file. The web channel is built: [the web library](web-library.md) describes its packages and how an app uses them. The other platform packages below are planned, and apps on those platforms get the components through `xds create`. The [CLI guide](cli.md#xds-check-theme-file) describes the theme file format and the [changelog](../CHANGELOG.md) tracks changes across channels.
 
 ## Two ways to take xds
 
@@ -61,7 +61,7 @@ Decisions that hold for every channel:
 
 | Channel | Gap between today's sources and a library |
 | --- | --- |
-| npm, web | Built JavaScript, type declarations and a finished stylesheet; an entry in the cascade layer |
+| npm, web | Nothing: built in L1 ([the web library](web-library.md)) |
 | npm, React Native | The theme moves from generated constants to a provider; the exact React Native pin becomes a range |
 | crates.io | The theme moves from generated constants to a registered value; the one-to-one tie to the GPUI kit's version is documented and enforced |
 | Maven Central | Publication metadata and signing; the theme accepts a color set, not only a mode |
@@ -74,7 +74,7 @@ The maintainer owns the GitHub repository and npm scope. The crates.io and pub.d
 | Channel | Proposed | State | Notes |
 | --- | --- | --- | --- |
 | npm scope | `@xds` | Registered on 2026-11-16 as an npm organization of the maintainer | Every npm package is published under it |
-| npm packages | `@xds/react`, `@xds/solid`, `@xds/vue`, `@xds/svelte`, `@xds/core`, `@xds/tokens`, `@xds/react-native` | Held by the scope | The unscoped name `xds` is taken by an unrelated Vue state library, so nothing is published unscoped |
+| npm packages | `@xds/react`, `@xds/solid`, `@xds/vue`, `@xds/svelte`, `@xds/core`, `@xds/tokens`, `@xds/react-native` | Held by the scope. The web packages are built by `npm/web/build.ts` and published with the CLI's release | The unscoped name `xds` is taken by an unrelated Vue state library, so nothing is published unscoped |
 | crates.io | `xds-ui`, `xds-tokens` | Unregistered | Claim with the first functional L4 packages. The unsuffixed `xds` belongs to another crate |
 | Maven Central | group `io.github.kjmin-dev`, artifact `xds-ui` | The group corresponds to the maintainer’s GitHub account | Confirm publishing access in Central Portal before L2. [Namespace verification](https://central.sonatype.org/register/namespace/) |
 | pub.dev | `xds_ui`, `xds_tokens` | Unregistered | Claim with the first functional L5 packages. A verified publisher needs a domain |
@@ -123,7 +123,7 @@ Rules that make the layers hold together:
 | Compose | The theme composable | Any subtree |
 | Flutter | A theme extension | Any subtree |
 
-The L0 CLI checks a theme file against the versioned contract and all contrast pairs. Each channel adds its runtime carrier in its own phase. Scaffolded projects can already generate color ramps from a hue.
+The L0 CLI checks a theme file against the versioned contract and all contrast pairs. Each channel adds its runtime carrier in its own phase. On the web, `xds export-theme` checks the file the same way and writes it as a stylesheet that applies to the elements carrying `data-xds-theme="<name>"`. Scaffolded projects can already generate color ramps from a hue.
 
 ### Against other systems
 
@@ -192,7 +192,7 @@ A change that needs trying before it is promised goes out as a prerelease of the
 
 ## Order of work
 
-Glass material tokens and the Flutter scaffold are in the template. The L0 contract, checker, version source and changelog are implemented. Registry ownership is recorded above. The CLI release workflow ships the binary and its npm launchers. Each library channel joins the same tag when its external consumer check passes.
+Glass material tokens and the Flutter scaffold are in the template. The L0 contract, checker, version source and changelog are implemented. Registry ownership is recorded above. The CLI release workflow ships the binary and its npm launchers. Each library channel joins the same tag when its external consumer check passes. L1 is implemented: the release workflow builds the web packages, runs their consumer check (`npm/web/consumer.ts`) and publishes them with the CLI.
 
 | Phase | Work | Done when | Depends on |
 | --- | --- | --- | --- |

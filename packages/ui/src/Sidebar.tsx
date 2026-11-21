@@ -1,5 +1,7 @@
 import type { IconName } from "@acme/tokens";
 import {
+  classes,
+  rootPart,
   SIDEBAR_PARTS,
   type SidebarBaseProps,
   sidebarClass,
@@ -12,18 +14,20 @@ import {
 import { type ReactNode, useId } from "react";
 import { Icon } from "./Icon.tsx";
 import { PlaceRow } from "./ListRow.tsx";
+import type { RootProps } from "./root.ts";
 import { TooltipBeside } from "./Tooltip.tsx";
 import { useTrigger } from "./trigger.ts";
 
 export type { SidebarItem, SidebarSection } from "@acme/ui-core";
 
-export type SidebarProps<Value extends string = string> = SidebarBaseProps<Value> & {
-  onChange: (value: Value) => void;
-  /** At the top, such as the app's name. It has to fit the rail itself while collapsed. */
-  header?: ReactNode;
-  /** At the bottom, such as an account row. It has to fit the rail itself while collapsed. */
-  footer?: ReactNode;
-};
+export type SidebarProps<Value extends string = string> = SidebarBaseProps<Value> &
+  RootProps & {
+    onChange: (value: Value) => void;
+    /** At the top, such as the app's name. It has to fit the rail itself while collapsed. */
+    header?: ReactNode;
+    /** At the bottom, such as an account row. It has to fit the rail itself while collapsed. */
+    footer?: ReactNode;
+  };
 
 /**
  * The top-level places of an app used with a pointer: the counterpart of TabBar on touch. Each
@@ -42,10 +46,16 @@ export function Sidebar<Value extends string = string>({
   collapsed = false,
   header,
   footer,
+  className,
+  style,
 }: SidebarProps<Value>) {
   const id = useId();
   return (
-    <nav aria-label={label} className={sidebarClass(collapsed)}>
+    <nav
+      aria-label={label}
+      className={classes(rootPart("Sidebar"), sidebarClass(collapsed), className)}
+      style={style}
+    >
       {header != null && <div className={SIDEBAR_PARTS.edge}>{header}</div>}
       {/* The places scroll when there are more than fit; the header and footer stay. */}
       <div className={SIDEBAR_PARTS.places}>

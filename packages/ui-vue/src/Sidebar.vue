@@ -7,6 +7,8 @@
 // Collapsed, the rows keep their names, and show them in a Tooltip under a pointer and on
 // keyboard focus.
 import {
+  classes,
+  rootPart,
   SIDEBAR_PARTS,
   type SidebarBaseProps,
   sidebarClass,
@@ -41,7 +43,7 @@ const titleId = (index: number) => `${id}-${index}`;
 </script>
 
 <template>
-  <nav :aria-label="label" :class="sidebarClass(collapsed)">
+  <nav :aria-label="label" :class="classes(rootPart('Sidebar'), sidebarClass(collapsed))">
     <div v-if="slots.header" :class="SIDEBAR_PARTS.edge"><slot name="header" /></div>
     <!-- The places scroll when there are more than fit; the header and footer stay. -->
     <div :class="SIDEBAR_PARTS.places">

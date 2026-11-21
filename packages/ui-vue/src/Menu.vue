@@ -27,6 +27,9 @@ export type { MenuItem } from "@acme/ui-core";
 
 export type MenuProps = MenuBaseProps;
 
+// The app's class and style go on the menu itself: the root is the trigger and a Teleport, with
+// no element of the menu's own.
+defineOptions({ inheritAttrs: false });
 const { label, items, align = "start" } = defineProps<MenuProps>();
 defineSlots<{
   /** The control that opens the menu: a Button or an IconButton. */
@@ -65,7 +68,7 @@ const trigger = computed(() => {
   const { onPointerdown: _onPointerdown, ...rest } = api.value.getTriggerProps() as TriggerProps;
   return mergeProps(rest, {
     // Added to the control's own class; the trigger looks pressed while its menu is open.
-    class: "menu__trigger",
+    class: "acme-menu__trigger",
     // A mouse opens the menu as its button goes down; touch and pen open it on the click, as
     // Zag does.
     onPointerdown: (event: PointerEvent) => {
@@ -108,7 +111,7 @@ const content = computed(() =>
   mergeProps(api.value.getContentProps(), {
     // This handler runs before Zag's.
     onKeydown: (event: KeyboardEvent) =>
-      keepListKeys(event, surface.value, ".menu__item:not([data-disabled])", (value) =>
+      keepListKeys(event, surface.value, ".acme-menu__item:not([data-disabled])", (value) =>
         api.value.setHighlightedValue(value),
       ),
   }),
@@ -122,22 +125,29 @@ const content = computed(() =>
     <TriggerScope :trigger="null">
       <!-- Takes a press outside, which then only closes the menu. The focus stays in the menu
            until the menu hands it back to the trigger. -->
-      <div v-if="api.open" class="menu__underlay" @mousedown.prevent />
-      <div ref="positioner" v-bind="api.getPositionerProps()" class="menu__positioner">
+      <div v-if="api.open" class="acme-menu__underlay" @mousedown.prevent />
+      <div ref="positioner" v-bind="api.getPositionerProps()" class="acme-menu__positioner">
         <!-- Shown until its exit animation ends; Zag would hide it as it closes. -->
-        <div v-bind="content" ref="surface" :hidden="!present" class="menu">
+        <div
+          v-bind="content"
+          ref="surface"
+          :hidden="!present"
+          class="acme-menu"
+          :class="$attrs.class"
+          :style="$attrs.style"
+        >
           <template v-for="(item, index) in items" :key="index">
             <div
               v-if="item === 'separator'"
               v-bind="api.getSeparatorProps()"
-              class="menu__separator"
+              class="acme-menu__separator"
             />
             <div
               v-else
               v-bind="api.getItemProps({ value: String(index), disabled: item.disabled })"
               :class="menuItemClass(item.danger)"
             >
-              <Icon v-if="item.icon" :name="item.icon" size="sm" class="menu__item-icon" />
+              <Icon v-if="item.icon" :name="item.icon" size="sm" class="acme-menu__item-icon" />
               <span class="flex-1">{{ item.label }}</span>
               <!-- Named, so a screen reader hears the state that the check shows. -->
               <Icon v-if="item.selected" name="check" size="sm" label="Selected" />

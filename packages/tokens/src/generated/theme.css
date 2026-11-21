@@ -387,11 +387,12 @@
   }
 }
 
-/* Set data-theme on the root element to override the system color scheme. */
-:root[data-theme="light"] {
+/* Set data-theme to override the system color scheme, on the root element for the whole
+   page or on any element for what is inside it. */
+[data-theme="light"] {
   color-scheme: light;
 }
 
-:root[data-theme="dark"] {
+[data-theme="dark"] {
   color-scheme: dark;
 }

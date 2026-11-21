@@ -2,30 +2,30 @@
  * Select: Zag's select machine. The field stays where it is; its list is rendered into the
  * body, always, hidden while closed once it has animated out.
  *
- * Parts: `.select` (the column), `__label`, `__trigger` (the closed field, a <button>),
+ * Parts: `.acme-select` (the column), `__label`, `__trigger` (the closed field, a <button>),
  * `__value`, `__footer`, `__description`, `__error`; in the list, `__underlay` (over the page
  * while the list is open), `__positioner`, `__content` (the surface, which scrolls), `__list`
  * (the list box), `__item`, `__item-words`, `__item-label`, `__item-description`.
  * States: `:hover`, `:focus-visible`, `:disabled` and `[data-invalid]` on the trigger,
  * `[data-placeholder-shown]` on it while nothing is chosen; `[data-highlighted]` and `:active`
  * on an item; `[data-side]` on the content, and `[data-state="closed"]` while it animates out.
- * The positioner stacks by `--layer-overlay` and Zag's `--layer-index`.
+ * The positioner stacks by `--acme-layer-overlay` and Zag's `--layer-index`.
  *
- * A DatePicker's field is this field, with the same parts under `.date-picker` (and its trigger
- * inside a `.date-picker__control`, which its calendar is placed against), so the rules of the
+ * A DatePicker's field is this field, with the same parts under `.acme-date-picker` (and its trigger
+ * inside a `.acme-date-picker__control`, which its calendar is placed against), so the rules of the
  * field name both; date-picker.css draws its calendar.
  */
 @layer components {
-  .select,
-  .date-picker {
+  .acme-select,
+  .acme-date-picker {
     display: flex;
     flex-direction: column;
     gap: var(--acme-space-1);
     width: 100%;
   }
 
-  .select__label,
-  .date-picker__label {
+  .acme-select__label,
+  .acme-date-picker__label {
     width: fit-content;
     font-size: var(--acme-typography-label-size);
     font-weight: var(--acme-typography-label-weight);
@@ -33,8 +33,8 @@
     color: var(--acme-color-text-primary);
   }
 
-  .select:has(.select__trigger:disabled) .select__label,
-  .date-picker:has(.date-picker__trigger:disabled) .date-picker__label {
+  .acme-select:has(.acme-select__trigger:disabled) .acme-select__label,
+  .acme-date-picker:has(.acme-date-picker__trigger:disabled) .acme-date-picker__label {
     opacity: 0.5;
     cursor: not-allowed;
     pointer-events: none;
@@ -44,8 +44,8 @@
 
   /* A text field's box: the same height, inset, corners and type, with the icon at the end
      (the chevrons, or a DatePicker's calendar) a gap away from the value. */
-  .select__trigger,
-  .date-picker__trigger {
+  .acme-select__trigger,
+  .acme-date-picker__trigger {
     position: relative;
     isolation: isolate;
     display: flex;
@@ -71,43 +71,43 @@
   }
 
   /* A text field's ring sits on its border, not a gap away from it. */
-  .select__trigger:focus-visible,
-  .date-picker__trigger:focus-visible {
+  .acme-select__trigger:focus-visible,
+  .acme-date-picker__trigger:focus-visible {
     border-color: var(--acme-color-field-border-focus);
   }
 
   /* Invalid as a text field is: red, and thicker, so the state does not depend on telling
      colors apart. Focused, it stays red and the inner line goes. */
-  .select__trigger[data-invalid],
-  .date-picker__trigger[data-invalid] {
+  .acme-select__trigger[data-invalid],
+  .acme-date-picker__trigger[data-invalid] {
     border-color: var(--acme-color-field-border-invalid);
     box-shadow: inset 0 0 0 var(--acme-border-width-thin) var(--acme-color-field-border-invalid);
     outline: var(--acme-border-width-thin) solid var(--acme-color-danger-default);
   }
 
-  .select__trigger[data-invalid]:focus,
-  .date-picker__trigger[data-invalid]:focus {
+  .acme-select__trigger[data-invalid]:focus,
+  .acme-date-picker__trigger[data-invalid]:focus {
     box-shadow: none;
   }
 
   /* After focus and the error, which it outranks. */
   @media (hover: hover) {
-    .select__trigger:hover,
-    .date-picker__trigger:hover {
+    .acme-select__trigger:hover,
+    .acme-date-picker__trigger:hover {
       border-color: var(--acme-color-text-primary);
     }
   }
 
-  .select__trigger:disabled,
-  .date-picker__trigger:disabled {
+  .acme-select__trigger:disabled,
+  .acme-date-picker__trigger:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     pointer-events: none;
   }
 
   /* One line, cut short with an ellipsis, so a long option does not make the field taller. */
-  .select__value,
-  .date-picker__value {
+  .acme-select__value,
+  .acme-date-picker__value {
     flex: 1 1 0%;
     min-width: 0;
     overflow: hidden;
@@ -118,35 +118,35 @@
     line-height: var(--acme-typography-body-line-height);
   }
 
-  .select__trigger[data-placeholder-shown] .select__value,
-  .date-picker__trigger[data-placeholder-shown] .date-picker__value {
+  .acme-select__trigger[data-placeholder-shown] .acme-select__value,
+  .acme-date-picker__trigger[data-placeholder-shown] .acme-date-picker__value {
     color: var(--acme-color-field-placeholder);
   }
 
   /* One line under the box, as under a TextField: the help or the error. */
-  .select__footer,
-  .date-picker__footer {
+  .acme-select__footer,
+  .acme-date-picker__footer {
     display: flex;
     align-items: baseline;
     gap: var(--acme-space-3);
   }
 
-  .select__description,
-  .select__error,
-  .date-picker__description,
-  .date-picker__error {
+  .acme-select__description,
+  .acme-select__error,
+  .acme-date-picker__description,
+  .acme-date-picker__error {
     font-size: var(--acme-typography-detail-size);
     line-height: var(--acme-typography-detail-line-height);
     overflow-wrap: break-word;
   }
 
-  .select__description,
-  .date-picker__description {
+  .acme-select__description,
+  .acme-date-picker__description {
     color: var(--acme-color-text-secondary);
   }
 
-  .select__error,
-  .date-picker__error {
+  .acme-select__error,
+  .acme-date-picker__error {
     color: var(--acme-color-status-danger);
   }
 
@@ -154,19 +154,19 @@
 
   /* Over the page and under the open list, as under a Menu: a press outside only closes the
      list, and the field under the pointer keeps its own border meanwhile. */
-  .select__underlay {
+  .acme-select__underlay {
     position: fixed;
     inset: 0;
-    z-index: var(--layer-overlay);
+    z-index: var(--acme-layer-overlay);
   }
 
   /* Zag sets the position, and the width: exactly the field's, however short the options. */
-  .select__positioner {
-    z-index: calc(var(--layer-overlay) + var(--layer-index, 0));
+  .acme-select__positioner {
+    z-index: calc(var(--acme-layer-overlay) + var(--layer-index, 0));
   }
 
   /* A menu's surface. It scrolls when the window has no room for all of it. */
-  .select__content {
+  .acme-select__content {
     max-height: var(--available-height);
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -183,26 +183,26 @@
     animation: acme-select-enter var(--acme-motion-duration-fast) var(--acme-motion-easing-enter);
   }
 
-  .select__content[data-side="top"] {
+  .acme-select__content[data-side="top"] {
     animation-name: acme-select-enter-above;
   }
 
   /* After the rules above, which it replaces. A closing list takes no more presses. */
-  .select__content[data-state="closed"] {
+  .acme-select__content[data-state="closed"] {
     animation: acme-overlay-exit var(--acme-motion-duration-fast) var(--acme-motion-easing-exit)
       forwards;
     pointer-events: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .select__content,
-    .select__content[data-state="closed"] {
+    .acme-select__content,
+    .acme-select__content[data-state="closed"] {
       animation: none;
     }
   }
 
   /* Focus stays on the list while the arrow keys move the highlight, which is what shows. */
-  .select__list {
+  .acme-select__list {
     position: relative;
     overflow: clip;
     padding: var(--acme-space-1);
@@ -212,7 +212,7 @@
   /* A row looks like a compact list row. A compact row is shorter than a finger needs, so on
      a touch screen it grows to the smallest pressable size. The padding above and below only
      shows on a row of two lines, an option with a description. */
-  .select__item {
+  .acme-select__item {
     position: relative;
     display: flex;
     align-items: center;
@@ -233,29 +233,29 @@
 
   /* The pointer moves the same highlight as the arrow keys, so one rule draws both. The
      highlight is a fill, which shows inside the list where a focus ring would be clipped. */
-  .select__item[data-highlighted] {
+  .acme-select__item[data-highlighted] {
     background: var(--acme-color-menu-item-background-hover);
   }
 
-  .select__item:active {
+  .acme-select__item:active {
     background: var(--acme-color-menu-item-background-pressed);
   }
 
-  .select__item-words {
+  .acme-select__item-words {
     display: flex;
     flex: 1 1 0%;
     flex-direction: column;
     min-width: 0;
   }
 
-  .select__item-label,
-  .select__item-description {
+  .acme-select__item-label,
+  .acme-select__item-description {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .select__item-description {
+  .acme-select__item-description {
     font-size: var(--acme-typography-footnote-size);
     font-weight: var(--acme-typography-footnote-weight);
     line-height: var(--acme-typography-footnote-line-height);

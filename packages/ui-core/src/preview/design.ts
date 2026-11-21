@@ -120,7 +120,7 @@ export function designPreview(options: DesignPreviewOptions = {}): Screen {
   };
   const page = el(
     "main",
-    { class: "mx-auto flex max-w-4xl flex-col gap-12 p-6" },
+    { class: "acme-preview mx-auto flex max-w-4xl flex-col gap-12 p-6" },
     el(
       "header",
       { class: "flex items-center justify-between" },

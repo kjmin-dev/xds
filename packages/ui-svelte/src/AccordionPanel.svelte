@@ -34,7 +34,7 @@
   {@attach toggle}
   role="group"
   aria-hidden={open ? undefined : "true"}
-  class="accordion__panel"
+  class="acme-accordion__panel"
 >
-  <div class="accordion__body">{@render children()}</div>
+  <div class="acme-accordion__body">{@render children()}</div>
 </div>

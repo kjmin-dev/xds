@@ -4,7 +4,7 @@
 //
 // Use it to filter or search what is on the screen. For a value that is saved with a form,
 // use a TextField, which has a visible label.
-import type { SearchFieldBaseProps } from "@acme/ui-core";
+import { classes, rootPart, type SearchFieldBaseProps } from "@acme/ui-core";
 import { useTemplateRef } from "vue";
 import { keepValue } from "./controlled.ts";
 import Icon from "./Icon.vue";
@@ -49,9 +49,9 @@ function clear() {
 </script>
 
 <template>
-  <div class="text-field">
-    <div class="text-field__control text-field__control--pill text-field__group">
-      <span class="text-field__slot text-field__slot--leading"
+  <div :class="classes('acme-text-field', rootPart('SearchField'))">
+    <div class="acme-text-field__control acme-text-field__control--pill acme-text-field__group">
+      <span class="acme-text-field__slot acme-text-field__slot--leading"
         ><Icon name="search" size="sm"
       /></span>
       <!-- Escape clears only while there is something to clear; an empty field lets Escape
@@ -59,7 +59,7 @@ function clear() {
       <input
         ref="input"
         type="text"
-        class="text-field__input"
+        class="acme-text-field__input"
         :aria-label="label"
         enterkeyhint="search"
         :placeholder="placeholder"
@@ -70,7 +70,10 @@ function clear() {
         @compositionend="settle"
         @keydown="key"
       />
-      <span v-if="value !== '' && !disabled" class="text-field__slot text-field__slot--trailing">
+      <span
+        v-if="value !== '' && !disabled"
+        class="acme-text-field__slot acme-text-field__slot--trailing"
+      >
         <button
           type="button"
           :aria-label="clearLabel"

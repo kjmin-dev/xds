@@ -10,31 +10,37 @@
 <script module lang="ts">
   import type { MediaCardBaseProps } from "@acme/ui-core";
   import type { Snippet } from "svelte";
+  import type { RootProps } from "./root.ts";
 
-  export type MediaCardProps = MediaCardBaseProps & {
-    /** Before the text in the vertical layout, such as an Avatar. */
-    leading?: Snippet;
-    /** At the end of the text: an IconButton or a Menu. It stays a control of its own. */
-    action?: Snippet;
-    /** Makes the whole card one button. */
-    onPress?: () => void;
-  };
+  export type MediaCardProps = MediaCardBaseProps &
+    RootProps & {
+      /** Before the text in the vertical layout, such as an Avatar. */
+      leading?: Snippet;
+      /** At the end of the text: an IconButton or a Menu. It stays a control of its own. */
+      action?: Snippet;
+      /** Makes the whole card one button. */
+      onPress?: () => void;
+    };
 </script>
 
 <script lang="ts">
   import {
+    classes,
     MEDIA_CARD_PARTS,
     mediaCardContentClass,
     mediaCardIds,
     mediaCardThumbnailClass,
+    rootPart,
   } from "@acme/ui-core";
+  import { useDefaults } from "./defaults.svelte.ts";
   import Thumbnail from "./Thumbnail.svelte";
 
   let {
-    layout,
+    layout: ownLayout,
     src,
     alt,
-    ratio,
+    // The card's own ratio, not one the app gives its other thumbnails.
+    ratio = "16:9",
     badge,
     progress,
     title,
@@ -42,7 +48,13 @@
     leading,
     action,
     onPress,
+    class: className,
+    style,
   }: MediaCardProps = $props();
+
+  const defaults = useDefaults("MediaCard");
+  const layout = $derived(ownLayout ?? defaults().layout);
+  const root = $derived(classes(rootPart("MediaCard"), className));
 
   const id = $props.id();
   const ids = $derived(mediaCardIds(id, meta));
@@ -77,7 +89,7 @@
 {/snippet}
 
 {#if pressable}
-  <div class={MEDIA_CARD_PARTS.pressable}>
+  <div class={classes(MEDIA_CARD_PARTS.pressable, root)} {style}>
     <button
       type="button"
       onclick={() => onPress?.()}
@@ -89,7 +101,12 @@
 {:else}
   <!-- A group, not a fieldset: a fieldset groups form controls, and sizes itself to its
        content, which would undo the ellipses. -->
-  <div role="group" aria-labelledby={ids.names} class={MEDIA_CARD_PARTS.group}>
+  <div
+    role="group"
+    aria-labelledby={ids.names}
+    class={classes(MEDIA_CARD_PARTS.group, root)}
+    {style}
+  >
     {@render content()}
   </div>
 {/if}

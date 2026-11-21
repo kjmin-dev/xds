@@ -1,7 +1,7 @@
 /*
  * Tabs: Zag's tabs machine, the row alone (the app shows the view).
  *
- * Parts: `.tabs` (the root, which scrolls), `__list`, `__tab`, `__indicator`. `.tabs--full-width`
+ * Parts: `.acme-tabs` (the root, which scrolls), `__list`, `__tab`, `__indicator`. `.acme-tabs--full-width`
  * shares the width between the tabs.
  * States: `[aria-selected="true"]`, `:hover` and `:focus-visible` on a tab; `[data-instant]` and
  * `[hidden]` on the indicator, which Zag places with `--left` and `--width`.
@@ -9,7 +9,7 @@
 @layer components {
   /* The root is what scrolls, so the hairline under the row stays put while the tabs move.
      It is drawn as a shadow inside the box, which lets the selected tab's bar cover it. */
-  .tabs {
+  .acme-tabs {
     display: flex;
     flex-direction: column;
     overflow-x: auto;
@@ -17,23 +17,23 @@
     box-shadow: inset 0 calc(-1 * var(--acme-border-width-thin)) 0 var(--acme-color-tabs-border);
   }
 
-  .tabs::-webkit-scrollbar {
+  .acme-tabs::-webkit-scrollbar {
     display: none;
   }
 
   /* As wide as its tabs, and never narrower than the row. */
-  .tabs__list {
+  .acme-tabs__list {
     position: relative;
     display: flex;
     width: max-content;
     min-width: 100%;
   }
 
-  .tabs--full-width .tabs__list {
+  .acme-tabs--full-width .acme-tabs__list {
     width: 100%;
   }
 
-  .tabs__tab {
+  .acme-tabs__tab {
     position: relative;
     z-index: 1;
     display: flex;
@@ -56,23 +56,23 @@
     transition: color var(--acme-motion-duration-fast) var(--acme-motion-easing-standard);
   }
 
-  .tabs--full-width .tabs__tab {
+  .acme-tabs--full-width .acme-tabs__tab {
     flex: 1 1 0;
   }
 
   /* Under the pointer a tab takes a color of its own. */
   @media (hover: hover) {
-    .tabs__tab:not([aria-selected="true"]):hover {
+    .acme-tabs__tab:not([aria-selected="true"]):hover {
       color: var(--acme-color-tabs-text-hover);
     }
   }
 
-  .tabs__tab[aria-selected="true"] {
+  .acme-tabs__tab[aria-selected="true"] {
     color: var(--acme-color-tabs-text-selected);
   }
 
   /* Inside the tab, because the row clips whatever is drawn outside it. */
-  .tabs__tab:focus-visible {
+  .acme-tabs__tab:focus-visible {
     outline: var(--acme-focus-width) solid var(--acme-color-border-focus);
     outline-offset: calc(-1 * var(--acme-focus-offset));
   }
@@ -80,7 +80,7 @@
   /* A bar across the bottom edge of the selected tab, over the hairline and under the tabs'
      focus rings. It slides to the tab that is selected next; Zag marks the moves that should
      not slide, such as the first placing. */
-  .tabs__indicator {
+  .acme-tabs__indicator {
     bottom: 0;
     width: var(--width);
     height: var(--acme-border-width-thick);
@@ -90,18 +90,18 @@
     transition-timing-function: var(--acme-motion-easing-standard);
   }
 
-  .tabs__indicator[data-instant] {
+  .acme-tabs__indicator[data-instant] {
     transition: none;
   }
 
   /* Zag hides the bar until it has measured the selected tab, which a page rendered on the
      server shows first: the tab draws the same bar inside itself until then. */
-  .tabs__list:has(> .tabs__indicator[hidden]) > .tabs__tab[aria-selected="true"] {
+  .acme-tabs__list:has(> .acme-tabs__indicator[hidden]) > .acme-tabs__tab[aria-selected="true"] {
     box-shadow: inset 0 calc(-1 * var(--acme-border-width-thick)) 0 var(--acme-color-tabs-indicator);
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .tabs__indicator {
+    .acme-tabs__indicator {
       transition: none;
     }
   }

@@ -20,7 +20,9 @@ export type Scenario =
   | "slider"
   | "accordion"
   | "tooltip"
-  | "toast";
+  | "toast"
+  | "defaults"
+  | "parts";
 
 export const DELIVERY = [
   { value: "standard", label: "Standard", description: "Three to five working days. Free." },
@@ -326,6 +328,172 @@ function toast(): Screen {
   ]);
 }
 
+// A component's defaults come from the closest Defaults around it, merged with the outer ones;
+// what the screen gives the component itself wins.
+function defaults(): Screen {
+  const { ui, screen } = builder<object>();
+  return screen({}, [
+    ui.Defaults(
+      {
+        value: {
+          Button: { variant: "primary", size: "lg" },
+          Badge: { tone: "success" },
+          Spinner: { size: "lg" },
+        },
+      },
+      ui.Button({}, "Save"),
+      ui.Button({ variant: "ghost" }, "Skip"),
+      ui.Badge({}, "Live"),
+      ui.Spinner({ label: "Loading" }),
+      ui.Defaults({ value: { Button: { size: "sm" } } }, ui.Button({}, "Nested")),
+      // A component's own parts keep their look: the defaults are for the app's components.
+      ui.Banner({ action: { label: "Retry", onPress: () => undefined } }, "Not saved"),
+    ),
+    ui.Button({}, "Outside"),
+  ]);
+}
+
+/**
+ * Every component, each given the class `app-<name>` (React's `className`), which its root
+ * element takes beside its root part, `acme-<name>`. The Toast is open; the check opens the
+ * Menu, the Tooltip and the Dialog, which is modal, last.
+ */
+export const PART_NAMES = [
+  "accordion",
+  "avatar",
+  "avatar-stack",
+  "badge",
+  "banner",
+  "button",
+  "card",
+  "checkbox",
+  "chip",
+  "chip-bar",
+  "count-badge",
+  "date-picker",
+  "date-range-picker",
+  "dialog",
+  "divider",
+  "empty-state",
+  "icon",
+  "icon-button",
+  "list-row",
+  "media-card",
+  "menu",
+  "progress-bar",
+  "radio-group",
+  "search-field",
+  "section-header",
+  "segmented-control",
+  "select",
+  "sidebar",
+  "skeleton",
+  "slider",
+  "spinner",
+  "switch",
+  "tabs",
+  "text",
+  "text-field",
+  "thumbnail",
+  "toast",
+  "tooltip",
+] as const;
+
+function parts(): Screen {
+  const { ui, screen } = builder<{ dialog: boolean }>();
+  const app = (name: (typeof PART_NAMES)[number]) => `app-${name}`;
+  const change = () => undefined;
+  return screen({ dialog: false }, [
+    ui.Accordion({ class: app("accordion"), items: QUESTIONS, expanded: [], onChange: change }),
+    ui.Avatar({ class: app("avatar"), name: "Ada Lovelace" }),
+    ui.AvatarStack({
+      class: app("avatar-stack"),
+      people: [{ name: "Ada Lovelace" }, { name: "Alan Turing" }],
+    }),
+    ui.Badge({ class: app("badge") }, "New"),
+    ui.Banner({ class: app("banner") }, "Saved"),
+    ui.Button({ class: app("button") }, "Save"),
+    ui.Card({ class: app("card"), title: "Card" }),
+    ui.Checkbox({ class: app("checkbox"), label: "Agree", checked: false, onChange: change }),
+    ui.Chip({ class: app("chip"), label: "Chip" }),
+    ui.ChipBar({ class: app("chip-bar"), label: "Filters" }, ui.Chip({ label: "One" })),
+    ui.CountBadge({ class: app("count-badge"), count: 3 }),
+    ui.DatePicker({ class: app("date-picker"), label: "Due", value: DUE.value, onChange: change }),
+    ui.DateRangePicker({
+      class: app("date-range-picker"),
+      label: "Stay",
+      value: STAY,
+      onChange: change,
+    }),
+    ui.Divider({ class: app("divider") }),
+    ui.EmptyState({ class: app("empty-state"), icon: "search", title: "Nothing here" }),
+    ui.Icon({ class: app("icon"), name: "search" }),
+    ui.IconButton({ class: app("icon-button"), icon: "search", label: "Search" }),
+    ui.ListRow({ class: app("list-row"), title: "Row" }),
+    ui.MediaCard({ class: app("media-card"), title: "Media", src: "" }),
+    ui.Menu({
+      class: app("menu"),
+      label: "Options",
+      trigger: ui.Button({}, "Options"),
+      items: [{ label: "Rename", onSelect: change }],
+    }),
+    ui.ProgressBar({ class: app("progress-bar"), label: "Upload", value: 40 }),
+    ui.RadioGroup({
+      class: app("radio-group"),
+      label: "Size",
+      options: SIZES,
+      value: "m",
+      onChange: change,
+    }),
+    ui.SearchField({ class: app("search-field"), label: "Search", value: "", onChange: change }),
+    ui.SectionHeader({ class: app("section-header"), title: "Section" }),
+    ui.SegmentedControl({
+      class: app("segmented-control"),
+      "aria-label": "View",
+      options: SIZES,
+      value: "m",
+      onChange: change,
+    }),
+    ui.Select({
+      class: app("select"),
+      label: "Country",
+      options: COUNTRIES,
+      value: "korea",
+      onChange: change,
+    }),
+    ui.Sidebar({
+      class: app("sidebar"),
+      label: "Sections",
+      sections: [{ items: [{ value: "home", label: "Home", icon: "house" }] }],
+      value: "home",
+      onChange: change,
+    }),
+    ui.Skeleton({ class: app("skeleton") }),
+    ui.Slider({ class: app("slider"), label: "Volume", value: 50, onChange: change }),
+    ui.Spinner({ class: app("spinner"), label: "Loading" }),
+    ui.Switch({ class: app("switch"), label: "Wi-Fi", checked: true, onChange: change }),
+    ui.Tabs({
+      class: app("tabs"),
+      label: "Pages",
+      items: PAGES,
+      value: "overview",
+      onChange: change,
+    }),
+    ui.Text({ class: app("text") }, "Words"),
+    ui.TextField({ class: app("text-field"), label: "Name", value: "", onChange: change }),
+    ui.Thumbnail({ class: app("thumbnail"), src: "", alt: "" }),
+    ui.Tooltip({ class: app("tooltip"), label: "Export" }, ui.Button({}, "Export")),
+    ui.Button({ onPress: () => ({ dialog: true }) }, "Open the dialog"),
+    ui.Dialog({
+      class: app("dialog"),
+      open: (state) => state.dialog,
+      onClose: () => ({ dialog: false }),
+      title: "Dialog",
+    }),
+    ui.Toast({ class: app("toast"), open: true, onClose: change, message: "Saved" }),
+  ]);
+}
+
 /** Each scenario's screen, which a library draws with the renderer of its design preview. */
 export const SCREENS: Record<Scenario, Screen> = {
   controlled: controlled(),
@@ -341,4 +509,6 @@ export const SCREENS: Record<Scenario, Screen> = {
   accordion: accordion(),
   tooltip: tooltip(),
   toast: toast(),
+  defaults: defaults(),
+  parts: parts(),
 };

@@ -1,5 +1,7 @@
 import type { IconName } from "@acme/tokens";
 import {
+  classes,
+  rootPart,
   SIDEBAR_PARTS,
   type SidebarBaseProps,
   sidebarClass,
@@ -13,18 +15,22 @@ import type { JSX } from "@solidjs/web";
 import { createMemo, createUniqueId, type Element, For, Show } from "solid-js";
 import { Icon } from "./Icon.tsx";
 import { PlaceRow } from "./ListRow.tsx";
+import type { RootProps } from "./root.ts";
 import { TooltipBeside } from "./Tooltip.tsx";
 import { withTrigger } from "./trigger.ts";
 
 export type { SidebarItem, SidebarSection } from "@acme/ui-core";
 
-export type SidebarProps<Value extends string = string> = SidebarBaseProps<Value> & {
-  onChange: (value: Value) => void;
-  /** At the top, such as the app's name. It has to fit the rail itself while collapsed. */
-  header?: Element;
-  /** At the bottom, such as an account row. It has to fit the rail itself while collapsed. */
-  footer?: Element;
-};
+export type SidebarProps<Value extends string = string> = SidebarBaseProps<Value> &
+  RootProps & {
+    onChange: (value: Value) => void;
+    /** At the top, such as the app's name. It has to fit the rail itself while collapsed. */
+    header?: Element;
+    /** At the bottom, such as an account row. It has to fit the rail itself while collapsed. */
+    footer?: Element;
+  };
+
+const ROOT = rootPart("Sidebar");
 
 /**
  * The top-level places of an app used with a pointer: the counterpart of TabBar on touch. Each
@@ -39,7 +45,11 @@ export function Sidebar<Value extends string = string>(props: SidebarProps<Value
   const id = createUniqueId();
   const collapsed = () => props.collapsed ?? false;
   return (
-    <nav aria-label={props.label} class={sidebarClass(collapsed())}>
+    <nav
+      aria-label={props.label}
+      class={classes(ROOT, sidebarClass(collapsed()), props.class)}
+      style={props.style}
+    >
       <Show when={props.header}>
         {(header) => <div class={SIDEBAR_PARTS.edge}>{header()}</div>}
       </Show>

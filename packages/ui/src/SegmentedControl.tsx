@@ -1,14 +1,18 @@
 import {
+  classes,
+  rootPart,
   type SegmentedControlBaseProps,
   segmentedControlClass,
   segmentedControlOptionClass,
   segmentedControlSegmentClass,
 } from "@acme/ui-core";
 import { useId } from "react";
+import type { RootProps } from "./root.ts";
 
-export type SegmentedControlProps<Value extends string> = SegmentedControlBaseProps<Value> & {
-  onChange: (value: Value) => void;
-};
+export type SegmentedControlProps<Value extends string> = SegmentedControlBaseProps<Value> &
+  RootProps & {
+    onChange: (value: Value) => void;
+  };
 
 /**
  * A choice between a few views or modes, all visible at once. The selected segment is outlined
@@ -21,11 +25,18 @@ export function SegmentedControl<Value extends string>({
   value,
   onChange,
   fullWidth = false,
+  className,
+  style,
   ...aria
 }: SegmentedControlProps<Value>) {
   const name = useId();
   return (
-    <div {...aria} role="radiogroup" className={segmentedControlClass(fullWidth)}>
+    <div
+      {...aria}
+      role="radiogroup"
+      className={classes(rootPart("SegmentedControl"), segmentedControlClass(fullWidth), className)}
+      style={style}
+    >
       {options.map((option) => (
         <label key={option.value} className={segmentedControlOptionClass(fullWidth)}>
           <input

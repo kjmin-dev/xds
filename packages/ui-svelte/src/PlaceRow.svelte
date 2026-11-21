@@ -6,6 +6,7 @@
 -->
 <script lang="ts">
   import {
+    classes,
     LIST_ROW_PARTS,
     listRowClass,
     listRowDescriptionClass,
@@ -24,11 +25,15 @@
     leading,
     trailing,
     onPress,
+    class: className,
+    style,
     current: kind,
   }: ListRowProps & { current: "true" | "page" } = $props();
 
   const current = $derived(selected ? kind : undefined);
-  const row = $derived(listRowClass({ compact, selected, pressable: onPress !== undefined }));
+  const row = $derived(
+    classes(listRowClass({ compact, selected, pressable: onPress !== undefined }), className),
+  );
 </script>
 
 {#snippet content()}
@@ -46,9 +51,16 @@
 {/snippet}
 
 {#if onPress}
-  <button aria-current={current} type="button" {disabled} onclick={() => onPress()} class={row}>
+  <button
+    aria-current={current}
+    type="button"
+    {disabled}
+    onclick={() => onPress()}
+    class={row}
+    {style}
+  >
     {@render content()}
   </button>
 {:else}
-  <div aria-current={current} class={row}>{@render content()}</div>
+  <div aria-current={current} class={row} {style}>{@render content()}</div>
 {/if}

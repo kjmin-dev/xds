@@ -11,6 +11,7 @@ import {
   COUNTRY_PLACEHOLDER,
   KEPT,
   KEPT_NOTES,
+  PART_NAMES,
   LEAVE_ERROR,
   LEAVE_PLACEHOLDER,
   QUESTION,
@@ -982,6 +983,67 @@ export function describeBehavior(mount: Mount) {
       await expect.element(tooltip, { timeout: 3000 }).toBeVisible();
       await userEvent.unhover(page.getByRole("button", { name: "Export" }));
       await expect.element(tooltip).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Defaults", () => {
+    test("a component takes what the closest Defaults gives, and its own props win", async () => {
+      await mount("defaults");
+      const classes = (name: string) =>
+        page.getByRole("button", { name }).element().className.split(/\s+/);
+      expect(classes("Save")).toEqual(
+        expect.arrayContaining(["acme-button--primary", "acme-button--lg"]),
+      );
+      expect(classes("Skip")).toEqual(
+        expect.arrayContaining(["acme-button--ghost", "acme-button--lg"]),
+      );
+      expect(classes("Nested")).toEqual(
+        expect.arrayContaining(["acme-button--primary", "acme-button--sm"]),
+      );
+      expect(classes("Outside")).toEqual(
+        expect.arrayContaining(["acme-button--secondary", "acme-button--md"]),
+      );
+      expect(classes("Retry")).not.toContain("acme-button--primary");
+      expect(classes("Retry")).not.toContain("acme-button--lg");
+      expect(page.getByText("Live").element().closest(".acme-badge")?.className).toMatch(
+        /badge-success/,
+      );
+      // A large spinner is as tall as the large icon.
+      const spinner = page.getByRole("status", { name: "Loading" }).element();
+      expect(spinner.closest(".acme-spinner")?.getBoundingClientRect().height).toBe(
+        Number.parseFloat(
+          getComputedStyle(document.documentElement).getPropertyValue("--acme-size-spinner-lg"),
+        ),
+      );
+    });
+  });
+
+  describe("Root parts", () => {
+    test("every component's root element has its root part and the class the app gives it", async () => {
+      await mount("parts");
+      const rooted = (name: string) => {
+        const elements = document.querySelectorAll(`.app-${name}`);
+        expect(elements, `.app-${name}`).toHaveLength(1);
+        expect(elements[0]?.classList.contains(`acme-${name}`), `.app-${name}`).toBe(true);
+      };
+      const opened = new Set(["menu", "tooltip", "dialog"]);
+      for (const name of PART_NAMES) if (!opened.has(name)) rooted(name);
+      // A toast's root is its surface, not the region across the bottom of the window that it
+      // rises in, which is in the top layer as a popover.
+      const toast = document.querySelector(".app-toast");
+      expect(toast?.hasAttribute("popover")).toBe(false);
+      expect(toast?.parentElement?.closest("[popover]")).not.toBeNull();
+      await page.getByRole("button", { name: "Export" }).hover();
+      await expect.element(page.getByRole("tooltip"), { timeout: 3000 }).toBeVisible();
+      rooted("tooltip");
+      await page.getByRole("button", { name: "Options" }).click();
+      await expect.element(page.getByRole("menu")).toBeVisible();
+      rooted("menu");
+      await userEvent.keyboard("{Escape}");
+      await expect.element(page.getByRole("menu")).not.toBeInTheDocument();
+      await page.getByRole("button", { name: "Open the dialog" }).click();
+      await expect.element(page.getByRole("dialog")).toBeVisible();
+      rooted("dialog");
     });
   });
 

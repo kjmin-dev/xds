@@ -1,4 +1,5 @@
 import {
+  classes,
   DATE_PICKER_NAV_CLASS,
   type DateRange,
   type DateRangePickerBaseProps,
@@ -28,12 +29,14 @@ import { createEffect, createMemo, createSignal, createUniqueId, For, Show } fro
 import { Icon } from "./Icon.tsx";
 import { modalPopover } from "./modal-popover.ts";
 import { createPresence } from "./presence.ts";
+import { type RootProps, withStyle } from "./root.ts";
 
 export type { DateRange } from "@acme/ui-core";
 
-export type DateRangePickerProps = DateRangePickerBaseProps & {
-  onChange: (value: DateRange) => void;
-};
+export type DateRangePickerProps = DateRangePickerBaseProps &
+  RootProps & {
+    onChange: (value: DateRange) => void;
+  };
 
 type Handler<E> = (event: E) => void;
 
@@ -72,6 +75,10 @@ export function DateRangePicker(props: DateRangePickerProps) {
     }),
   );
   const api = createMemo(() => datePicker.connect(service, normalizeProps));
+  const root = withStyle(
+    () => api().getRootProps(),
+    () => props.style,
+  );
   let positioner: HTMLDivElement | undefined;
   let surface: HTMLDivElement | undefined;
   modalPopover(
@@ -97,13 +104,13 @@ export function DateRangePicker(props: DateRangePickerProps) {
   const views = createMemo(() => rangeMonthViews(api(), months()));
   const invalid = () => props.error !== undefined;
   return (
-    <div {...api().getRootProps()} class="date-picker date-range-picker">
+    <div {...root} class={classes("acme-date-picker acme-date-range-picker", props.class)}>
       {/* A span: the field is a button, which a <label> cannot point at. */}
-      <span id={ids.label} class="date-picker__label">
+      <span id={ids.label} class="acme-date-picker__label">
         {props.label}
       </span>
       {/* What Zag places the calendar against. */}
-      <div {...api().getControlProps()} class="date-picker__control">
+      <div {...api().getControlProps()} class="acme-date-picker__control">
         <button
           {...api().getTriggerProps()}
           {...datePickerTriggerAttrs(props, ids)}
@@ -113,9 +120,9 @@ export function DateRangePicker(props: DateRangePickerProps) {
             focusOpeningDay(api(), { ...props, value: props.value?.start });
             (api().getTriggerProps().onClick as Handler<MouseEvent> | undefined)?.(event);
           }}
-          class="date-picker__trigger"
+          class="acme-date-picker__trigger"
         >
-          <span id={ids.value} class="date-picker__value">
+          <span id={ids.value} class="acme-date-picker__value">
             {props.value === undefined ? props.placeholder : formatRange(props.value, locale)}
           </span>
           <Icon name="calendar" size="sm" class="text-acme-field-placeholder" />
@@ -123,16 +130,16 @@ export function DateRangePicker(props: DateRangePickerProps) {
       </div>
       {/* One line under the box: the help, or the error in its place. */}
       <Show when={invalid() || props.description}>
-        <div class="date-picker__footer">
+        <div class="acme-date-picker__footer">
           <Show
             when={invalid()}
             fallback={
-              <span id={ids.description} class="date-picker__description">
+              <span id={ids.description} class="acme-date-picker__description">
                 {props.description}
               </span>
             }
           >
-            <span id={ids.error} class="date-picker__error">
+            <span id={ids.error} class="acme-date-picker__error">
               {props.error}
             </span>
           </Show>
@@ -150,12 +157,12 @@ export function DateRangePicker(props: DateRangePickerProps) {
           {/* Takes a press outside, which then only closes the calendar. The focus stays in
               the calendar until it hands it back to the field. */}
           {/* oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- not a control: the handler only keeps the focus where it is */}
-          <div class="date-picker__underlay" onMouseDown={(event) => event.preventDefault()} />
+          <div class="acme-date-picker__underlay" onMouseDown={(event) => event.preventDefault()} />
         </Show>
         <div
           ref={(element) => (positioner = element)}
           {...api().getPositionerProps()}
-          class="date-picker__positioner"
+          class="acme-date-picker__positioner"
         >
           {/* Shown until its exit animation ends; Zag would hide it as it closes. */}
           {/* oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- a dialog: datePickerContentAttrs gives it the role */}
@@ -165,21 +172,21 @@ export function DateRangePicker(props: DateRangePickerProps) {
             ref={(element) => (surface = element)}
             hidden={!present()}
             onKeyDown={(event) => keepCalendarFocus(event, surface)}
-            class="date-picker__content date-range-picker__content"
+            class="acme-date-picker__content acme-date-range-picker__content"
           >
-            <div class="date-range-picker__summary" aria-live="polite">
+            <div class="acme-date-range-picker__summary" aria-live="polite">
               <span>{summary().start}</span>
               <span>{summary().end}</span>
             </div>
-            <div class="date-range-picker__months">
+            <div class="acme-date-range-picker__months">
               {/* Kept by position: the months move under the same columns. */}
               <For each={views()} keyed={false}>
                 {(view) => (
-                  <div class="date-range-picker__month">
-                    <div class="date-picker__header">
+                  <div class="acme-date-range-picker__month">
+                    <div class="acme-date-picker__header">
                       <Show
                         when={view().index === 0}
-                        fallback={<span class="date-range-picker__nav-space" />}
+                        fallback={<span class="acme-date-range-picker__nav-space" />}
                       >
                         <button
                           {...api().getPreviousTriggerProps()}
@@ -189,12 +196,12 @@ export function DateRangePicker(props: DateRangePickerProps) {
                           <Icon name="chevron-left" size="sm" />
                         </button>
                       </Show>
-                      <span {...api().getRangeTextProps()} class="date-picker__heading">
+                      <span {...api().getRangeTextProps()} class="acme-date-picker__heading">
                         {view().name}
                       </span>
                       <Show
                         when={view().index === months() - 1}
-                        fallback={<span class="date-range-picker__nav-space" />}
+                        fallback={<span class="acme-date-range-picker__nav-space" />}
                       >
                         <button
                           {...api().getNextTriggerProps()}
@@ -220,13 +227,13 @@ export function DateRangePicker(props: DateRangePickerProps) {
                             | undefined,
                         )
                       }
-                      class="date-picker__grid"
+                      class="acme-date-picker__grid"
                     >
                       <thead {...api().getTableHeadProps({ view: "day" })}>
                         <tr {...api().getTableRowProps({ view: "day" })}>
                           <For each={api().weekDays} keyed={false}>
                             {(weekDay) => (
-                              <th scope="col" class="date-picker__weekday">
+                              <th scope="col" class="acme-date-picker__weekday">
                                 {weekDay().narrow}
                               </th>
                             )}
@@ -248,7 +255,7 @@ export function DateRangePicker(props: DateRangePickerProps) {
                                   return (
                                     <td
                                       {...api().getDayTableCellProps(cell())}
-                                      class="date-picker__cell"
+                                      class="acme-date-picker__cell"
                                     >
                                       {/* oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- a button: Zag's props give it the role, and its grid takes the keys */}
                                       <div
@@ -266,7 +273,7 @@ export function DateRangePicker(props: DateRangePickerProps) {
                                               | undefined,
                                           )
                                         }
-                                        class="date-picker__day"
+                                        class="acme-date-picker__day"
                                       >
                                         {date().day}
                                       </div>

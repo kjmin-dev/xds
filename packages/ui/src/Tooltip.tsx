@@ -1,16 +1,19 @@
 import { motion, space } from "@acme/tokens";
-import { type TooltipBaseProps, tooltipEndSide } from "@acme/ui-core";
-import { normalizeProps, useMachine } from "@zag-js/react";
+import { classes, type TooltipBaseProps, tooltipEndSide } from "@acme/ui-core";
+import { mergeProps, normalizeProps, useMachine } from "@zag-js/react";
 import * as tooltip from "@zag-js/tooltip";
 import { type ReactNode, useId, useRef } from "react";
 import { Portal } from "./portal.tsx";
 import { usePresence } from "./presence.ts";
+import type { RootProps } from "./root.ts";
 import { TriggerContext, useProvideTrigger } from "./trigger.ts";
 
-export type TooltipProps = TooltipBaseProps & {
-  /** The control it describes: a Button or an IconButton. */
-  children: ReactNode;
-};
+/** `className` and `style` are for the tooltip, not for the control it describes. */
+export type TooltipProps = TooltipBaseProps &
+  RootProps & {
+    /** The control it describes: a Button or an IconButton. */
+    children: ReactNode;
+  };
 
 /**
  * Names a control when the pointer rests on it or the keyboard focuses it. It appears after a
@@ -20,9 +23,22 @@ export type TooltipProps = TooltipBaseProps & {
  * It describes the control and is not its name: an IconButton still needs its `label`. It
  * never holds anything pressable, and touch input has no hover, so nothing may depend on it.
  */
-export function Tooltip({ label, shortcut, placement = "top", children }: TooltipProps) {
+export function Tooltip({
+  label,
+  shortcut,
+  placement = "top",
+  className,
+  style,
+  children,
+}: TooltipProps) {
   return (
-    <Overlay label={label} shortcut={shortcut} placement={placement}>
+    <Overlay
+      label={label}
+      shortcut={shortcut}
+      placement={placement}
+      className={className}
+      style={style}
+    >
       {children}
     </Overlay>
   );
@@ -45,8 +61,10 @@ function Overlay({
   label,
   shortcut,
   placement,
+  className,
+  style,
   children,
-}: {
+}: RootProps & {
   label: string;
   shortcut?: string | undefined;
   placement: tooltip.Placement;
@@ -72,11 +90,18 @@ function Overlay({
       {present && (
         <Portal>
           <TriggerContext value={null}>
-            <div {...api.getPositionerProps()} className="tooltip__positioner">
+            <div {...api.getPositionerProps()} className="acme-tooltip__positioner">
               {/* Shown until its exit animation ends; Zag would hide it as it closes. */}
-              <div {...api.getContentProps()} ref={content} hidden={false} className="tooltip">
+              <div
+                {...mergeProps(api.getContentProps(), {
+                  className: classes("acme-tooltip", className),
+                  style,
+                })}
+                ref={content}
+                hidden={false}
+              >
                 {label}
-                {shortcut && <kbd className="tooltip__shortcut">{shortcut}</kbd>}
+                {shortcut && <kbd className="acme-tooltip__shortcut">{shortcut}</kbd>}
               </div>
             </div>
           </TriggerContext>

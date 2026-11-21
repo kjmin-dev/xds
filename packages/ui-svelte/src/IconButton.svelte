@@ -6,15 +6,18 @@
 -->
 <script module lang="ts">
   import type { IconButtonBaseProps } from "@acme/ui-core";
+  import type { RootProps } from "./root.ts";
 
-  export type IconButtonProps = IconButtonBaseProps & {
-    onPress?: () => void;
-  };
+  export type IconButtonProps = IconButtonBaseProps &
+    RootProps & {
+      onPress?: () => void;
+    };
 </script>
 
 <script lang="ts">
-  import { buttonClass, ICON_BUTTON_BOX, isHeld } from "@acme/ui-core";
+  import { buttonClass, classes, ICON_BUTTON_BOX, isHeld } from "@acme/ui-core";
   import type { HTMLButtonAttributes } from "svelte/elements";
+  import { useDefaults } from "./defaults.svelte.ts";
   import Icon from "./Icon.svelte";
   import Spinner from "./Spinner.svelte";
   import { withTrigger } from "./trigger.svelte.ts";
@@ -22,18 +25,26 @@
   let {
     icon,
     label,
-    variant = "ghost",
-    size = "md",
+    variant: ownVariant,
+    size: ownSize,
     selected,
     disabled,
     loading,
     onPress,
+    class: className,
+    style,
   }: IconButtonProps = $props();
+
+  const defaults = useDefaults("IconButton");
+  const variant = $derived(ownVariant ?? defaults().variant ?? "ghost");
+  const size = $derived(ownSize ?? defaults().size ?? "md");
 
   const attributes = withTrigger(
     (): HTMLButtonAttributes => ({
       type: "button",
-      class: buttonClass({ variant, size, iconButton: true }),
+      // The recipe gives the root part, `acme-icon-button`.
+      class: classes(buttonClass({ variant, size, iconButton: true }), className),
+      style,
       disabled,
       "aria-disabled": loading ? "true" : undefined,
       "data-pending": loading ? "" : undefined,

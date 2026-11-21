@@ -1,17 +1,17 @@
 /*
  * Tooltip: Zag's tooltip machine, rendered into the body only while open or animating out.
  *
- * Parts: `.tooltip__positioner` (placed by Zag), `.tooltip` (role="tooltip"),
- * `.tooltip__shortcut` (a key hint after the label).
+ * Parts: `.acme-tooltip__positioner` (placed by Zag), `.acme-tooltip` (role="tooltip"),
+ * `.acme-tooltip__shortcut` (a key hint after the label).
  * States: `[data-side]` on the tooltip for the side of the control it is on, and
  * `[data-state="closed"]` while it animates out.
  */
 @layer components {
-  .tooltip__positioner {
-    z-index: calc(var(--layer-overlay) + var(--layer-index, 0));
+  .acme-tooltip__positioner {
+    z-index: calc(var(--acme-layer-overlay) + var(--layer-index, 0));
   }
 
-  .tooltip {
+  .acme-tooltip {
     /* The widest a tooltip gets; a longer label wraps. */
     max-width: 20rem;
     padding: var(--acme-space-1) var(--acme-space-2);
@@ -25,42 +25,42 @@
   }
 
   /* It grows in from the control's side. */
-  .tooltip[data-side="top"] {
+  .acme-tooltip[data-side="top"] {
     animation: acme-tooltip-enter-up var(--acme-motion-duration-fast)
       var(--acme-motion-easing-enter);
   }
 
-  .tooltip[data-side="bottom"] {
+  .acme-tooltip[data-side="bottom"] {
     animation: acme-tooltip-enter-down var(--acme-motion-duration-fast)
       var(--acme-motion-easing-enter);
   }
 
-  .tooltip[data-side="left"] {
+  .acme-tooltip[data-side="left"] {
     animation: acme-tooltip-enter-left var(--acme-motion-duration-fast)
       var(--acme-motion-easing-enter);
   }
 
-  .tooltip[data-side="right"] {
+  .acme-tooltip[data-side="right"] {
     animation: acme-tooltip-enter-right var(--acme-motion-duration-fast)
       var(--acme-motion-easing-enter);
   }
 
   /* After the rules above, which it replaces. */
-  .tooltip[data-state="closed"] {
+  .acme-tooltip[data-state="closed"] {
     animation: acme-overlay-exit var(--acme-motion-duration-fast) var(--acme-motion-easing-exit)
       forwards;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .tooltip[data-side],
-    .tooltip[data-state="closed"] {
+    .acme-tooltip[data-side],
+    .acme-tooltip[data-state="closed"] {
       animation: none;
     }
   }
 
   /* A key hint: the same text in a hairline box of its own, in the text's color, which is
      the one color known to stand out from the tooltip. */
-  .tooltip__shortcut {
+  .acme-tooltip__shortcut {
     margin-inline-start: var(--acme-space-2);
     padding-inline: var(--acme-space-1);
     border: var(--acme-border-width-thin) solid currentColor;

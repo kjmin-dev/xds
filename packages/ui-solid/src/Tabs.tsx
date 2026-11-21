@@ -1,12 +1,14 @@
-import { type TabsBaseProps, tabStopIndex, tabsClass } from "@acme/ui-core";
+import { classes, type TabsBaseProps, tabStopIndex, tabsClass } from "@acme/ui-core";
 import { mergeProps, normalizeProps, useMachine } from "@zag-js/solid";
 import * as tabs from "@zag-js/tabs";
 import { createMemo, createUniqueId, For, Show } from "solid-js";
 import { Icon } from "./Icon.tsx";
+import { type RootProps, withStyle } from "./root.ts";
 
-export type TabsProps<Value extends string> = TabsBaseProps<Value> & {
-  onChange: (value: Value) => void;
-};
+export type TabsProps<Value extends string> = TabsBaseProps<Value> &
+  RootProps & {
+    onChange: (value: Value) => void;
+  };
 
 /**
  * Switches between views inside one screen. For two to four short modes a SegmentedControl is
@@ -24,9 +26,14 @@ export function Tabs<Value extends string>(props: TabsProps<Value>) {
     onValueChange: (details: tabs.ValueChangeDetails) => props.onChange(details.value as Value),
   }));
   const api = createMemo(() => tabs.connect(service, normalizeProps));
+  const root = withStyle(
+    () => api().getRootProps(),
+    () => props.style,
+  );
   return (
-    <div {...api().getRootProps()} class={tabsClass(props.fullWidth)}>
-      <div {...api().getListProps()} aria-label={props.label} class="tabs__list">
+    // Its root part, `acme-tabs`, is in the recipe.
+    <div {...root} class={classes(tabsClass(props.fullWidth), props.class)}>
+      <div {...api().getListProps()} aria-label={props.label} class="acme-tabs__list">
         <For each={props.items}>
           {(item) => {
             const trigger = () => api().getTriggerProps({ value: item.value });
@@ -43,7 +50,7 @@ export function Tabs<Value extends string>(props: TabsProps<Value>) {
                 // Zag points the selected tab at its panel, which this row never renders: the
                 // app shows the view. A reference to an element that does not exist is invalid.
                 aria-controls={undefined}
-                class="tabs__tab"
+                class="acme-tabs__tab"
               >
                 <Show when={item.icon}>{(name) => <Icon name={name()} size="sm" />}</Show>
                 {item.label}
@@ -51,7 +58,7 @@ export function Tabs<Value extends string>(props: TabsProps<Value>) {
             );
           }}
         </For>
-        <div {...api().getIndicatorProps()} class="tabs__indicator" />
+        <div {...api().getIndicatorProps()} class="acme-tabs__indicator" />
       </div>
     </div>
   );

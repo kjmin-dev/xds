@@ -57,17 +57,21 @@ function choose(option: Value) {
     :aria-invalid="invalid ? 'true' : undefined"
     :aria-disabled="disabled ? 'true' : undefined"
     aria-orientation="vertical"
-    class="radio-group"
+    class="acme-radio-group"
   >
-    <span :id="labelId" class="radio-group__label">{{ label }}</span>
-    <div class="radio-group__options">
-      <label v-for="(option, index) in options" :key="option.value" class="radio-group__option">
+    <span :id="labelId" class="acme-radio-group__label">{{ label }}</span>
+    <div class="acme-radio-group__options">
+      <label
+        v-for="(option, index) in options"
+        :key="option.value"
+        class="acme-radio-group__option"
+      >
         <!-- aria-invalid is on each radio as well as the group, so it is heard on the radio
              that has focus. Radios group by name, which is what makes the arrow keys move
              between them. -->
         <input
           type="radio"
-          class="radio-group__input sr-only"
+          class="acme-radio-group__input sr-only"
           :name="name ?? id"
           :value="option.value"
           :checked="option.value === value"
@@ -77,16 +81,16 @@ function choose(option: Value) {
           :aria-invalid="invalid ? 'true' : undefined"
           @change="choose(option.value)"
         />
-        <span class="radio-group__row">
-          <span class="radio-group__circle-line">
-            <span class="radio-group__circle"><span class="radio-group__dot" /></span>
+        <span class="acme-radio-group__row">
+          <span class="acme-radio-group__circle-line">
+            <span class="acme-radio-group__circle"><span class="acme-radio-group__dot" /></span>
           </span>
-          <span class="radio-group__words">
-            <span :id="`${id}-${index}`" class="radio-group__text">{{ option.label }}</span>
+          <span class="acme-radio-group__words">
+            <span :id="`${id}-${index}`" class="acme-radio-group__text">{{ option.label }}</span>
             <span
               v-if="option.description"
               :id="`${id}-${index}-description`"
-              class="radio-group__description"
+              class="acme-radio-group__description"
             >
               {{ option.description }}
             </span>
@@ -97,7 +101,7 @@ function choose(option: Value) {
     <!-- The region is there before the error is, so that the error is announced when it
          appears. Empty, it takes no room. -->
     <div aria-live="polite">
-      <span v-if="invalid" :id="errorId" class="radio-group__error">{{ error }}</span>
+      <span v-if="invalid" :id="errorId" class="acme-radio-group__error">{{ error }}</span>
     </div>
   </div>
 </template>

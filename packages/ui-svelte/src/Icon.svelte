@@ -5,17 +5,20 @@
 -->
 <script module lang="ts">
   import type { IconBaseProps } from "@acme/ui-core";
+  import type { RootProps } from "./root.ts";
 
-  export type IconProps = IconBaseProps & {
-    class?: string;
-  };
+  export type IconProps = IconBaseProps & RootProps;
 </script>
 
 <script lang="ts">
   import { icons } from "@acme/tokens";
-  import { iconClass } from "@acme/ui-core";
+  import { classes, iconClass, rootPart } from "@acme/ui-core";
+  import { useDefaults } from "./defaults.svelte.ts";
 
-  let { name, size, filled, label, class: className }: IconProps = $props();
+  let { name, size: ownSize, filled, label, class: className, style }: IconProps = $props();
+
+  const defaults = useDefaults("Icon");
+  const size = $derived(ownSize ?? defaults().size);
 </script>
 
 <svg
@@ -25,7 +28,8 @@
   stroke-width="2"
   stroke-linecap="round"
   stroke-linejoin="round"
-  class={[iconClass(size), className]}
+  class={classes(rootPart("Icon"), iconClass(size), className)}
+  {style}
   role={label ? "img" : undefined}
   aria-label={label || undefined}
   aria-hidden={label ? undefined : "true"}

@@ -6,26 +6,29 @@
 <script module lang="ts">
   import type { ButtonBaseProps } from "@acme/ui-core";
   import type { Snippet } from "svelte";
+  import type { RootProps } from "./root.ts";
 
   export type { ButtonVariant, ControlSize } from "@acme/ui-core";
 
-  export type ButtonProps = ButtonBaseProps & {
-    onPress?: () => void;
-    /** Leave it out for a button that holds only an icon, and name that one with `aria-label`. */
-    children?: Snippet;
-  };
+  export type ButtonProps = ButtonBaseProps &
+    RootProps & {
+      onPress?: () => void;
+      /** Leave it out for a button that holds only an icon, and name that one with `aria-label`. */
+      children?: Snippet;
+    };
 </script>
 
 <script lang="ts">
-  import { BUTTON_ICON, buttonClass, isHeld } from "@acme/ui-core";
+  import { BUTTON_ICON, buttonClass, classes, isHeld } from "@acme/ui-core";
   import type { HTMLButtonAttributes } from "svelte/elements";
+  import { useDefaults } from "./defaults.svelte.ts";
   import Icon from "./Icon.svelte";
   import Spinner from "./Spinner.svelte";
   import { withTrigger } from "./trigger.svelte.ts";
 
   let {
-    variant = "secondary",
-    size = "md",
+    variant: ownVariant,
+    size: ownSize,
     iconStart,
     iconEnd,
     selected,
@@ -35,20 +38,31 @@
     type = "button",
     onPress,
     "aria-label": ariaLabel,
+    class: className,
+    style,
     children,
   }: ButtonProps = $props();
+
+  const defaults = useDefaults("Button");
+  const variant = $derived(ownVariant ?? defaults().variant ?? "secondary");
+  const size = $derived(ownSize ?? defaults().size ?? "md");
 
   const icon = $derived(BUTTON_ICON[size]);
   const held = $derived(isHeld({ variant, selected, disabled }));
   const attributes = withTrigger(
     (): HTMLButtonAttributes => ({
       type,
-      class: buttonClass({
-        variant,
-        size,
-        iconOnly: children === undefined && (iconStart !== undefined || iconEnd !== undefined),
-        fullWidth,
-      }),
+      // The recipe gives the root part, `acme-button`.
+      class: classes(
+        buttonClass({
+          variant,
+          size,
+          iconOnly: children === undefined && (iconStart !== undefined || iconEnd !== undefined),
+          fullWidth,
+        }),
+        className,
+      ),
+      style,
       disabled,
       // Loading keeps the button focusable, so focus is not lost while it waits.
       "aria-disabled": loading ? "true" : undefined,

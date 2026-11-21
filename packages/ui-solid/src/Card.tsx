@@ -1,17 +1,27 @@
-import { CARD_PARTS, type CardBaseProps, cardClass, cardMediaClass } from "@acme/ui-core";
+import {
+  CARD_PARTS,
+  type CardBaseProps,
+  cardClass,
+  cardMediaClass,
+  classes,
+  rootPart,
+} from "@acme/ui-core";
 import { dynamic } from "@solidjs/web";
 import { children, type Element, Show } from "solid-js";
+import type { RootProps } from "./root.ts";
 
-export type CardProps = CardBaseProps & {
-  /** Sit across from the title. A pressable card takes none: it is one button already. */
-  actions?: Element;
-  /** A picture or a drawing at the top, running edge to edge above the padding. */
-  media?: Element;
-  /** Makes the whole card one button. Put no other control inside it then. */
-  onPress?: () => void;
-  class?: string;
-  children?: Element;
-};
+export type CardProps = CardBaseProps &
+  RootProps & {
+    /** Sit across from the title. A pressable card takes none: it is one button already. */
+    actions?: Element;
+    /** A picture or a drawing at the top, running edge to edge above the padding. */
+    media?: Element;
+    /** Makes the whole card one button. Put no other control inside it then. */
+    onPress?: () => void;
+    children?: Element;
+  };
+
+const ROOT = rootPart("Card");
 
 /**
  * A surface that groups related content. A hairline outline and a trace of shadow lift it off
@@ -31,7 +41,11 @@ export function Card(props: CardProps) {
   const Title = dynamic(() => (pressable() ? "span" : "h2"));
   const Line = dynamic(() => (pressable() ? "span" : "p"));
   const surface = () =>
-    cardClass({ selected: props.selected, flush: props.flush, pressable: pressable() });
+    classes(
+      ROOT,
+      cardClass({ selected: props.selected, flush: props.flush, pressable: pressable() }),
+      props.class,
+    );
   const parts = () => (
     <>
       <Show when={media() != null}>
@@ -66,7 +80,8 @@ export function Card(props: CardProps) {
       fallback={
         <section
           aria-current={props.selected ? "true" : undefined}
-          class={[surface(), props.class]}
+          class={surface()}
+          style={props.style}
         >
           {content()}
         </section>
@@ -76,7 +91,8 @@ export function Card(props: CardProps) {
         type="button"
         onClick={() => props.onPress?.()}
         aria-pressed={props.selected === undefined ? undefined : props.selected ? "true" : "false"}
-        class={[surface(), props.class]}
+        class={surface()}
+        style={props.style}
       >
         {content()}
       </button>

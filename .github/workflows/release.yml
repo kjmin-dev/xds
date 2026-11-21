@@ -5,7 +5,9 @@ name: Release
 #   git tag v0.1.0 && git push origin v0.1.0
 #
 # The binaries go to a GitHub release, where install.sh finds them, and to npm as xds-cli, its
-# platform packages and create-xds. Publishing to npm needs the NPM_TOKEN secret.
+# platform packages and create-xds. The web library's packages (@xds/react, @xds/solid,
+# @xds/vue, @xds/svelte, @xds/core and @xds/tokens) go to npm at the same version once their
+# external consumer check passes. Publishing to npm needs the NPM_TOKEN secret.
 #
 # Actions are pinned to a commit, because a tag can be moved to other code, and these jobs can
 # write a release and publish to npm.
@@ -182,5 +184,58 @@ jobs:
               echo "$name@$version is already published"
             else
               mise exec -- npm publish "$package" --access public --tag "$tag"
+            fi
+          done
+
+  web:
+    name: Web library packages
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
+        with:
+          install_args: node pnpm
+          # What is built here is published, so no tool comes from a cache another run wrote.
+          cache: false
+
+      # The check scaffolds its reference apps with the binary this release ships.
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: xds-x86_64-unknown-linux-musl
+          path: archives
+
+      - name: Unpack the binary
+        run: mkdir -p binary && tar -xzf archives/xds-x86_64-unknown-linux-musl.tar.gz -C binary
+
+      - run: mise exec -- pnpm install --frozen-lockfile
+
+      # Builds the packages into npm/dist/web, installs them in apps outside the repository and
+      # compares their design previews with scaffolded apps, pixel by pixel, in Google Chrome.
+      - name: Build and check the packages
+        run: mise exec -- node npm/web/consumer.ts --xds binary/xds
+
+      - name: Publish
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          mise exec -- npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
+          # The web channel is a preview while its behavior library, Zag.js 2, is a prerelease
+          # (docs/library.md, "Stability levels"), so its releases take the `preview` dist-tag.
+          tag=preview
+          if [[ "${GITHUB_REF_NAME#v}" == *-* ]]; then tag=next; fi
+          # In dependency order: the tokens, what the frameworks share, then the frameworks.
+          for package in tokens core react solid vue svelte; do
+            dir="npm/dist/web/$package"
+            name="$(mise exec -- node -p "require('./$dir/package.json').name")"
+            version="$(mise exec -- node -p "require('./$dir/package.json').version")"
+            # A rerun after a partial failure skips what the first run published.
+            if mise exec -- npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "$name@$version is already published"
+            else
+              mise exec -- npm publish "$dir" --access public --tag "$tag"
             fi
           done

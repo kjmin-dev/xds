@@ -1,19 +1,22 @@
-import { type DialogBaseProps, leaveEscapeToFields } from "@acme/ui-core";
+import { classes, type DialogBaseProps, leaveEscapeToFields } from "@acme/ui-core";
 import * as dialog from "@zag-js/dialog";
-import { normalizeProps, useMachine } from "@zag-js/react";
+import { mergeProps, normalizeProps, useMachine } from "@zag-js/react";
 import { type ReactNode, useId, useRef } from "react";
 import { Portal } from "./portal.tsx";
 import { usePresence } from "./presence.ts";
+import type { RootProps } from "./root.ts";
 import { TriggerContext } from "./trigger.ts";
 
-export type DialogProps = DialogBaseProps & {
-  /** Called on Escape and on a press outside the dialog. Set `open` to false in it. */
-  onClose: () => void;
-  /** The body, between the description and the actions. It scrolls when it is too tall. */
-  children?: ReactNode;
-  /** Buttons, in a row at the end edge. Put the main action last. */
-  actions?: ReactNode;
-};
+/** `className` and `style` are for the dialog's panel, not for the backdrop around it. */
+export type DialogProps = DialogBaseProps &
+  RootProps & {
+    /** Called on Escape and on a press outside the dialog. Set `open` to false in it. */
+    onClose: () => void;
+    /** The body, between the description and the actions. It scrolls when it is too tall. */
+    children?: ReactNode;
+    /** Buttons, in a row at the end edge. Put the main action last. */
+    actions?: ReactNode;
+  };
 
 /**
  * A window that interrupts the screen for a confirmation or a short task. Everything behind it
@@ -30,6 +33,8 @@ export function Dialog({
   children,
   actions,
   dismissible = true,
+  className,
+  style,
 }: DialogProps) {
   const backdrop = useRef<HTMLDivElement>(null);
   const positioner = useRef<HTMLDivElement>(null);
@@ -63,20 +68,27 @@ export function Dialog({
           ref={backdrop}
           hidden={false}
           onMouseDown={(event) => event.preventDefault()}
-          className="dialog__backdrop"
+          className="acme-dialog__backdrop"
         />
-        <div {...api.getPositionerProps()} ref={positioner} className="dialog__positioner">
-          <section {...api.getContentProps()} ref={content} hidden={false} className="dialog">
-            <h2 {...api.getTitleProps()} className="dialog__title">
+        <div {...api.getPositionerProps()} ref={positioner} className="acme-dialog__positioner">
+          <section
+            {...mergeProps(api.getContentProps(), {
+              className: classes("acme-dialog", className),
+              style,
+            })}
+            ref={content}
+            hidden={false}
+          >
+            <h2 {...api.getTitleProps()} className="acme-dialog__title">
               {title}
             </h2>
             {description && (
-              <p {...api.getDescriptionProps()} className="dialog__description">
+              <p {...api.getDescriptionProps()} className="acme-dialog__description">
                 {description}
               </p>
             )}
-            {children != null && <div className="dialog__body">{children}</div>}
-            {actions != null && <div className="dialog__actions">{actions}</div>}
+            {children != null && <div className="acme-dialog__body">{children}</div>}
+            {actions != null && <div className="acme-dialog__actions">{actions}</div>}
           </section>
         </div>
       </TriggerContext>

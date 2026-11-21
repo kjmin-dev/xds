@@ -35,6 +35,7 @@ import {
   CountBadge,
   DatePicker,
   DateRangePicker,
+  Defaults,
   Dialog,
   Divider,
   EmptyState,
@@ -64,6 +65,13 @@ import {
 
 export { designPreview } from "@acme/ui-core/preview";
 
+// The props the data gives component `N`, as the renderer hands them over: the data's `class`
+// is React's `className`.
+type Given<N extends ComponentName> = Omit<Components<ReactNode>[N], "class"> &
+  ("class" extends keyof Components<ReactNode>[N]
+    ? { className?: Components<ReactNode>[N]["class"] }
+    : unknown);
+
 // Every component the data can name, each taking the props the data gives it. They are
 // imported by name: a namespace import of the entry would put every component in the chunk
 // that the app's own screens load too.
@@ -81,6 +89,7 @@ const COMPONENTS = {
   CountBadge,
   DatePicker,
   DateRangePicker,
+  Defaults,
   Dialog,
   Divider,
   EmptyState,
@@ -106,7 +115,7 @@ const COMPONENTS = {
   Thumbnail,
   Toast,
   Tooltip,
-} satisfies { [N in ComponentName]: ComponentType<Components<ReactNode>[N]> };
+} satisfies { [N in ComponentName]: ComponentType<Given<N>> };
 
 // `satisfies` checks the type of each prop a component takes against the data's, but lets a
 // component lack one (see Lacking). This names each component that lacks any, with the props it

@@ -64,6 +64,7 @@ Acme is built around a shared design system: a single set of design tokens and a
 <!-- @endif -->
 <!-- @if ui-core -->
 - `packages/ui-core` holds one copy of what the web libraries share, so it never imports a framework. Change a component's classes or CSS there, not in a library. Its CSS selects on its own part classes, native pseudo-classes, `aria-*` attributes, and Zag's state attributes.
+- Every web component puts its root part class (`rootPart()`, `acme-<name>`), the app's class (`className` in React) and the app's style on its root element, and part classes start with `acme-`. A component with a variant, size, tone, shape, ratio or layout reads its default from the closest `Defaults` (`DEFAULT_OPTIONS` in `packages/ui-core/src/defaults.ts`), and a component drawn inside another passes every such option explicitly, so an app's defaults never change a component's own parts.
 <!-- @endif -->
 - When adding a variant, size, or tone to a component, implement it under the same name across every client in this project, add it to each client's design preview, and record it in `design/components.json`. A difference between clients that is not in the contract's names (an option only some clients have, a part the platform draws, a different presentation for touch) is listed in that component's `differences`.
 <!-- @if ui-core -->

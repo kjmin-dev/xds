@@ -9,8 +9,11 @@ import {
   bannerIconClass,
   bannerIconPath,
   bannerRole,
+  classes,
+  rootPart,
 } from "@acme/ui-core";
 import Button from "./Button.vue";
+import { useDefaults } from "./defaults.ts";
 import IconButton from "./IconButton.vue";
 
 export type { BannerTone } from "@acme/ui-core";
@@ -27,22 +30,26 @@ export type BannerProps = BannerBaseProps & {
 
 const { tone, title, dismissLabel = "Dismiss", action, onDismiss } = defineProps<BannerProps>();
 defineSlots<{ default(): unknown }>();
+const options = useDefaults("Banner", () => ({ tone }));
 </script>
 
 <template>
-  <div :role="bannerRole(tone)" :class="bannerClass(tone)">
-    <svg viewBox="0 0 24 24" aria-hidden="true" :class="bannerIconClass(tone)">
-      <path fill="currentColor" :d="bannerIconPath(tone)" />
+  <div
+    :role="bannerRole(options.tone)"
+    :class="classes(rootPart('Banner'), bannerClass(options.tone))"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true" :class="bannerIconClass(options.tone)">
+      <path fill="currentColor" :d="bannerIconPath(options.tone)" />
     </svg>
     <div :class="BANNER_PARTS.body">
       <p v-if="title" :class="BANNER_PARTS.title">{{ title }}</p>
       <div><slot /></div>
       <div v-if="action" :class="BANNER_PARTS.action">
-        <Button size="sm" @press="action.onPress()">{{ action.label }}</Button>
+        <Button variant="secondary" size="sm" @press="action.onPress()">{{ action.label }}</Button>
       </div>
     </div>
     <div v-if="onDismiss" :class="BANNER_PARTS.dismiss">
-      <IconButton icon="x" :label="dismissLabel" size="sm" @press="onDismiss()" />
+      <IconButton icon="x" :label="dismissLabel" variant="ghost" size="sm" @press="onDismiss()" />
     </div>
   </div>
 </template>

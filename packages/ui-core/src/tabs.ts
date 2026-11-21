@@ -13,7 +13,7 @@ export type TabsBaseProps<Value extends string> = {
 
 /** The classes of the row's root, which is what scrolls. */
 export function tabsClass(fullWidth = false): string {
-  return fullWidth ? "tabs tabs--full-width" : "tabs";
+  return fullWidth ? "acme-tabs acme-tabs--full-width" : "acme-tabs";
 }
 
 /**

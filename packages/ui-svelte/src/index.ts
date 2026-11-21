@@ -30,16 +30,18 @@ export {
   default as DateRangePicker,
   type DateRangePickerProps,
 } from "./DateRangePicker.svelte";
+export { type ComponentDefaults, default as Defaults, type DefaultsProps } from "./Defaults.svelte";
 export { default as Dialog, type DialogProps } from "./Dialog.svelte";
-export { default as Divider } from "./Divider.svelte";
+export { default as Divider, type DividerProps } from "./Divider.svelte";
 export { default as EmptyState, type EmptyStateProps } from "./EmptyState.svelte";
 export { default as Icon, type IconProps } from "./Icon.svelte";
 export { default as IconButton, type IconButtonProps } from "./IconButton.svelte";
 export { default as ListRow, type ListRowProps } from "./ListRow.svelte";
 export { default as MediaCard, type MediaCardProps } from "./MediaCard.svelte";
 export { default as Menu, type MenuItem, type MenuProps } from "./Menu.svelte";
-export { default as ProgressBar } from "./ProgressBar.svelte";
+export { default as ProgressBar, type ProgressBarProps } from "./ProgressBar.svelte";
 export { default as RadioGroup, type RadioGroupProps, type RadioOption } from "./RadioGroup.svelte";
+export type { RootProps } from "./root.ts";
 export { default as SearchField, type SearchFieldProps } from "./SearchField.svelte";
 export { default as SectionHeader, type SectionHeaderProps } from "./SectionHeader.svelte";
 export { default as SegmentedControl, type SegmentedControlProps } from "./SegmentedControl.svelte";

@@ -1,17 +1,20 @@
-import { BUTTON_ICON, type ButtonBaseProps, buttonClass, isHeld } from "@acme/ui-core";
+import { BUTTON_ICON, type ButtonBaseProps, buttonClass, classes, isHeld } from "@acme/ui-core";
 import type { JSX } from "@solidjs/web";
 import { children, createMemo, type Element, Show } from "solid-js";
+import { useDefaults } from "./Defaults.tsx";
 import { Icon } from "./Icon.tsx";
+import type { RootProps } from "./root.ts";
 import { Spinner } from "./Spinner.tsx";
 import { withTrigger } from "./trigger.ts";
 
 export type { ButtonVariant, ControlSize } from "@acme/ui-core";
 
-export type ButtonProps = ButtonBaseProps & {
-  onPress?: () => void;
-  /** Leave it out for a button that holds only an icon, and name that one with `aria-label`. */
-  children?: Element;
-};
+export type ButtonProps = ButtonBaseProps &
+  RootProps & {
+    onPress?: () => void;
+    /** Leave it out for a button that holds only an icon, and name that one with `aria-label`. */
+    children?: Element;
+  };
 
 /**
  * A native button. It also opens a Menu or a Tooltip it is the trigger of: their props reach
@@ -20,20 +23,27 @@ export type ButtonProps = ButtonBaseProps & {
 export function Button(props: ButtonProps) {
   // Read once: each read of a JSX prop creates its nodes again.
   const label = children(() => props.children);
-  const variant = () => props.variant ?? "secondary";
-  const size = () => props.size ?? "md";
+  const defaults = useDefaults("Button");
+  const variant = () => props.variant ?? defaults().variant ?? "secondary";
+  const size = () => props.size ?? defaults().size ?? "md";
   const icon = () => BUTTON_ICON[size()];
   const held = () =>
     isHeld({ variant: variant(), selected: props.selected, disabled: props.disabled });
   const attributes = withTrigger(
     createMemo((): JSX.ButtonHTMLAttributes<HTMLButtonElement> => ({
       type: props.type ?? "button",
-      class: buttonClass({
-        variant: variant(),
-        size: size(),
-        iconOnly: label() == null && (props.iconStart !== undefined || props.iconEnd !== undefined),
-        fullWidth: props.fullWidth ?? false,
-      }),
+      // Its root part, `acme-button`, is in the recipe.
+      class: classes(
+        buttonClass({
+          variant: variant(),
+          size: size(),
+          iconOnly:
+            label() == null && (props.iconStart !== undefined || props.iconEnd !== undefined),
+          fullWidth: props.fullWidth ?? false,
+        }),
+        props.class,
+      ),
+      style: props.style,
       disabled: props.disabled,
       // Loading keeps the button focusable, so focus is not lost while it waits.
       "aria-disabled": props.loading ? "true" : undefined,

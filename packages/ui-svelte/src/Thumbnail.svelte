@@ -5,31 +5,46 @@
 -->
 <script module lang="ts">
   import type { ThumbnailBaseProps } from "@acme/ui-core";
+  import type { RootProps } from "./root.ts";
 
   export type { ThumbnailRatio } from "@acme/ui-core";
 
-  export type ThumbnailProps = ThumbnailBaseProps;
+  export type ThumbnailProps = ThumbnailBaseProps & RootProps;
 </script>
 
 <script lang="ts">
   import {
+    classes,
     pictureClass,
+    rootPart,
     THUMBNAIL_PARTS,
     thumbnailBadgeClass,
     thumbnailClass,
     thumbnailWatched,
   } from "@acme/ui-core";
   import Badge from "./Badge.svelte";
+  import { useDefaults } from "./defaults.svelte.ts";
   import Icon from "./Icon.svelte";
   import { createPicture } from "./picture.svelte.ts";
 
-  let { src, alt, ratio, badge, progress }: ThumbnailProps = $props();
+  let {
+    src,
+    alt,
+    ratio: ownRatio,
+    badge,
+    progress,
+    class: className,
+    style,
+  }: ThumbnailProps = $props();
+
+  const defaults = useDefaults("Thumbnail");
+  const ratio = $derived(ownRatio ?? defaults().ratio);
 
   const picture = createPicture(() => src);
   const watched = $derived(thumbnailWatched(progress));
 </script>
 
-<span class={thumbnailClass(ratio)}>
+<span class={classes(rootPart("Thumbnail"), thumbnailClass(ratio), className)} {style}>
   <!-- The placeholder is the picture's stand-in for assistive technology too, so the description
        is on the box that always shows, not on the picture that may not. -->
   <span

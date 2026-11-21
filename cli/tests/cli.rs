@@ -46,6 +46,7 @@ fn every_command_has_help() {
         vec!["add", "--help"],
         vec!["theme", "--help"],
         vec!["check-theme", "--help"],
+        vec!["export-theme", "--help"],
         vec!["tokens", "--help"],
         vec!["components", "--help"],
         vec!["contrast", "--help"],
@@ -696,6 +697,79 @@ fn mcp_serves_the_tools_over_stdio() {
 
     drop(stdin);
     assert!(child.wait().expect("xds mcp exits").success());
+}
+
+#[test]
+fn exports_a_checked_theme_as_a_stylesheet_for_the_library_or_a_project() {
+    let temp = TempDir::new().unwrap();
+    let theme = temp.path().join("Brand Theme.json");
+    let project = temp.path().join("my-project");
+    let (created, _, stderr) = run(xds().arg("create").arg(&project).args([
+        "--name",
+        "orbit",
+        "--targets",
+        "web-react",
+        "--yes",
+    ]));
+    assert!(created.status.success(), "{stderr}");
+    let version = env!("CARGO_PKG_VERSION");
+    let mut file = serde_json::json!({ "version": version, "preset": "ocean" });
+    fs::write(&theme, file.to_string()).unwrap();
+
+    // Outside a project the stylesheet is for the published library.
+    let (output, stdout, stderr) = run(xds()
+        .current_dir(temp.path())
+        .arg("export-theme")
+        .arg(&theme));
+    assert!(output.status.success(), "{stderr}");
+    assert!(stdout.contains("@layer xds.theme {"), "{stdout}");
+    assert!(
+        stdout.contains(r#"[data-xds-theme="brand-theme"] {"#),
+        "{stdout}"
+    );
+    assert!(stdout.contains("--xds-color-accent-default: "), "{stdout}");
+    assert!(stdout.contains("@media (pointer: coarse)"), "{stdout}");
+    assert!(!stdout.contains("acme"), "{stdout}");
+
+    // In a project it carries the project's name and sits in no layer.
+    let css = temp.path().join("brand.css");
+    let (output, stdout, stderr) = run(xds()
+        .current_dir(&project)
+        .args(["--json", "export-theme", "--name", "brand", "--out"])
+        .arg(&css)
+        .arg(&theme));
+    assert!(output.status.success(), "{stderr}");
+    let report: Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(report["source"], "project");
+    assert_eq!(report["name"], "brand");
+    let written = fs::read_to_string(&css).unwrap();
+    assert!(
+        written.contains(r#":root[data-orbit-theme="brand"],"#),
+        "{written}"
+    );
+    assert!(written.contains("--orbit-size-control-md: "), "{written}");
+    assert!(!written.contains("@layer"), "{written}");
+
+    // A theme that fails a contrast check is not written.
+    fs::remove_file(&css).unwrap();
+    file["light"] = serde_json::json!({ "color.text.primary": "{color.background.base}" });
+    fs::write(&theme, file.to_string()).unwrap();
+    let (output, stdout, _) = run(xds()
+        .current_dir(&project)
+        .args(["--json", "export-theme", "--out"])
+        .arg(&css)
+        .arg(&theme));
+    assert_eq!(output.status.code(), Some(1));
+    let report: Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(report["ok"], false);
+    assert!(!css.exists());
+
+    let (output, _, stderr) = run(xds()
+        .current_dir(temp.path())
+        .args(["export-theme", "--name", "Not a name"])
+        .arg(&theme));
+    assert_eq!(output.status.code(), Some(1));
+    assert!(stderr.contains("lowercase letters"), "{stderr}");
 }
 
 #[test]

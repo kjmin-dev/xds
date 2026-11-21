@@ -294,6 +294,17 @@ Use the version and dotted token names from `design/theme-contract.json`, genera
 
 Exit code 0 means every pair passed in both modes. To see a failure, set the light field text to `"{color.field.background}"`. The command exits with 1 and reports the foreground, layered background, mode, ratio and required minimum. With `--json`, contrast failures produce `ok: false` and a `failures` list on stdout. Malformed JSON, unknown tokens or presets, invalid values and version mismatches produce an error on stderr. For older scaffolds without a versioned contract, xds derives the paths and types from their tokens and uses the running CLI version.
 
+### `xds export-theme <file>`
+
+Checks a theme file as `check-theme` does and, if every contrast pair passes, writes it as a stylesheet. The stylesheet sets every token as a custom property on the elements that name the theme: the root element for the whole page, or any element for its contents.
+
+```sh
+xds export-theme brand.json -o brand.css
+xds export-theme brand.json --name checkout
+```
+
+The theme is named after the file (`Brand Theme.json` becomes `brand-theme`) unless `--name` is given. Without `--out`, the stylesheet is written to stdout, or to the `css` field with `--json`. Outside a project, the stylesheet is for [the web library](web-library.md): its custom properties are `--xds-*`, it applies to `data-xds-theme="<name>"`, and it sits in the library's `xds.theme` cascade layer. In a project, the names use the project's name (`--orbit-*`, `data-orbit-theme`) and no layer, beside the project's own token file. A theme that fails a contrast check is not written. The command then exits with 1 and reports the failures as `check-theme` does.
+
 ### `xds doctor`
 
 Runs a set of health checks on a project and reports each one as `ok`, `warning`, `failed`, or `skipped`:
@@ -331,7 +342,7 @@ Errors are written to stderr as a single JSON document:
 { "error": { "kind": "error", "message": "There is no theme \"nope\". Themes: forest, indigo, ocean, plum, sunset" } }
 ```
 
-`kind` is `error`, `usage` (for invalid arguments), or `cancelled`. A failing check (`doctor`, `check-theme` or `contrast --min`) is treated as a normal result rather than an error: it is written to stdout with `"ok": false`.
+`kind` is `error`, `usage` (for invalid arguments), or `cancelled`. A failing check (`doctor`, `check-theme`, `export-theme` or `contrast --min`) is treated as a normal result rather than an error: it is written to stdout with `"ok": false`.
 
 ### Exit codes
 

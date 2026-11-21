@@ -8,25 +8,37 @@
 -->
 <script module lang="ts">
   import {
+    classes,
+    rootPart,
     type SwitchBaseProps,
     switchClass,
     switchLabelClass,
     switchThumbClass,
     switchTrackClass,
   } from "@acme/ui-core";
+  import type { RootProps } from "./root.ts";
 
-  export type SwitchProps = SwitchBaseProps & {
-    onChange: (checked: boolean) => void;
-  };
+  export type SwitchProps = SwitchBaseProps &
+    RootProps & {
+      onChange: (checked: boolean) => void;
+    };
 </script>
 
 <script lang="ts">
   import { keepChecked } from "./controlled.ts";
 
-  let { checked, label, "aria-label": ariaLabel, disabled, onChange }: SwitchProps = $props();
+  let {
+    checked,
+    label,
+    "aria-label": ariaLabel,
+    disabled,
+    onChange,
+    class: className,
+    style,
+  }: SwitchProps = $props();
 </script>
 
-<label class={switchClass}>
+<label class={classes(rootPart("Switch"), switchClass, className)} {style}>
   <input
     type="checkbox"
     role="switch"

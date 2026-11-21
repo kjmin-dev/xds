@@ -1,21 +1,27 @@
 import {
+  classes,
   LIST_ROW_PARTS,
   type ListRowBaseProps,
   listRowClass,
   listRowDescriptionClass,
   listRowTitleClass,
+  rootPart,
 } from "@acme/ui-core";
 import { type Element, Show } from "solid-js";
 import { Icon } from "./Icon.tsx";
+import type { RootProps } from "./root.ts";
 
-export type ListRowProps = ListRowBaseProps & {
-  /** In front of the title: an avatar or an icon. */
-  leading?: Element;
-  /** At the far end: a value, a badge or a switch. */
-  trailing?: Element;
-  /** Makes the whole row a button. Do not put another control in `trailing` then. */
-  onPress?: () => void;
-};
+export type ListRowProps = ListRowBaseProps &
+  RootProps & {
+    /** In front of the title: an avatar or an icon. */
+    leading?: Element;
+    /** At the far end: a value, a badge or a switch. */
+    trailing?: Element;
+    /** Makes the whole row a button. Do not put another control in `trailing` then. */
+    onPress?: () => void;
+  };
+
+const ROOT = rootPart("ListRow");
 
 /** One line of a list or a settings screen. Separate rows with a Divider. */
 export function ListRow(props: ListRowProps) {
@@ -31,7 +37,11 @@ export function PlaceRow(props: ListRowProps & { current: "true" | "page" }) {
   const pressable = () => props.onPress !== undefined;
   const current = () => (props.selected ? props.current : undefined);
   const row = () =>
-    listRowClass({ compact: props.compact, selected: props.selected, pressable: pressable() });
+    classes(
+      ROOT,
+      listRowClass({ compact: props.compact, selected: props.selected, pressable: pressable() }),
+      props.class,
+    );
   const content = () => (
     <>
       {props.leading}
@@ -61,7 +71,7 @@ export function PlaceRow(props: ListRowProps & { current: "true" | "page" }) {
     <Show
       when={pressable()}
       fallback={
-        <div aria-current={current()} class={row()}>
+        <div aria-current={current()} class={row()} style={props.style}>
           {content()}
         </div>
       }
@@ -72,6 +82,7 @@ export function PlaceRow(props: ListRowProps & { current: "true" | "page" }) {
         disabled={props.disabled}
         onClick={() => props.onPress?.()}
         class={row()}
+        style={props.style}
       >
         {content()}
       </button>

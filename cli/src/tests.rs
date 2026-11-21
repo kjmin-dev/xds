@@ -2218,8 +2218,12 @@ fn the_component_contract_matches_the_code() {
                 // A single-file component is its module's default export.
                 .map(|name| name.strip_prefix("default as ").unwrap_or(name))
             {
-                // Types and hooks are not components.
-                if name.starts_with("type ") || !name.starts_with(char::is_uppercase) {
+                // Types and hooks are not components, and neither is `Defaults`, which gives the
+                // components inside it their default options.
+                if name.starts_with("type ")
+                    || !name.starts_with(char::is_uppercase)
+                    || name == "Defaults"
+                {
                     continue;
                 }
                 assert!(

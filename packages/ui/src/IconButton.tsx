@@ -1,11 +1,20 @@
-import { buttonClass, ICON_BUTTON_BOX, type IconButtonBaseProps, isHeld } from "@acme/ui-core";
+import {
+  buttonClass,
+  classes,
+  ICON_BUTTON_BOX,
+  type IconButtonBaseProps,
+  isHeld,
+} from "@acme/ui-core";
+import { useDefaults } from "./Defaults.tsx";
 import { Icon } from "./Icon.tsx";
+import type { RootProps } from "./root.ts";
 import { Spinner } from "./Spinner.tsx";
 import { useTrigger } from "./trigger.ts";
 
-export type IconButtonProps = IconButtonBaseProps & {
-  onPress?: () => void;
-};
+export type IconButtonProps = IconButtonBaseProps &
+  RootProps & {
+    onPress?: () => void;
+  };
 
 /**
  * A button that holds only an icon, in Button's variants, sizes and states. It is a square as
@@ -13,19 +22,25 @@ export type IconButtonProps = IconButtonBaseProps & {
  * target, even when the square is. Like Button, it opens a Menu or a Tooltip it is the trigger
  * of.
  */
-export function IconButton({
-  icon,
-  label,
-  variant = "ghost",
-  size = "md",
-  selected,
-  disabled = false,
-  loading = false,
-  onPress,
-}: IconButtonProps) {
+export function IconButton(props: IconButtonProps) {
+  const defaults = useDefaults("IconButton");
+  const {
+    icon,
+    label,
+    variant = defaults.variant ?? "ghost",
+    size = defaults.size ?? "md",
+    selected,
+    disabled = false,
+    loading = false,
+    onPress,
+    className,
+    style,
+  } = props;
   const attributes = useTrigger(
     {
-      className: buttonClass({ variant, size, iconButton: true }),
+      // The recipe gives the root part, `acme-icon-button`.
+      className: classes(buttonClass({ variant, size, iconButton: true }), className),
+      style,
       disabled,
       "aria-disabled": loading || undefined,
       "data-pending": loading ? "" : undefined,

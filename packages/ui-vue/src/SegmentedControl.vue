@@ -4,6 +4,8 @@
 //
 // It is a group of native radio buttons, so the arrow keys move between segments.
 import {
+  classes,
+  rootPart,
   type SegmentedControlBaseProps,
   segmentedControlClass,
   segmentedControlOptionClass,
@@ -40,7 +42,7 @@ function choose(option: Value) {
     ref="group"
     :aria-label="ariaLabel"
     role="radiogroup"
-    :class="segmentedControlClass(fullWidth)"
+    :class="classes(rootPart('SegmentedControl'), segmentedControlClass(fullWidth))"
   >
     <label
       v-for="option in options"

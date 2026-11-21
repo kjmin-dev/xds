@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // What a screen or a list says when it has nothing to show. It centers itself in its container,
 // also vertically when the container is a flex box with room to spare.
-import { EMPTY_STATE_PARTS, type EmptyStateBaseProps } from "@acme/ui-core";
+import { classes, EMPTY_STATE_PARTS, type EmptyStateBaseProps, rootPart } from "@acme/ui-core";
 import Icon from "./Icon.vue";
 
 export type EmptyStateProps = EmptyStateBaseProps;
@@ -14,7 +14,7 @@ const slots = defineSlots<{
 </script>
 
 <template>
-  <div :class="EMPTY_STATE_PARTS.root">
+  <div :class="classes(rootPart('EmptyState'), EMPTY_STATE_PARTS.root)">
     <Icon :name="icon" size="xl" :class="EMPTY_STATE_PARTS.icon" />
     <p :class="EMPTY_STATE_PARTS.title">{{ title }}</p>
     <p v-if="description" :class="EMPTY_STATE_PARTS.description">{{ description }}</p>

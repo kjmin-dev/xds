@@ -10,20 +10,24 @@
 <script module lang="ts">
   import type { SidebarBaseProps } from "@acme/ui-core";
   import type { Snippet } from "svelte";
+  import type { RootProps } from "./root.ts";
 
   export type { SidebarItem, SidebarSection } from "@acme/ui-core";
 
-  export type SidebarProps<Value extends string = string> = SidebarBaseProps<Value> & {
-    onChange: (value: Value) => void;
-    /** At the top, such as the app's name. It has to fit the rail itself while collapsed. */
-    header?: Snippet;
-    /** At the bottom, such as an account row. It has to fit the rail itself while collapsed. */
-    footer?: Snippet;
-  };
+  export type SidebarProps<Value extends string = string> = SidebarBaseProps<Value> &
+    RootProps & {
+      onChange: (value: Value) => void;
+      /** At the top, such as the app's name. It has to fit the rail itself while collapsed. */
+      header?: Snippet;
+      /** At the bottom, such as an account row. It has to fit the rail itself while collapsed. */
+      footer?: Snippet;
+    };
 </script>
 
 <script lang="ts" generics="Value extends string = string">
   import {
+    classes,
+    rootPart,
     SIDEBAR_PARTS,
     sidebarClass,
     sidebarCount,
@@ -45,12 +49,18 @@
     onChange,
     header,
     footer,
+    class: className,
+    style,
   }: SidebarProps<Value> = $props();
 
   const id = $props.id();
 </script>
 
-<nav aria-label={label} class={sidebarClass(collapsed)}>
+<nav
+  aria-label={label}
+  class={classes(rootPart("Sidebar"), sidebarClass(collapsed), className)}
+  {style}
+>
   {#if header}
     <div class={SIDEBAR_PARTS.edge}>{@render header()}</div>
   {/if}

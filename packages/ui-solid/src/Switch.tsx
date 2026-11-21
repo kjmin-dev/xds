@@ -1,4 +1,6 @@
 import {
+  classes,
+  rootPart,
   type SwitchBaseProps,
   switchClass,
   switchLabelClass,
@@ -7,10 +9,14 @@ import {
 } from "@acme/ui-core";
 import { Show } from "solid-js";
 import { keepChecked } from "./controlled.ts";
+import type { RootProps } from "./root.ts";
 
-export type SwitchProps = SwitchBaseProps & {
-  onChange: (checked: boolean) => void;
-};
+export type SwitchProps = SwitchBaseProps &
+  RootProps & {
+    onChange: (checked: boolean) => void;
+  };
+
+const ROOT = rootPart("Switch");
 
 /**
  * Turns a setting on or off, and takes effect at once. For a choice that is applied later,
@@ -21,7 +27,7 @@ export type SwitchProps = SwitchBaseProps & {
  */
 export function Switch(props: SwitchProps) {
   return (
-    <label class={switchClass}>
+    <label class={classes(ROOT, switchClass, props.class)} style={props.style}>
       <input
         type="checkbox"
         role="switch"

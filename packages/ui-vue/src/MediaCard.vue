@@ -6,13 +6,16 @@
 // title followed by the details. `action` is a separate control beside it, so pressing it does
 // not press the card.
 import {
+  classes,
   MEDIA_CARD_PARTS,
   type MediaCardBaseProps,
   mediaCardContentClass,
   mediaCardIds,
   mediaCardThumbnailClass,
+  rootPart,
 } from "@acme/ui-core";
 import { computed, useId } from "vue";
+import { useDefaults } from "./defaults.ts";
 import Thumbnail from "./Thumbnail.vue";
 
 export type MediaCardProps = MediaCardBaseProps & {
@@ -26,10 +29,11 @@ export type MediaCardProps = MediaCardBaseProps & {
 const {
   title,
   meta,
-  layout = "vertical",
+  layout,
   src,
   alt = "",
-  ratio,
+  // The card's own ratio, not one the app gives its other thumbnails.
+  ratio = "16:9",
   badge,
   progress,
   onPress,
@@ -43,7 +47,8 @@ const slots = defineSlots<{
 
 const id = useId();
 const ids = computed(() => mediaCardIds(id, meta));
-const horizontal = computed(() => layout === "horizontal");
+const options = useDefaults("MediaCard", () => ({ layout }), { layout: "vertical" });
+const horizontal = computed(() => options.value.layout === "horizontal");
 const pressable = computed(() => onPress !== undefined);
 // On a pressable card the button says all of this, so the parts are hidden from assistive
 // technology and only the action is left beside it.
@@ -52,8 +57,12 @@ const hidden = computed(() => (pressable.value ? "true" : undefined));
 // itself to its content, which would undo the ellipses.
 const root = computed(() =>
   pressable.value
-    ? { class: MEDIA_CARD_PARTS.pressable }
-    : { role: "group", "aria-labelledby": ids.value.names, class: MEDIA_CARD_PARTS.group },
+    ? { class: classes(rootPart("MediaCard"), MEDIA_CARD_PARTS.pressable) }
+    : {
+        role: "group",
+        "aria-labelledby": ids.value.names,
+        class: classes(rootPart("MediaCard"), MEDIA_CARD_PARTS.group),
+      },
 );
 </script>
 

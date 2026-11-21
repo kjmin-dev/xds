@@ -1,4 +1,5 @@
 import {
+  classes,
   focusThumbOnPress,
   type SliderBaseProps,
   sliderArrowValue,
@@ -8,10 +9,12 @@ import {
 import * as slider from "@zag-js/slider";
 import { mergeProps, normalizeProps, useMachine } from "@zag-js/solid";
 import { createMemo, createUniqueId, Show } from "solid-js";
+import { type RootProps, withStyle } from "./root.ts";
 
-export type SliderProps = SliderBaseProps & {
-  onChange: (value: number) => void;
-};
+export type SliderProps = SliderBaseProps &
+  RootProps & {
+    onChange: (value: number) => void;
+  };
 
 /**
  * Picks a number in a range by dragging the thumb, or by pressing the track where it should
@@ -42,6 +45,10 @@ export function Slider(props: SliderProps) {
     getAriaValueText: (details: { value: number }) => sliderValueText(details.value),
   }));
   const api = createMemo(() => slider.connect(service, normalizeProps));
+  const root = withStyle(
+    () => api().getRootProps(),
+    () => props.style,
+  );
   const thumb = mergeProps(() => api().getThumbProps({ index: 0 }), {
     // Zag gives `draggable: false`, and Solid removes an attribute whose value is false.
     // `draggable` is not a boolean attribute: without it the thumb is "auto", so "false" has
@@ -71,26 +78,26 @@ export function Slider(props: SliderProps) {
     // A group named by the label, around the label, the value and the slider. Not a fieldset:
     // that is for a set of fields, and this is one slider and its label.
     <div
-      {...api().getRootProps()}
+      {...root}
       role="group"
       aria-labelledby={api().getLabelProps().id}
-      class="slider"
+      class={classes("acme-slider", props.class)}
     >
       {/* Zag's props give it `for`, the hidden input's id. */}
-      <label {...api().getLabelProps()} class="slider__label">
+      <label {...api().getLabelProps()} class="acme-slider__label">
         {props.label}
       </label>
       <Show when={props.showValue}>
         {/* Read when asked for, not at every step: the slider itself announces its value. */}
-        <output {...api().getValueTextProps()} aria-live="off" class="slider__output">
+        <output {...api().getValueTextProps()} aria-live="off" class="acme-slider__output">
           {sliderValueText(api().value[0] ?? props.value)}
         </output>
       </Show>
-      <div {...control} class="slider__control">
-        <div {...api().getTrackProps()} class="slider__track">
-          <div {...api().getRangeProps()} class="slider__range" />
+      <div {...control} class="acme-slider__control">
+        <div {...api().getTrackProps()} class="acme-slider__track">
+          <div {...api().getRangeProps()} class="acme-slider__range" />
         </div>
-        <div {...thumb} ref={(element) => (thumbElement = element)} class="slider__thumb">
+        <div {...thumb} ref={(element) => (thumbElement = element)} class="acme-slider__thumb">
           <input {...api().getHiddenInputProps({ index: 0 })} />
         </div>
       </div>

@@ -6,18 +6,24 @@
 -->
 <script module lang="ts">
   import type { SpinnerBaseProps } from "@acme/ui-core";
+  import type { RootProps } from "./root.ts";
 
-  export type SpinnerProps = SpinnerBaseProps;
+  export type SpinnerProps = SpinnerBaseProps & RootProps;
 </script>
 
 <script lang="ts">
-  import { spinnerClass } from "@acme/ui-core";
+  import { classes, rootPart, spinnerClass } from "@acme/ui-core";
+  import { useDefaults } from "./defaults.svelte.ts";
 
-  let { size, label }: SpinnerProps = $props();
+  let { size: ownSize, label, class: className, style }: SpinnerProps = $props();
+
+  const defaults = useDefaults("Spinner");
+  const size = $derived(ownSize ?? defaults().size);
 </script>
 
 <span
-  class="inline-flex shrink-0"
+  class={classes(rootPart("Spinner"), "inline-flex shrink-0", className)}
+  {style}
   role={label ? "status" : undefined}
   aria-label={label || undefined}
   aria-hidden={label ? undefined : "true"}

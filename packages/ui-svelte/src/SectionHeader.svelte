@@ -5,22 +5,32 @@
 -->
 <script module lang="ts">
   import type { SectionHeaderBaseProps } from "@acme/ui-core";
+  import type { RootProps } from "./root.ts";
 
-  export type SectionHeaderProps = SectionHeaderBaseProps & {
-    /** A link-like action at the end, such as "See all". */
-    action?: { label: string; onPress: () => void };
-  };
+  export type SectionHeaderProps = SectionHeaderBaseProps &
+    RootProps & {
+      /** A link-like action at the end, such as "See all". */
+      action?: { label: string; onPress: () => void };
+    };
 </script>
 
 <script lang="ts">
-  import { SECTION_HEADER_PARTS } from "@acme/ui-core";
+  import { classes, rootPart, SECTION_HEADER_PARTS } from "@acme/ui-core";
   import Button from "./Button.svelte";
   import Icon from "./Icon.svelte";
 
-  let { title, description, icon, level = 2, action }: SectionHeaderProps = $props();
+  let {
+    title,
+    description,
+    icon,
+    level = 2,
+    action,
+    class: className,
+    style,
+  }: SectionHeaderProps = $props();
 </script>
 
-<div class={SECTION_HEADER_PARTS.root}>
+<div class={classes(rootPart("SectionHeader"), SECTION_HEADER_PARTS.root, className)} {style}>
   <div class={SECTION_HEADER_PARTS.lead}>
     {#if icon}
       <span class={SECTION_HEADER_PARTS.icon}><Icon name={icon} size="md" /></span>

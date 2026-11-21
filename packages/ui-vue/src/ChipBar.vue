@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // One row of chips. It scrolls sideways when the chips do not fit and never wraps, so the
 // content under it stays where it is.
-import { type ChipBarBaseProps, chipBarClass } from "@acme/ui-core";
+import { type ChipBarBaseProps, chipBarClass, classes, rootPart } from "@acme/ui-core";
 
 export type ChipBarProps = ChipBarBaseProps;
 
@@ -14,5 +14,7 @@ defineSlots<{
 
 <template>
   <!-- A group, not a fieldset: a fieldset cannot be a scrolling flex row in every browser. -->
-  <div role="group" :aria-label="label" :class="chipBarClass"><slot /></div>
+  <div role="group" :aria-label="label" :class="classes(rootPart('ChipBar'), chipBarClass)">
+    <slot />
+  </div>
 </template>

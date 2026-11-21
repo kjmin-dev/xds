@@ -4,7 +4,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { checkContrast, contrastRatio } from "./contrast.ts";
-import { emitCss, emitDart, emitKotlin, emitRust, emitTailwind, emitTypeScript } from "./emit.ts";
+import {
+  emitCss,
+  emitDart,
+  emitKotlin,
+  emitRust,
+  emitTailwind,
+  emitThemeCss,
+  emitTypeScript,
+} from "./emit.ts";
 import { loadModel, type Model, TokenError } from "./model.ts";
 import { listThemes } from "./themes.ts";
 
@@ -367,4 +375,28 @@ test("Dart emits both color modes, touch and pointer sizes, and typed glass valu
   assert.match(out, /static const touch = SizeTokens\(/);
   assert.match(out, /static const pointer = SizeTokens\(/);
   assert.match(out, /static const double saturation = 1\.8;/);
+});
+
+test("a theme stylesheet sets every token on the elements that name the theme", async () => {
+  const model = await loadModel(tokensDir, join(root, "design/themes/ocean.json"));
+  const css = emitThemeCss(model, {
+    name: "ocean",
+    source: "ocean.json",
+    prefix: "xds",
+    layer: "xds.theme",
+  });
+  assert.ok(
+    css.includes(
+      '@layer xds.theme {\n  :root[data-xds-theme="ocean"],\n  [data-xds-theme="ocean"] {\n',
+    ),
+  );
+  assert.doesNotMatch(css, /acme/);
+  // The same declarations as the project's token file, renamed: nothing is left out.
+  const declarations = (text: string) =>
+    [...text.matchAll(/^\s+(--[\w-]+): (.+);$/gm)].map((m) => `${m[1]}: ${m[2]}`);
+  assert.deepEqual(declarations(css), declarations(emitCss(model).replaceAll("--acme-", "--xds-")));
+  const unlayered = emitThemeCss(model, { name: "ocean", source: "ocean.json" });
+  assert.ok(unlayered.includes('\n:root[data-acme-theme="ocean"],\n'));
+  assert.doesNotMatch(unlayered, /@layer/);
+  assert.throws(() => emitThemeCss(model, { name: "Ocean Blue", source: "x" }), TokenError);
 });

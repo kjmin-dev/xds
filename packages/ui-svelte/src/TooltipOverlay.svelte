@@ -6,19 +6,23 @@
 -->
 <script lang="ts">
   import { motion, space } from "@acme/tokens";
-  import { normalizeProps, useMachine } from "@zag-js/svelte";
+  import { classes } from "@acme/ui-core";
+  import { mergeProps, normalizeProps, useMachine } from "@zag-js/svelte";
   import * as tooltip from "@zag-js/tooltip";
   import type { Snippet } from "svelte";
   import Portal from "./Portal.svelte";
   import { createPresence } from "./presence.svelte.ts";
+  import type { RootProps } from "./root.ts";
   import { provideTrigger, type TriggerProps } from "./trigger.svelte.ts";
 
   let {
     label,
     shortcut,
     placement,
+    class: className,
+    style,
     children,
-  }: {
+  }: RootProps & {
     label: string;
     shortcut?: string | undefined;
     placement: () => tooltip.Placement;
@@ -48,10 +52,14 @@
 {@render children()}
 {#if present()}
   <Portal>
-    <div {...api.getPositionerProps()} class="tooltip__positioner">
+    <div {...api.getPositionerProps()} class="acme-tooltip__positioner">
       <!-- Shown until its exit animation ends; Zag would hide it as it closes. -->
-      <div {...api.getContentProps()} bind:this={content} hidden={false} class="tooltip">
-        {label}{#if shortcut}<kbd class="tooltip__shortcut">{shortcut}</kbd>{/if}
+      <div
+        {...mergeProps(api.getContentProps(), { class: classes("acme-tooltip", className), style })}
+        bind:this={content}
+        hidden={false}
+      >
+        {label}{#if shortcut}<kbd class="acme-tooltip__shortcut">{shortcut}</kbd>{/if}
       </div>
     </div>
   </Portal>

@@ -1,44 +1,56 @@
-import { BUTTON_ICON, type ButtonBaseProps, buttonClass, isHeld } from "@acme/ui-core";
+import { BUTTON_ICON, type ButtonBaseProps, buttonClass, classes, isHeld } from "@acme/ui-core";
 import type { ReactNode } from "react";
+import { useDefaults } from "./Defaults.tsx";
 import { Icon } from "./Icon.tsx";
+import type { RootProps } from "./root.ts";
 import { Spinner } from "./Spinner.tsx";
 import { useTrigger } from "./trigger.ts";
 
 export type { ButtonVariant, ControlSize } from "@acme/ui-core";
 
-export type ButtonProps = ButtonBaseProps & {
-  onPress?: () => void;
-  /** Leave it out for a button that holds only an icon, and name that one with `aria-label`. */
-  children?: ReactNode;
-};
+export type ButtonProps = ButtonBaseProps &
+  RootProps & {
+    onPress?: () => void;
+    /** Leave it out for a button that holds only an icon, and name that one with `aria-label`. */
+    children?: ReactNode;
+  };
 
 /**
  * A native button. It also opens a Menu or a Tooltip it is the trigger of: their props reach
  * it through context.
  */
-export function Button({
-  variant = "secondary",
-  size = "md",
-  iconStart,
-  iconEnd,
-  selected,
-  disabled = false,
-  loading = false,
-  fullWidth = false,
-  type = "button",
-  onPress,
-  "aria-label": label,
-  children,
-}: ButtonProps) {
+export function Button(props: ButtonProps) {
+  const defaults = useDefaults("Button");
+  const {
+    variant = defaults.variant ?? "secondary",
+    size = defaults.size ?? "md",
+    iconStart,
+    iconEnd,
+    selected,
+    disabled = false,
+    loading = false,
+    fullWidth = false,
+    type = "button",
+    onPress,
+    "aria-label": label,
+    className,
+    style,
+    children,
+  } = props;
   const icon = BUTTON_ICON[size];
   const attributes = useTrigger(
     {
-      className: buttonClass({
-        variant,
-        size,
-        iconOnly: children == null && (iconStart !== undefined || iconEnd !== undefined),
-        fullWidth,
-      }),
+      // The recipe's first class is the root part, `acme-button`.
+      className: classes(
+        buttonClass({
+          variant,
+          size,
+          iconOnly: children == null && (iconStart !== undefined || iconEnd !== undefined),
+          fullWidth,
+        }),
+        className,
+      ),
+      style,
       disabled,
       // Loading keeps the button focusable, so focus is not lost while it waits.
       "aria-disabled": loading || undefined,

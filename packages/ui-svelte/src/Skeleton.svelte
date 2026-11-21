@@ -8,21 +8,27 @@
 -->
 <script module lang="ts">
   import type { SkeletonBaseProps } from "@acme/ui-core";
+  import type { RootProps } from "./root.ts";
 
-  export type SkeletonProps = SkeletonBaseProps;
+  export type SkeletonProps = SkeletonBaseProps & RootProps;
 </script>
 
 <script lang="ts">
-  import { skeletonClass, skeletonSize } from "@acme/ui-core";
+  import { classes, rootPart, skeletonClass, skeletonSize } from "@acme/ui-core";
+  import { useDefaults } from "./defaults.svelte.ts";
 
-  let { shape, width, height }: SkeletonProps = $props();
+  let { shape: ownShape, width, height, class: className, style }: SkeletonProps = $props();
+
+  const defaults = useDefaults("Skeleton");
+  const shape = $derived(ownShape ?? defaults().shape);
 
   const box = $derived(skeletonSize({ shape, width, height }));
 </script>
 
 <span
   aria-hidden="true"
-  class={skeletonClass(shape)}
+  class={classes(rootPart("Skeleton"), skeletonClass(shape), className)}
+  {style}
   style:width={box.width}
   style:height={box.height}
 ></span>

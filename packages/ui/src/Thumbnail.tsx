@@ -1,5 +1,7 @@
 import {
+  classes,
   pictureClass,
+  rootPart,
   THUMBNAIL_PARTS,
   type ThumbnailBaseProps,
   thumbnailBadgeClass,
@@ -7,22 +9,29 @@ import {
   thumbnailWatched,
 } from "@acme/ui-core";
 import { Badge } from "./Badge.tsx";
+import { useDefaults } from "./Defaults.tsx";
 import { Icon } from "./Icon.tsx";
 import { usePicture } from "./picture.ts";
+import type { RootProps } from "./root.ts";
 
 export type { ThumbnailRatio } from "@acme/ui-core";
 
-export type ThumbnailProps = ThumbnailBaseProps;
+export type ThumbnailProps = ThumbnailBaseProps & RootProps;
 
 /**
  * A picture in a fixed shape, for a video, an article or a product. It fills the width it is
  * given and takes its height from `ratio`, and crops the picture to fill it.
  */
-export function Thumbnail({ src, alt, ratio, badge, progress }: ThumbnailProps) {
+export function Thumbnail(props: ThumbnailProps) {
+  const defaults = useDefaults("Thumbnail");
+  const { src, alt, ratio = defaults.ratio, badge, progress, className, style } = props;
   const picture = usePicture(src);
   const watched = thumbnailWatched(progress);
   return (
-    <span className={thumbnailClass(ratio)}>
+    <span
+      className={classes(rootPart("Thumbnail"), thumbnailClass(ratio), className)}
+      style={style}
+    >
       {/* The placeholder is the picture's stand-in for assistive technology too, so the
           description is on the box that always shows, not on the picture that may not. */}
       <span

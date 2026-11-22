@@ -13,7 +13,7 @@ import {
   type IsoMonth,
   localDay,
   monthWeeks,
-} from "./datePicker.ts";
+} from "./calendarDays.ts";
 import { type DayMarks, isSelected } from "./dateRange.ts";
 import { Icon } from "./Icon.tsx";
 // The text of the component's own parts takes nothing from an app's `Defaults`.

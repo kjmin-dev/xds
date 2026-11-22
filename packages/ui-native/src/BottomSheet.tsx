@@ -2,6 +2,7 @@ import { type ReactNode, useContext, useEffect, useRef, useState } from "react";
 import {
   Animated,
   Easing,
+  type GestureResponderHandlers,
   Modal,
   PanResponder,
   Pressable,
@@ -257,7 +258,7 @@ function Sheet({
  * that `scrolls` keeps the drags that start on it instead, even at its top: Android's scroll view
  * takes them for itself before the sheet could ask, and both systems then agree.
  */
-export function useListDrags(scrolls: () => boolean) {
+export function useListDrags(scrolls: () => boolean): GestureResponderHandlers {
   // The handlers are made once, so they call the latest `scrolls`.
   const latest = useRef(scrolls);
   latest.current = scrolls;

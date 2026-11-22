@@ -10,7 +10,7 @@ import {
   monthOf,
   type Weekday,
   weekday,
-} from "./datePicker.ts";
+} from "./calendarDays.ts";
 
 /** A range of days, from `start` to `end`, both included. With the same day at both it is one day long. */
 export type DateRange = { start: IsoDate; end: IsoDate };

@@ -296,17 +296,20 @@ Exit code 0 means every pair passed in both modes. To see a failure, set the lig
 
 ### `xds export-theme <file>`
 
-Checks a theme file as `check-theme` does and, if every contrast pair passes, writes it for a client. By default it writes a stylesheet, which sets every token as a custom property on the elements that name the theme: the root element for the whole page, or any element for its contents. With `--format compose`, it writes a Kotlin file that holds the theme as a value for the Compose theme composable.
+Checks a theme file as `check-theme` does and, if every contrast pair passes, writes it for a client. By default it writes a stylesheet, which sets every token as a custom property on the elements that name the theme: the root element for the whole page, or any element for its contents. With `--format compose`, it writes a Kotlin file that holds the theme as a value for the Compose theme composable, and with `--format react-native` a TypeScript module that holds it as a value for the React Native theme provider.
 
 ```sh
 xds export-theme brand.json -o brand.css
 xds export-theme brand.json --name checkout
 xds export-theme brand.json --format compose --package com.example.app.theme -o BrandTheme.kt
+xds export-theme brand.json --format react-native -o brand.ts
 ```
 
-The theme is named after the file (`Brand Theme.json` becomes `brand-theme`) unless `--name` is given. Without `--out`, the file is written to stdout, or to the `css` or `kotlin` field with `--json`. Outside a project, the stylesheet is for [the web library](web-library.md): its custom properties are `--xds-*`, it applies to `data-xds-theme="<name>"`, and it sits in the library's `xds.theme` cascade layer. In a project, the names use the project's name (`--orbit-*`, `data-orbit-theme`) and no layer, beside the project's own token file.
+The theme is named after the file (`Brand Theme.json` becomes `brand-theme`) unless `--name` is given. Without `--out`, the file is written to stdout, or to the `css`, `kotlin` or `typescript` field with `--json`. Outside a project, the stylesheet is for [the web library](web-library.md): its custom properties are `--xds-*`, it applies to `data-xds-theme="<name>"`, and it sits in the library's `xds.theme` cascade layer. In a project, the names use the project's name (`--orbit-*`, `data-orbit-theme`) and no layer, beside the project's own token file.
 
-The Kotlin file declares `val <Name>Theme: Theme` (`brand` becomes `BrandTheme`), with every token's value, in the package `--package` names. Without `--package`, the package is `xds.themes`, or `<name>.themes` in a project. Outside a project, it refers to the types of [the Compose library](compose-library.md) (`xds.tokens`), and an app passes it as `XdsTheme(theme = BrandTheme)`. In a project, it refers to the project's own tokens (`orbit.tokens`), and the project's theme composable takes it the same way. A theme that fails a contrast check is not written. The command then exits with 1 and reports the failures as `check-theme` does.
+The Kotlin file declares `val <Name>Theme: Theme` (`brand` becomes `BrandTheme`), with every token's value, in the package `--package` names. Without `--package`, the package is `xds.themes`, or `<name>.themes` in a project. Outside a project, it refers to the types of [the Compose library](compose-library.md) (`xds.tokens`), and an app passes it as `XdsTheme(theme = BrandTheme)`. In a project, it refers to the project's own tokens (`orbit.tokens`), and the project's theme composable takes it the same way.
+
+The TypeScript module exports `const <name>Theme: Theme` (`brand` becomes `brandTheme`). Outside a project, `Theme` comes from [the React Native library](react-native-library.md), and an app passes the value as `<XdsTheme theme={brandTheme}>`. In a project, it comes from the project's tokens (`@orbit/tokens`), and the project's theme provider takes it the same way. A theme that fails a contrast check is not written. The command then exits with 1 and reports the failures as `check-theme` does.
 
 ### `xds doctor`
 
@@ -508,7 +511,7 @@ git push origin v0.1.0
 
 `.github/workflows/release.yml` builds the release binary for five targets (`aarch64-apple-darwin`, `x86_64-apple-darwin`, `x86_64-unknown-linux-musl`, `aarch64-unknown-linux-musl`, `x86_64-pc-windows-msvc`), attaches `xds-<target>.tar.gz` and its `.sha256` checksum to a GitHub release, and publishes the npm packages. Publishing requires an `NPM_TOKEN` repository secret.
 
-The same workflow publishes the libraries once their consumer checks pass: the web packages to npm, and the Compose library to Maven Central. Maven Central requires four more secrets: `MAVEN_CENTRAL_USERNAME` and `MAVEN_CENTRAL_PASSWORD`, a user token from the Central Portal account that owns the `io.github.kjmin-dev` namespace, and `SIGNING_KEY` and `SIGNING_PASSWORD`, an ASCII-armored PGP secret key and its passphrase. The key's public half must be on a public key server, where Central looks for it.
+The same workflow publishes the libraries once their consumer checks pass: the web packages and the React Native package to npm, and the Compose library to Maven Central. Maven Central requires four more secrets: `MAVEN_CENTRAL_USERNAME` and `MAVEN_CENTRAL_PASSWORD`, a user token from the Central Portal account that owns the `io.github.kjmin-dev` namespace, and `SIGNING_KEY` and `SIGNING_PASSWORD`, an ASCII-armored PGP secret key and its passphrase. The key's public half must be on a public key server, where Central looks for it.
 
 To build the npm packages locally without publishing:
 

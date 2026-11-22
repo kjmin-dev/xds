@@ -91,7 +91,7 @@ JSON 출력 형식과 종료 코드에 대한 자세한 내용은 [CLI 문서](d
 
 시스템 구조의 설계 배경과 최신 오픈소스 디자인 시스템에서 참고한 관례는 [디자인 시스템 문서](docs/design-system.md)(영문)에서 설명합니다.
 
-xds는 두 가지 경로로 앱에 들어갑니다. 스캐폴딩으로 들어가거나, 기존 앱이 플랫폼의 레지스트리에서 설치해 쓰는 패키지로 들어갑니다. 릴리스마다 웹 컴포넌트는 npm([웹 라이브러리](docs/web-library.md), 영문)에, Compose 컴포넌트는 Maven Central([Compose 라이브러리](docs/compose-library.md), 영문)에 게시됩니다. [라이브러리로서의 xds](docs/library.md)(영문)는 모든 레지스트리에 대한 설계입니다. 패키지 이름, 커스터마이징 모델, 버전 정책, 작업 순서를 다룹니다.
+xds는 두 가지 경로로 앱에 들어갑니다. 스캐폴딩으로 들어가거나, 기존 앱이 플랫폼의 레지스트리에서 설치해 쓰는 패키지로 들어갑니다. 릴리스마다 웹과 React Native 컴포넌트는 npm([웹 라이브러리](docs/web-library.md), [React Native 라이브러리](docs/react-native-library.md), 영문)에, Compose 컴포넌트는 Maven Central([Compose 라이브러리](docs/compose-library.md), 영문)에 게시됩니다. [라이브러리로서의 xds](docs/library.md)(영문)는 모든 레지스트리에 대한 설계입니다. 패키지 이름, 커스터마이징 모델, 버전 정책, 작업 순서를 다룹니다.
 
 ## 이 저장소에서 작업하기
 

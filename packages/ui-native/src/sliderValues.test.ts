@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { formatValue, fraction, snap, valueAt } from "./slider.ts";
+import { formatValue, fraction, snap, valueAt } from "./sliderValues.ts";
 
 const PERCENT = { min: 0, max: 100, step: 1 };
 

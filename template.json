@@ -26,6 +26,7 @@
     "docs/library.md",
     "docs/web-library.md",
     "docs/compose-library.md",
+    "docs/react-native-library.md",
     ".github/workflows/release.yml",
     ".github/workflows/docs.yml",
     ".github/workflows/preview.yml",

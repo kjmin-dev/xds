@@ -29,19 +29,24 @@ type Settings = {
 };
 // The glass surfaces draw with Expo's blur, gradient and glass effect modules, which are optional
 // peers: an app without them, such as a React Native app without Expo, gets the opaque material
-// for its bars and sheets, and every other component as it is. Metro lets a require that fails
-// inside a try be missing from the bundle.
-function optional<T>(load: () => T): T | undefined {
-  try {
-    return load();
-  } catch {
-    return undefined;
-  }
-}
-const expo = optional(() => require("expo") as typeof Expo);
-const blur = optional(() => require("expo-blur") as typeof ExpoBlur);
-const effect = optional(() => require("expo-glass-effect") as typeof ExpoGlassEffect);
-const gradient = optional(() => require("expo-linear-gradient") as typeof ExpoLinearGradient);
+// for its bars and sheets, and every other component as it is. Metro lets a module be missing
+// from the bundle when it is required directly inside a `try`, so each one is.
+let expo: typeof Expo | undefined;
+let blur: typeof ExpoBlur | undefined;
+let effect: typeof ExpoGlassEffect | undefined;
+let gradient: typeof ExpoLinearGradient | undefined;
+try {
+  expo = require("expo") as typeof Expo;
+} catch {}
+try {
+  blur = require("expo-blur") as typeof ExpoBlur;
+} catch {}
+try {
+  effect = require("expo-glass-effect") as typeof ExpoGlassEffect;
+} catch {}
+try {
+  gradient = require("expo-linear-gradient") as typeof ExpoLinearGradient;
+} catch {}
 
 const settings = expo?.requireOptionalNativeModule<Settings>("AcmeGlassSettings");
 const subscribe = (changed: () => void) => {

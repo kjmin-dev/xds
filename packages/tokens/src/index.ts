@@ -15,14 +15,17 @@ export type ColorName = keyof (typeof colors)["light"];
 export type FontWeight = 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
 
 /**
- * A type with the shape of `T` that takes any value where `T` has a particular one. A tuple stays
- * a tuple of its length, and a font weight one of the weights a font has.
+ * A type with the shape of `T` that takes any value where `T` has a particular one. A list of
+ * names, such as font families, takes any number of them; a tuple of numbers, such as an
+ * easing curve's, stays that long; a font weight is one of the weights a font has.
  */
 type Widen<T> = T extends string
   ? string
   : T extends number
     ? number
-    : { readonly [Key in keyof T]: Key extends "fontWeight" ? FontWeight : Widen<T[Key]> };
+    : T extends readonly string[]
+      ? readonly string[]
+      : { readonly [Key in keyof T]: Key extends "fontWeight" ? FontWeight : Widen<T[Key]> };
 
 /**
  * A full set of token values: the colors of both modes, the sizes of both input devices and the

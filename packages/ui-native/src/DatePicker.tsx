@@ -26,7 +26,7 @@ import {
   type IsoDate,
   monthOf,
   openingDay,
-} from "./datePicker.ts";
+} from "./calendarDays.ts";
 import { CHOSEN, UNMARKED } from "./dateRange.ts";
 import { IconButton } from "./IconButton.tsx";
 import { themed, useControl } from "./theme.ts";

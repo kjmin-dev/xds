@@ -9,7 +9,7 @@ import {
   View,
   type ViewStyle,
 } from "react-native";
-import { formatValue, fraction, snap, valueAt } from "./slider.ts";
+import { formatValue, fraction, snap, valueAt } from "./sliderValues.ts";
 // The text of the component's own parts takes nothing from an app's `Defaults`.
 import { PartText as Text } from "./Text.tsx";
 import { themed, useColors, useControl } from "./theme.ts";

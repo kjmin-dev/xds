@@ -23,7 +23,7 @@ import {
   useSheetWidth,
   WeekdayRow,
 } from "./Calendar.tsx";
-import { type IsoDate, type IsoMonth, monthOf, monthWeeks, openingDay } from "./datePicker.ts";
+import { type IsoDate, type IsoMonth, monthOf, monthWeeks, openingDay } from "./calendarDays.ts";
 import {
   type DateRange,
   dayMarks,

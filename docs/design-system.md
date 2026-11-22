@@ -328,7 +328,7 @@ Clearing the error state on edit avoids a common web form trap: when an invalid 
 | Package | `@acme/ui` on `@acme/ui-core` | `@acme/ui-solid` on `@acme/ui-core` | `@acme/ui-vue` on `@acme/ui-core` | `@acme/ui-svelte` on `@acme/ui-core` | `acme-ui` | `@acme/ui-native` | `kotlin/ui` | `acme_ui` |
 | Built on | Zag.js state machines and native inputs | Zag.js state machines and native inputs | Zag.js state machines and native inputs | Zag.js state machines and native inputs | GPUI Component | React Native primitives | Compose foundation | Flutter widgets |
 | Runs on | Browsers | Browsers | Browsers | Browsers | macOS | iOS, Android | Android, iOS, desktop (JVM) | iOS, Android |
-| Tokens arrive as | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | Rust constants | TypeScript constants | Compose values (`Color`, `Dp`, `TextStyle`) | Dart constants (`Color`, `TextStyle`, `Duration`) |
+| Tokens arrive as | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | CSS custom properties and a Tailwind theme | Rust constants | TypeScript constants | Compose values (`Color`, `Dp`, `TextStyle`) in a `Theme` that `AcmeTheme` provides | Dart constants (`Color`, `TextStyle`, `Duration`) |
 | Sizes | Follow the input device | Follow the input device | Follow the input device | Follow the input device | Pointer | Touch | Touch on phones, pointer on desktop | Touch |
 | Design preview | `/design` | `/design` | `/design` | `/design` | `acme --design` | `/design` | The button on the home screen | The button on the home screen or `/design` |
 

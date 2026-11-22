@@ -7,14 +7,12 @@ package acme.ui
 import acme.tokens.IconName
 import acme.tokens.Border
 import acme.tokens.Colors
-import acme.tokens.DarkColors
+import acme.tokens.LocalTheme
 import acme.tokens.Mode
 import acme.tokens.Motion
-import acme.tokens.PointerSizes
 import acme.tokens.Radius
 import acme.tokens.Sizes
 import acme.tokens.Space
-import acme.tokens.TouchSizes
 import acme.tokens.Typography
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -114,7 +112,8 @@ internal fun <T> semanticColorGroups(entries: List<Pair<String, T>>): Map<String
         .groupBy { (name, _) -> name.substringBefore('-') }
         .filterKeys { it !in ComponentColorGroups }
 
-private val TextRoles = listOf(
+@Composable
+private fun textRoles() = listOf(
     "display" to Typography.display,
     "title" to Typography.title,
     "heading" to Typography.heading,
@@ -126,12 +125,14 @@ private val TextRoles = listOf(
 )
 
 // The generated tokens list the colors but not these, so they are written out here.
-private val Spaces = listOf(
+@Composable
+private fun spaces() = listOf(
     "0.5" to Space.s0_5, "1" to Space.s1, "1.5" to Space.s1_5, "2" to Space.s2, "2.5" to Space.s2_5,
     "3" to Space.s3, "4" to Space.s4, "5" to Space.s5, "6" to Space.s6, "8" to Space.s8,
     "10" to Space.s10, "12" to Space.s12, "16" to Space.s16,
 )
-private val Radii = listOf(
+@Composable
+private fun radii() = listOf(
     "sm" to Radius.sm, "md" to Radius.md, "lg" to Radius.lg, "xl" to Radius.xl, "full" to Radius.full,
 )
 
@@ -158,23 +159,26 @@ fun DesignPreview(
 }
 
 /** What the preview can start with open, so that it can be drawn into an image open. */
-internal enum class PreviewOverlay { Sheet, Menu, Select, DatePicker, DateRange, Dialog, Toast }
+enum class PreviewOverlay { Sheet, Menu, Select, DatePicker, DateRange, Dialog, Toast }
 
 /**
+ * The design preview in the form that draws it into an image, as the library's external check
+ * and `./gradlew :ui:renderPreview` do. An app shows [DesignPreview] instead.
+ *
  * @param scrolls False lays the whole page out at its full height, for drawing it into one image.
  * @param open The sample overlay to start with open, for the same reason.
  * @param from The section to start at, by the key React Native's preview gives it in `?section=`.
  *   The sections above it are left out, so that one can be drawn at the top of a phone's screen.
  */
 @Composable
-internal fun DesignPreviewScreen(onBack: () -> Unit, scrolls: Boolean, open: PreviewOverlay?, from: String? = null, glass: String? = null, autoscroll: Boolean = false) {
-    val ambient = if (LocalColors.current === DarkColors) Mode.Dark else Mode.Light
+fun DesignPreviewScreen(onBack: () -> Unit, scrolls: Boolean, open: PreviewOverlay?, from: String? = null, glass: String? = null, autoscroll: Boolean = false) {
+    val ambient = LocalMode.current
     // The switch in the top bar pins a mode for this screen only. Until it is used, the screen
     // follows the theme around it.
     var pinned by remember { mutableStateOf<Mode?>(null) }
     val mode = pinned ?: ambient
 
-    AcmeTheme(mode = mode, sizes = LocalSizes.current) {
+    AcmeTheme(mode = mode) {
         val colors = LocalColors.current
         Column(
             Modifier
@@ -302,7 +306,7 @@ private fun ColorsSection(colors: Colors) {
 @Composable
 private fun TypographySection() {
     Section("Typography") {
-        for ((name, style) in TextRoles) {
+        for ((name, style) in textRoles()) {
             Text("$name · 다람쥐 헌 쳇바퀴 Quick fox 123", style = style)
         }
     }
@@ -312,7 +316,7 @@ private fun TypographySection() {
 private fun SizesSection(colors: Colors) {
     Section("Space, radius, size") {
         Samples {
-            for ((name, length) in Spaces) {
+            for ((name, length) in spaces()) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(Space.s1),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -323,7 +327,7 @@ private fun SizesSection(colors: Colors) {
             }
         }
         Samples {
-            for ((name, radius) in Radii) {
+            for ((name, radius) in radii()) {
                 Box(
                     Modifier.size(48.dp).border(Border.widthThin, colors.borderStrong, RoundedCornerShape(radius)),
                     contentAlignment = Alignment.Center,
@@ -332,10 +336,11 @@ private fun SizesSection(colors: Colors) {
                 }
             }
         }
-        val used = if (LocalSizes.current === TouchSizes) "touch" else "pointer"
+        val used = LocalInput.current.name.lowercase()
+        val theme = LocalTheme.current
         Text(
             "Body ${Typography.body.fontSize.value.toInt()}/${Typography.body.lineHeight.value.toInt()}. " +
-                "Control heights: touch ${heights(TouchSizes)}, pointer ${heights(PointerSizes)}. " +
+                "Control heights: touch ${heights(theme.touch)}, pointer ${heights(theme.pointer)}. " +
                 "This screen uses the $used sizes.",
             style = Typography.detail,
             tone = TextTone.Secondary,

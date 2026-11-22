@@ -4,10 +4,8 @@
 
 package acme.ui
 
+import acme.tokens.Input
 import acme.tokens.Mode
-import acme.tokens.PointerSizes
-import acme.tokens.Sizes
-import acme.tokens.TouchSizes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
@@ -45,45 +43,45 @@ fun main(args: Array<String>) {
 
     val directory = File(args.firstOrNull() ?: "build/preview").apply { mkdirs() }
     if ("--captures" in args) return captures(directory)
-    fun page(name: String, width: Int, mode: Mode, sizes: Sizes, open: PreviewOverlay? = null) {
+    fun page(name: String, width: Int, mode: Mode, input: Input, open: PreviewOverlay? = null) {
         val file = File(directory, name)
         draw(file, width, height = null) {
-            AcmeTheme(mode, sizes) { DesignPreviewScreen(onBack = {}, scrolls = false, open = open) }
+            AcmeTheme(mode, input) { DesignPreviewScreen(onBack = {}, scrolls = false, open = open) }
         }
         println(file)
     }
-    page("preview-touch-light.png", 390, Mode.Light, TouchSizes)
-    page("preview-touch-dark.png", 390, Mode.Dark, TouchSizes)
-    page("preview-pointer-light.png", 900, Mode.Light, PointerSizes)
-    page("preview-pointer-dark.png", 900, Mode.Dark, PointerSizes)
+    page("preview-touch-light.png", 390, Mode.Light, Input.Touch)
+    page("preview-touch-dark.png", 390, Mode.Dark, Input.Touch)
+    page("preview-pointer-light.png", 900, Mode.Light, Input.Pointer)
+    page("preview-pointer-dark.png", 900, Mode.Dark, Input.Pointer)
 
     // An overlay that covers or sits on a window is drawn in a window the size of a screen
     // rather than of the page: a phone's, or a small desktop window's.
-    fun screen(name: String, open: PreviewOverlay, sizes: Sizes) {
-        val (width, height) = if (sizes === TouchSizes) 390 to 844 else 900 to 640
+    fun screen(name: String, open: PreviewOverlay, input: Input) {
+        val (width, height) = if (input == Input.Touch) 390 to 844 else 900 to 640
         for (mode in Mode.entries) {
             val file = File(directory, "$name-${mode.name.lowercase()}.png")
             draw(file, width, height) {
-                AcmeTheme(mode, sizes) { DesignPreviewScreen(onBack = {}, scrolls = true, open = open) }
+                AcmeTheme(mode, input) { DesignPreviewScreen(onBack = {}, scrolls = true, open = open) }
             }
             println(file)
         }
     }
-    screen("sheet-touch", PreviewOverlay.Sheet, TouchSizes)
-    screen("menu-touch", PreviewOverlay.Menu, TouchSizes)
-    screen("select-touch", PreviewOverlay.Select, TouchSizes)
-    screen("datepicker-touch", PreviewOverlay.DatePicker, TouchSizes)
-    screen("daterange-touch", PreviewOverlay.DateRange, TouchSizes)
-    screen("dialog-touch", PreviewOverlay.Dialog, TouchSizes)
-    screen("dialog-pointer", PreviewOverlay.Dialog, PointerSizes)
-    screen("toast-touch", PreviewOverlay.Toast, TouchSizes)
-    screen("toast-pointer", PreviewOverlay.Toast, PointerSizes)
+    screen("sheet-touch", PreviewOverlay.Sheet, Input.Touch)
+    screen("menu-touch", PreviewOverlay.Menu, Input.Touch)
+    screen("select-touch", PreviewOverlay.Select, Input.Touch)
+    screen("datepicker-touch", PreviewOverlay.DatePicker, Input.Touch)
+    screen("daterange-touch", PreviewOverlay.DateRange, Input.Touch)
+    screen("dialog-touch", PreviewOverlay.Dialog, Input.Touch)
+    screen("dialog-pointer", PreviewOverlay.Dialog, Input.Pointer)
+    screen("toast-touch", PreviewOverlay.Toast, Input.Touch)
+    screen("toast-pointer", PreviewOverlay.Toast, Input.Pointer)
     // A popup opens under its trigger, far down the page, so the whole page is drawn.
     for (mode in Mode.entries) {
-        page("menu-pointer-${mode.name.lowercase()}.png", 900, mode, PointerSizes, open = PreviewOverlay.Menu)
-        page("select-pointer-${mode.name.lowercase()}.png", 900, mode, PointerSizes, open = PreviewOverlay.Select)
-        page("datepicker-pointer-${mode.name.lowercase()}.png", 900, mode, PointerSizes, open = PreviewOverlay.DatePicker)
-        page("daterange-pointer-${mode.name.lowercase()}.png", 900, mode, PointerSizes, open = PreviewOverlay.DateRange)
+        page("menu-pointer-${mode.name.lowercase()}.png", 900, mode, Input.Pointer, open = PreviewOverlay.Menu)
+        page("select-pointer-${mode.name.lowercase()}.png", 900, mode, Input.Pointer, open = PreviewOverlay.Select)
+        page("datepicker-pointer-${mode.name.lowercase()}.png", 900, mode, Input.Pointer, open = PreviewOverlay.DatePicker)
+        page("daterange-pointer-${mode.name.lowercase()}.png", 900, mode, Input.Pointer, open = PreviewOverlay.DateRange)
     }
 }
 
@@ -107,7 +105,7 @@ private fun captures(directory: File) {
                 val name = if (sheet) "glass-sheet-$tier" else "glass-$tier"
                 val file = File(directory, "$name-${mode.name.lowercase()}.png")
                 draw(file, 390, 844) {
-                    AcmeTheme(mode, TouchSizes) {
+                    AcmeTheme(mode, Input.Touch) {
                         DesignPreviewScreen(onBack = {}, scrolls = true, open = if (sheet) PreviewOverlay.Sheet else null, from = "glass", glass = tier)
                     }
                 }
@@ -116,7 +114,7 @@ private fun captures(directory: File) {
         for ((name, from, open) in screens) {
             val file = File(directory, "$name-${mode.name.lowercase()}.png")
             draw(file, 390, 844) {
-                AcmeTheme(mode, TouchSizes) {
+                AcmeTheme(mode, Input.Touch) {
                     DesignPreviewScreen(onBack = {}, scrolls = true, open = open, from = from)
                 }
             }

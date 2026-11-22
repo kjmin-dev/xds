@@ -71,16 +71,17 @@ internal fun Modifier.glassSurface(shape: Shape, sheet: Boolean = false): Modifi
     val state = LocalGlass.current
     val shadow = if (sheet) Shadow.overlay else Shadow.raised
     val frame = shadow(shadow.copy(color = colors.glassShadow), shape).clip(shape)
+    val glass = Glass
     val fill = if (state != null && hasBlurredBackdrop()) {
-        val style = remember(colors, sheet) {
+        val style = remember(colors, glass, sheet) {
             HazeBlurStyle {
-                blurRadius((Glass.blur - 0.5.dp) / 0.57735f)
+                blurRadius((glass.blur - 0.5.dp) / 0.57735f)
                 noiseFactor(0f)
                 backgroundColor(colors.glassFallback)
                 colorEffects(buildList {
                     // The source is in the page behind the modal window, below its scrim.
                     if (sheet) add(HazeColorEffect.tint(colors.scrim))
-                    add(HazeColorEffect.colorFilter(ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(Glass.saturation) })))
+                    add(HazeColorEffect.colorFilter(ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(glass.saturation) })))
                     add(HazeColorEffect.tint(if (sheet) colors.glassTintStrong else colors.glassTint))
                     add(HazeColorEffect.tint(Brush.verticalGradient(0f to colors.glassHighlight, 0.5f to Color.Transparent)))
                 })

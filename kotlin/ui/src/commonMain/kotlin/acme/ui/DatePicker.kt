@@ -1,7 +1,9 @@
 package acme.ui
 
+import acme.tokens.Input
 import acme.tokens.Border
 import acme.tokens.Focus
+import acme.tokens.FocusTokens
 import acme.tokens.IconName
 import acme.tokens.Radius
 import acme.tokens.Shadow
@@ -174,7 +176,7 @@ internal fun DatePicker(
             )
         }
         // The form goes with the sizes, as a Select's list does.
-        if (LocalSizes.current.forPointer) {
+        if (LocalInput.current == Input.Pointer) {
             if (open) CalendarPopup(label, onClose = close) { calendar(Modifier) }
         } else {
             BottomSheet(open = open, onDismiss = close, title = label) { calendar(Modifier.fillMaxWidth()) }
@@ -412,6 +414,7 @@ internal fun Calendar(
                                 icon = if (rtl) IconName.ChevronRight else IconName.ChevronLeft,
                                 label = previousLabel,
                                 onClick = { page(-1) },
+                                variant = ButtonVariant.Ghost,
                                 size = ControlSize.Sm,
                                 enabled = hasMonthBefore(month, min),
                             )
@@ -424,6 +427,7 @@ internal fun Calendar(
                                 icon = if (rtl) IconName.ChevronLeft else IconName.ChevronRight,
                                 label = nextLabel,
                                 onClick = { page(1) },
+                                variant = ButtonVariant.Ghost,
                                 size = ControlSize.Sm,
                                 enabled = hasMonthAfter(month, max),
                             )
@@ -660,7 +664,7 @@ private fun Day(
         Box(
             Modifier
                 .size(circle)
-                .focusRingAround(ring, colors.borderFocus)
+                .focusRingAround(ring, colors.borderFocus, Focus)
                 .background(fill, CircleShape)
                 .then(
                     if (today && !end) {
@@ -708,12 +712,12 @@ private fun BoxScope.BandPiece(band: Band, height: Dp, color: Color) {
  * The focus ring of [focusRing], drawn while [visible] says so rather than whenever the focus
  * arrives: a calendar opened by a press puts the focus on a day without showing it.
  */
-private fun Modifier.focusRingAround(visible: Boolean, color: Color): Modifier = drawWithContent {
+private fun Modifier.focusRingAround(visible: Boolean, color: Color, focus: FocusTokens): Modifier = drawWithContent {
     drawContent()
     if (!visible) return@drawWithContent
-    val width = Focus.width.toPx()
+    val width = focus.width.toPx()
     // The gap keeps the ring from blending into the day's own fill.
-    val outset = Focus.offset.toPx() + width / 2
+    val outset = focus.offset.toPx() + width / 2
     drawCircle(color, radius = size.minDimension / 2 + outset, style = Stroke(width))
 }
 

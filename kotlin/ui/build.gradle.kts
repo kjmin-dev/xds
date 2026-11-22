@@ -28,10 +28,12 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             // No Material library: the look comes from the tokens, so the components are drawn
-            // on the same bare primitives as the React Native ones.
-            implementation(libs.compose.runtime)
-            implementation(libs.compose.foundation)
-            implementation(libs.compose.ui)
+            // on the same bare primitives as the React Native ones. The components take and the
+            // tokens hold Compose's types (Modifier, Color, TextStyle, Easing), so whoever uses
+            // them compiles against Compose too.
+            api(libs.compose.runtime)
+            api(libs.compose.foundation)
+            api(libs.compose.ui)
             implementation(libs.haze.core)
             implementation(libs.haze.blur)
             // The one thing not drawn from the tokens: an avatar's picture, which has to be
@@ -57,6 +59,9 @@ kotlin {
         jvmTest.dependencies {
             // Skia's native library for this machine, which drawing off screen needs.
             implementation(compose.desktop.currentOs)
+            // Reads the component contract, design/components.json, which the tests hold the
+            // components to.
+            implementation(libs.kotlinx.serialization.json)
         }
     }
 }

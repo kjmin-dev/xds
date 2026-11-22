@@ -1,7 +1,6 @@
 package acme.ui
 
-import acme.tokens.PointerSizes
-import acme.tokens.Sizes
+import acme.tokens.Input
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.Color
@@ -22,7 +21,7 @@ import kotlinx.datetime.number
 import kotlinx.datetime.toJavaLocalDate
 
 /** A desktop is used with a mouse. */
-actual val platformSizes: Sizes = PointerSizes
+actual val platformInput: Input = Input.Pointer
 
 // The JVM has no API for the desktop's reduce-motion setting.
 @Composable

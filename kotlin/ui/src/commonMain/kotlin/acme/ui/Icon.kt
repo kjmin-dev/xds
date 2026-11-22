@@ -46,7 +46,7 @@ private const val StrokeWidth = 2f
 fun Icon(
     name: IconName,
     modifier: Modifier = Modifier,
-    size: IconSize = IconSize.Md,
+    size: IconSize = LocalComponentDefaults.current.icon.size ?: IconSize.Md,
     color: Color = Color.Unspecified,
     filled: Boolean = false,
     label: String? = null,

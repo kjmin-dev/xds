@@ -39,7 +39,7 @@ enum class BadgeTone {
 fun Badge(
     label: String,
     modifier: Modifier = Modifier,
-    tone: BadgeTone = BadgeTone.Neutral,
+    tone: BadgeTone = LocalComponentDefaults.current.badge.tone ?: BadgeTone.Neutral,
     dot: Boolean = false,
     icon: IconName? = null,
 ) {

@@ -74,14 +74,15 @@ fun Dialog(
     val shown = remember { Animatable(0f) }
     // With less motion asked for, the dialog appears and goes at once.
     val fade = if (LocalReducedMotion.current) 0 else Motion.durationNormal
+    val motion = Motion
     // The layer outlives `open` by the time the dialog takes to fade out.
     var present by remember { mutableStateOf(false) }
     LaunchedEffect(open) {
         if (open) {
             present = true
-            shown.animateTo(1f, tween(fade, easing = Motion.easingEnter))
+            shown.animateTo(1f, tween(fade, easing = motion.easingEnter))
         } else if (present) {
-            shown.animateTo(0f, tween(fade, easing = Motion.easingExit))
+            shown.animateTo(0f, tween(fade, easing = motion.easingExit))
             present = false
         }
     }
@@ -117,7 +118,7 @@ fun Dialog(
                             alpha = shown.value
                             // It grows the last few percent into place: as far as a press
                             // shrinks a button.
-                            val scale = Motion.pressScale + (1f - Motion.pressScale) * shown.value
+                            val scale = motion.pressScale + (1f - motion.pressScale) * shown.value
                             scaleX = scale
                             scaleY = scale
                         }

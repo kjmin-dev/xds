@@ -249,6 +249,7 @@ internal fun FieldHelp(error: String?, description: String?, counter: String? = 
  * errors thicken the outline as well as recoloring it, so neither depends on color alone. The
  * outline is drawn inside the box's bounds, so what is in it does not move.
  */
+@Composable
 internal fun Modifier.fieldBox(colors: Colors, shape: Shape, enabled: Boolean, focused: Boolean, invalid: Boolean): Modifier {
     val outline = when {
         invalid -> colors.fieldBorderInvalid

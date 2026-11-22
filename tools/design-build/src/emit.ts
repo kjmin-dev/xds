@@ -4,6 +4,7 @@ import { ICON_GRID, ICON_STROKE, type Icon } from "./icons.ts";
 import {
   type ColorToken,
   INPUT_MODES,
+  MODES,
   type Model,
   type Rgba,
   type SizeToken,
@@ -391,28 +392,110 @@ function kotlinValue(token: ValueToken): [type: string, value: string] {
   }
 }
 
+/** The token groups of the model's shared values, in token order: `space`, `radius`, … */
+function valueGroups(model: Model): Map<string, ValueToken[]> {
+  const groups = new Map<string, ValueToken[]>();
+  for (const token of model.values) {
+    const group = token.path[0] as string;
+    groups.set(group, [...(groups.get(group) ?? []), token]);
+  }
+  return groups;
+}
+
+/** A token's name inside its group's class. One that starts with a digit gets the group's initial. */
+function kotlinMember(group: string, token: ValueToken): string {
+  const name = camel(kebab(token.path.slice(1)));
+  return /^[0-9]/.test(name) ? group.charAt(0) + name : name;
+}
+
+/** The class that holds one group of shared values: `space` is `SpaceTokens`. */
+function kotlinGroupClass(group: string): string {
+  return `${pascal(group)}Tokens`;
+}
+
+/** The imports a theme value written by `kotlinThemeValue` needs, besides the token types. */
+const KOTLIN_VALUE_IMPORTS = [
+  "androidx.compose.animation.core.CubicBezierEasing",
+  "androidx.compose.ui.graphics.Color",
+  "androidx.compose.ui.text.TextStyle",
+  "androidx.compose.ui.text.font.FontWeight",
+  "androidx.compose.ui.unit.dp",
+  "androidx.compose.ui.unit.sp",
+];
+
+/** The token types a theme value refers to by name. */
+function kotlinTokenTypes(model: Model): string[] {
+  const types = ["Colors", "Theme", ...[...valueGroups(model).keys()].map(kotlinGroupClass)];
+  if (model.sizes.length > 0) types.push("Sizes");
+  if (model.values.some((token) => token.value.kind === "shadow")) types.push("ShadowToken");
+  return types.sort();
+}
+
 /**
- * Compose types, in one object per token group: `Space.s4`, `Radius.md`, `Typography.body`. A
- * name that starts with a digit gets the first letter of its group in front. Colors are one
- * object per mode behind an interface, not a class with a constructor: a constructor with this
- * many color parameters does not fit in a JVM method.
+ * A theme as a Kotlin value: `val <name>Theme: Theme = Theme(…)`, with its two color sets as
+ * private objects beside it. The token build writes the default theme with it, and
+ * `xds export-theme --format compose` a theme file, so both have the same shape.
+ */
+function kotlinThemeValue(model: Model, name: string, doc: string[]): string[] {
+  const property = (path: string[]) => camel(kebab(path));
+  const lines = ["/**", ...doc.map((line) => (line ? ` * ${line}` : " *")), " */"];
+  lines.push(`val ${name}Theme: Theme = Theme(`);
+  lines.push(`    light = ${name}LightColors,`, `    dark = ${name}DarkColors,`);
+  if (model.sizes.length > 0) {
+    for (const mode of INPUT_MODES) {
+      lines.push(`    ${mode} = Sizes(`);
+      for (const token of model.sizes) {
+        lines.push(`        ${property(token.path)} = ${token[mode]}.dp,`);
+      }
+      lines.push("    ),");
+    }
+  }
+  for (const [group, tokens] of valueGroups(model)) {
+    lines.push(`    ${camel(group)} = ${kotlinGroupClass(group)}(`);
+    for (const token of tokens) {
+      lines.push(`        ${kotlinMember(group, token)} = ${kotlinValue(token)[1]},`);
+    }
+    lines.push("    ),");
+  }
+  lines.push(")");
+  for (const mode of MODES) {
+    lines.push("", `private object ${name}${pascal(mode)}Colors : Colors {`);
+    for (const token of model.colors) {
+      lines.push(`    override val ${property(token.path)} = ${argbColor(token[mode])}`);
+    }
+    lines.push("}");
+  }
+  return lines;
+}
+
+/**
+ * Compose types: the tokens of one color mode behind the `Colors` interface, the sizes of one
+ * input device in `Sizes`, and one class per group of shared values (`SpaceTokens`,
+ * `RadiusTokens`). A `Theme` holds a full set of them, and `DefaultTheme` is the one the token
+ * files describe. Components read the theme in effect through one property per group, `Space.s4`
+ * or `Typography.body`, which ask the composition, so a theme given at run time reaches them. A
+ * name that starts with a digit gets the first letter of its group in front. Colors are behind an
+ * interface, not a class with a constructor: a constructor with this many color parameters does
+ * not fit in a JVM method.
  */
 export function emitKotlin(model: Model, packageName: string): string {
   const property = (path: string[]) => camel(kebab(path));
+  const groups = valueGroups(model);
   const lines = [
     `// ${HEADER}`,
     "",
     `package ${packageName}`,
     "",
-    "import androidx.compose.animation.core.CubicBezierEasing",
-    "import androidx.compose.animation.core.Easing",
-    "import androidx.compose.ui.graphics.Color",
-    "import androidx.compose.ui.text.TextStyle",
-    "import androidx.compose.ui.text.font.FontWeight",
-    "import androidx.compose.ui.unit.Dp",
-    "import androidx.compose.ui.unit.TextUnit",
-    "import androidx.compose.ui.unit.dp",
-    "import androidx.compose.ui.unit.sp",
+    ...[
+      ...KOTLIN_VALUE_IMPORTS,
+      "androidx.compose.animation.core.Easing",
+      "androidx.compose.runtime.Composable",
+      "androidx.compose.runtime.ReadOnlyComposable",
+      "androidx.compose.ui.unit.Dp",
+      "androidx.compose.ui.unit.TextUnit",
+    ]
+      .sort()
+      .map((name) => `import ${name}`),
     "",
     "/** Every color token, for one mode. */",
     "interface Colors {",
@@ -430,31 +513,6 @@ export function emitKotlin(model: Model, packageName: string): string {
     lines.push(`        "${kebab(token.path)}" to ${property(token.path)},`);
   }
   lines.push("    )", "}");
-  for (const mode of ["light", "dark"] as const) {
-    lines.push("", `object ${pascal(mode)}Colors : Colors {`);
-    for (const token of model.colors) {
-      lines.push(`    override val ${property(token.path)} = ${argbColor(token[mode])}`);
-    }
-    lines.push("}");
-  }
-
-  const groups = new Map<string, ValueToken[]>();
-  for (const token of model.values) {
-    const group = token.path[0] as string;
-    groups.set(group, [...(groups.get(group) ?? []), token]);
-  }
-  for (const [group, tokens] of groups) {
-    lines.push("", `object ${pascal(group)} {`);
-    for (const token of tokens) {
-      const name = property(token.path.slice(1));
-      const [type, value] = kotlinValue(token);
-      if (token.description) lines.push(`    /** ${token.description} */`);
-      lines.push(
-        `    val ${/^[0-9]/.test(name) ? group.charAt(0) + name : name}: ${type} = ${value}`,
-      );
-    }
-    lines.push("}");
-  }
 
   if (model.sizes.length > 0) {
     lines.push("", "/** Control sizes, for one input device. */", "class Sizes(");
@@ -463,14 +521,45 @@ export function emitKotlin(model: Model, packageName: string): string {
       lines.push(`    val ${property(token.path)}: Dp,`);
     }
     lines.push(")");
-    for (const mode of INPUT_MODES) {
-      lines.push("", `val ${pascal(mode)}Sizes = Sizes(`);
-      for (const token of model.sizes) {
-        lines.push(`    ${property(token.path)} = ${token[mode]}.dp,`);
-      }
-      lines.push(")");
-    }
   }
+
+  for (const [group, tokens] of groups) {
+    lines.push("", `/** The \`${group}\` tokens. */`, `class ${kotlinGroupClass(group)}(`);
+    for (const token of tokens) {
+      if (token.description) lines.push(`    /** ${token.description} */`);
+      lines.push(`    val ${kotlinMember(group, token)}: ${kotlinValue(token)[0]},`);
+    }
+    lines.push(")");
+  }
+
+  lines.push(
+    "",
+    "/** A full set of token values: the colors of both modes, the sizes of both input devices and the shared values. */",
+    "class Theme(",
+    "    val light: Colors,",
+    "    val dark: Colors,",
+  );
+  if (model.sizes.length > 0) lines.push("    val pointer: Sizes,", "    val touch: Sizes,");
+  for (const group of groups.keys()) {
+    lines.push(`    val ${camel(group)}: ${kotlinGroupClass(group)},`);
+  }
+  lines.push(")", "");
+  lines.push(
+    ...kotlinThemeValue(model, "Default", [
+      "The theme the token files describe, which the components draw with unless they are given",
+      "another.",
+    ]),
+  );
+
+  for (const group of groups.keys()) {
+    lines.push(
+      "",
+      `/** The \`${group}\` tokens of the theme in effect. */`,
+      `val ${pascal(group)}: ${kotlinGroupClass(group)}`,
+      `    @Composable @ReadOnlyComposable get() = LocalTheme.current.${camel(group)}`,
+    );
+  }
+
   if (model.icons?.length) {
     lines.push(
       "",
@@ -485,6 +574,46 @@ export function emitKotlin(model: Model, packageName: string): string {
   }
   lines.push("");
   return lines.join("\n");
+}
+
+/**
+ * A theme as a Kotlin file of its own, for the Compose components: `val <Name>Theme`, which an
+ * app passes to the theme composable. Every token is written, so it takes nothing from the
+ * theme around it. `tokensPackage` is where the token types are: the library's, or a project's.
+ */
+export function emitKotlinTheme(
+  model: Model,
+  options: { name: string; source: string; packageName: string; tokensPackage: string },
+): string {
+  if (!/^[a-z][a-z0-9-]*$/.test(options.name)) {
+    throw new TokenError(
+      `a theme name is lowercase letters, digits and hyphens: "${options.name}"`,
+    );
+  }
+  const segment = /^[A-Za-z_][A-Za-z0-9_]*$/;
+  for (const name of [options.packageName, options.tokensPackage]) {
+    if (!name.split(".").every((part) => segment.test(part))) {
+      throw new TokenError(`not a Kotlin package name: "${name}"`);
+    }
+  }
+  const name = pascal(options.name);
+  const imports = [
+    ...KOTLIN_VALUE_IMPORTS,
+    ...kotlinTokenTypes(model).map((type) => `${options.tokensPackage}.${type}`),
+  ].sort();
+  return [
+    `// Generated by xds from ${options.source}. Do not edit.`,
+    "",
+    `package ${options.packageName}`,
+    "",
+    ...imports.map((line) => `import ${line}`),
+    "",
+    ...kotlinThemeValue(model, name, [
+      `The ${options.name} theme, from ${options.source}. Give it to the theme composable, around`,
+      "the whole app or any part of it.",
+    ]),
+    "",
+  ].join("\n");
 }
 
 // ---------------------------------------------------------------- Rust

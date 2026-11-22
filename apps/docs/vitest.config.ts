@@ -13,15 +13,19 @@ export default defineConfig({
     {
       name: "native-glass-test-hosts",
       enforce: "pre",
-      resolveId(id, importer) {
+      transform(code, id) {
         // The docs render Glass.web.tsx. Only this regression exercises the actual native
-        // material component with UIKit/Expo hosts replaced by distinct browser elements.
-        if (
-          importer?.endsWith("/packages/ui-native/src/Glass.tsx") &&
-          ["expo", "expo-blur", "expo-glass-effect", "expo-linear-gradient"].includes(id)
-        )
-          return fileURLToPath(new URL("./test/fixtures/glass-hosts.tsx", import.meta.url));
-        return null;
+        // material component with UIKit/Expo hosts replaced by distinct browser elements. The
+        // component requires the Expo modules inside a `try`, as optional peers, so each
+        // require becomes the stand-ins.
+        if (!id.endsWith("/packages/ui-native/src/Glass.tsx")) return null;
+        const hosts = fileURLToPath(new URL("./test/fixtures/glass-hosts.tsx", import.meta.url));
+        const replaced = code.replaceAll(
+          /require\("(expo|expo-blur|expo-glass-effect|expo-linear-gradient)"\)/g,
+          "glassHosts",
+        );
+        if (replaced === code) throw new Error("Glass.tsx no longer requires the Expo modules");
+        return `import * as glassHosts from ${JSON.stringify(hosts)};\n${replaced}`;
       },
     },
     reactNativeWebPlugin(),

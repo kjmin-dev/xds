@@ -1,7 +1,7 @@
 // The Compose library's external consumer check: what must pass before the library joins a
 // release (docs/library.md, L2).
 //
-//   node maven/consumer.ts [--platforms desktop,android] [--skip-build] [--xds <binary>]
+//   node maven/consumer.ts [--platforms desktop,android,ios] [--skip-build] [--xds <binary>]
 //
 // It builds the library into a Maven repository directory with build.ts, then consumes it from
 // new Gradle projects outside this repository, which have nothing of xds's but the dependency on
@@ -10,7 +10,11 @@
 // - desktop: a Compose desktop app that draws every page and overlay of the design preview off
 //   screen, with the same program a scaffolded project runs as `./gradlew :ui:renderPreview`;
 // - android: an Android app that shows the design preview the way a scaffolded project's Android
-//   app does, opened at each section, on an emulator that this run makes and deletes.
+//   app does, opened at each section, on an emulator that this run makes and deletes;
+// - ios (macOS only): a Kotlin Multiplatform module that puts the design preview in a
+//   UIViewController, as a scaffolded project's `shared` module does for its Xcode app, linked
+//   into a framework for the simulator and for devices. It shows the iOS artifacts resolve and
+//   link; it draws nothing.
 //
 // Each picture is compared, pixel for pixel, with the scaffolded project's: the project that
 // `xds create` makes from this repository under the name `xds`, as the library is named, in both
@@ -34,13 +38,16 @@ import { ARTIFACT, buildLibrary, GROUP, gradlew, root, run, scaffold, xdsBinary 
 import { type Emulator, startEmulator } from "./emulator.ts";
 import { decodePng, differingPixels, isBlank } from "./png.ts";
 
-type Platform = "desktop" | "android";
+type Platform = "desktop" | "android" | "ios";
 type Theme = "default" | "brand";
 const THEMES: Theme[] = ["default", "brand"];
 
 const { values: options } = parseArgs({
   options: {
-    platforms: { type: "string", default: "desktop,android" },
+    platforms: {
+      type: "string",
+      default: process.platform === "darwin" ? "desktop,android,ios" : "desktop,android",
+    },
     "skip-build": { type: "boolean", default: false },
     xds: { type: "string" },
   },
@@ -324,6 +331,61 @@ class MainActivity : ComponentActivity() {
   return dir;
 }
 
+/**
+ * A Kotlin Multiplatform module for iOS that shows the design preview with the theme a launch
+ * argument names, as a scaffolded project's `shared` module does for its Xcode app.
+ */
+async function iosConsumer(xds: string, reference: string, repository: string, version: string) {
+  const dir = join(work, "ios");
+  await gradleProject(dir, reference, "xds-consumer-ios", repository);
+  await writeFile(
+    join(dir, "build.gradle.kts"),
+    `plugins {
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.composeCompiler)
+}
+
+kotlin {
+    listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
+        target.binaries.framework {
+            baseName = "Consumer"
+            isStatic = true
+        }
+    }
+    sourceSets {
+        commonMain.dependencies {
+            implementation("${GROUP}:${ARTIFACT}:${version}")
+        }
+    }
+}
+`,
+  );
+  const sources = join(dir, "src/iosMain/kotlin/xds/consumer");
+  await mkdir(sources, { recursive: true });
+  await writeFile(
+    join(sources, "MainViewController.kt"),
+    `package xds.consumer
+
+import androidx.compose.ui.window.ComposeUIViewController
+import platform.Foundation.NSProcessInfo
+import xds.tokens.DefaultTheme
+import xds.ui.DesignPreview
+import xds.ui.XdsTheme
+
+/** What a Swift app would put on screen: the design preview, with the theme it is given. */
+fun MainViewController() = ComposeUIViewController {
+    val args = NSProcessInfo.processInfo.arguments.filterIsInstance<String>()
+    XdsTheme(theme = if ("--brand" in args) BrandTheme else DefaultTheme) {
+        DesignPreview(onBack = {})
+    }
+}
+`,
+  );
+  exportTheme(xds, join(sources, "BrandTheme.kt"));
+  return dir;
+}
+
 // ----------------------------------------------------------------------------- comparing
 
 let differences = 0;
@@ -528,7 +590,8 @@ for (const theme of THEMES) {
   const tasks = [];
   if (platforms.includes("desktop")) tasks.push(":ui:renderPreview");
   if (platforms.includes("android")) tasks.push(":androidApp:assembleDebug");
-  run(gradlew(reference), [...tasks, "--console=plain", "--quiet"], reference);
+  if (tasks.length > 0)
+    run(gradlew(reference), [...tasks, "--console=plain", "--quiet"], reference);
   if (platforms.includes("desktop")) {
     scaffolded.desktop.set(theme, await pictures(join(reference, "build/preview")));
   }
@@ -585,9 +648,31 @@ if (platforms.includes("android")) {
   }
 }
 
+if (platforms.includes("ios")) {
+  const dir = await iosConsumer(xds, reference, repository, version);
+  run(
+    gradlew(dir),
+    [
+      "linkDebugFrameworkIosSimulatorArm64",
+      "linkReleaseFrameworkIosArm64",
+      "--console=plain",
+      "--quiet",
+    ],
+    dir,
+  );
+  console.log("ios: the frameworks for the simulator and for devices link against the library");
+}
+
+const drawn = platforms.filter((platform) => platform !== "ios");
+const passed = [
+  drawn.length > 0
+    ? `draws the design preview as the scaffolded project does on ${drawn.join(" and ")}, with the default theme and a custom one`
+    : "",
+  platforms.includes("ios") ? "links into iOS frameworks" : "",
+].filter(Boolean);
 console.log(
   differences === 0
-    ? `${GROUP}:${ARTIFACT} ${version} draws the design preview as the scaffolded project does on ${platforms.join(" and ")}, with the default theme and a custom one.`
+    ? `${GROUP}:${ARTIFACT} ${version} ${passed.join(", and ")}.`
     : `${differences} pictures differ. Both sides of each are in ${out}.`,
 );
 process.exitCode = differences === 0 ? 0 : 1;

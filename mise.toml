@@ -248,9 +248,10 @@ run = "node npm/web/consumer.ts"
 
 # The same for the Compose library: it builds it into a Maven repository directory, consumes it
 # from a desktop app and an Android app outside the repository, and compares their design
-# previews with a scaffolded project's, pixel by pixel. It needs a JDK, the Android SDK with an
-# emulator system image installed in $ANDROID_HOME, and the network; `-- --platforms desktop`
-# leaves Android out. docs/compose-library.md says what it compares.
+# previews with a scaffolded project's, pixel by pixel; on macOS it also links it for iOS. It
+# needs a JDK, the Android SDK with an emulator system image installed in $ANDROID_HOME, and the
+# network; `-- --platforms desktop` leaves Android and iOS out. docs/compose-library.md says what
+# it compares.
 [tasks."check:library-compose"]
 description = "Consume the Compose library from new desktop and Android apps and compare their design previews with a scaffolded project"
 run = "node maven/consumer.ts"

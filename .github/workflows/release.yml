@@ -277,9 +277,9 @@ jobs:
         run: mise exec -- node maven/build.ts --xds binary/xds
 
       # Consumes the library from a desktop app outside the repository and compares its design
-      # preview with a scaffolded project's, pixel by pixel.
-      - name: Check the library on the desktop
-        run: mise exec -- node maven/consumer.ts --skip-build --platforms desktop --xds binary/xds
+      # preview with a scaffolded project's, pixel by pixel, and links it into iOS frameworks.
+      - name: Check the library on the desktop and for iOS
+        run: mise exec -- node maven/consumer.ts --skip-build --platforms desktop,ios --xds binary/xds
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

@@ -213,7 +213,17 @@
           "source": "flutter/ui/lib/src/text.dart",
           "symbol": "Text"
         }
-      }
+      },
+      "differences": [
+        {
+          "option": "variant",
+          "clients": [
+            "kotlin-compose"
+          ],
+          "kind": "adapts",
+          "note": "Compose takes the variant as the type role itself, `style = Typography.title`: the `TextStyle` that the `typography` tokens give each variant, rather than its name. A `Defaults` sets it the same way (`TextDefaults(style = …)`), and without one the text takes the type role of the component it is in."
+        }
+      ]
     },
     {
       "name": "Badge",

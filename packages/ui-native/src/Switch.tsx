@@ -1,12 +1,8 @@
-import { motion, radius, space } from "@acme/tokens";
-import { Animated, Pressable, StyleSheet } from "react-native";
+import { Animated, Pressable, type StyleProp, StyleSheet, type ViewStyle } from "react-native";
 import { useSpring } from "./motion.ts";
-import { Text } from "./Text.tsx";
-import { control, useColors } from "./theme.ts";
-
-const INSET = space["0_5"];
-const THUMB = control.switchHeight - INSET * 2;
-const TRAVEL = control.switchWidth - control.switchHeight;
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
+import { themed, useColors, useControl, useTheme } from "./theme.ts";
 
 export type SwitchProps = {
   checked: boolean;
@@ -16,6 +12,8 @@ export type SwitchProps = {
   /** Names the switch for a screen reader when there is no visible label. */
   accessibilityLabel?: string;
   disabled?: boolean;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -28,7 +26,11 @@ export function Switch({
   label,
   accessibilityLabel,
   disabled = false,
+  style,
 }: SwitchProps) {
+  const styles = useStyles();
+  const { motion } = useTheme();
+  const control = useControl();
   const colors = useColors();
   // The thumb settles on a spring, or jumps when the person asked for less motion.
   const position = useSpring(checked ? 1 : 0, motion.spring.fast);
@@ -50,7 +52,7 @@ export function Switch({
       disabled={disabled}
       hitSlop={slop}
       onPress={() => onChange(!checked)}
-      style={styles.row}
+      style={[styles.row, style]}
     >
       <Animated.View style={[styles.track, { backgroundColor: track }]}>
         <Animated.View
@@ -62,7 +64,7 @@ export function Switch({
                 {
                   translateX: position.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [0, TRAVEL],
+                    outputRange: [0, control.switchWidth - control.switchHeight],
                   }),
                 },
               ],
@@ -75,22 +77,28 @@ export function Switch({
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    alignSelf: "flex-start",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[2],
-  },
-  track: {
-    width: control.switchWidth,
-    height: control.switchHeight,
-    padding: INSET,
-    borderRadius: radius.full,
-  },
-  thumb: {
-    width: THUMB,
-    height: THUMB,
-    borderRadius: radius.full,
-  },
+const useStyles = themed(({ radius, space, size }) => {
+  const control = size.touch;
+  // The gap between the thumb and the edge of the track.
+  const inset = space["0_5"];
+  const thumb = control.switchHeight - inset * 2;
+  return StyleSheet.create({
+    row: {
+      alignSelf: "flex-start",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: space[2],
+    },
+    track: {
+      width: control.switchWidth,
+      height: control.switchHeight,
+      padding: inset,
+      borderRadius: radius.full,
+    },
+    thumb: {
+      width: thumb,
+      height: thumb,
+      borderRadius: radius.full,
+    },
+  });
 });

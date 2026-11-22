@@ -1,12 +1,19 @@
-import { radius, space } from "@acme/tokens";
 import { useState } from "react";
-import { Platform, Pressable, StyleSheet, View } from "react-native";
+import {
+  Platform,
+  Pressable,
+  type StyleProp,
+  StyleSheet,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { BottomSheet } from "./BottomSheet.tsx";
 import { Icon } from "./Icon.tsx";
 import { MenuList, MenuRow } from "./Menu.tsx";
-import { Text } from "./Text.tsx";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
 import { FieldMessage, fieldOutline } from "./TextField.tsx";
-import { CONTROL_HEIGHT, useColors } from "./theme.ts";
+import { themed, useColors, useTheme } from "./theme.ts";
 
 export type SelectOption<Value extends string> = {
   value: Value;
@@ -32,6 +39,8 @@ export type SelectProps<Value extends string> = {
   disabled?: boolean;
   /** Starts with the list open, for a preview or a screenshot. */
   defaultOpen?: boolean;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
 // TalkBack says that a drop-down list opens from the field. iOS has no such trait: VoiceOver
@@ -58,17 +67,19 @@ export function Select<Value extends string>({
   error,
   disabled = false,
   defaultOpen = false,
+  style,
 }: SelectProps<Value>) {
+  const styles = useStyles();
   const colors = useColors();
   const [open, setOpen] = useState(defaultOpen && !disabled);
   const chosen = options.find((option) => option.value === value);
   const shown = chosen?.label ?? placeholder;
   // While its list is open the field is the one in use, and is outlined as a TextField is
   // while it has focus.
-  const outline = fieldOutline(colors, open, error !== undefined);
+  const outline = fieldOutline(useTheme(), colors, open, error !== undefined);
 
   return (
-    <View style={styles.field}>
+    <View style={[styles.field, style]}>
       <Text variant="label" tone={disabled ? "secondary" : "primary"}>
         {label}
       </Text>
@@ -132,21 +143,23 @@ export function Select<Value extends string>({
   );
 }
 
-const styles = StyleSheet.create({
-  field: {
-    alignSelf: "stretch",
-    gap: space[1],
-  },
-  // The outline is drawn inside this height, so the box is as tall as a TextField's whatever
-  // its state.
-  box: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[2],
-    minHeight: CONTROL_HEIGHT.md,
-    borderRadius: radius.md,
-  },
-  value: {
-    flex: 1,
-  },
-});
+const useStyles = themed(({ radius, size, space }) =>
+  StyleSheet.create({
+    field: {
+      alignSelf: "stretch",
+      gap: space[1],
+    },
+    // The outline is drawn inside this height, so the box is as tall as a TextField's whatever
+    // its state.
+    box: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: space[2],
+      minHeight: size.touch.controlMd,
+      borderRadius: radius.md,
+    },
+    value: {
+      flex: 1,
+    },
+  }),
+);

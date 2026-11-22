@@ -9,16 +9,7 @@
 // calendar of the first date range picker, `?dialog=1` the dialog and `?toast=1` the toast, which
 // then stays.
 
-import {
-  border,
-  icons,
-  motion,
-  radius,
-  size,
-  space,
-  colors as tokenColors,
-  typography,
-} from "@acme/tokens";
+import { colors as defaultColors, icons } from "@acme/tokens";
 import {
   Accordion,
   type AccordionItem,
@@ -67,11 +58,13 @@ import {
   Text,
   TextField,
   type TextVariant,
+  themed,
   Thumbnail,
   type ThumbnailProps,
   Toast,
   TopBar,
   useColors,
+  useTheme,
 } from "@acme/ui-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { type ReactNode, useState } from "react";
@@ -99,6 +92,7 @@ const TEXT_VARIANTS: TextVariant[] = [
 ];
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
+  const styles = useStyles();
   return (
     <View style={styles.section}>
       <Text variant="title" heading>
@@ -268,11 +262,14 @@ const QUESTIONS: AccordionItem<string>[] = [
   },
 ];
 
-const COLOR_NAMES = (Object.keys(tokenColors.light) as (keyof typeof tokenColors.light)[]).filter(
-  (name) => !COMPONENT_COLORS.test(name),
-);
+// Every theme names the same colors; the values shown come from the theme in effect.
+const COLOR_NAMES = (
+  Object.keys(defaultColors.light) as (keyof typeof defaultColors.light)[]
+).filter((name) => !COMPONENT_COLORS.test(name));
 
 export default function Design() {
+  const styles = useStyles();
+  const { colors: tokenColors, motion, radius, size, space, typography } = useTheme();
   const colors = useColors();
   const [value, setValue] = useState("");
   const [notifications, setNotifications] = useState(true);
@@ -791,6 +788,7 @@ export default function Design() {
         <View style={styles.row}>
           <Spinner size="sm" />
           <Spinner label="Loading" />
+          <Spinner size="lg" />
           <Avatar name="Ada Lovelace" size="sm" />
           <Avatar name="Ada Lovelace" />
           <Avatar name="Grace Hopper" size="lg" />
@@ -1141,117 +1139,119 @@ export default function Design() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  loading: {
-    gap: space[3],
-  },
-  loadingHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[3],
-  },
-  loadingLines: {
-    flex: 1,
-    gap: space[2],
-  },
-  page: {
-    padding: space[4],
-    gap: space[8],
-  },
-  section: {
-    gap: space[3],
-  },
-  row: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-    gap: space[2],
-  },
-  end: {
-    alignItems: "flex-end",
-  },
-  pair: {
-    flexDirection: "row",
-    gap: space[1],
-  },
-  swatches: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    rowGap: space[2],
-  },
-  swatch: {
-    width: "50%",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[2],
-  },
-  swatchName: {
-    flex: 1,
-  },
-  chip: {
-    width: 28,
-    height: 28,
-    borderWidth: 1,
-    borderRadius: radius.sm,
-  },
-  sample: {
-    alignItems: "center",
-    gap: space[1],
-  },
-  // Stands in for a picture under an overlay badge.
-  block: {
-    flexDirection: "row",
-    gap: space[2],
-    padding: space[3],
-    borderWidth: border.width.thin,
-    borderColor: "transparent",
-    borderRadius: radius.md,
-  },
-  picture: {
-    width: "100%",
-    aspectRatio: 16 / 9,
-  },
-  thumbnails: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "flex-start",
-    gap: space[2],
-  },
-  // Two to a row on a phone; a thumbnail takes its height from the width it is given.
-  thumbnail: {
-    width: space[16] * 2,
-  },
-  panel: {
-    gap: space[2],
-  },
-  onPicture: {
-    position: "absolute",
-    bottom: space[2],
-    end: space[2],
-  },
-  // A small stand-in for a screen, to show the bars where they belong.
-  frame: {
-    borderWidth: 1,
-    borderRadius: radius.lg,
-    overflow: "hidden",
-  },
-  // The tab bar floats: it keeps a margin from the edges of the screen.
-  frameBar: {
-    paddingHorizontal: space[4],
-    paddingBottom: space[4],
-  },
-  frameBody: {
-    alignItems: "center",
-    padding: space[6],
-  },
-  radius: {
-    width: 48,
-    height: 48,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-  },
-});
+const useStyles = themed(({ border, radius, space }) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+    },
+    loading: {
+      gap: space[3],
+    },
+    loadingHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: space[3],
+    },
+    loadingLines: {
+      flex: 1,
+      gap: space[2],
+    },
+    page: {
+      padding: space[4],
+      gap: space[8],
+    },
+    section: {
+      gap: space[3],
+    },
+    row: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "center",
+      gap: space[2],
+    },
+    end: {
+      alignItems: "flex-end",
+    },
+    pair: {
+      flexDirection: "row",
+      gap: space[1],
+    },
+    swatches: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      rowGap: space[2],
+    },
+    swatch: {
+      width: "50%",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: space[2],
+    },
+    swatchName: {
+      flex: 1,
+    },
+    chip: {
+      width: 28,
+      height: 28,
+      borderWidth: 1,
+      borderRadius: radius.sm,
+    },
+    sample: {
+      alignItems: "center",
+      gap: space[1],
+    },
+    // Stands in for a picture under an overlay badge.
+    block: {
+      flexDirection: "row",
+      gap: space[2],
+      padding: space[3],
+      borderWidth: border.width.thin,
+      borderColor: "transparent",
+      borderRadius: radius.md,
+    },
+    picture: {
+      width: "100%",
+      aspectRatio: 16 / 9,
+    },
+    thumbnails: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "flex-start",
+      gap: space[2],
+    },
+    // Two to a row on a phone; a thumbnail takes its height from the width it is given.
+    thumbnail: {
+      width: space[16] * 2,
+    },
+    panel: {
+      gap: space[2],
+    },
+    onPicture: {
+      position: "absolute",
+      bottom: space[2],
+      end: space[2],
+    },
+    // A small stand-in for a screen, to show the bars where they belong.
+    frame: {
+      borderWidth: 1,
+      borderRadius: radius.lg,
+      overflow: "hidden",
+    },
+    // The tab bar floats: it keeps a margin from the edges of the screen.
+    frameBar: {
+      paddingHorizontal: space[4],
+      paddingBottom: space[4],
+    },
+    frameBody: {
+      alignItems: "center",
+      padding: space[6],
+    },
+    radius: {
+      width: 48,
+      height: 48,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+    },
+  }),
+);

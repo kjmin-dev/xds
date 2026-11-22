@@ -1,21 +1,24 @@
-import { motion, radius, shadow, space } from "@acme/tokens";
 import { type ReactNode, useContext, useEffect, useRef, useState } from "react";
 import {
   Animated,
   Easing,
+  type GestureResponderHandlers,
   Modal,
   PanResponder,
   Pressable,
+  type StyleProp,
   StyleSheet,
   useWindowDimensions,
   View,
+  type ViewStyle,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { GlassMaterial, type Surface } from "./Glass";
 import { PreviewGlassTier } from "./glassPreview.ts";
 import { useReducedMotion } from "./motion.ts";
-import { Text } from "./Text.tsx";
-import { useColors } from "./theme.ts";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
+import { type Theme, themed, useColors, useTheme } from "./theme.ts";
 
 export type BottomSheetProps = {
   surface?: Surface;
@@ -25,6 +28,8 @@ export type BottomSheetProps = {
   title?: string;
   /** What a screen reader says for the area outside the sheet. */
   closeLabel?: string;
+  /** Put on the sheet's surface, after its own look. Where it is and how it moves stay its own. */
+  style?: StyleProp<ViewStyle>;
   children: ReactNode;
 };
 
@@ -58,9 +63,12 @@ function Sheet({
   title,
   closeLabel = "Close",
   surface = "solid",
+  style,
   children,
   tall,
 }: BottomSheetProps & { tall: boolean }) {
+  const styles = useStyles();
+  const { motion, radius, space } = useTheme();
   const colors = useColors();
   const reduced = useReducedMotion();
   const probe = useContext(PreviewGlassTier);
@@ -91,7 +99,7 @@ function Sheet({
       if (open) onSheetEvent?.("entered");
       else setMounted(false);
     });
-  }, [open, progress, reduced, releases, onSheetEvent]);
+  }, [motion, open, progress, reduced, releases, onSheetEvent]);
 
   const bottom = Math.max(insets.bottom, space[2]);
   // A tall sheet stops short of the status bar, with the margin it keeps from the other edges.
@@ -102,8 +110,8 @@ function Sheet({
   // How far the sheet moves from open to gone, which a drag divides to move `progress`.
   const travel = height + insets.bottom + space[4];
   // The responder is created once, so it reads what changes through refs.
-  const latest = useRef({ travel, height, reduced, onClose });
-  latest.current = { travel, height, reduced, onClose };
+  const latest = useRef({ travel, height, reduced, onClose, motion });
+  latest.current = { travel, height, reduced, onClose, motion };
   const drag = useRef({
     // Where `progress` was when the sheet took the gesture: it may still be rising.
     from: 0,
@@ -155,16 +163,16 @@ function Sheet({
       onPanResponderRelease: (_, gesture) => {
         if (!drag.down) return;
         // A quarter of the way down, or a quick flick, is a decision to close.
-        const { height, reduced, onClose } = latest.current;
+        const { height, reduced, onClose, motion } = latest.current;
         if (gesture.dy > height / 4 || gesture.vy > FLICK) {
           setReleases((count) => count + 1);
           onClose();
         } else {
-          settle(progress, reduced);
+          settle(progress, reduced, motion);
         }
       },
       onPanResponderTerminate: () => {
-        if (drag.down) settle(progress, latest.current.reduced);
+        if (drag.down) settle(progress, latest.current.reduced, latest.current.motion);
       },
     }),
   ).current;
@@ -218,6 +226,7 @@ function Sheet({
         style={[
           styles.sheet,
           surface === "solid" && styles.solid,
+          style,
           {
             bottom,
             ...(tall && { height: tallHeight }),
@@ -249,7 +258,7 @@ function Sheet({
  * that `scrolls` keeps the drags that start on it instead, even at its top: Android's scroll view
  * takes them for itself before the sheet could ask, and both systems then agree.
  */
-export function useListDrags(scrolls: () => boolean) {
+export function useListDrags(scrolls: () => boolean): GestureResponderHandlers {
   // The handlers are made once, so they call the latest `scrolls`.
   const latest = useRef(scrolls);
   latest.current = scrolls;
@@ -283,7 +292,7 @@ export function isDragDown({ dx, dy }: Gesture) {
 const clamp = (value: number) => Math.min(1, Math.max(0, value));
 
 /** Puts a sheet a drag moved back in place. */
-function settle(progress: Animated.Value, reduced: boolean) {
+function settle(progress: Animated.Value, reduced: boolean, motion: Theme["motion"]) {
   const [x1, y1, x2, y2] = motion.easing.standard;
   Animated.timing(progress, {
     toValue: 0,
@@ -293,38 +302,40 @@ function settle(progress: Animated.Value, reduced: boolean) {
   }).start();
 }
 
-const styles = StyleSheet.create({
-  sheet: {
-    position: "absolute",
-    left: space[2],
-    right: space[2],
-    borderRadius: radius.xl,
-  },
-  solid: {
-    // The whole shadow in one object: react-native-web builds a box-shadow from each on its own.
-    shadowColor: shadow.overlay.color,
-    shadowOffset: { width: shadow.overlay.offsetX, height: shadow.overlay.offsetY },
-    shadowRadius: shadow.overlay.blur,
-    shadowOpacity: 1,
-    elevation: 16,
-  },
-  // The handle shows where to grab; the whole sheet can be dragged.
-  grip: {
-    alignItems: "center",
-    paddingTop: space[2],
-    paddingBottom: space[3],
-  },
-  handle: {
-    width: 36,
-    height: 4,
-    borderRadius: radius.full,
-  },
-  content: {
-    gap: space[4],
-    paddingHorizontal: space[4],
-    paddingBottom: space[4],
-  },
-  fill: {
-    flex: 1,
-  },
-});
+const useStyles = themed(({ radius, shadow, space }) =>
+  StyleSheet.create({
+    sheet: {
+      position: "absolute",
+      left: space[2],
+      right: space[2],
+      borderRadius: radius.xl,
+    },
+    solid: {
+      // The whole shadow in one object: react-native-web builds a box-shadow from each on its own.
+      shadowColor: shadow.overlay.color,
+      shadowOffset: { width: shadow.overlay.offsetX, height: shadow.overlay.offsetY },
+      shadowRadius: shadow.overlay.blur,
+      shadowOpacity: 1,
+      elevation: 16,
+    },
+    // The handle shows where to grab; the whole sheet can be dragged.
+    grip: {
+      alignItems: "center",
+      paddingTop: space[2],
+      paddingBottom: space[3],
+    },
+    handle: {
+      width: 36,
+      height: 4,
+      borderRadius: radius.full,
+    },
+    content: {
+      gap: space[4],
+      paddingHorizontal: space[4],
+      paddingBottom: space[4],
+    },
+    fill: {
+      flex: 1,
+    },
+  }),
+);

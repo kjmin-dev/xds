@@ -2,7 +2,6 @@
 // the calendar drawn from the `date-picker` tokens (a month's heading, the weekday initials, the
 // days of a month with their circles and a range's band).
 
-import { border, radius, space, typography } from "@acme/tokens";
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import {
@@ -14,15 +13,13 @@ import {
   type IsoMonth,
   localDay,
   monthWeeks,
-} from "./datePicker.ts";
+} from "./calendarDays.ts";
 import { type DayMarks, isSelected } from "./dateRange.ts";
 import { Icon } from "./Icon.tsx";
-import { Text } from "./Text.tsx";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
 import { FieldMessage, fieldOutline } from "./TextField.tsx";
-import { CONTROL_HEIGHT, control, useColors } from "./theme.ts";
-
-/** A day's square, unless seven of them are wider than the room. */
-const DAY = control.calendarDay;
+import { type Theme, themed, useColors, useControl, useTheme } from "./theme.ts";
 
 /**
  * The names of the device's locale, read once: the locale can only change with the app
@@ -33,8 +30,8 @@ export function useCalendarNames(): CalendarNames {
 }
 
 /** The side of a day's cell in a calendar `width` wide. */
-export function cellSize(width: number): number {
-  return Math.min(DAY, Math.floor(width / 7));
+export function cellSize(width: number, day: number): number {
+  return Math.min(day, Math.floor(width / 7));
 }
 
 /**
@@ -42,6 +39,7 @@ export function cellSize(width: number): number {
  * padding. The calendar measures itself as well, and this stands in until it has.
  */
 export function useSheetWidth(): [width: number, measure: (width: number) => void] {
+  const { space } = useTheme();
   const { width: window } = useWindowDimensions();
   const [measured, setMeasured] = useState<number>();
   return [measured ?? window - space[2] * 2 - space[4] * 2, setMeasured];
@@ -94,11 +92,12 @@ export function DateField({
   open: boolean;
   onOpen: () => void;
 }) {
+  const styles = useStyles();
   const colors = useColors();
   const text = shown ?? placeholder;
   // While its calendar is open the field is the one in use, and is outlined as a TextField is
   // while it has focus.
-  const outline = fieldOutline(colors, open, error !== undefined);
+  const outline = fieldOutline(useTheme(), colors, open, error !== undefined);
   return (
     <>
       <Text variant="label" tone={disabled ? "secondary" : "primary"}>
@@ -149,19 +148,21 @@ export function DateField({
 }
 
 /** How tall a month's heading is, so that a list of months can know where each one starts. */
-export function headingHeight(fontScale: number): number {
+export function headingHeight(fontScale: number, typography: Theme["typography"]): number {
   return Math.ceil(typography.bodyStrong.lineHeight * fontScale);
 }
 
 /** A month's name over its days. */
 export function MonthHeading({ title, live = false }: { title: string; live?: boolean }) {
+  const styles = useStyles();
+  const { typography } = useTheme();
   const colors = useColors();
   const { fontScale } = useWindowDimensions();
   return (
     <View
       // Said when it changes, so that a screen reader hears which month the buttons showed.
       aria-live={live ? "polite" : undefined}
-      style={[styles.heading, { height: headingHeight(fontScale) }]}
+      style={[styles.heading, { height: headingHeight(fontScale, typography) }]}
     >
       <Text
         variant="body-strong"
@@ -178,6 +179,7 @@ export function MonthHeading({ title, live = false }: { title: string; live?: bo
 
 /** The initials of the days of the week over the columns, each `cell` wide. */
 export function WeekdayRow({ initials, cell }: { initials: string[]; cell: number }) {
+  const styles = useStyles();
   const colors = useColors();
   return (
     // Every day's name says its weekday, so a screen reader skips the initials.
@@ -199,7 +201,7 @@ export function WeekdayRow({ initials, cell }: { initials: string[]; cell: numbe
 }
 
 /** How tall `MonthGrid` draws a month of `rows` weeks. */
-export const gridHeight = (rows: number) => rows * DAY;
+export const gridHeight = (rows: number, day: number) => rows * day;
 
 /**
  * The days of `month` in rows of a week, each `cell` wide, as a grid named by the month. Both
@@ -232,6 +234,8 @@ export function MonthGrid({
   dayName?: (marks: DayMarks, name: string) => string;
   onPress: (day: IsoDate) => void;
 }) {
+  const styles = useStyles();
+  const dayHeight = useControl().calendarDay;
   const weeks = monthWeeks(month, names.firstDay);
   return (
     <View role="grid" aria-label={names.month(month)}>
@@ -239,7 +243,8 @@ export function MonthGrid({
         <View key={week.find((day) => day !== null)} role="row" style={styles.week}>
           {week.map((day, column) => {
             // An empty cell has only its place to tell it apart.
-            if (day === null) return <View key={column} style={{ width: cell, height: DAY }} />;
+            if (day === null)
+              return <View key={column} style={{ width: cell, height: dayHeight }} />;
             const dayMarks = marks(day);
             const reachable = inRange(day, min, max);
             return (
@@ -288,6 +293,10 @@ function Day({
   choosable: boolean;
   onPress: () => void;
 }) {
+  const styles = useStyles();
+  const { border, space } = useTheme();
+  // A day's square, unless seven of them are wider than the room.
+  const DAY = useControl().calendarDay;
   const colors = useColors();
   // A range's start stays a filled circle while it waits for its end, though pressing it again
   // does nothing when the range has to be longer.
@@ -390,48 +399,50 @@ function bandShape(band: NonNullable<DayMarks["band"]>, side: number) {
   } as const;
 }
 
-const styles = StyleSheet.create({
-  // The outline is drawn inside this height, so the box is as tall as a TextField's whatever
-  // its state.
-  box: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[2],
-    minHeight: CONTROL_HEIGHT.md,
-    borderRadius: radius.md,
-  },
-  value: {
-    flex: 1,
-  },
-  heading: {
-    justifyContent: "center",
-  },
-  headingText: {
-    textAlign: "center",
-  },
-  weekdays: {
-    flexDirection: "row",
-  },
-  weekday: {
-    paddingVertical: space[1],
-    textAlign: "center",
-  },
-  week: {
-    flexDirection: "row",
-  },
-  day: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  band: {
-    position: "absolute",
-    pointerEvents: "none",
-  },
-  circle: {
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: radius.full,
-    // The day's Pressable is what is touched, whatever its circle is.
-    pointerEvents: "none",
-  },
-});
+const useStyles = themed(({ radius, size, space }) =>
+  StyleSheet.create({
+    // The outline is drawn inside this height, so the box is as tall as a TextField's whatever
+    // its state.
+    box: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: space[2],
+      minHeight: size.touch.controlMd,
+      borderRadius: radius.md,
+    },
+    value: {
+      flex: 1,
+    },
+    heading: {
+      justifyContent: "center",
+    },
+    headingText: {
+      textAlign: "center",
+    },
+    weekdays: {
+      flexDirection: "row",
+    },
+    weekday: {
+      paddingVertical: space[1],
+      textAlign: "center",
+    },
+    week: {
+      flexDirection: "row",
+    },
+    day: {
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    band: {
+      position: "absolute",
+      pointerEvents: "none",
+    },
+    circle: {
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: radius.full,
+      // The day's Pressable is what is touched, whatever its circle is.
+      pointerEvents: "none",
+    },
+  }),
+);

@@ -174,8 +174,9 @@ run = [
   "pnpm --filter @acme/web-svelte build",
   # @endif
   # @if template
-  # The web library's npm packages: it fails when the build leaves the placeholder name in them.
+  # The libraries' npm packages: each build fails when it leaves the placeholder name in them.
   "node npm/web/build.ts",
+  "node npm/react-native/build.ts",
   # @endif
   # @if mobile-react-native
   # Neither is visible to the type checker: a native package that has moved off the version the
@@ -248,9 +249,20 @@ run = "node npm/web/consumer.ts"
 
 # The same for the Compose library: it builds it into a Maven repository directory, consumes it
 # from a desktop app and an Android app outside the repository, and compares their design
-# previews with a scaffolded project's, pixel by pixel. It needs a JDK, the Android SDK with an
-# emulator system image installed in $ANDROID_HOME, and the network; `-- --platforms desktop`
-# leaves Android out. docs/compose-library.md says what it compares.
+# previews with a scaffolded project's, pixel by pixel; on macOS it also links it for iOS. It
+# needs a JDK, the Android SDK with an emulator system image installed in $ANDROID_HOME, and the
+# network; `-- --platforms desktop` leaves Android and iOS out. docs/compose-library.md says what
+# it compares.
+# The same for the React Native library: it builds the npm package, installs it in an Expo app
+# and in apps on the oldest and newest React Native it supports, type-checks and bundles them,
+# and compares their design previews on an Android emulator, pixel by pixel. It needs a JDK, the
+# Android SDK with an emulator system image, and the network; `-- --skip-android` stops after the
+# bundles. docs/react-native-library.md says what it compares.
+[tasks."check:library-react-native"]
+description = "Install the React Native package in new Expo and React Native apps and compare their design previews with a scaffolded app"
+depends = ["install"]
+run = "node npm/react-native/consumer.ts"
+
 [tasks."check:library-compose"]
 description = "Consume the Compose library from new desktop and Android apps and compare their design previews with a scaffolded project"
 run = "node maven/consumer.ts"

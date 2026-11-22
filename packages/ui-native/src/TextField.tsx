@@ -1,14 +1,24 @@
-import { border, radius, space, typography } from "@acme/tokens";
 import { type ReactNode, useState } from "react";
 import {
+  type StyleProp,
   StyleSheet,
   TextInput,
   type TextInputProps,
   useWindowDimensions,
   View,
+  type ViewStyle,
 } from "react-native";
-import { Text } from "./Text.tsx";
-import { CONTROL_HEIGHT, type Colors, ContentColor, useColors } from "./theme.ts";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
+import {
+  type Colors,
+  ContentColor,
+  type Theme,
+  themed,
+  useColors,
+  useControl,
+  useTheme,
+} from "./theme.ts";
 
 /**
  * The outline of a field's box. While the field is in use or wrong the outline thickens as well
@@ -16,6 +26,7 @@ import { CONTROL_HEIGHT, type Colors, ContentColor, useColors } from "./theme.ts
  * shrinks by as much, so the content does not move. Select draws its box with it too.
  */
 export function fieldOutline(
+  { border, space }: Theme,
   colors: Colors,
   active: boolean,
   invalid: boolean,
@@ -42,6 +53,7 @@ export function FieldMessage({
   description?: string | undefined;
   counter?: ReactNode;
 }) {
+  const styles = useStyles();
   if (error === undefined && !description && !counter) return null;
   return (
     <View style={styles.below}>
@@ -87,6 +99,8 @@ export type TextFieldProps = {
   maxLength?: number;
   /** Called when the person presses the keyboard's return key. */
   onSubmit?: () => void;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 } & Pick<
   TextInputProps,
   | "autoCapitalize"
@@ -113,16 +127,24 @@ export function TextField({
   rows = 3,
   maxLength,
   onSubmit,
+  style,
   ...input
 }: TextFieldProps) {
+  const styles = useStyles();
+  const { space, typography } = useTheme();
+  const control = useControl();
   const colors = useColors();
   const { fontScale } = useWindowDimensions();
   const [focused, setFocused] = useState(false);
   const invalid = error !== undefined;
-  const { width: outline, color: outlineColor, edge } = fieldOutline(colors, focused, invalid);
+  const {
+    width: outline,
+    color: outlineColor,
+    edge,
+  } = fieldOutline(useTheme(), colors, focused, invalid);
   // The room inside the outline of a one-line field. A slot is that tall whatever it holds, so
   // the box keeps its height.
-  const inner = CONTROL_HEIGHT.md - 2 * outline;
+  const inner = control.controlMd - 2 * outline;
   // What a one-line field leaves above and below its line, so the first line of a text area
   // sits where the only line of a field does.
   const lead = (inner - typography.body.lineHeight) / 2;
@@ -133,7 +155,7 @@ export function TextField({
   const slot = multiline ? line + 2 * lead : inner;
 
   return (
-    <View style={styles.field}>
+    <View style={[styles.field, style]}>
       <Text variant="label" tone={disabled ? "secondary" : "primary"}>
         {label}
       </Text>
@@ -213,47 +235,49 @@ export function TextField({
   );
 }
 
-const styles = StyleSheet.create({
-  field: {
-    alignSelf: "stretch",
-    gap: space[1],
-  },
-  box: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: radius.md,
-  },
-  // In a text area the slots stay with the first line.
-  top: {
-    alignItems: "flex-start",
-  },
-  slot: {
-    justifyContent: "center",
-  },
-  input: {
-    flex: 1,
-    // No line height: iOS centers single-line input text on its own, and a line height
-    // pushes it off center.
-    fontSize: typography.body.fontSize,
-  },
-  area: {
-    lineHeight: typography.body.lineHeight,
-    // Android centers the text of a tall input unless told otherwise.
-    textAlignVertical: "top",
-  },
-  below: {
-    flexDirection: "row",
-    // The counter is set smaller than the message beside it; they share a baseline.
-    alignItems: "baseline",
-    gap: space[3],
-  },
-  message: {
-    flex: 1,
-  },
-  counter: {
-    // Stays at the end edge when there is no message to push it there.
-    marginStart: "auto",
-    // Digits of one width, so the counter does not shift as it counts.
-    fontVariant: ["tabular-nums"],
-  },
-});
+const useStyles = themed(({ radius, space, typography }) =>
+  StyleSheet.create({
+    field: {
+      alignSelf: "stretch",
+      gap: space[1],
+    },
+    box: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderRadius: radius.md,
+    },
+    // In a text area the slots stay with the first line.
+    top: {
+      alignItems: "flex-start",
+    },
+    slot: {
+      justifyContent: "center",
+    },
+    input: {
+      flex: 1,
+      // No line height: iOS centers single-line input text on its own, and a line height
+      // pushes it off center.
+      fontSize: typography.body.fontSize,
+    },
+    area: {
+      lineHeight: typography.body.lineHeight,
+      // Android centers the text of a tall input unless told otherwise.
+      textAlignVertical: "top",
+    },
+    below: {
+      flexDirection: "row",
+      // The counter is set smaller than the message beside it; they share a baseline.
+      alignItems: "baseline",
+      gap: space[3],
+    },
+    message: {
+      flex: 1,
+    },
+    counter: {
+      // Stays at the end edge when there is no message to push it there.
+      marginStart: "auto",
+      // Digits of one width, so the counter does not shift as it counts.
+      fontVariant: ["tabular-nums"],
+    },
+  }),
+);

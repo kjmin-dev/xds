@@ -38,7 +38,8 @@ pub struct ExportArgs {
     /// value's, `<Name>Theme` [default: the file's name]
     #[arg(long)]
     name: Option<String>,
-    /// What to write: a stylesheet for the web, or a Kotlin file for the Compose components
+    /// What to write: a stylesheet for the web, a Kotlin file for the Compose components, or a
+    /// TypeScript module for the React Native components
     #[arg(long, value_enum, default_value_t = Format::Css)]
     format: Format,
     /// The Kotlin file's package, with `--format compose` [default: `<prefix>.themes`]
@@ -59,6 +60,8 @@ pub enum Format {
     Css,
     /// A Kotlin file with the theme as a value for the theme composable
     Compose,
+    /// A TypeScript module with the theme as a value for the theme provider
+    ReactNative,
 }
 
 impl Format {
@@ -67,6 +70,7 @@ impl Format {
         match self {
             Self::Css => "css",
             Self::Compose => "compose",
+            Self::ReactNative => "react-native",
         }
     }
 
@@ -75,6 +79,7 @@ impl Format {
         match self {
             Self::Css => "css",
             Self::Compose => "kotlin",
+            Self::ReactNative => "typescript",
         }
     }
 }
@@ -244,9 +249,15 @@ pub fn export(args: &ExportArgs, out: Out) -> Result<Value> {
         .clone()
         .unwrap_or_else(|| format!("{prefix}.themes"));
     let tokens = format!("{prefix}.tokens");
+    // The module that exports `Theme`: the published library's, or the project's own tokens.
+    let module = match &checker.location {
+        Location::Embedded => "@xds/react-native".to_owned(),
+        Location::Project(_) => format!("@{prefix}/tokens"),
+    };
     let (first, second) = match args.format {
         Format::Css => (prefix.as_str(), layer.as_str()),
         Format::Compose => (package.as_str(), tokens.as_str()),
+        Format::ReactNative => (module.as_str(), ""),
     };
     let version = env!("CARGO_PKG_VERSION");
     let output = checker.run(
@@ -287,6 +298,12 @@ pub fn export(args: &ExportArgs, out: Out) -> Result<Value> {
                     path.display(),
                     value = kotlin_value(&name),
                 ),
+                Format::ReactNative => say!(
+                    out,
+                    "Wrote {}: pass {value} to <{title}Theme theme={{{value}}}> to apply it.",
+                    path.display(),
+                    value = typescript_value(&name),
+                ),
             }
         }
         None if out.json => result[args.format.field()] = json!(text),
@@ -319,6 +336,17 @@ fn kotlin_value(name: &str) -> String {
     value + "Theme"
 }
 
+/// The TypeScript value a theme of this name is written as, as the token tool names it:
+/// `brand` is `brandTheme`, and a hyphen between two digits stays, as `_`: `v1-2` is `v1_2Theme`.
+fn typescript_value(name: &str) -> String {
+    let pascal = kotlin_value(name);
+    let mut characters = pascal.chars();
+    match characters.next() {
+        Some(first) => first.to_ascii_lowercase().to_string() + characters.as_str(),
+        None => pascal,
+    }
+}
+
 /// The project's theme composable without its `Theme`: `Orbit` for `OrbitTheme`.
 fn theme_identifier(name: &str, title: &str) -> String {
     crate::rename::Names::new(name, Some(title))
@@ -328,7 +356,7 @@ fn theme_identifier(name: &str, title: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::kotlin_value;
+    use super::{kotlin_value, typescript_value};
 
     #[test]
     fn a_theme_is_written_as_a_kotlin_value_named_as_the_token_tool_names_it() {
@@ -336,5 +364,7 @@ mod tests {
         assert_eq!(kotlin_value("brand-theme"), "BrandThemeTheme");
         assert_eq!(kotlin_value("checkout-2"), "Checkout2Theme");
         assert_eq!(kotlin_value("v1-2"), "V1_2Theme");
+        assert_eq!(typescript_value("brand-theme"), "brandThemeTheme");
+        assert_eq!(typescript_value("v1-2"), "v1_2Theme");
     }
 }

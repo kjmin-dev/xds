@@ -1,6 +1,6 @@
-import { motion } from "@acme/tokens";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Animated } from "react-native";
+import { useTheme } from "./theme.ts";
 
 /** Whether the person asked the system for less motion. */
 export function useReducedMotion(): boolean {
@@ -36,7 +36,9 @@ export function spring({ stiffness, damping }: Spring) {
  * Moves a value to `target` on a spring, or at once when the person asked for less motion.
  * Returns the animated value.
  */
-export function useSpring(target: number, token: Spring = motion.spring.default): Animated.Value {
+export function useSpring(target: number, given?: Spring): Animated.Value {
+  const { motion } = useTheme();
+  const token = given ?? motion.spring.default;
   const reduced = useReducedMotion();
   const value = useRef(new Animated.Value(target)).current;
   useEffect(() => {

@@ -1,12 +1,22 @@
-import { motion, radius, typography } from "@acme/tokens";
 import { useEffect, useRef } from "react";
-import { Animated, type DimensionValue, Easing, StyleSheet, View } from "react-native";
+import {
+  Animated,
+  type DimensionValue,
+  Easing,
+  type StyleProp,
+  StyleSheet,
+  View,
+  type ViewStyle,
+} from "react-native";
+import { useDefaults } from "./defaults.ts";
 import { useReducedMotion } from "./motion.ts";
-import { control, useColors } from "./theme.ts";
+import { themed, useColors, useControl, useTheme } from "./theme.ts";
 
 export type SkeletonProps = {
   /** Points or a percentage. A line of text is as wide as its container without it. */
   width?: DimensionValue;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 } & (
   | {
       /**
@@ -27,7 +37,13 @@ export type SkeletonProps = {
  * Holds the place of content that is loading. It is hidden from screen readers: the screen
  * that shows skeletons says that it is loading.
  */
-export function Skeleton({ shape = "text", width, height }: SkeletonProps) {
+export function Skeleton({ shape: givenShape, width, height, style }: SkeletonProps) {
+  const defaults = useDefaults("Skeleton");
+  const shape = givenShape ?? defaults.shape ?? "text";
+
+  const styles = useStyles();
+  const { motion, radius, typography } = useTheme();
+  const control = useControl();
   const colors = useColors();
   const reduced = useReducedMotion();
   // How much of the highlight shows over the fill: 0 none, 1 all of it.
@@ -53,7 +69,7 @@ export function Skeleton({ shape = "text", width, height }: SkeletonProps) {
     );
     beat.start();
     return () => beat.stop();
-  }, [pulse, reduced]);
+  }, [motion, pulse, reduced]);
 
   const box =
     shape === "circle"
@@ -73,7 +89,7 @@ export function Skeleton({ shape = "text", width, height }: SkeletonProps) {
     <View
       accessible={false}
       aria-hidden
-      style={[styles.skeleton, box, { backgroundColor: colors.skeletonBackground }]}
+      style={[[styles.skeleton, box, { backgroundColor: colors.skeletonBackground }], style]}
     >
       <Animated.View
         style={[
@@ -85,9 +101,11 @@ export function Skeleton({ shape = "text", width, height }: SkeletonProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  // Clips the highlight to the shape's corners.
-  skeleton: {
-    overflow: "hidden",
-  },
-});
+const useStyles = themed((_theme) =>
+  StyleSheet.create({
+    // Clips the highlight to the shape's corners.
+    skeleton: {
+      overflow: "hidden",
+    },
+  }),
+);

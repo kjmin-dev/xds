@@ -1,7 +1,14 @@
-import { border, space, typography } from "@acme/tokens";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  type StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { Icon, type IconName } from "./Icon.tsx";
-import { control, useColors } from "./theme.ts";
+import { themed, useColors, useTheme } from "./theme.ts";
 
 export type TabsItem<Value extends string> = {
   value: Value;
@@ -19,6 +26,8 @@ export type TabsProps<Value extends string> = {
   label: string;
   /** The tabs share the width of the row equally. */
   fullWidth?: boolean;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -33,10 +42,13 @@ export function Tabs<Value extends string>({
   onChange,
   label,
   fullWidth = false,
+  style,
 }: TabsProps<Value>) {
+  const styles = useStyles();
+  const { typography } = useTheme();
   const colors = useColors();
   return (
-    <View style={styles.tabs}>
+    <View style={[styles.tabs, style]}>
       {/* Under the row, so that the bar of the selected tab is drawn over it. */}
       <View style={[styles.hairline, { backgroundColor: colors.tabsBorder }]} />
       <ScrollView
@@ -85,39 +97,42 @@ export function Tabs<Value extends string>({
   );
 }
 
-const styles = StyleSheet.create({
-  tabs: {
-    alignSelf: "stretch",
-  },
-  hairline: {
-    position: "absolute",
-    start: 0,
-    end: 0,
-    bottom: 0,
-    height: border.width.thin,
-  },
-  // At least as wide as the row, so that tabs told to share the width have it all to share.
-  fill: {
-    flexGrow: 1,
-  },
-  tab: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: space[2],
-    height: control.tab,
-    minWidth: control.targetMin,
-    paddingHorizontal: space[4],
-  },
-  share: {
-    flexGrow: 1,
-    flexBasis: 0,
-  },
-  indicator: {
-    position: "absolute",
-    start: 0,
-    end: 0,
-    bottom: 0,
-    height: border.width.thick,
-  },
+const useStyles = themed(({ border, space, size }) => {
+  const control = size.touch;
+  return StyleSheet.create({
+    tabs: {
+      alignSelf: "stretch",
+    },
+    hairline: {
+      position: "absolute",
+      start: 0,
+      end: 0,
+      bottom: 0,
+      height: border.width.thin,
+    },
+    // At least as wide as the row, so that tabs told to share the width have it all to share.
+    fill: {
+      flexGrow: 1,
+    },
+    tab: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: space[2],
+      height: control.tab,
+      minWidth: control.targetMin,
+      paddingHorizontal: space[4],
+    },
+    share: {
+      flexGrow: 1,
+      flexBasis: 0,
+    },
+    indicator: {
+      position: "absolute",
+      start: 0,
+      end: 0,
+      bottom: 0,
+      height: border.width.thick,
+    },
+  });
 });

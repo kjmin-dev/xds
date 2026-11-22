@@ -1,8 +1,7 @@
-import { border, radius, shadow, space, typography } from "@acme/tokens";
 import type { ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, type StyleProp, StyleSheet, Text, View, type ViewStyle } from "react-native";
 import { GlassMaterial, type Surface } from "./Glass";
-import { control, useColors } from "./theme.ts";
+import { themed, useColors, useTheme } from "./theme.ts";
 
 export type TabBarItem<Key extends string> = {
   key: Key;
@@ -16,9 +15,9 @@ export type TabBarProps<Key extends string> = {
   items: readonly TabBarItem<Key>[];
   value: Key;
   onChange: (key: Key) => void;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
-
-const INSET = space[1];
 
 /**
  * The bar that switches between the top-level places of an app: three to five of them. It is
@@ -31,7 +30,10 @@ export function TabBar<Key extends string>({
   value,
   onChange,
   surface = "solid",
+  style,
 }: TabBarProps<Key>) {
+  const styles = useStyles();
+  const { radius, typography } = useTheme();
   const colors = useColors();
   const content = items.map((item) => {
     const selected = item.key === value;
@@ -57,7 +59,7 @@ export function TabBar<Key extends string>({
     );
   });
   return surface === "glass" ? (
-    <GlassMaterial role="tablist" corners={radius.full} style={styles.bar}>
+    <GlassMaterial role="tablist" corners={radius.full} style={[styles.bar, style]}>
       {content}
     </GlassMaterial>
   ) : (
@@ -67,6 +69,7 @@ export function TabBar<Key extends string>({
         styles.bar,
         styles.solid,
         { backgroundColor: colors.tabBarBackground, borderColor: colors.tabBarBorder },
+        style,
       ]}
     >
       {content}
@@ -74,35 +77,40 @@ export function TabBar<Key extends string>({
   );
 }
 
-const styles = StyleSheet.create({
-  bar: {
-    alignSelf: "stretch",
-    flexDirection: "row",
-    height: control.bar + INSET * 2,
-    padding: INSET,
-    borderRadius: radius.full,
-  },
-  solid: {
-    borderWidth: border.width.thin,
+const useStyles = themed(({ border, radius, shadow, space, size }) => {
+  const control = size.touch;
+  // The gap between the capsule's edge and the selected tab's pill.
+  const INSET = space[1];
+  return StyleSheet.create({
+    bar: {
+      alignSelf: "stretch",
+      flexDirection: "row",
+      height: control.bar + INSET * 2,
+      padding: INSET,
+      borderRadius: radius.full,
+    },
+    solid: {
+      borderWidth: border.width.thin,
 
-    // The whole shadow in one object: react-native-web builds a box-shadow from each on its own.
-    shadowColor: shadow.raised.color,
-    shadowOffset: { width: shadow.raised.offsetX, height: shadow.raised.offsetY },
-    shadowRadius: shadow.raised.blur,
-    shadowOpacity: 1,
-    elevation: 6,
-  },
-  item: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: space["0_5"],
-    borderRadius: radius.full,
-  },
-  icon: {
-    width: control.iconLg,
-    height: control.iconLg,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+      // The whole shadow in one object: react-native-web builds a box-shadow from each on its own.
+      shadowColor: shadow.raised.color,
+      shadowOffset: { width: shadow.raised.offsetX, height: shadow.raised.offsetY },
+      shadowRadius: shadow.raised.blur,
+      shadowOpacity: 1,
+      elevation: 6,
+    },
+    item: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: space["0_5"],
+      borderRadius: radius.full,
+    },
+    icon: {
+      width: control.iconLg,
+      height: control.iconLg,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+  });
 });

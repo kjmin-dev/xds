@@ -1,8 +1,9 @@
-import { radius, space } from "@acme/tokens";
-import { StyleSheet, View } from "react-native";
+import { type StyleProp, StyleSheet, View, type ViewStyle } from "react-native";
+import { useDefaults } from "./defaults.ts";
 import { Icon, type IconName } from "./Icon.tsx";
-import { Text } from "./Text.tsx";
-import { type Colors, control, useColors } from "./theme.ts";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
+import { type Colors, themed, useColors } from "./theme.ts";
 
 export type BadgeTone = "neutral" | "accent" | "success" | "warning" | "danger" | "overlay";
 
@@ -29,20 +30,27 @@ function look(colors: Colors, tone: BadgeTone): { background: string; text: stri
  * words say. The `overlay` tone is for a badge that sits on a picture.
  */
 export function Badge({
-  tone = "neutral",
+  tone: givenTone,
   dot = false,
   icon,
   label,
+  style,
 }: {
   tone?: BadgeTone;
   dot?: boolean;
   /** Drawn before the label, after the dot when there is one. */
   icon?: IconName;
   label: string;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 }) {
+  const defaults = useDefaults("Badge");
+  const tone = givenTone ?? defaults.tone ?? "neutral";
+
+  const styles = useStyles();
   const { background, text } = look(useColors(), tone);
   return (
-    <View style={[styles.badge, { backgroundColor: background }]}>
+    <View style={[[styles.badge, { backgroundColor: background }], style]}>
       {dot && <View style={[styles.dot, { backgroundColor: text }]} />}
       {icon && <Icon name={icon} size="xs" color={text} />}
       <Text variant="footnote" tone="inherit" numberOfLines={1} style={{ color: text }}>
@@ -52,19 +60,22 @@ export function Badge({
   );
 }
 
-const styles = StyleSheet.create({
-  badge: {
-    alignSelf: "flex-start",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space["1_5"],
-    minHeight: control.badge,
-    paddingHorizontal: space["2_5"],
-    borderRadius: radius.full,
-  },
-  dot: {
-    width: space["1_5"],
-    height: space["1_5"],
-    borderRadius: radius.full,
-  },
+const useStyles = themed(({ radius, space, size }) => {
+  const control = size.touch;
+  return StyleSheet.create({
+    badge: {
+      alignSelf: "flex-start",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: space["1_5"],
+      minHeight: control.badge,
+      paddingHorizontal: space["2_5"],
+      borderRadius: radius.full,
+    },
+    dot: {
+      width: space["1_5"],
+      height: space["1_5"],
+      borderRadius: radius.full,
+    },
+  });
 });

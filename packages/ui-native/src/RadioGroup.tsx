@@ -1,8 +1,15 @@
-import { border, radius, space, typography } from "@acme/tokens";
-import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
-import { Text } from "./Text.tsx";
+import {
+  Pressable,
+  type StyleProp,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+  type ViewStyle,
+} from "react-native";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
 import { FieldMessage } from "./TextField.tsx";
-import { control, useColors } from "./theme.ts";
+import { themed, useColors, useControl, useTheme } from "./theme.ts";
 
 export type RadioOption<Value extends string> = {
   value: Value;
@@ -22,6 +29,8 @@ export type RadioGroupProps<Value extends string> = {
   disabled?: boolean;
   /** What is wrong and how to fix it, under the options. Clear it when the value changes. */
   error?: string | undefined;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -36,7 +45,11 @@ export function RadioGroup<Value extends string>({
   onChange,
   disabled = false,
   error,
+  style,
 }: RadioGroupProps<Value>) {
+  const styles = useStyles();
+  const { border, typography } = useTheme();
+  const control = useControl();
   const colors = useColors();
   const { fontScale } = useWindowDimensions();
   // The circle sits on the label's first line, which grows with the system's text size.
@@ -45,7 +58,7 @@ export function RadioGroup<Value extends string>({
   const descriptionColor = disabled ? colors.textDisabled : colors.textSecondary;
 
   return (
-    <View role="radiogroup" aria-label={label} style={styles.group}>
+    <View role="radiogroup" aria-label={label} style={[styles.group, style]}>
       <Text variant="label" tone={disabled ? "secondary" : "primary"}>
         {label}
       </Text>
@@ -110,39 +123,42 @@ export function RadioGroup<Value extends string>({
   );
 }
 
-const styles = StyleSheet.create({
-  group: {
-    alignSelf: "stretch",
-    gap: space[1],
-  },
-  options: {
-    gap: space[2],
-  },
-  // The whole row is the press area, at least as tall as the smallest target, with what it
-  // shows centered in that height.
-  option: {
-    minHeight: control.targetMin,
-    justifyContent: "center",
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: space[2],
-  },
-  circle: {
-    width: control.radio,
-    height: control.radio,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: radius.full,
-  },
-  dot: {
-    width: control.radio / 2,
-    height: control.radio / 2,
-    borderRadius: radius.full,
-  },
-  text: {
-    flex: 1,
-    gap: space["0_5"],
-  },
+const useStyles = themed(({ radius, space, size }) => {
+  const control = size.touch;
+  return StyleSheet.create({
+    group: {
+      alignSelf: "stretch",
+      gap: space[1],
+    },
+    options: {
+      gap: space[2],
+    },
+    // The whole row is the press area, at least as tall as the smallest target, with what it
+    // shows centered in that height.
+    option: {
+      minHeight: control.targetMin,
+      justifyContent: "center",
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: space[2],
+    },
+    circle: {
+      width: control.radio,
+      height: control.radio,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: radius.full,
+    },
+    dot: {
+      width: control.radio / 2,
+      height: control.radio / 2,
+      borderRadius: radius.full,
+    },
+    text: {
+      flex: 1,
+      gap: space["0_5"],
+    },
+  });
 });

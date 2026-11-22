@@ -58,7 +58,7 @@ const TOKEN_FILES: Record<string, string[]> = {
 const NATIVE_CALENDAR = [
   "packages/ui-native/src/BottomSheet.tsx",
   "packages/ui-native/src/Calendar.tsx",
-  "packages/ui-native/src/datePicker.ts",
+  "packages/ui-native/src/calendarDays.ts",
   "packages/ui-native/src/dateRange.ts",
 ];
 const COMPOSE_CALENDAR = [

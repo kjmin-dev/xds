@@ -1,8 +1,5 @@
-import { border, radius, shadow, space, typography } from "@acme/tokens";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { CONTROL_HEIGHT, useColors } from "./theme.ts";
-
-const INSET = space["0_5"];
+import { Pressable, type StyleProp, StyleSheet, Text, View, type ViewStyle } from "react-native";
+import { themed, useColors, useTheme } from "./theme.ts";
 
 export type SegmentedControlProps<Value extends string> = {
   options: readonly { value: Value; label: string }[];
@@ -12,6 +9,8 @@ export type SegmentedControlProps<Value extends string> = {
   accessibilityLabel: string;
   /** Stretches to the width of its container. */
   fullWidth?: boolean;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -24,16 +23,22 @@ export function SegmentedControl<Value extends string>({
   onChange,
   accessibilityLabel,
   fullWidth = false,
+  style,
 }: SegmentedControlProps<Value>) {
+  const styles = useStyles();
+  const { typography } = useTheme();
   const colors = useColors();
   return (
     <View
       role="tablist"
       aria-label={accessibilityLabel}
       style={[
-        styles.track,
-        { backgroundColor: colors.segmentedTrack },
-        fullWidth ? styles.fullWidth : styles.hug,
+        [
+          styles.track,
+          { backgroundColor: colors.segmentedTrack },
+          fullWidth ? styles.fullWidth : styles.hug,
+        ],
+        style,
       ]}
     >
       {options.map((option) => {
@@ -72,31 +77,33 @@ export function SegmentedControl<Value extends string>({
   );
 }
 
-const styles = StyleSheet.create({
-  track: {
-    flexDirection: "row",
-    height: CONTROL_HEIGHT.md,
-    padding: INSET,
-    borderRadius: radius.md,
-  },
-  hug: { alignSelf: "flex-start" },
-  fullWidth: { alignSelf: "stretch" },
-  segment: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: space[4],
-    // Present on every segment, and transparent until selected, so selecting does not move text.
-    borderWidth: border.width.thin,
-    borderColor: "transparent",
-    borderRadius: radius.md - INSET,
-  },
-  // Raised: a faint shadow under the hairline sets the selected segment apart from the track.
-  selected: {
-    shadowColor: shadow.subtle.color,
-    shadowOffset: { width: shadow.subtle.offsetX, height: shadow.subtle.offsetY },
-    shadowRadius: shadow.subtle.blur,
-    shadowOpacity: 1,
-    elevation: 1,
-  },
-  grow: { flex: 1 },
-});
+const useStyles = themed(({ border, radius, shadow, size, space }) =>
+  StyleSheet.create({
+    track: {
+      flexDirection: "row",
+      height: size.touch.controlMd,
+      padding: space["0_5"],
+      borderRadius: radius.md,
+    },
+    hug: { alignSelf: "flex-start" },
+    fullWidth: { alignSelf: "stretch" },
+    segment: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: space[4],
+      // Present on every segment, and transparent until selected, so selecting does not move text.
+      borderWidth: border.width.thin,
+      borderColor: "transparent",
+      borderRadius: radius.md - space["0_5"],
+    },
+    // Raised: a faint shadow under the hairline sets the selected segment apart from the track.
+    selected: {
+      shadowColor: shadow.subtle.color,
+      shadowOffset: { width: shadow.subtle.offsetX, height: shadow.subtle.offsetY },
+      shadowRadius: shadow.subtle.blur,
+      shadowOpacity: 1,
+      elevation: 1,
+    },
+    grow: { flex: 1 },
+  }),
+);

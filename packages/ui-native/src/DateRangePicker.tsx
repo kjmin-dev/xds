@@ -1,12 +1,13 @@
-import { space } from "@acme/tokens";
 import { useMemo, useRef, useState } from "react";
 import {
   AccessibilityInfo,
   FlatList,
   Platform,
+  type StyleProp,
   StyleSheet,
   useWindowDimensions,
   View,
+  type ViewStyle,
 } from "react-native";
 import { TallSheet, useListDrags } from "./BottomSheet.tsx";
 import { Button } from "./Button.tsx";
@@ -22,7 +23,7 @@ import {
   useSheetWidth,
   WeekdayRow,
 } from "./Calendar.tsx";
-import { type IsoDate, type IsoMonth, monthOf, monthWeeks, openingDay } from "./datePicker.ts";
+import { type IsoDate, type IsoMonth, monthOf, monthWeeks, openingDay } from "./calendarDays.ts";
 import {
   type DateRange,
   dayMarks,
@@ -34,8 +35,9 @@ import {
   rangeSummary,
   shownRange,
 } from "./dateRange.ts";
-import { Text } from "./Text.tsx";
-import { useColors } from "./theme.ts";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
+import { themed, useColors, useControl, useTheme } from "./theme.ts";
 
 export type { DateRange };
 
@@ -79,6 +81,8 @@ export type DateRangePickerProps = {
   doneLabel?: string;
   /** Starts with the calendar open, for a preview or a screenshot. */
   defaultOpen?: boolean;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -110,11 +114,13 @@ export function DateRangePicker({
   endLabel = "End",
   doneLabel = "Done",
   defaultOpen = false,
+  style,
 }: DateRangePickerProps) {
+  const styles = useStyles();
   const calendar = useCalendarOpen(defaultOpen && !disabled);
 
   return (
-    <View style={styles.field}>
+    <View style={[styles.field, style]}>
       <DateField
         label={label}
         shown={value === undefined ? undefined : formatRange(value)}
@@ -138,7 +144,7 @@ export function DateRangePicker({
           today={calendar.today}
           labels={{ start: startLabel, end: endLabel }}
         />
-        <Button variant="primary" label={doneLabel} fullWidth onPress={calendar.hide} />
+        <Button variant="primary" size="md" label={doneLabel} fullWidth onPress={calendar.hide} />
       </TallSheet>
     </View>
   );
@@ -168,13 +174,16 @@ function RangeCalendar({
   today: IsoDate;
   labels: { start: string; end: string };
 }) {
+  const styles = useStyles();
   const colors = useColors();
   const names = useCalendarNames();
   const { fontScale } = useWindowDimensions();
   const [draft, setDraft] = useState<RangeDraft | null>(null);
   const shown = shownRange(value, draft);
+  const { space, typography } = useTheme();
+  const day = useControl().calendarDay;
   const [width, measure] = useSheetWidth();
-  const cell = cellSize(width);
+  const cell = cellSize(width, day);
   // Fixed as the sheet opens: the list does not move under the finger while a range is chosen.
   const [{ months, opening }] = useState(() => {
     const opening = monthOf(openingDay({ value: value?.start, min, max }, today));
@@ -196,17 +205,20 @@ function RangeCalendar({
   };
 
   // Every month's height is known beforehand, so that the list can open on the start's month.
-  const heading = headingHeight(fontScale);
+  const heading = headingHeight(fontScale, typography);
+  // The space a month's section keeps above its heading, between it and the days, and below.
+  const sectionSpace = space[2] + space[2] + space[4];
   const layouts = useMemo(() => {
     let offset = 0;
     return months.map((month, index) => {
-      const length = SECTION_SPACE + heading + gridHeight(monthWeeks(month, names.firstDay).length);
+      const weeks = monthWeeks(month, names.firstDay).length;
+      const length = sectionSpace + heading + gridHeight(weeks, day);
       const layout = { index, offset, length };
       // oxlint-disable-next-line react/immutability -- Array.map runs synchronously, and offset is local to this layout calculation.
       offset += length;
       return layout;
     });
-  }, [heading, months, names.firstDay]);
+  }, [day, heading, months, names.firstDay, sectionSpace]);
   const list = useRef({ viewport: 0, content: 0 }).current;
   const keep = useListDrags(() => list.content > list.viewport + 1);
 
@@ -277,35 +289,34 @@ function RangeCalendar({
   );
 }
 
-/** The space a month's section keeps above its heading, between it and the days, and below. */
-const SECTION_SPACE = space[2] + space[2] + space[4];
-
-const styles = StyleSheet.create({
-  field: {
-    alignSelf: "stretch",
-    gap: space[1],
-  },
-  calendar: {
-    flex: 1,
-    gap: space[2],
-  },
-  summary: {
-    flexDirection: "row",
-    gap: space[3],
-  },
-  start: {
-    flex: 1,
-  },
-  months: {
-    flex: 1,
-    alignSelf: "center",
-  },
-  list: {
-    flex: 1,
-  },
-  section: {
-    gap: space[2],
-    paddingTop: space[2],
-    paddingBottom: space[4],
-  },
-});
+const useStyles = themed(({ space }) =>
+  StyleSheet.create({
+    field: {
+      alignSelf: "stretch",
+      gap: space[1],
+    },
+    calendar: {
+      flex: 1,
+      gap: space[2],
+    },
+    summary: {
+      flexDirection: "row",
+      gap: space[3],
+    },
+    start: {
+      flex: 1,
+    },
+    months: {
+      flex: 1,
+      alignSelf: "center",
+    },
+    list: {
+      flex: 1,
+    },
+    section: {
+      gap: space[2],
+      paddingTop: space[2],
+      paddingBottom: space[4],
+    },
+  }),
+);

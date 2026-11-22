@@ -1,16 +1,18 @@
-import { border, radius, space } from "@acme/tokens";
 import { useRef } from "react";
 import {
   type AccessibilityActionEvent,
   I18nManager,
   PanResponder,
   Platform,
+  type StyleProp,
   StyleSheet,
   View,
+  type ViewStyle,
 } from "react-native";
-import { formatValue, fraction, snap, valueAt } from "./slider.ts";
-import { Text } from "./Text.tsx";
-import { control, useColors } from "./theme.ts";
+import { formatValue, fraction, snap, valueAt } from "./sliderValues.ts";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
+import { themed, useColors, useControl } from "./theme.ts";
 
 export type SliderProps = {
   /** Always visible, above the track. It is also what a screen reader calls the slider. */
@@ -24,9 +26,10 @@ export type SliderProps = {
   disabled?: boolean;
   /** Shows the current value at the end of the label row. */
   showValue?: boolean;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
-const THUMB = control.sliderThumb;
 const ACTIONS = [{ name: "increment" }, { name: "decrement" }];
 
 /**
@@ -43,14 +46,17 @@ export function Slider({
   step = 1,
   disabled = false,
   showValue = false,
+  style,
 }: SliderProps) {
+  const styles = useStyles();
   const colors = useColors();
+  const thumb = useControl().sliderThumb;
   const range = { min, max, step };
   const along = fraction(value, range);
 
   // The responder is created once, so it reads what changes through refs.
-  const latest = useRef({ value, onChange, range, disabled });
-  latest.current = { value, onChange, range, disabled };
+  const latest = useRef({ value, onChange, range, disabled, thumb });
+  latest.current = { value, onChange, range, disabled, thumb };
   const width = useRef(0);
   const startX = useRef(0);
   const moveTo = (next: number) => {
@@ -69,7 +75,13 @@ export function Slider({
         // The track and the thumb take no touches, so the point is measured from this view.
         startX.current = event.nativeEvent.locationX;
         moveTo(
-          valueAt(startX.current, width.current, THUMB, I18nManager.isRTL, latest.current.range),
+          valueAt(
+            startX.current,
+            width.current,
+            latest.current.thumb,
+            I18nManager.isRTL,
+            latest.current.range,
+          ),
         );
       },
       onPanResponderMove: (_, gesture) =>
@@ -77,7 +89,7 @@ export function Slider({
           valueAt(
             startX.current + gesture.dx,
             width.current,
-            THUMB,
+            latest.current.thumb,
             I18nManager.isRTL,
             latest.current.range,
           ),
@@ -95,7 +107,7 @@ export function Slider({
   const shown = formatValue(value, range);
 
   return (
-    <View style={styles.slider}>
+    <View style={[styles.slider, style]}>
       <View style={styles.labels}>
         <Text variant="label" tone={disabled ? "secondary" : "primary"} style={styles.label}>
           {label}
@@ -152,57 +164,61 @@ export function Slider({
   );
 }
 
-const styles = StyleSheet.create({
-  slider: {
-    alignSelf: "stretch",
-  },
-  labels: {
-    flexDirection: "row",
-    // The value is set in a different role from the label; they share a baseline.
-    alignItems: "baseline",
-    gap: space[3],
-  },
-  label: {
-    flex: 1,
-  },
-  number: {
-    // Digits of one width, so the value does not shift as it changes.
-    fontVariant: ["tabular-nums"],
-  },
-  // As tall as the smallest target, with the track across its middle. The height above the
-  // thumb is what separates it from the label, so the column needs no gap.
-  area: {
-    height: control.targetMin,
-    justifyContent: "center",
-  },
-  rail: {
-    height: control.sliderTrack,
-    marginHorizontal: THUMB / 2,
-    // Only the area above takes touches: a touch on the thumb is then measured from the area.
-    pointerEvents: "none",
-  },
-  track: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    start: -THUMB / 2,
-    end: -THUMB / 2,
-    borderRadius: radius.full,
-  },
-  fill: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    start: -THUMB / 2,
-    borderRadius: radius.full,
-  },
-  thumb: {
-    position: "absolute",
-    top: (control.sliderTrack - THUMB) / 2,
-    width: THUMB,
-    height: THUMB,
-    marginStart: -THUMB / 2,
-    borderWidth: border.width.thick,
-    borderRadius: radius.full,
-  },
+const useStyles = themed(({ border, radius, space, size }) => {
+  const control = size.touch;
+  const THUMB = control.sliderThumb;
+  return StyleSheet.create({
+    slider: {
+      alignSelf: "stretch",
+    },
+    labels: {
+      flexDirection: "row",
+      // The value is set in a different role from the label; they share a baseline.
+      alignItems: "baseline",
+      gap: space[3],
+    },
+    label: {
+      flex: 1,
+    },
+    number: {
+      // Digits of one width, so the value does not shift as it changes.
+      fontVariant: ["tabular-nums"],
+    },
+    // As tall as the smallest target, with the track across its middle. The height above the
+    // thumb is what separates it from the label, so the column needs no gap.
+    area: {
+      height: control.targetMin,
+      justifyContent: "center",
+    },
+    rail: {
+      height: control.sliderTrack,
+      marginHorizontal: THUMB / 2,
+      // Only the area above takes touches: a touch on the thumb is then measured from the area.
+      pointerEvents: "none",
+    },
+    track: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      start: -THUMB / 2,
+      end: -THUMB / 2,
+      borderRadius: radius.full,
+    },
+    fill: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      start: -THUMB / 2,
+      borderRadius: radius.full,
+    },
+    thumb: {
+      position: "absolute",
+      top: (control.sliderTrack - THUMB) / 2,
+      width: THUMB,
+      height: THUMB,
+      marginStart: -THUMB / 2,
+      borderWidth: border.width.thick,
+      borderRadius: radius.full,
+    },
+  });
 });

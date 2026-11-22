@@ -1,10 +1,20 @@
-import { border, motion, radius, shadow, space } from "@acme/tokens";
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { Animated, Easing, Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import {
+  Animated,
+  Easing,
+  Modal,
+  Pressable,
+  ScrollView,
+  type StyleProp,
+  StyleSheet,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useReducedMotion } from "./motion.ts";
-import { Text } from "./Text.tsx";
-import { control, useColors } from "./theme.ts";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
+import { themed, useColors, useTheme } from "./theme.ts";
 
 export type DialogProps = {
   /** The dialog does not close itself: this decides. */
@@ -22,6 +32,8 @@ export type DialogProps = {
    * that must be answered with one of the `actions`.
    */
   dismissible?: boolean;
+  /** Put on the dialog's panel, after its own look. How it fades and grows stays its own. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -36,7 +48,10 @@ export function Dialog({
   children,
   actions,
   dismissible = true,
+  style,
 }: DialogProps) {
+  const styles = useStyles();
+  const { motion, space } = useTheme();
   const colors = useColors();
   const reduced = useReducedMotion();
   const insets = useSafeAreaInsets();
@@ -56,7 +71,7 @@ export function Dialog({
     }).start(({ finished }) => {
       if (finished && !open) setMounted(false);
     });
-  }, [open, progress, reduced]);
+  }, [motion, open, progress, reduced]);
 
   const dismiss = () => {
     if (dismissible) onClose();
@@ -101,6 +116,9 @@ export function Dialog({
             {
               backgroundColor: colors.dialogBackground,
               borderColor: colors.dialogBorder,
+            },
+            style,
+            {
               opacity: progress,
               transform: [
                 {
@@ -134,42 +152,45 @@ export function Dialog({
   );
 }
 
-const styles = StyleSheet.create({
-  // Only the dialog takes touches here; the rest fall through to the scrim behind.
-  screen: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    pointerEvents: "box-none",
-  },
-  dialog: {
-    width: "100%",
-    maxWidth: control.dialog,
-    maxHeight: "100%",
-    gap: space[4],
-    padding: space[6],
-    borderWidth: border.width.thin,
-    borderRadius: radius.lg,
-    // The token color carries the alpha.
-    shadowColor: shadow.overlay.color,
-    shadowOffset: { width: shadow.overlay.offsetX, height: shadow.overlay.offsetY },
-    shadowRadius: shadow.overlay.blur,
-    shadowOpacity: 1,
-    elevation: 16,
-  },
-  // Gives way first when the dialog would be taller than the screen: the title and the actions
-  // stay in sight and the body scrolls between them.
-  body: {
-    flexGrow: 0,
-    flexShrink: 1,
-  },
-  parts: {
-    gap: space[4],
-  },
-  actions: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "flex-end",
-    gap: space[2],
-  },
+const useStyles = themed(({ border, radius, shadow, space, size }) => {
+  const control = size.touch;
+  return StyleSheet.create({
+    // Only the dialog takes touches here; the rest fall through to the scrim behind.
+    screen: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      pointerEvents: "box-none",
+    },
+    dialog: {
+      width: "100%",
+      maxWidth: control.dialog,
+      maxHeight: "100%",
+      gap: space[4],
+      padding: space[6],
+      borderWidth: border.width.thin,
+      borderRadius: radius.lg,
+      // The token color carries the alpha.
+      shadowColor: shadow.overlay.color,
+      shadowOffset: { width: shadow.overlay.offsetX, height: shadow.overlay.offsetY },
+      shadowRadius: shadow.overlay.blur,
+      shadowOpacity: 1,
+      elevation: 16,
+    },
+    // Gives way first when the dialog would be taller than the screen: the title and the actions
+    // stay in sight and the body scrolls between them.
+    body: {
+      flexGrow: 0,
+      flexShrink: 1,
+    },
+    parts: {
+      gap: space[4],
+    },
+    actions: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "flex-end",
+      gap: space[2],
+    },
+  });
 });

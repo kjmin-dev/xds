@@ -712,6 +712,12 @@ export const size = {
   }
 } as const;
 
+/**
+ * Every group above as one value: the theme the token files describe. The React Native
+ * components draw with it unless they are given another theme of the same shape.
+ */
+export const defaultTheme = { colors, space, radius, border, focus, font, typography, motion, shadow, glass, size } as const;
+
 /** Icons as SVG path data on a 24 by 24 grid, stroked 2 wide with round caps and joins. */
 export const icons = {
   "arrow-down": [

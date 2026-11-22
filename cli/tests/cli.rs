@@ -853,6 +853,62 @@ fn exports_a_checked_theme_as_a_kotlin_value_for_the_library_or_a_project() {
 }
 
 #[test]
+fn exports_a_checked_theme_as_a_typescript_value_for_the_library_or_a_project() {
+    let temp = TempDir::new().unwrap();
+    let theme = temp.path().join("brand.json");
+    let project = temp.path().join("my-project");
+    let (created, _, stderr) = run(xds().arg("create").arg(&project).args([
+        "--name",
+        "orbit",
+        "--targets",
+        "mobile-react-native",
+        "--yes",
+    ]));
+    assert!(created.status.success(), "{stderr}");
+    let version = env!("CARGO_PKG_VERSION");
+    let file = serde_json::json!({ "version": version, "preset": "ocean" });
+    fs::write(&theme, file.to_string()).unwrap();
+
+    // Outside a project the value is typed by the published library.
+    let (output, stdout, stderr) = run(xds()
+        .current_dir(temp.path())
+        .args(["export-theme", "--format", "react-native"])
+        .arg(&theme));
+    assert!(output.status.success(), "{stderr}");
+    assert!(
+        stdout.contains("import type { Theme } from \"@xds/react-native\";"),
+        "{stdout}"
+    );
+    assert!(
+        stdout.contains("export const brandTheme: Theme = {"),
+        "{stdout}"
+    );
+    assert!(!stdout.contains("acme"), "{stdout}");
+
+    // In a project it is typed by the project's own tokens.
+    let module = temp.path().join("brand.ts");
+    let (output, stdout, stderr) = run(xds()
+        .current_dir(&project)
+        .args([
+            "--json",
+            "export-theme",
+            "--format",
+            "react-native",
+            "--out",
+        ])
+        .arg(&module)
+        .arg(&theme));
+    assert!(output.status.success(), "{stderr}");
+    let report: Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(report["source"], "project");
+    let written = fs::read_to_string(&module).unwrap();
+    assert!(
+        written.contains("import type { Theme } from \"@orbit/tokens\";"),
+        "{written}"
+    );
+}
+
+#[test]
 fn checks_a_theme_from_a_project_or_the_embedded_release_without_applying_it() {
     let temp = TempDir::new().unwrap();
     let theme = temp.path().join("brand theme.json");

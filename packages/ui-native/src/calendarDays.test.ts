@@ -16,7 +16,7 @@ import {
   localDay,
   monthWeeks,
   openingDay,
-} from "./datePicker.ts";
+} from "./calendarDays.ts";
 
 // The farthest zones on each side of UTC, one that changes its clocks in each hemisphere, and
 // the zone this was written in. In America/Santiago the clocks skip midnight itself when

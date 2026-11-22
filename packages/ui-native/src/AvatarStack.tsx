@@ -1,7 +1,7 @@
-import { border, radius } from "@acme/tokens";
-import { StyleSheet, Text, View } from "react-native";
-import { AVATAR_SIZE, AVATAR_TEXT, Avatar, type AvatarSize } from "./Avatar.tsx";
-import { useColors } from "./theme.ts";
+import { type StyleProp, StyleSheet, Text, View, type ViewStyle } from "react-native";
+import { Avatar, type AvatarSize, avatarSize, avatarText } from "./Avatar.tsx";
+import { useDefaults } from "./defaults.ts";
+import { themed, useColors, useControl, useTheme } from "./theme.ts";
 
 export type AvatarStackPerson = {
   name: string;
@@ -16,17 +16,24 @@ export type AvatarStackProps = {
   size?: AvatarSize;
   /** What a screen reader says in place of everyone's name: "5 people are editing". */
   label?: string;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
-
-const RING = border.width.thick;
 
 /**
  * Several people in the room of one: their avatars in a row, each lapping over the one before
  * it. A screen reader hears one image named after everyone, not an avatar at a time.
  */
-export function AvatarStack({ people, max = 4, size = "md", label }: AvatarStackProps) {
+export function AvatarStack({ people, max = 4, size: givenSize, label, style }: AvatarStackProps) {
+  const defaults = useDefaults("AvatarStack");
+  const size = givenSize ?? defaults.size ?? "md";
+
+  const styles = useStyles();
   const colors = useColors();
-  const diameter = AVATAR_SIZE[size];
+  const { border, typography } = useTheme();
+  // The ring around each avatar, which covers the edge of the one before it.
+  const ringWidth = border.width.thick;
+  const diameter = avatarSize(useControl(), size);
   const overlap = diameter / 4;
   const shown = people.slice(0, Math.max(0, max));
   const more = people.length - shown.length;
@@ -39,7 +46,7 @@ export function AvatarStack({ people, max = 4, size = "md", label }: AvatarStack
     {
       borderColor: colors.avatarRing,
       backgroundColor: colors.avatarRing,
-      marginStart: -RING - (index > 0 ? overlap : 0),
+      marginStart: -ringWidth - (index > 0 ? overlap : 0),
     },
   ];
   return (
@@ -49,10 +56,13 @@ export function AvatarStack({ people, max = 4, size = "md", label }: AvatarStack
       aria-label={label ?? people.map((person) => person.name).join(", ")}
       // Sized outright, so the stack neither stretches across a column nor needs an alignment
       // of its own in a row: the first circle whole, and what shows of each one after it.
-      style={{
-        width: circles > 0 ? diameter + (circles - 1) * (diameter - overlap) : 0,
-        height: diameter,
-      }}
+      style={[
+        {
+          width: circles > 0 ? diameter + (circles - 1) * (diameter - overlap) : 0,
+          height: diameter,
+        },
+        style,
+      ]}
     >
       <View
         // Each avatar is an image of its own; inside the stack they would be heard twice.
@@ -81,7 +91,7 @@ export function AvatarStack({ people, max = 4, size = "md", label }: AvatarStack
                 // Like the initials, the count stays the size the circle was made for.
                 allowFontScaling={false}
                 numberOfLines={1}
-                style={[AVATAR_TEXT[size], { color: colors.avatarOverflowText }]}
+                style={[avatarText(typography, size), { color: colors.avatarOverflowText }]}
               >
                 +{more}
               </Text>
@@ -93,18 +103,20 @@ export function AvatarStack({ people, max = 4, size = "md", label }: AvatarStack
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-  },
-  ring: {
-    margin: -RING,
-    borderWidth: RING,
-    borderRadius: radius.full,
-  },
-  more: {
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: radius.full,
-  },
-});
+const useStyles = themed(({ radius, border }) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: "row",
+    },
+    ring: {
+      margin: -border.width.thick,
+      borderWidth: border.width.thick,
+      borderRadius: radius.full,
+    },
+    more: {
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: radius.full,
+    },
+  }),
+);

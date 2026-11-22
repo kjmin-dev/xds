@@ -1,10 +1,18 @@
-import { border, radius, space } from "@acme/tokens";
 import { cloneElement, type ReactElement, type ReactNode, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  type StyleProp,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { BottomSheet, useListDrags } from "./BottomSheet.tsx";
 import { Icon, type IconName } from "./Icon.tsx";
-import { Text } from "./Text.tsx";
-import { control, MenuOpen, useColors } from "./theme.ts";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
+import { MenuOpen, themed, useColors } from "./theme.ts";
 
 export type MenuItem =
   | {
@@ -42,6 +50,8 @@ export type MenuProps = {
   align?: "start" | "end";
   /** Starts open, for a preview or a screenshot. */
   defaultOpen?: boolean;
+  /** Put on the sheet the items are in, as BottomSheet takes it. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -49,7 +59,8 @@ export type MenuProps = {
  * bottom sheet: choosing one calls its `onSelect` and closes the sheet; a tap outside, a drag
  * down or the back button closes it without choosing.
  */
-export function Menu({ trigger, label, items, defaultOpen = false }: MenuProps) {
+export function Menu({ trigger, label, items, defaultOpen = false, style }: MenuProps) {
+  const styles = useStyles();
   const colors = useColors();
   const [open, setOpen] = useState(defaultOpen);
   const pressTrigger = trigger.props.onPress;
@@ -63,7 +74,7 @@ export function Menu({ trigger, label, items, defaultOpen = false }: MenuProps) 
           },
         })}
       </MenuOpen>
-      <BottomSheet open={open} onClose={() => setOpen(false)} title={label}>
+      <BottomSheet open={open} onClose={() => setOpen(false)} title={label} style={style}>
         <MenuList role="menu" label={label}>
           {items.map((item, index) => {
             if (item.type === "separator") {
@@ -111,6 +122,7 @@ export function MenuList({
   label: string;
   children: ReactNode;
 }) {
+  const styles = useStyles();
   const { height } = useWindowDimensions();
   const list = useRef({ viewport: 0, content: 0 }).current;
   const keep = useListDrags(() => list.content > list.viewport + 1);
@@ -161,6 +173,7 @@ export function MenuRow({
   role,
   onPress,
 }: MenuRowProps) {
+  const styles = useStyles();
   const colors = useColors();
   const text = disabled
     ? colors.menuTextDisabled
@@ -184,7 +197,7 @@ export function MenuRow({
         },
       ]}
     >
-      {icon && <Icon name={icon} color={iconColor} />}
+      {icon && <Icon name={icon} size="md" color={iconColor} />}
       <View style={styles.label}>
         <Text tone="inherit" numberOfLines={1} style={{ color: text }}>
           {label}
@@ -196,35 +209,38 @@ export function MenuRow({
         )}
       </View>
       {/* A mark, so the current choice does not depend on color. */}
-      {selected && <Icon name="check" color={text} />}
+      {selected && <Icon name="check" size="md" color={text} />}
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  // The rows reach past the sheet's padding by their own, so their text lines up with the
-  // sheet's title and their highlight stays clear of the sheet's round corners.
-  items: {
-    // A scroll view grows into its parent's room by default; this one is as tall as its rows.
-    flexGrow: 0,
-    marginHorizontal: -space[3],
-  },
-  item: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[3],
-    minHeight: control.listRow,
-    paddingHorizontal: space[3],
-    paddingVertical: space[2],
-    borderRadius: radius.md,
-  },
-  label: {
-    flex: 1,
-    gap: space["0_5"],
-  },
-  separator: {
-    height: border.width.thin,
-    marginVertical: space[1],
-    marginHorizontal: space[3],
-  },
+const useStyles = themed(({ border, radius, space, size }) => {
+  const control = size.touch;
+  return StyleSheet.create({
+    // The rows reach past the sheet's padding by their own, so their text lines up with the
+    // sheet's title and their highlight stays clear of the sheet's round corners.
+    items: {
+      // A scroll view grows into its parent's room by default; this one is as tall as its rows.
+      flexGrow: 0,
+      marginHorizontal: -space[3],
+    },
+    item: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: space[3],
+      minHeight: control.listRow,
+      paddingHorizontal: space[3],
+      paddingVertical: space[2],
+      borderRadius: radius.md,
+    },
+    label: {
+      flex: 1,
+      gap: space["0_5"],
+    },
+    separator: {
+      height: border.width.thin,
+      marginVertical: space[1],
+      marginHorizontal: space[3],
+    },
+  });
 });

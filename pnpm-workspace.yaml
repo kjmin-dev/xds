@@ -27,6 +27,7 @@ packages:
   - tools/*
   # @if template
   - npm/web
+  - npm/react-native
   - maven
   # @endif
 

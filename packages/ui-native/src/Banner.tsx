@@ -1,10 +1,11 @@
-import { radius, space, typography } from "@acme/tokens";
 import type { ReactNode } from "react";
-import { Text as NativeText, StyleSheet, View } from "react-native";
+import { type StyleProp, StyleSheet, Text as NativeText, View, type ViewStyle } from "react-native";
 import { Button } from "./Button.tsx";
+import { useDefaults } from "./defaults.ts";
 import { IconButton } from "./IconButton.tsx";
-import { Text } from "./Text.tsx";
-import { type Colors, control, useColors } from "./theme.ts";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
+import { type Colors, themed, useColors } from "./theme.ts";
 
 export type BannerTone = "info" | "success" | "warning" | "danger";
 
@@ -29,12 +30,13 @@ function look(colors: Colors, tone: BannerTone): { background: string; accent: s
  * announced by the screen reader as soon as they appear.
  */
 export function Banner({
-  tone = "info",
+  tone: givenTone,
   title,
   action,
   onDismiss,
   dismissLabel = "Dismiss",
   children,
+  style,
 }: {
   tone?: BannerTone;
   title?: string;
@@ -48,7 +50,13 @@ export function Banner({
   /** What a screen reader says for the close button. */
   dismissLabel?: string;
   children: ReactNode;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 }) {
+  const defaults = useDefaults("Banner");
+  const tone = givenTone ?? defaults.tone ?? "info";
+
+  const styles = useStyles();
   const colors = useColors();
   const { background, accent } = look(colors, tone);
   const urgent = tone === "danger" || tone === "warning";
@@ -56,7 +64,7 @@ export function Banner({
     <View
       {...(urgent ? { role: "alert" as const } : {})}
       aria-live={urgent ? "assertive" : "polite"}
-      style={[styles.banner, { backgroundColor: background }]}
+      style={[[styles.banner, { backgroundColor: background }], style]}
     >
       <View style={[styles.mark, { backgroundColor: accent }]}>
         <NativeText style={[styles.markText, { color: background }]}>{MARK[tone]}</NativeText>
@@ -94,43 +102,46 @@ export function Banner({
   );
 }
 
-const styles = StyleSheet.create({
-  banner: {
-    alignSelf: "stretch",
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: space[3],
-    padding: space[3],
-    borderRadius: radius.md,
-  },
-  mark: {
-    width: control.iconMd,
-    height: control.iconMd,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: radius.full,
-  },
-  markText: {
-    fontSize: typography.footnote.fontSize,
-    fontWeight: typography.footnote.fontWeight,
-    lineHeight: 16,
-  },
-  content: {
-    flex: 1,
-    gap: space["0_5"],
-  },
-  action: {
-    // As wide as its label, not as the column.
-    alignSelf: "flex-start",
-    // With the gap of the column, `space.2` under the message.
-    marginTop: space["1_5"],
-  },
-  // The button is taller than a line of text. Pulled toward the corner it takes about a line's
-  // room, so a banner of one line stays that tall. It stops `space.1` short of the edges, which
-  // is what a small button's press area reaches past its outline.
-  dismiss: {
-    marginTop: -space[2],
-    marginEnd: -space[2],
-    marginBottom: -space[2],
-  },
+const useStyles = themed(({ radius, space, typography, size }) => {
+  const control = size.touch;
+  return StyleSheet.create({
+    banner: {
+      alignSelf: "stretch",
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: space[3],
+      padding: space[3],
+      borderRadius: radius.md,
+    },
+    mark: {
+      width: control.iconMd,
+      height: control.iconMd,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: radius.full,
+    },
+    markText: {
+      fontSize: typography.footnote.fontSize,
+      fontWeight: typography.footnote.fontWeight,
+      lineHeight: 16,
+    },
+    content: {
+      flex: 1,
+      gap: space["0_5"],
+    },
+    action: {
+      // As wide as its label, not as the column.
+      alignSelf: "flex-start",
+      // With the gap of the column, `space.2` under the message.
+      marginTop: space["1_5"],
+    },
+    // The button is taller than a line of text. Pulled toward the corner it takes about a line's
+    // room, so a banner of one line stays that tall. It stops `space.1` short of the edges, which
+    // is what a small button's press area reaches past its outline.
+    dismiss: {
+      marginTop: -space[2],
+      marginEnd: -space[2],
+      marginBottom: -space[2],
+    },
+  });
 });

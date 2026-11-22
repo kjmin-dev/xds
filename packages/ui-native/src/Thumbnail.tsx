@@ -1,9 +1,9 @@
-import { radius, space } from "@acme/tokens";
 import { useState } from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { Image, type StyleProp, StyleSheet, View, type ViewStyle } from "react-native";
 import { Badge } from "./Badge.tsx";
+import { useDefaults } from "./defaults.ts";
 import { Icon } from "./Icon.tsx";
-import { useColors } from "./theme.ts";
+import { themed, useColors, useTheme } from "./theme.ts";
 
 export type ThumbnailRatio = "16:9" | "1:1" | "4:3" | "9:16";
 
@@ -25,6 +25,8 @@ export type ThumbnailProps = {
   badge?: string | undefined;
   /** How much was watched, from 0 to 1: a bar across the bottom edge. 0 draws nothing. */
   progress?: number | undefined;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -32,7 +34,12 @@ export type ThumbnailProps = {
  * given and takes its height from `ratio`. While the picture loads, when it fails and when there
  * is none, the shape is filled and marked with a picture icon.
  */
-export function Thumbnail({ src, alt, ratio = "16:9", badge, progress }: ThumbnailProps) {
+export function Thumbnail({ src, alt, ratio: givenRatio, badge, progress, style }: ThumbnailProps) {
+  const defaults = useDefaults("Thumbnail");
+  const ratio = givenRatio ?? defaults.ratio ?? "16:9";
+
+  const styles = useStyles();
+  const { space } = useTheme();
   const colors = useColors();
   // Kept with the address it is about, so a new `src` starts over without an effect.
   const [settled, setSettled] = useState<{ src: string; loaded: boolean }>();
@@ -42,8 +49,11 @@ export function Thumbnail({ src, alt, ratio = "16:9", badge, progress }: Thumbna
   return (
     <View
       style={[
-        styles.thumbnail,
-        { aspectRatio: RATIO[ratio], backgroundColor: colors.thumbnailBackground },
+        [
+          styles.thumbnail,
+          { aspectRatio: RATIO[ratio], backgroundColor: colors.thumbnailBackground },
+        ],
+        style,
       ]}
     >
       <View
@@ -90,29 +100,31 @@ export function Thumbnail({ src, alt, ratio = "16:9", badge, progress }: Thumbna
   );
 }
 
-const styles = StyleSheet.create({
-  thumbnail: {
-    width: "100%",
-    borderRadius: radius.md,
-    // Clips the picture and the bar to the round corners.
-    overflow: "hidden",
-  },
-  center: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  progress: {
-    position: "absolute",
-    start: 0,
-    end: 0,
-    bottom: 0,
-    height: space[1],
-  },
-  watched: {
-    height: "100%",
-  },
-  badge: {
-    position: "absolute",
-    end: space[2],
-  },
-});
+const useStyles = themed(({ radius, space }) =>
+  StyleSheet.create({
+    thumbnail: {
+      width: "100%",
+      borderRadius: radius.md,
+      // Clips the picture and the bar to the round corners.
+      overflow: "hidden",
+    },
+    center: {
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    progress: {
+      position: "absolute",
+      start: 0,
+      end: 0,
+      bottom: 0,
+      height: space[1],
+    },
+    watched: {
+      height: "100%",
+    },
+    badge: {
+      position: "absolute",
+      end: space[2],
+    },
+  }),
+);

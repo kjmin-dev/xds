@@ -1,7 +1,7 @@
-import { typography } from "@acme/tokens";
 import { type ReactNode, useContext } from "react";
 import { Text as NativeText, type StyleProp, type TextStyle } from "react-native";
-import { type Colors, ContentColor, useColors } from "./theme.ts";
+import { useDefaults } from "./defaults.ts";
+import { type Colors, ContentColor, type Theme, useColors, useTheme } from "./theme.ts";
 
 export type TextVariant =
   | "display"
@@ -22,16 +22,27 @@ export type TextTone =
   | "warning"
   | "inherit";
 
-const STYLE: Record<TextVariant, TextStyle> = {
-  display: typography.display,
-  title: typography.title,
-  heading: typography.heading,
-  body: typography.body,
-  "body-strong": typography.bodyStrong,
-  label: typography.label,
-  detail: typography.detail,
-  footnote: typography.footnote,
-};
+/** The type role of a variant. */
+export function variantStyle(typography: Theme["typography"], variant: TextVariant): TextStyle {
+  switch (variant) {
+    case "display":
+      return typography.display;
+    case "title":
+      return typography.title;
+    case "heading":
+      return typography.heading;
+    case "body":
+      return typography.body;
+    case "body-strong":
+      return typography.bodyStrong;
+    case "label":
+      return typography.label;
+    case "detail":
+      return typography.detail;
+    case "footnote":
+      return typography.footnote;
+  }
+}
 
 function toneColor(colors: Colors, tone: TextTone): string | undefined {
   switch (tone) {
@@ -66,9 +77,26 @@ export type TextProps = {
 
 /**
  * Text in one of the design system's roles. It grows with the system's text size setting, and
- * Korean breaks between words rather than between syllables.
+ * Korean breaks between words rather than between syllables. A variant or a tone it is not given
+ * comes from the closest `Defaults`.
  */
-export function Text({
+export function Text(props: TextProps) {
+  const defaults = useDefaults("Text");
+  return (
+    <PartText
+      {...props}
+      variant={props.variant ?? defaults.variant}
+      tone={props.tone ?? defaults.tone}
+    />
+  );
+}
+
+/**
+ * Text as the library's components draw their own parts: with what they pass and nothing from a
+ * `Defaults`, so an app's defaults for its text never restyle a card's title or a menu's rows.
+ * Without a tone it takes the color of the slot it is in, or the primary text color.
+ */
+export function PartText({
   variant = "body",
   tone,
   heading = false,
@@ -77,6 +105,7 @@ export function Text({
   children,
 }: TextProps) {
   const colors = useColors();
+  const { typography } = useTheme();
   const inherited = useContext(ContentColor);
   const color = tone ? toneColor(colors, tone) : (inherited ?? colors.textPrimary);
   return (
@@ -85,7 +114,7 @@ export function Text({
       {...(numberOfLines ? { numberOfLines } : {})}
       // Android has no equivalent yet.
       lineBreakStrategyIOS="hangul-word"
-      style={[STYLE[variant], color ? { color } : null, style]}
+      style={[variantStyle(typography, variant), color ? { color } : null, style]}
     >
       {children}
     </NativeText>

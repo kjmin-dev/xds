@@ -1,6 +1,6 @@
 # xds as a library
 
-The CLI ships the theme contract and can check a custom theme file. The web and Compose channels are built: [the web library](web-library.md) and [the Compose library](compose-library.md) describe their packages and how an app uses them. The other platform packages below are planned, and apps on those platforms get the components through `xds create`. The [CLI guide](cli.md#xds-check-theme-file) describes the theme file format and the [changelog](../CHANGELOG.md) tracks changes across channels.
+The CLI ships the theme contract and can check a custom theme file. The web, Compose and React Native channels are built: [the web library](web-library.md), [the Compose library](compose-library.md) and [the React Native library](react-native-library.md) describe their packages and how an app uses them. The other platform packages below are planned, and apps on those platforms get the components through `xds create`. The [CLI guide](cli.md#xds-check-theme-file) describes the theme file format and the [changelog](../CHANGELOG.md) tracks changes across channels.
 
 ## Two ways to take xds
 
@@ -62,7 +62,7 @@ Decisions that hold for every channel:
 | Channel | Gap between today's sources and a library |
 | --- | --- |
 | npm, web | Nothing: built in L1 ([the web library](web-library.md)) |
-| npm, React Native | The theme moves from generated constants to a provider; the exact React Native pin becomes a range |
+| npm, React Native | Nothing: built in L3 ([the React Native library](react-native-library.md)) |
 | crates.io | The theme moves from generated constants to a registered value; the one-to-one tie to the GPUI kit's version is documented and enforced |
 | Maven Central | Nothing: built in L2 ([the Compose library](compose-library.md)) |
 | pub.dev | Build and publish the Flutter component and token packages, and verify them in an external app |
@@ -123,7 +123,7 @@ Rules that make the layers hold together:
 | Compose | The theme composable | Any subtree |
 | Flutter | A theme extension | Any subtree |
 
-The L0 CLI checks a theme file against the versioned contract and all contrast pairs. Each channel adds its runtime carrier in its own phase. `xds export-theme` checks the file the same way and writes it for a channel: on the web, as a stylesheet that applies to the elements carrying `data-xds-theme="<name>"`; for Compose (`--format compose`), as a Kotlin `Theme` value that the theme composable takes. Scaffolded projects can already generate color ramps from a hue.
+The L0 CLI checks a theme file against the versioned contract and all contrast pairs. Each channel adds its runtime carrier in its own phase. `xds export-theme` checks the file the same way and writes it for a channel: on the web, as a stylesheet that applies to the elements carrying `data-xds-theme="<name>"`; for Compose (`--format compose`), as a Kotlin `Theme` value that the theme composable takes; for React Native (`--format react-native`), as a TypeScript `Theme` value that the theme provider takes. Scaffolded projects can already generate color ramps from a hue.
 
 ### Against other systems
 
@@ -178,7 +178,7 @@ A channel's platform sometimes forces breaks that xds does not choose: a UI tool
 
 - A `stable` channel follows the table above without exception.
 - A `preview` channel has the same version number and the same contract, but may raise or change its platform peer in a minor release. It is published under the registry's prerelease marking where the registry has one.
-- A channel is `preview` while any platform peer or behavior dependency it relies on is itself a prerelease or 0.x with a record of breaking changes. Today that is the web channel (its behavior library is on a prerelease), the GPUI channel (its toolkit is 0.x) and the Compose channel (a date picker's value is a kotlinx-datetime `LocalDate`, and kotlinx-datetime is 0.x). It becomes `stable` when that dependency does.
+- A channel is `preview` while any platform peer or behavior dependency it relies on is itself a prerelease or 0.x with a record of breaking changes. Today that is the web channel (its behavior library is on a prerelease), the GPUI channel (its toolkit is 0.x), the Compose channel (a date picker's value is a kotlinx-datetime `LocalDate`, and kotlinx-datetime is 0.x) and the React Native channel (React Native is 0.x). It becomes `stable` when that dependency does.
 
 ### Support windows
 
@@ -192,7 +192,7 @@ A change that needs trying before it is promised goes out as a prerelease of the
 
 ## Order of work
 
-Glass material tokens and the Flutter scaffold are in the template. The L0 contract, checker, version source and changelog are implemented. Registry ownership is recorded above. The CLI release workflow ships the binary and its npm launchers. Each library channel joins the same tag when its external consumer check passes. L1 is implemented: the release workflow builds the web packages, runs their consumer check (`npm/web/consumer.ts`) and publishes them with the CLI. L2 is implemented: the release workflow builds and signs the Compose library, runs its consumer check (`maven/consumer.ts`) on the desktop and on Android, and uploads it to Maven Central.
+Glass material tokens and the Flutter scaffold are in the template. The L0 contract, checker, version source and changelog are implemented. Registry ownership is recorded above. The CLI release workflow ships the binary and its npm launchers. Each library channel joins the same tag when its external consumer check passes. L1 is implemented: the release workflow builds the web packages, runs their consumer check (`npm/web/consumer.ts`) and publishes them with the CLI. L2 is implemented: the release workflow builds and signs the Compose library, runs its consumer check (`maven/consumer.ts`) on the desktop and on Android, and uploads it to Maven Central. L3 is implemented: the release workflow builds the React Native package, runs its consumer check (`npm/react-native/consumer.ts`) in an Expo app and in apps on the oldest and newest supported React Native, and publishes it to npm. The date picker draws its calendar from the tokens, so the package has no calendar peer.
 
 | Phase | Work | Done when | Depends on |
 | --- | --- | --- | --- |

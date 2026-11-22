@@ -86,6 +86,7 @@ Acme is built around a shared design system: a single set of design tokens and a
 <!-- @endif -->
 <!-- @if mobile-react-native -->
 - Add a native package to the mobile app with `pnpm exec expo install <package>` in `apps/mobile`, not `pnpm add`, so that it gets the version the Expo SDK expects. See "Moving to the next Expo SDK" below.
+- In React Native, a component takes every token from the theme in effect, never from a constant: `useColors()`, `useControl()` and `useTheme()`, and a style sheet built with `themed()`, once per theme. A component with a variant, size, tone, shape, ratio or layout takes its default from `useDefaults()` (`defaults.ts`), and a component drawn inside another passes every such option explicitly; its own text is `PartText`, which takes nothing from `Defaults`. Every component puts the app's `style` on its root view, or on its surface for an overlay.
 <!-- @endif -->
 
 ## Commands

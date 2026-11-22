@@ -1,19 +1,28 @@
 import { type IconName, icons } from "@acme/tokens";
 import { useContext } from "react";
-import { I18nManager } from "react-native";
+import { I18nManager, type StyleProp, type ViewStyle } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import { ContentColor, control, useColors } from "./theme.ts";
-
-const SIZE = {
-  xs: control.iconXs,
-  sm: control.iconSm,
-  md: control.iconMd,
-  lg: control.iconLg,
-  xl: control.iconXl,
-} as const;
+import { useDefaults } from "./defaults.ts";
+import { type Control, ContentColor, useColors, useControl } from "./theme.ts";
 
 export type { IconName };
-export type IconSize = keyof typeof SIZE;
+export type IconSize = "xs" | "sm" | "md" | "lg" | "xl";
+
+/** The side of an icon of a size. */
+export function iconSide(control: Control, size: IconSize): number {
+  switch (size) {
+    case "xs":
+      return control.iconXs;
+    case "sm":
+      return control.iconSm;
+    case "md":
+      return control.iconMd;
+    case "lg":
+      return control.iconLg;
+    case "xl":
+      return control.iconXl;
+  }
+}
 
 export type IconProps = {
   name: IconName;
@@ -33,31 +42,41 @@ export type IconProps = {
   label?: string;
   /** For arrows and chevrons: mirrors the icon in a right-to-left layout. */
   directional?: boolean;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /** An icon from design/icons. */
 export function Icon({
   name,
-  size = "md",
+  size: givenSize,
   color,
   filled = false,
   label,
   directional = false,
+  style,
 }: IconProps) {
+  const defaults = useDefaults("Icon");
+  const size = givenSize ?? defaults.size ?? "md";
+
   const colors = useColors();
   const inherited = useContext(ContentColor);
   const tint = color ?? inherited ?? colors.textPrimary;
+  const side = iconSide(useControl(), size);
   return (
     <Svg
-      width={SIZE[size]}
-      height={SIZE[size]}
+      width={side}
+      height={side}
       viewBox="0 0 24 24"
       fill={filled ? tint : "none"}
       stroke={tint}
       strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
-      style={directional && I18nManager.isRTL ? { transform: [{ scaleX: -1 }] } : undefined}
+      style={[
+        directional && I18nManager.isRTL ? { transform: [{ scaleX: -1 }] } : undefined,
+        style,
+      ]}
       accessible={label !== undefined}
       // react-native-svg hands Svg's props to its native view as they are, and the native view
       // reads no `aria-*` prop.

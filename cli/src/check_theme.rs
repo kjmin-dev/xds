@@ -221,7 +221,9 @@ pub fn export(args: &ExportArgs, out: Out) -> Result<Value> {
         .into());
     }
     if args.package.is_some() && args.format != Format::Compose {
-        return Err("--package names the Kotlin file's package: use it with --format compose".into());
+        return Err(
+            "--package names the Kotlin file's package: use it with --format compose".into(),
+        );
     }
     let checker = Checker::new(args.project.as_deref())?;
     // A project's custom properties and packages carry its own name, and its styles sit in no

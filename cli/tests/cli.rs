@@ -797,8 +797,14 @@ fn exports_a_checked_theme_as_a_kotlin_value_for_the_library_or_a_project() {
     assert!(output.status.success(), "{stderr}");
     assert!(stdout.contains("\npackage xds.themes\n"), "{stdout}");
     assert!(stdout.contains("\nimport xds.tokens.Theme\n"), "{stdout}");
-    assert!(stdout.contains("\nval BrandTheme: Theme = Theme(\n"), "{stdout}");
-    assert!(stdout.contains("private object BrandDarkColors : Colors {"), "{stdout}");
+    assert!(
+        stdout.contains("\nval BrandTheme: Theme = Theme(\n"),
+        "{stdout}"
+    );
+    assert!(
+        stdout.contains("private object BrandDarkColors : Colors {"),
+        "{stdout}"
+    );
     assert!(!stdout.contains("acme"), "{stdout}");
 
     // In a project it refers to the project's own token types, in the package it is given.
@@ -818,7 +824,10 @@ fn exports_a_checked_theme_as_a_kotlin_value_for_the_library_or_a_project() {
         written.contains("\npackage com.example.orbit.brand\n"),
         "{written}"
     );
-    assert!(written.contains("\nimport orbit.tokens.Sizes\n"), "{written}");
+    assert!(
+        written.contains("\nimport orbit.tokens.Sizes\n"),
+        "{written}"
+    );
 
     // Without --out and with --json, the file is in the result.
     let (output, stdout, stderr) = run(xds()

@@ -141,9 +141,22 @@ export async function startEmulator(work: string, log: string): Promise<Emulator
     ],
     { env, stdio: ["ignore", openSync(log, "a"), openSync(log, "a")] },
   );
-  // Under load the connection to the emulator drops for a moment now and then: adb exits with
-  // 255 and the command has not run. It waits for the device to come back and runs it again.
-  // Every command the check sends may be sent twice.
+  const pause = (ms: number) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+  // Booted, and its system services answer: under memory pressure the system server can start
+  // again after the boot is reported, and while it does, `am` and `dumpsys` find no service.
+  const ready = () =>
+    spawnSync(adbPath, ["-s", serial, "shell", "getprop", "sys.boot_completed"], {
+      encoding: "utf8",
+    }).stdout.trim() === "1" &&
+    ["activity", "window", "package"].every((service) =>
+      spawnSync(adbPath, ["-s", serial, "shell", "service", "check", service], {
+        encoding: "utf8",
+      }).stdout.includes(": found"),
+    );
+  // Under load the connection to the emulator drops for a moment now and then, or the system
+  // server starts again: the command fails without having run. It waits until the device and its
+  // services are back, two minutes at most, and runs it again. Every command the check sends may
+  // be sent twice.
   const adb = (args: string[]) => {
     for (let attempt = 1; ; attempt++) {
       try {
@@ -153,8 +166,8 @@ export async function startEmulator(work: string, log: string): Promise<Emulator
         });
       } catch (error) {
         if (attempt === 3) throw error;
-        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 2000);
         spawnSync(adbPath, ["-s", serial, "wait-for-device"], { timeout: 120_000 });
+        for (let waited = 0; waited < 120_000 && !ready(); waited += 2000) pause(2000);
       }
     }
   };
@@ -173,10 +186,7 @@ export async function startEmulator(work: string, log: string): Promise<Emulator
     const deadline = Date.now() + 600_000;
     for (;;) {
       if (emulator.exitCode !== null) throw new Error(`The emulator quit; see ${log}`);
-      const booted = spawnSync(adbPath, ["-s", serial, "shell", "getprop", "sys.boot_completed"], {
-        encoding: "utf8",
-      });
-      if (booted.stdout.trim() === "1") break;
+      if (ready()) break;
       if (Date.now() > deadline)
         throw new Error(`The emulator did not boot in ten minutes; see ${log}`);
       await sleep(2000);

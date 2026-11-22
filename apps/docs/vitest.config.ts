@@ -30,6 +30,11 @@ export default defineConfig({
     },
     reactNativeWebPlugin(),
   ],
+  // The glass test replaces Glass.tsx's requires of these with its stand-ins, so nothing loads
+  // them; prebundling them for the browser would fail on Expo's native-only exports.
+  optimizeDeps: {
+    exclude: ["expo", "expo-blur", "expo-glass-effect", "expo-linear-gradient"],
+  },
   test: {
     name: "browser",
     include: ["test/**/*.test.tsx"],

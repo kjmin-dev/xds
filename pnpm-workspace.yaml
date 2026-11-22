@@ -27,6 +27,7 @@ packages:
   - tools/*
   # @if template
   - npm/web
+  - maven
   # @endif
 
 # One version of each of these across the workspace.

@@ -16,14 +16,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 // The gap between the thumb and the edge of the track.
-private val Inset = Space.s0_5
+private val Inset: Dp
+    @Composable @ReadOnlyComposable get() = Space.s0_5
 
 /**
  * A setting that is on or off and takes effect at once. For a choice that is sent with a form,

@@ -42,18 +42,18 @@ private fun toneColor(colors: Colors, tone: TextTone): Color = when (tone) {
  * outside Android 13 and later.
  *
  * @param style What the text is for: one of the [Typography] roles. Sets size, weight, line
- *   height and tracking together. Without it the text takes [LocalTextStyle]: body text, unless
- *   the component it is in sets another.
- * @param tone Without it the text takes [LocalContentColor]: primary, unless the component it is
- *   in sets another color.
+ *   height and tracking together. Without it the text takes the style of the closest [Defaults],
+ *   or else [LocalTextStyle]: body text, unless the component it is in sets another.
+ * @param tone Without it the text takes the tone of the closest [Defaults], or else
+ *   [LocalContentColor]: primary, unless the component it is in sets another color.
  * @param heading Marks the text as a heading for screen readers.
  */
 @Composable
 fun Text(
     text: String,
     modifier: Modifier = Modifier,
-    style: TextStyle = LocalTextStyle.current,
-    tone: TextTone = TextTone.Inherit,
+    style: TextStyle = LocalComponentDefaults.current.text.style ?: LocalTextStyle.current,
+    tone: TextTone = LocalComponentDefaults.current.text.tone ?: TextTone.Inherit,
     heading: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
 ) {

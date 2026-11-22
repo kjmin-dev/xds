@@ -49,7 +49,7 @@ enum class SkeletonShape {
 @Composable
 fun Skeleton(
     modifier: Modifier = Modifier,
-    shape: SkeletonShape = SkeletonShape.Text,
+    shape: SkeletonShape = LocalComponentDefaults.current.skeleton.shape ?: SkeletonShape.Text,
     width: Dp? = null,
     height: Dp? = null,
 ) {

@@ -64,6 +64,7 @@ fun <T> Tabs(
 ) {
     val colors = LocalColors.current
     val hairline = colors.tabsBorder
+    val hairlineWidth = Border.widthThin
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -71,7 +72,7 @@ fun <T> Tabs(
             // with them. It is drawn inside the row's height, so the selected tab's bar, drawn
             // after it, lies over it.
             .drawBehind {
-                val thickness = Border.widthThin.toPx()
+                val thickness = hairlineWidth.toPx()
                 drawRect(hairline, Offset(0f, size.height - thickness), Size(size.width, thickness))
             }
             .semantics { contentDescription = label }
@@ -102,6 +103,7 @@ private fun <T> RowScope.Tab(item: TabsItem<T>, selected: Boolean, onClick: () -
         else -> colors.tabsText
     }
     val indicator = colors.tabsIndicator
+    val indicatorWidth = Border.widthThick
     Row(
         modifier = modifier
             .height(sizes.tab)
@@ -109,7 +111,7 @@ private fun <T> RowScope.Tab(item: TabsItem<T>, selected: Boolean, onClick: () -
             // The bar's shape marks the selected tab, so color is not the only signal.
             .drawBehind {
                 if (!selected) return@drawBehind
-                val thickness = Border.widthThick.toPx()
+                val thickness = indicatorWidth.toPx()
                 drawRect(indicator, Offset(0f, size.height - thickness), Size(size.width, thickness))
             }
             .selectable(

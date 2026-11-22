@@ -90,6 +90,8 @@ fun Slider(
     val change by rememberUpdatedState(onValueChange)
     var width by remember { mutableIntStateOf(0) }
     val thumb = sizes.sliderThumb
+    val thumbBorder = Border.widthThick
+    val focus = Focus
 
     fun choose(next: Float) {
         val snappedNext = snapped(next, min, max, step)
@@ -185,7 +187,7 @@ fun Slider(
                     // From the start of the range, whichever side that is, to the thumb.
                     val (from, to) = if (ltr) 0f to x else x to size.width
                     drawRoundRect(fill, Offset(from, middle - track / 2), Size(to - from, track), ends)
-                    val border = Border.widthThick.toPx()
+                    val border = thumbBorder.toPx()
                     drawCircle(colors.sliderThumb, radius, Offset(x, middle))
                     // Inside the thumb's bounds, so the outline adds nothing to its size.
                     drawCircle(
@@ -197,10 +199,10 @@ fun Slider(
                     if (focused && keyboard) {
                         // Around the thumb, which is where the keys act, with the gap of every
                         // other focus ring.
-                        val ring = Focus.width.toPx()
+                        val ring = focus.width.toPx()
                         drawCircle(
                             colors.borderFocus,
-                            radius + Focus.offset.toPx() + ring / 2,
+                            radius + focus.offset.toPx() + ring / 2,
                             Offset(x, middle),
                             style = Stroke(ring),
                         )

@@ -82,14 +82,15 @@ fun Toast(
     val shown = remember { Animatable(0f) }
     // With less motion asked for, the toast appears and goes at once.
     val slide = if (LocalReducedMotion.current) 0 else Motion.durationNormal
+    val motion = Motion
     // The popup outlives `open` by the time the toast takes to fade out.
     var present by remember { mutableStateOf(false) }
     LaunchedEffect(open) {
         if (open) {
             present = true
-            shown.animateTo(1f, tween(slide, easing = Motion.easingEnter))
+            shown.animateTo(1f, tween(slide, easing = motion.easingEnter))
         } else if (present) {
-            shown.animateTo(0f, tween(slide, easing = Motion.easingExit))
+            shown.animateTo(0f, tween(slide, easing = motion.easingExit))
             present = false
         }
     }
@@ -155,6 +156,8 @@ private fun ToastActionButton(action: ToastAction, onChosen: () -> Unit) {
         targetValue = if (pressed) Motion.pressScale else 1f,
         animationSpec = motionSpec(Motion.springFastDamping, Motion.springFastStiffness),
     )
+    val lineHeight = Typography.label.lineHeight
+    val padding = Space
     Box(
         modifier = Modifier
             // The target reaches into the toast's padding, above and below so that it does not
@@ -162,9 +165,9 @@ private fun ToastActionButton(action: ToastAction, onChosen: () -> Unit) {
             // padding does.
             .layout { measurable, constraints ->
                 val placeable = measurable.measure(constraints)
-                val line = Typography.label.lineHeight.roundToPx()
-                val above = ((placeable.height - line) / 2).coerceIn(0, Space.s3.roundToPx())
-                val end = Space.s2.roundToPx()
+                val line = lineHeight.roundToPx()
+                val above = ((placeable.height - line) / 2).coerceIn(0, padding.s3.roundToPx())
+                val end = padding.s2.roundToPx()
                 layout(placeable.width - end, placeable.height - 2 * above) {
                     placeable.placeRelative(0, -above)
                 }

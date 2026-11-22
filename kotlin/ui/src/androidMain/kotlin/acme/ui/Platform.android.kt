@@ -3,8 +3,7 @@ package acme.ui
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.remember
 import android.provider.Settings
-import acme.tokens.Sizes
-import acme.tokens.TouchSizes
+import acme.tokens.Input
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalView
@@ -27,7 +26,7 @@ import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.number
 
 /** A phone or tablet is used with fingers. */
-actual val platformSizes: Sizes = TouchSizes
+actual val platformInput: Input = Input.Touch
 
 // Android has no "reduce motion" switch of its own: "Remove animations" sets this scale to 0.
 @Composable

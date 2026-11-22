@@ -80,7 +80,7 @@ fun TopBar(
                     .semantics { contentDescription = "Back" },
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(IconName.ChevronLeft, color = colors.topBarAction, directional = true)
+                Icon(IconName.ChevronLeft, size = IconSize.Md, color = colors.topBarAction, directional = true)
             }
         }
         BasicText(

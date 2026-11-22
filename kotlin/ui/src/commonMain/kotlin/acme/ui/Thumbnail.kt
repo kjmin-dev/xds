@@ -60,7 +60,7 @@ fun Thumbnail(
     src: String?,
     alt: String,
     modifier: Modifier = Modifier,
-    ratio: ThumbnailRatio = ThumbnailRatio.Ratio16x9,
+    ratio: ThumbnailRatio = LocalComponentDefaults.current.thumbnail.ratio ?: ThumbnailRatio.Ratio16x9,
     badge: String? = null,
     progress: Float? = null,
 ) {

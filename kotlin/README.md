@@ -10,6 +10,12 @@ Compose Multiplatform implementation of the design system, paired with an app th
 
 Components are built directly on `compose.foundation` without any Material library dependency, so all visual styling comes from the tokens. Two libraries come beyond Compose: Coil 3, which loads the pictures of `Avatar`, with a Ktor engine per platform, and kotlinx-datetime, whose `LocalDate` is the value of `DatePicker`. kotlinx-datetime is `java.time` on Android, which phones have from API 26, so the Android app turns on core library desugaring for the older ones it supports. The names of months and days, and the day a week starts on, come from each platform's locale data: ICU on Android, `java.time` on the desktop, and `NSDateFormatter` and `NSCalendar` on iOS. Wrap screens in `AcmeTheme { }`: the color mode follows the OS setting, and control sizes adapt to the input device (pointer on desktop, touch on Android and iOS).
 
+## Themes and defaults
+
+The generated `Tokens.kt` describes the tokens as a value: `Theme` holds the colors of both modes, the sizes of both input devices and one class per group of shared values (`SpaceTokens`, `RadiusTokens`, `TypographyTokens`, …), and `DefaultTheme` is the one `design/tokens` describes. `AcmeTheme(mode, input, theme)` provides it. Each argument it is not given comes from the `AcmeTheme` around it, so one inside another can pin a mode or swap the theme for part of a screen. Components read the theme in effect: `LocalColors.current`, `LocalSizes.current`, and the group properties `Space`, `Radius`, `Typography` and the others, which are composable. Read them in a composable function and hand the values to `drawBehind`, `layout` and effect lambdas, which run outside composition.
+
+`xds export-theme brand.json --format compose` turns a theme file into such a value (`val BrandTheme: Theme`), checked for contrast like `xds check-theme`. `Defaults(ComponentDefaults(button = ButtonDefaults(size = ControlSize.Lg))) { … }` sets the variant, size, tone, shape, ratio or layout that the components inside it take when they are given none.
+
 ## Running the apps
 
 Gradle requires JDK 17 or later. Building for Android also requires the Android SDK at `$ANDROID_HOME`, and building for iOS requires Xcode.

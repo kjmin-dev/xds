@@ -33,7 +33,7 @@ enum class SpinnerSize { Sm, Md, Lg }
 @Composable
 fun Spinner(
     modifier: Modifier = Modifier,
-    size: SpinnerSize = SpinnerSize.Md,
+    size: SpinnerSize = LocalComponentDefaults.current.spinner.size ?: SpinnerSize.Md,
     label: String? = null,
 ) {
     val color = LocalContentColor.current.takeOrElse { LocalColors.current.textSecondary }

@@ -102,6 +102,7 @@ private fun <T> Radio(option: RadioOption<T>, selected: Boolean, enabled: Boolea
             ),
         contentAlignment = Alignment.CenterStart,
     ) {
+        val border = Border
         Row(horizontalArrangement = Arrangement.spacedBy(Space.s2)) {
             // Centered on the label's first line, however many lines follow it.
             Box(Modifier.height(line), contentAlignment = Alignment.Center) {
@@ -109,7 +110,7 @@ private fun <T> Radio(option: RadioOption<T>, selected: Boolean, enabled: Boolea
                     val radius = size.minDimension / 2
                     if (enabled) {
                         // The chosen circle's outline thickens as well as recoloring.
-                        val width = (if (selected) Border.widthThick else Border.widthThin).toPx()
+                        val width = (if (selected) border.widthThick else border.widthThin).toPx()
                         val outline = if (selected) colors.radioBorderChecked else colors.radioBorder
                         drawCircle(outline, radius = radius - width / 2, style = Stroke(width))
                     } else {

@@ -2,8 +2,7 @@ package acme.ui
 
 import platform.UIKit.UIAccessibilityIsReduceMotionEnabled
 import androidx.compose.runtime.remember
-import acme.tokens.TouchSizes
-import acme.tokens.Sizes
+import acme.tokens.Input
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.Color
@@ -29,7 +28,7 @@ import platform.Foundation.NSLocale
 import platform.Foundation.currentLocale
 
 /** A phone or tablet is used with fingers. */
-actual val platformSizes: Sizes = TouchSizes
+actual val platformInput: Input = Input.Touch
 
 @Composable
 internal actual fun systemReducedMotion(): Boolean = remember { UIAccessibilityIsReduceMotionEnabled() }

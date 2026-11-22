@@ -111,6 +111,11 @@ impl Names {
         })
     }
 
+    /// The title as one identifier: `OrbitNotes`, as in `OrbitNotesTheme`.
+    pub fn identifier(&self) -> &str {
+        &self.identifier
+    }
+
     /// Replaces the three spellings of the placeholder: `acme`, `ACME` and `Acme`.
     pub fn apply(&self, text: &str, placeholder: &Placeholder) -> String {
         let upper_from = placeholder.name.to_uppercase();
@@ -149,7 +154,7 @@ fn is_identifier_part(character: char) -> bool {
     character.is_ascii_alphanumeric() || character == '_'
 }
 
-fn capitalize(word: &str) -> String {
+pub(crate) fn capitalize(word: &str) -> String {
     let mut characters = word.chars();
     match characters.next() {
         Some(first) => first.to_uppercase().chain(characters).collect(),

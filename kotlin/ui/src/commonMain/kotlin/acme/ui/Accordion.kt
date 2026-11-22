@@ -109,13 +109,14 @@ private fun <T> AccordionEntry(item: AccordionItem<T>, open: Boolean, onToggle: 
     }
     // With less motion asked for, the body and the chevron jump to where they end up.
     val duration = if (LocalReducedMotion.current) 0 else Motion.durationNormal
+    val easing = Motion.easingStandard
     val turn by animateFloatAsState(
         targetValue = if (open) 180f else 0f,
-        animationSpec = tween(duration, easing = Motion.easingStandard),
+        animationSpec = tween(duration, easing = easing),
     )
     // How much of the body's height is shown: 0 is closed, 1 is open.
     val openness = remember { Animatable(if (open) 1f else 0f) }
-    LaunchedEffect(open) { openness.animateTo(if (open) 1f else 0f, tween(duration, easing = Motion.easingStandard)) }
+    LaunchedEffect(open) { openness.animateTo(if (open) 1f else 0f, tween(duration, easing = easing)) }
     val bodyShown by remember { derivedStateOf { openness.value > 0f } }
 
     Column {

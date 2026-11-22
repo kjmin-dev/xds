@@ -4,6 +4,8 @@ package acme.tokens
 
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Easing
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -535,7 +537,391 @@ interface Colors {
     )
 }
 
-object LightColors : Colors {
+/** Control sizes, for one input device. */
+class Sizes(
+    val controlSm: Dp,
+    val controlMd: Dp,
+    val controlLg: Dp,
+    /** The smallest area that reacts to a press, whatever the control looks like. */
+    val targetMin: Dp,
+    val switchWidth: Dp,
+    val switchHeight: Dp,
+    /** The box, not the pressable area. */
+    val checkbox: Dp,
+    /** The circle, not the pressable area. */
+    val radio: Dp,
+    /** The least height of a row in a list. */
+    val listRow: Dp,
+    /** A row of a menu or a sidebar, where many rows share little room. */
+    val listRowCompact: Dp,
+    /** Top bars and tab bars. */
+    val bar: Dp,
+    /** Buttons are rounded rectangles where a pointer is used. */
+    val buttonRadius: Dp,
+    /** Icons inside a badge. */
+    val iconXs: Dp,
+    val iconSm: Dp,
+    /** Icons beside text. */
+    val iconMd: Dp,
+    /** Icons that stand alone: tab bars, top bars. */
+    val iconLg: Dp,
+    /** Icons that illustrate rather than label: empty states. */
+    val iconXl: Dp,
+    val avatarSm: Dp,
+    val avatarMd: Dp,
+    val avatarLg: Dp,
+    /** A profile header. */
+    val avatarXl: Dp,
+    /** The height of a badge. */
+    val badge: Dp,
+    /** The height of a chip. */
+    val chip: Dp,
+    /** The height of a tab. */
+    val tab: Dp,
+    /** The height, and the least width, of a count badge. */
+    val countBadge: Dp,
+    /** The thickness of a progress bar. */
+    val progress: Dp,
+    /** The thickness of a slider's track. */
+    val sliderTrack: Dp,
+    /** The thumb, not the pressable area. */
+    val sliderThumb: Dp,
+    val spinnerSm: Dp,
+    val spinnerMd: Dp,
+    val spinnerLg: Dp,
+    /** The most a dialog is wide. A narrower screen leaves a margin on both sides. */
+    val dialog: Dp,
+    /** The most a toast is wide. */
+    val toast: Dp,
+    /** The width of an open sidebar. */
+    val sidebar: Dp,
+    /** The width of a collapsed sidebar, which shows icons only. */
+    val sidebarRail: Dp,
+    /** The side of a day of the calendar: as tall as control.md for a pointer and target-min for touch. The circle that marks a day is inset by space.0-5. On touch the seven columns share the width of the sheet, so on a phone narrower than about 370 points a day is a little narrower than this, as on iOS and Material. */
+    val calendarDay: Dp,
+)
+
+/** The `space` tokens. */
+class SpaceTokens(
+    val s1: Dp,
+    val s2: Dp,
+    val s3: Dp,
+    val s4: Dp,
+    val s5: Dp,
+    val s6: Dp,
+    val s8: Dp,
+    val s10: Dp,
+    val s12: Dp,
+    val s16: Dp,
+    val s0_5: Dp,
+    val s1_5: Dp,
+    val s2_5: Dp,
+)
+
+/** The `radius` tokens. */
+class RadiusTokens(
+    /** Small parts inside a control: badges, checkboxes. */
+    val sm: Dp,
+    /** Controls: buttons, fields. */
+    val md: Dp,
+    /** Containers: cards, dialogs. */
+    val lg: Dp,
+    /** Surfaces that float free of the screen edges: sheets, floating bars. */
+    val xl: Dp,
+    /** Pills and circles. */
+    val full: Dp,
+)
+
+/** The `border` tokens. */
+class BorderTokens(
+    val widthThin: Dp,
+    /** Selected and invalid states that must not rely on color alone. */
+    val widthThick: Dp,
+)
+
+/** The `focus` tokens. */
+class FocusTokens(
+    /** Focus ring thickness. WCAG 2.2 asks for an indicator at least 2px thick. */
+    val width: Dp,
+    /** Gap between a control and its focus ring, so the ring reads against the control's own fill. */
+    val offset: Dp,
+)
+
+/** The `font` tokens. */
+class FontTokens(
+    /** Pretendard covers Hangul, Latin and Kana with matching metrics. Where it is not loaded, Latin text falls to the system's own font and Hangul to the system's Korean font, in that order. */
+    val familySans: List<String>,
+    /** The smallest size Hangul stays legible at. */
+    val sizeXs: TextUnit,
+    val sizeSm: TextUnit,
+    /** Body text. Also the size below which iOS zooms the page when a field is focused. */
+    val sizeMd: TextUnit,
+    val sizeLg: TextUnit,
+    val sizeXl: TextUnit,
+    val size2xl: TextUnit,
+    val weightRegular: FontWeight,
+    /** Labels on controls: heavier than body text without shouting. */
+    val weightMedium: FontWeight,
+    val weightSemibold: FontWeight,
+    val weightBold: FontWeight,
+    /** Large type and single-line labels. */
+    val lineHeightTight: Float,
+    /** Headings and short text that may wrap. */
+    val lineHeightSnug: Float,
+    /** Body text. Hangul needs more leading than Latin at the same size. */
+    val lineHeightNormal: Float,
+)
+
+/** The `typography` tokens. */
+class TypographyTokens(
+    /** One per screen at most: the name of the place. */
+    val display: TextStyle,
+    /** Section and dialog titles. */
+    val title: TextStyle,
+    /** Card titles and group headings. */
+    val heading: TextStyle,
+    /** Running text. */
+    val body: TextStyle,
+    /** Emphasis inside running text. */
+    val bodyStrong: TextStyle,
+    /** Button labels and field labels. */
+    val label: TextStyle,
+    /** Descriptions, hints and secondary lines. */
+    val detail: TextStyle,
+    /** Badges and timestamps. */
+    val footnote: TextStyle,
+)
+
+/** The `motion` tokens. */
+class MotionTokens(
+    /** Feedback to a press or hover: must feel instant. */
+    val durationFast: Int,
+    /** Something appearing or changing place. */
+    val durationNormal: Int,
+    /** Large surfaces: sheets, full panels. */
+    val durationSlow: Int,
+    /** One beat of a loading placeholder: slow enough not to nag. */
+    val durationPulse: Int,
+    /** How long the pointer rests on a control before its tooltip shows. */
+    val durationTooltipDelay: Int,
+    /** How long a toast stays before it leaves on its own. */
+    val durationToast: Int,
+    /** Moving between two places on screen. */
+    val easingStandard: Easing,
+    /** Arriving: starts fast, settles. */
+    val easingEnter: Easing,
+    /** Leaving: starts slow, gets out of the way. */
+    val easingExit: Easing,
+    /** How far a button shrinks while it is pressed. Feedback that does not depend on color. */
+    val pressScale: Float,
+    val springDefaultStiffness: Float,
+    val springDefaultDamping: Float,
+    val springFastStiffness: Float,
+    val springFastDamping: Float,
+)
+
+/** The `shadow` tokens. */
+class ShadowTokens(
+    /** Cards and outlined controls: just enough to lift them off the page. Drawn together with a hairline border. */
+    val subtle: ShadowToken,
+    /** Menus and dialogs. Paired with background.raised, which carries the elevation in dark mode. */
+    val raised: ShadowToken,
+    /** Dialogs and sheets, which sit above everything else on the screen. */
+    val overlay: ShadowToken,
+)
+
+/** The `glass` tokens. */
+class GlassTokens(
+    /** Gaussian standard deviation for a blurred navigation surface. */
+    val blur: Dp,
+    /** Backdrop saturation multiplier before the glass tint is drawn. */
+    val saturation: Float,
+)
+
+/** A full set of token values: the colors of both modes, the sizes of both input devices and the shared values. */
+class Theme(
+    val light: Colors,
+    val dark: Colors,
+    val pointer: Sizes,
+    val touch: Sizes,
+    val space: SpaceTokens,
+    val radius: RadiusTokens,
+    val border: BorderTokens,
+    val focus: FocusTokens,
+    val font: FontTokens,
+    val typography: TypographyTokens,
+    val motion: MotionTokens,
+    val shadow: ShadowTokens,
+    val glass: GlassTokens,
+)
+
+/**
+ * The theme the token files describe, which the components draw with unless they are given
+ * another.
+ */
+val DefaultTheme: Theme = Theme(
+    light = DefaultLightColors,
+    dark = DefaultDarkColors,
+    pointer = Sizes(
+        controlSm = 28.dp,
+        controlMd = 36.dp,
+        controlLg = 44.dp,
+        targetMin = 24.dp,
+        switchWidth = 36.dp,
+        switchHeight = 20.dp,
+        checkbox = 18.dp,
+        radio = 18.dp,
+        listRow = 40.dp,
+        listRowCompact = 32.dp,
+        bar = 48.dp,
+        buttonRadius = 10.dp,
+        iconXs = 12.dp,
+        iconSm = 16.dp,
+        iconMd = 20.dp,
+        iconLg = 24.dp,
+        iconXl = 32.dp,
+        avatarSm = 24.dp,
+        avatarMd = 32.dp,
+        avatarLg = 40.dp,
+        avatarXl = 56.dp,
+        badge = 24.dp,
+        chip = 32.dp,
+        tab = 40.dp,
+        countBadge = 18.dp,
+        progress = 8.dp,
+        sliderTrack = 4.dp,
+        sliderThumb = 16.dp,
+        spinnerSm = 16.dp,
+        spinnerMd = 24.dp,
+        spinnerLg = 32.dp,
+        dialog = 480.dp,
+        toast = 480.dp,
+        sidebar = 240.dp,
+        sidebarRail = 72.dp,
+        calendarDay = 36.dp,
+    ),
+    touch = Sizes(
+        controlSm = 40.dp,
+        controlMd = 48.dp,
+        controlLg = 56.dp,
+        targetMin = 48.dp,
+        switchWidth = 52.dp,
+        switchHeight = 32.dp,
+        checkbox = 24.dp,
+        radio = 24.dp,
+        listRow = 56.dp,
+        listRowCompact = 44.dp,
+        bar = 56.dp,
+        buttonRadius = 9999.dp,
+        iconXs = 12.dp,
+        iconSm = 16.dp,
+        iconMd = 20.dp,
+        iconLg = 24.dp,
+        iconXl = 32.dp,
+        avatarSm = 24.dp,
+        avatarMd = 32.dp,
+        avatarLg = 40.dp,
+        avatarXl = 56.dp,
+        badge = 24.dp,
+        chip = 40.dp,
+        tab = 48.dp,
+        countBadge = 20.dp,
+        progress = 8.dp,
+        sliderTrack = 4.dp,
+        sliderThumb = 24.dp,
+        spinnerSm = 16.dp,
+        spinnerMd = 24.dp,
+        spinnerLg = 32.dp,
+        dialog = 480.dp,
+        toast = 480.dp,
+        sidebar = 240.dp,
+        sidebarRail = 72.dp,
+        calendarDay = 48.dp,
+    ),
+    space = SpaceTokens(
+        s1 = 4.dp,
+        s2 = 8.dp,
+        s3 = 12.dp,
+        s4 = 16.dp,
+        s5 = 20.dp,
+        s6 = 24.dp,
+        s8 = 32.dp,
+        s10 = 40.dp,
+        s12 = 48.dp,
+        s16 = 64.dp,
+        s0_5 = 2.dp,
+        s1_5 = 6.dp,
+        s2_5 = 10.dp,
+    ),
+    radius = RadiusTokens(
+        sm = 6.dp,
+        md = 10.dp,
+        lg = 16.dp,
+        xl = 24.dp,
+        full = 9999.dp,
+    ),
+    border = BorderTokens(
+        widthThin = 1.dp,
+        widthThick = 2.dp,
+    ),
+    focus = FocusTokens(
+        width = 2.dp,
+        offset = 2.dp,
+    ),
+    font = FontTokens(
+        familySans = listOf("Pretendard Variable", "Pretendard", "-apple-system", "BlinkMacSystemFont", "system-ui", "Roboto", "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "sans-serif"),
+        sizeXs = 12.sp,
+        sizeSm = 14.sp,
+        sizeMd = 16.sp,
+        sizeLg = 18.sp,
+        sizeXl = 22.sp,
+        size2xl = 28.sp,
+        weightRegular = FontWeight(400),
+        weightMedium = FontWeight(500),
+        weightSemibold = FontWeight(600),
+        weightBold = FontWeight(700),
+        lineHeightTight = 1.25f,
+        lineHeightSnug = 1.4f,
+        lineHeightNormal = 1.5f,
+    ),
+    typography = TypographyTokens(
+        display = TextStyle(fontSize = 28.sp, lineHeight = 35.sp, fontWeight = FontWeight(700), letterSpacing = -0.3.sp),
+        title = TextStyle(fontSize = 22.sp, lineHeight = 28.sp, fontWeight = FontWeight(700), letterSpacing = -0.2.sp),
+        heading = TextStyle(fontSize = 18.sp, lineHeight = 25.sp, fontWeight = FontWeight(600), letterSpacing = 0.sp),
+        body = TextStyle(fontSize = 16.sp, lineHeight = 24.sp, fontWeight = FontWeight(400), letterSpacing = 0.sp),
+        bodyStrong = TextStyle(fontSize = 16.sp, lineHeight = 24.sp, fontWeight = FontWeight(600), letterSpacing = 0.sp),
+        label = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight(500), letterSpacing = 0.sp),
+        detail = TextStyle(fontSize = 14.sp, lineHeight = 21.sp, fontWeight = FontWeight(400), letterSpacing = 0.sp),
+        footnote = TextStyle(fontSize = 12.sp, lineHeight = 17.sp, fontWeight = FontWeight(500), letterSpacing = 0.sp),
+    ),
+    motion = MotionTokens(
+        durationFast = 120,
+        durationNormal = 200,
+        durationSlow = 320,
+        durationPulse = 1200,
+        durationTooltipDelay = 500,
+        durationToast = 5000,
+        easingStandard = CubicBezierEasing(0.2f, 0.0f, 0.0f, 1.0f),
+        easingEnter = CubicBezierEasing(0.0f, 0.0f, 0.0f, 1.0f),
+        easingExit = CubicBezierEasing(0.3f, 0.0f, 1.0f, 1.0f),
+        pressScale = 0.97f,
+        springDefaultStiffness = 700.0f,
+        springDefaultDamping = 0.9f,
+        springFastStiffness = 1400.0f,
+        springFastDamping = 0.9f,
+    ),
+    shadow = ShadowTokens(
+        subtle = ShadowToken(color = Color(0x0F000000), offsetX = 0.dp, offsetY = 1.dp, blur = 2.dp, spread = 0.dp),
+        raised = ShadowToken(color = Color(0x1F000000), offsetX = 0.dp, offsetY = 4.dp, blur = 16.dp, spread = 0.dp),
+        overlay = ShadowToken(color = Color(0x59000000), offsetX = 0.dp, offsetY = 12.dp, blur = 32.dp, spread = 0.dp),
+    ),
+    glass = GlassTokens(
+        blur = 12.dp,
+        saturation = 1.8f,
+    ),
+)
+
+private object DefaultLightColors : Colors {
     override val scrim = Color(0x80000000)
     override val backgroundBase = Color(0xFFF5F5F7)
     override val backgroundSurface = Color(0xFFFFFFFF)
@@ -752,7 +1138,7 @@ object LightColors : Colors {
     override val sheetHandle = Color(0xFF84848F)
 }
 
-object DarkColors : Colors {
+private object DefaultDarkColors : Colors {
     override val scrim = Color(0x80000000)
     override val backgroundBase = Color(0xFF0E0E11)
     override val backgroundSurface = Color(0xFF18181C)
@@ -969,275 +1355,41 @@ object DarkColors : Colors {
     override val sheetHandle = Color(0xFF84848F)
 }
 
-object Space {
-    val s1: Dp = 4.dp
-    val s2: Dp = 8.dp
-    val s3: Dp = 12.dp
-    val s4: Dp = 16.dp
-    val s5: Dp = 20.dp
-    val s6: Dp = 24.dp
-    val s8: Dp = 32.dp
-    val s10: Dp = 40.dp
-    val s12: Dp = 48.dp
-    val s16: Dp = 64.dp
-    val s0_5: Dp = 2.dp
-    val s1_5: Dp = 6.dp
-    val s2_5: Dp = 10.dp
-}
+/** The `space` tokens of the theme in effect. */
+val Space: SpaceTokens
+    @Composable @ReadOnlyComposable get() = LocalTheme.current.space
 
-object Radius {
-    /** Small parts inside a control: badges, checkboxes. */
-    val sm: Dp = 6.dp
-    /** Controls: buttons, fields. */
-    val md: Dp = 10.dp
-    /** Containers: cards, dialogs. */
-    val lg: Dp = 16.dp
-    /** Surfaces that float free of the screen edges: sheets, floating bars. */
-    val xl: Dp = 24.dp
-    /** Pills and circles. */
-    val full: Dp = 9999.dp
-}
+/** The `radius` tokens of the theme in effect. */
+val Radius: RadiusTokens
+    @Composable @ReadOnlyComposable get() = LocalTheme.current.radius
 
-object Border {
-    val widthThin: Dp = 1.dp
-    /** Selected and invalid states that must not rely on color alone. */
-    val widthThick: Dp = 2.dp
-}
+/** The `border` tokens of the theme in effect. */
+val Border: BorderTokens
+    @Composable @ReadOnlyComposable get() = LocalTheme.current.border
 
-object Focus {
-    /** Focus ring thickness. WCAG 2.2 asks for an indicator at least 2px thick. */
-    val width: Dp = 2.dp
-    /** Gap between a control and its focus ring, so the ring reads against the control's own fill. */
-    val offset: Dp = 2.dp
-}
+/** The `focus` tokens of the theme in effect. */
+val Focus: FocusTokens
+    @Composable @ReadOnlyComposable get() = LocalTheme.current.focus
 
-object Font {
-    /** Pretendard covers Hangul, Latin and Kana with matching metrics. Where it is not loaded, Latin text falls to the system's own font and Hangul to the system's Korean font, in that order. */
-    val familySans: List<String> = listOf("Pretendard Variable", "Pretendard", "-apple-system", "BlinkMacSystemFont", "system-ui", "Roboto", "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "sans-serif")
-    /** The smallest size Hangul stays legible at. */
-    val sizeXs: TextUnit = 12.sp
-    val sizeSm: TextUnit = 14.sp
-    /** Body text. Also the size below which iOS zooms the page when a field is focused. */
-    val sizeMd: TextUnit = 16.sp
-    val sizeLg: TextUnit = 18.sp
-    val sizeXl: TextUnit = 22.sp
-    val size2xl: TextUnit = 28.sp
-    val weightRegular: FontWeight = FontWeight(400)
-    /** Labels on controls: heavier than body text without shouting. */
-    val weightMedium: FontWeight = FontWeight(500)
-    val weightSemibold: FontWeight = FontWeight(600)
-    val weightBold: FontWeight = FontWeight(700)
-    /** Large type and single-line labels. */
-    val lineHeightTight: Float = 1.25f
-    /** Headings and short text that may wrap. */
-    val lineHeightSnug: Float = 1.4f
-    /** Body text. Hangul needs more leading than Latin at the same size. */
-    val lineHeightNormal: Float = 1.5f
-}
+/** The `font` tokens of the theme in effect. */
+val Font: FontTokens
+    @Composable @ReadOnlyComposable get() = LocalTheme.current.font
 
-object Typography {
-    /** One per screen at most: the name of the place. */
-    val display: TextStyle = TextStyle(fontSize = 28.sp, lineHeight = 35.sp, fontWeight = FontWeight(700), letterSpacing = -0.3.sp)
-    /** Section and dialog titles. */
-    val title: TextStyle = TextStyle(fontSize = 22.sp, lineHeight = 28.sp, fontWeight = FontWeight(700), letterSpacing = -0.2.sp)
-    /** Card titles and group headings. */
-    val heading: TextStyle = TextStyle(fontSize = 18.sp, lineHeight = 25.sp, fontWeight = FontWeight(600), letterSpacing = 0.sp)
-    /** Running text. */
-    val body: TextStyle = TextStyle(fontSize = 16.sp, lineHeight = 24.sp, fontWeight = FontWeight(400), letterSpacing = 0.sp)
-    /** Emphasis inside running text. */
-    val bodyStrong: TextStyle = TextStyle(fontSize = 16.sp, lineHeight = 24.sp, fontWeight = FontWeight(600), letterSpacing = 0.sp)
-    /** Button labels and field labels. */
-    val label: TextStyle = TextStyle(fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight(500), letterSpacing = 0.sp)
-    /** Descriptions, hints and secondary lines. */
-    val detail: TextStyle = TextStyle(fontSize = 14.sp, lineHeight = 21.sp, fontWeight = FontWeight(400), letterSpacing = 0.sp)
-    /** Badges and timestamps. */
-    val footnote: TextStyle = TextStyle(fontSize = 12.sp, lineHeight = 17.sp, fontWeight = FontWeight(500), letterSpacing = 0.sp)
-}
+/** The `typography` tokens of the theme in effect. */
+val Typography: TypographyTokens
+    @Composable @ReadOnlyComposable get() = LocalTheme.current.typography
 
-object Motion {
-    /** Feedback to a press or hover: must feel instant. */
-    val durationFast: Int = 120
-    /** Something appearing or changing place. */
-    val durationNormal: Int = 200
-    /** Large surfaces: sheets, full panels. */
-    val durationSlow: Int = 320
-    /** One beat of a loading placeholder: slow enough not to nag. */
-    val durationPulse: Int = 1200
-    /** How long the pointer rests on a control before its tooltip shows. */
-    val durationTooltipDelay: Int = 500
-    /** How long a toast stays before it leaves on its own. */
-    val durationToast: Int = 5000
-    /** Moving between two places on screen. */
-    val easingStandard: Easing = CubicBezierEasing(0.2f, 0.0f, 0.0f, 1.0f)
-    /** Arriving: starts fast, settles. */
-    val easingEnter: Easing = CubicBezierEasing(0.0f, 0.0f, 0.0f, 1.0f)
-    /** Leaving: starts slow, gets out of the way. */
-    val easingExit: Easing = CubicBezierEasing(0.3f, 0.0f, 1.0f, 1.0f)
-    /** How far a button shrinks while it is pressed. Feedback that does not depend on color. */
-    val pressScale: Float = 0.97f
-    val springDefaultStiffness: Float = 700.0f
-    val springDefaultDamping: Float = 0.9f
-    val springFastStiffness: Float = 1400.0f
-    val springFastDamping: Float = 0.9f
-}
+/** The `motion` tokens of the theme in effect. */
+val Motion: MotionTokens
+    @Composable @ReadOnlyComposable get() = LocalTheme.current.motion
 
-object Shadow {
-    /** Cards and outlined controls: just enough to lift them off the page. Drawn together with a hairline border. */
-    val subtle: ShadowToken = ShadowToken(color = Color(0x0F000000), offsetX = 0.dp, offsetY = 1.dp, blur = 2.dp, spread = 0.dp)
-    /** Menus and dialogs. Paired with background.raised, which carries the elevation in dark mode. */
-    val raised: ShadowToken = ShadowToken(color = Color(0x1F000000), offsetX = 0.dp, offsetY = 4.dp, blur = 16.dp, spread = 0.dp)
-    /** Dialogs and sheets, which sit above everything else on the screen. */
-    val overlay: ShadowToken = ShadowToken(color = Color(0x59000000), offsetX = 0.dp, offsetY = 12.dp, blur = 32.dp, spread = 0.dp)
-}
+/** The `shadow` tokens of the theme in effect. */
+val Shadow: ShadowTokens
+    @Composable @ReadOnlyComposable get() = LocalTheme.current.shadow
 
-object Glass {
-    /** Gaussian standard deviation for a blurred navigation surface. */
-    val blur: Dp = 12.dp
-    /** Backdrop saturation multiplier before the glass tint is drawn. */
-    val saturation: Float = 1.8f
-}
-
-/** Control sizes, for one input device. */
-class Sizes(
-    val controlSm: Dp,
-    val controlMd: Dp,
-    val controlLg: Dp,
-    /** The smallest area that reacts to a press, whatever the control looks like. */
-    val targetMin: Dp,
-    val switchWidth: Dp,
-    val switchHeight: Dp,
-    /** The box, not the pressable area. */
-    val checkbox: Dp,
-    /** The circle, not the pressable area. */
-    val radio: Dp,
-    /** The least height of a row in a list. */
-    val listRow: Dp,
-    /** A row of a menu or a sidebar, where many rows share little room. */
-    val listRowCompact: Dp,
-    /** Top bars and tab bars. */
-    val bar: Dp,
-    /** Buttons are rounded rectangles where a pointer is used. */
-    val buttonRadius: Dp,
-    /** Icons inside a badge. */
-    val iconXs: Dp,
-    val iconSm: Dp,
-    /** Icons beside text. */
-    val iconMd: Dp,
-    /** Icons that stand alone: tab bars, top bars. */
-    val iconLg: Dp,
-    /** Icons that illustrate rather than label: empty states. */
-    val iconXl: Dp,
-    val avatarSm: Dp,
-    val avatarMd: Dp,
-    val avatarLg: Dp,
-    /** A profile header. */
-    val avatarXl: Dp,
-    /** The height of a badge. */
-    val badge: Dp,
-    /** The height of a chip. */
-    val chip: Dp,
-    /** The height of a tab. */
-    val tab: Dp,
-    /** The height, and the least width, of a count badge. */
-    val countBadge: Dp,
-    /** The thickness of a progress bar. */
-    val progress: Dp,
-    /** The thickness of a slider's track. */
-    val sliderTrack: Dp,
-    /** The thumb, not the pressable area. */
-    val sliderThumb: Dp,
-    val spinnerSm: Dp,
-    val spinnerMd: Dp,
-    val spinnerLg: Dp,
-    /** The most a dialog is wide. A narrower screen leaves a margin on both sides. */
-    val dialog: Dp,
-    /** The most a toast is wide. */
-    val toast: Dp,
-    /** The width of an open sidebar. */
-    val sidebar: Dp,
-    /** The width of a collapsed sidebar, which shows icons only. */
-    val sidebarRail: Dp,
-    /** The side of a day of the calendar: as tall as control.md for a pointer and target-min for touch. The circle that marks a day is inset by space.0-5. On touch the seven columns share the width of the sheet, so on a phone narrower than about 370 points a day is a little narrower than this, as on iOS and Material. */
-    val calendarDay: Dp,
-)
-
-val PointerSizes = Sizes(
-    controlSm = 28.dp,
-    controlMd = 36.dp,
-    controlLg = 44.dp,
-    targetMin = 24.dp,
-    switchWidth = 36.dp,
-    switchHeight = 20.dp,
-    checkbox = 18.dp,
-    radio = 18.dp,
-    listRow = 40.dp,
-    listRowCompact = 32.dp,
-    bar = 48.dp,
-    buttonRadius = 10.dp,
-    iconXs = 12.dp,
-    iconSm = 16.dp,
-    iconMd = 20.dp,
-    iconLg = 24.dp,
-    iconXl = 32.dp,
-    avatarSm = 24.dp,
-    avatarMd = 32.dp,
-    avatarLg = 40.dp,
-    avatarXl = 56.dp,
-    badge = 24.dp,
-    chip = 32.dp,
-    tab = 40.dp,
-    countBadge = 18.dp,
-    progress = 8.dp,
-    sliderTrack = 4.dp,
-    sliderThumb = 16.dp,
-    spinnerSm = 16.dp,
-    spinnerMd = 24.dp,
-    spinnerLg = 32.dp,
-    dialog = 480.dp,
-    toast = 480.dp,
-    sidebar = 240.dp,
-    sidebarRail = 72.dp,
-    calendarDay = 36.dp,
-)
-
-val TouchSizes = Sizes(
-    controlSm = 40.dp,
-    controlMd = 48.dp,
-    controlLg = 56.dp,
-    targetMin = 48.dp,
-    switchWidth = 52.dp,
-    switchHeight = 32.dp,
-    checkbox = 24.dp,
-    radio = 24.dp,
-    listRow = 56.dp,
-    listRowCompact = 44.dp,
-    bar = 56.dp,
-    buttonRadius = 9999.dp,
-    iconXs = 12.dp,
-    iconSm = 16.dp,
-    iconMd = 20.dp,
-    iconLg = 24.dp,
-    iconXl = 32.dp,
-    avatarSm = 24.dp,
-    avatarMd = 32.dp,
-    avatarLg = 40.dp,
-    avatarXl = 56.dp,
-    badge = 24.dp,
-    chip = 40.dp,
-    tab = 48.dp,
-    countBadge = 20.dp,
-    progress = 8.dp,
-    sliderTrack = 4.dp,
-    sliderThumb = 24.dp,
-    spinnerSm = 16.dp,
-    spinnerMd = 24.dp,
-    spinnerLg = 32.dp,
-    dialog = 480.dp,
-    toast = 480.dp,
-    sidebar = 240.dp,
-    sidebarRail = 72.dp,
-    calendarDay = 48.dp,
-)
+/** The `glass` tokens of the theme in effect. */
+val Glass: GlassTokens
+    @Composable @ReadOnlyComposable get() = LocalTheme.current.glass
 
 /** Icons as SVG path data on a 24 by 24 grid, stroked 2 wide with round caps and joins. */
 enum class IconName(val paths: List<String>) {

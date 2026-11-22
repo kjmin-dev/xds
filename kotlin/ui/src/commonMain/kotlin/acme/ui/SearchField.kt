@@ -63,6 +63,7 @@ fun SearchField(
                         // searching, so the field takes it back.
                         focus.requestFocus()
                     },
+                    variant = ButtonVariant.Ghost,
                     size = ControlSize.Sm,
                 )
             }

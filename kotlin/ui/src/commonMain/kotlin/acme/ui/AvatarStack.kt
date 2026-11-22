@@ -33,7 +33,7 @@ fun AvatarStack(
     people: List<AvatarPerson>,
     modifier: Modifier = Modifier,
     max: Int = 4,
-    size: AvatarSize = AvatarSize.Md,
+    size: AvatarSize = LocalComponentDefaults.current.avatarStack.size ?: AvatarSize.Md,
     label: String? = null,
 ) {
     val colors = LocalColors.current
@@ -42,8 +42,9 @@ fun AvatarStack(
     val more = people.size - shown.size
     // Around the circle, not inside it, so an avatar in a stack is as large as one on its own.
     // Each ring covers the edge of the avatar before it, which is what reads as the gap.
+    val ringWidth = Border.widthThick
     val ring = Modifier.drawBehind {
-        drawCircle(colors.avatarRing, radius = this.size.minDimension / 2 + Border.widthThick.toPx())
+        drawCircle(colors.avatarRing, radius = this.size.minDimension / 2 + ringWidth.toPx())
     }
     Row(
         modifier = modifier.clearAndSetSemantics {

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,7 +38,7 @@ enum class AvatarSize { Sm, Md, Lg, Xl }
 fun Avatar(
     name: String,
     modifier: Modifier = Modifier,
-    size: AvatarSize = AvatarSize.Md,
+    size: AvatarSize = LocalComponentDefaults.current.avatar.size ?: AvatarSize.Md,
     src: String? = null,
 ) {
     AvatarCircle(name, src, size, modifier.clearAndSetSemantics { contentDescription = name })
@@ -82,6 +83,8 @@ internal fun avatarDiameter(sizes: Sizes, size: AvatarSize): Dp = when (size) {
 }
 
 /** The type role of the initials, and of anything else written in a circle of that size. */
+@Composable
+@ReadOnlyComposable
 internal fun avatarTextStyle(size: AvatarSize): TextStyle = when (size) {
     AvatarSize.Sm -> Typography.footnote
     AvatarSize.Md -> Typography.label

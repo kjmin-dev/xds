@@ -1,5 +1,6 @@
 package acme.ui
 
+import acme.tokens.Input
 import acme.tokens.Border
 import acme.tokens.IconName
 import acme.tokens.Radius
@@ -155,7 +156,7 @@ internal fun MenuList(
     rows: @Composable (compact: Boolean) -> Unit,
 ) {
     // The form goes with the sizes: rows sized for a finger are never squeezed into a popup.
-    if (LocalSizes.current.forPointer) {
+    if (LocalInput.current == Input.Pointer) {
         if (open) MenuPopup(label, align, width, listModifier, onClose) { rows(true) }
     } else {
         BottomSheet(open = open, onDismiss = onClose, title = label) {

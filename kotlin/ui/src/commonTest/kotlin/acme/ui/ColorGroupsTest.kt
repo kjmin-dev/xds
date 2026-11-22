@@ -1,6 +1,6 @@
 package acme.ui
 
-import acme.tokens.LightColors
+import acme.tokens.DefaultTheme
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -25,7 +25,7 @@ class ColorGroupsTest {
     fun theTokensHaveOnlyTheSemanticGroupsTheDocsName() {
         assertEquals(
             listOf("background", "text", "border", "accent", "control", "danger", "status", "overlay", "glass"),
-            semanticColorGroups(LightColors.entries()).keys.toList(),
+            semanticColorGroups(DefaultTheme.light.entries()).keys.toList(),
         )
     }
 }

@@ -2,14 +2,14 @@
 
 package acme.ui
 
-import acme.tokens.Sizes
+import acme.tokens.Input
 import androidx.compose.runtime.Composable
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.YearMonth
 
-/** The sizes for the platform's input device: pointer on the desktop, touch on Android and iOS. */
-expect val platformSizes: Sizes
+/** The platform's input device: pointer on the desktop, touch on Android and iOS. */
+expect val platformInput: Input
 
 /** Whether the system is set to reduce motion. False where the platform has no such setting to read. */
 @Composable

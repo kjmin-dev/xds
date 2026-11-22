@@ -48,7 +48,7 @@ class BannerAction(val label: String, val onClick: () -> Unit)
 fun Banner(
     message: String,
     modifier: Modifier = Modifier,
-    tone: BannerTone = BannerTone.Info,
+    tone: BannerTone = LocalComponentDefaults.current.banner.tone ?: BannerTone.Info,
     title: String? = null,
     action: BannerAction? = null,
     onDismiss: (() -> Unit)? = null,
@@ -103,6 +103,7 @@ fun Banner(
                 icon = IconName.X,
                 label = dismissLabel,
                 onClick = onDismiss,
+                variant = ButtonVariant.Ghost,
                 size = ControlSize.Sm,
                 modifier = Modifier.layout { measurable, constraints ->
                     val button = measurable.measure(constraints)

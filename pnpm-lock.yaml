@@ -603,6 +603,15 @@ importers:
         specifier: catalog:vue
         version: 3.3.14(typescript-native-bridge@6.0.3-bridge.19.tsgo.7.0.2)
 
+  maven:
+    devDependencies:
+      '@types/node':
+        specifier: ^26.0.0
+        version: 26.6.6
+      tsrs:
+        specifier: 'catalog:'
+        version: 0.25.0-ts7.1.0-beta
+
   npm/web:
     devDependencies:
       '@sveltejs/package':

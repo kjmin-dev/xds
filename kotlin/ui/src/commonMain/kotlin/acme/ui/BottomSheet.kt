@@ -102,14 +102,15 @@ internal fun BottomSheet(
     val hidden = remember { Animatable(1f) }
     // With less motion asked for, the sheet appears in place instead of sliding.
     val slide = if (LocalReducedMotion.current) 0 else Motion.durationSlow
+    val motion = Motion
     // The layer outlives `open` by the time the sheet takes to slide out.
     var present by remember { mutableStateOf(false) }
     LaunchedEffect(open) {
         if (open) {
             present = true
-            hidden.animateTo(0f, tween(slide, easing = Motion.easingEnter))
+            hidden.animateTo(0f, tween(slide, easing = motion.easingEnter))
         } else if (present) {
-            hidden.animateTo(1f, tween(slide, easing = Motion.easingExit))
+            hidden.animateTo(1f, tween(slide, easing = motion.easingExit))
             present = false
         }
     }
@@ -134,7 +135,7 @@ internal fun BottomSheet(
             if (far) {
                 requestDismiss()
             } else {
-                hidden.animateTo(0f, tween(Motion.durationFast, easing = Motion.easingStandard))
+                hidden.animateTo(0f, tween(motion.durationFast, easing = motion.easingStandard))
             }
         }
 

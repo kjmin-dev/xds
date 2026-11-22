@@ -1,5 +1,6 @@
 package acme.ui
 
+import acme.tokens.Input
 import acme.tokens.Space
 import acme.tokens.Typography
 import androidx.compose.foundation.layout.Arrangement
@@ -132,7 +133,7 @@ internal fun DateRangePicker(
     val shown = value?.let { locale.formatRange(it.start, it.end) }
     CalendarField(label, shown, placeholder, description, error, enabled, initiallyOpen, modifier) { open, byKeyboard, close ->
         val labels = RangeLabels(startLabel, endLabel, previousLabel, nextLabel)
-        if (LocalSizes.current.forPointer) {
+        if (LocalInput.current == Input.Pointer) {
             // Counted as the calendar opens, so that resizing the window does not rearrange it.
             val window = LocalWindowInfo.current
             val density = LocalDensity.current
@@ -182,7 +183,7 @@ internal fun DateRangePicker(
                         close = close,
                     )
                 }
-                Button(doneLabel, onClick = close, variant = ButtonVariant.Primary, fullWidth = true)
+                Button(doneLabel, onClick = close, variant = ButtonVariant.Primary, size = ControlSize.Md, fullWidth = true)
             }
         }
     }

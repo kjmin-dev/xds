@@ -53,7 +53,7 @@ enum class MediaCardLayout {
 fun MediaCard(
     title: String,
     modifier: Modifier = Modifier,
-    layout: MediaCardLayout = MediaCardLayout.Vertical,
+    layout: MediaCardLayout = LocalComponentDefaults.current.mediaCard.layout ?: MediaCardLayout.Vertical,
     src: String? = null,
     alt: String = "",
     ratio: ThumbnailRatio = ThumbnailRatio.Ratio16x9,

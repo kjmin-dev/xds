@@ -8,14 +8,15 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.FiniteAnimationSpec
 import acme.tokens.Colors
+import acme.tokens.DefaultTheme
 import acme.tokens.Focus
-import acme.tokens.LightColors
+import acme.tokens.Input
+import acme.tokens.LocalTheme
 import acme.tokens.Mode
-import acme.tokens.PointerSizes
 import acme.tokens.ShadowToken
-import acme.tokens.Sizes
-import acme.tokens.Typography
+import acme.tokens.Theme
 import acme.tokens.colors
+import acme.tokens.sizes
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -55,19 +56,25 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.offset
 
-/** The color tokens of the mode in effect. */
-val LocalColors = staticCompositionLocalOf<Colors> { LightColors }
-
-/** The control sizes of the input device in effect. */
-val LocalSizes = staticCompositionLocalOf { platformSizes }
+/** The color mode in effect. */
+val LocalMode = staticCompositionLocalOf { Mode.Light }
 
 /**
- * Whether these are the sizes for a pointer. Components that take a different form for each
- * input device ask this, so the form always goes with the sizes: a menu is a popup with them
- * and a sheet without. Sizes an app made itself count as touch, whose forms work with a pointer
- * as well.
+ * The input device the sizes in effect are for. Components that take a different form for each
+ * input device ask this, so the form always goes with the sizes: a menu is a popup for a pointer
+ * and a sheet for touch.
  */
-internal val Sizes.forPointer: Boolean get() = this === PointerSizes
+val LocalInput = staticCompositionLocalOf { platformInput }
+
+/** The color tokens of the theme and mode in effect. */
+val LocalColors = staticCompositionLocalOf<Colors> { DefaultTheme.light }
+
+/** The control sizes of the theme and input device in effect. */
+val LocalSizes = staticCompositionLocalOf { DefaultTheme.sizes(platformInput) }
+
+// Whether a theme composable is above: a nested one keeps the mode and the input device of the
+// one around it unless it is given its own.
+private val LocalThemed = staticCompositionLocalOf { false }
 
 /**
  * The color of the text and marks inside a component that sets its own fill or its own look for
@@ -80,7 +87,7 @@ val LocalContentColor = compositionLocalOf { Color.Unspecified }
  * The type role [Text] takes when it is given none: body text, unless a component that holds
  * content in a type of its own, such as the body of an [Accordion], sets another around it.
  */
-val LocalTextStyle = compositionLocalOf { Typography.body }
+val LocalTextStyle = compositionLocalOf { DefaultTheme.typography.body }
 
 /** Whether the person asked the system for less motion. Animations check it and jump instead. */
 val LocalReducedMotion = staticCompositionLocalOf { false }
@@ -98,16 +105,26 @@ internal fun <T> motionSpec(damping: Float, stiffness: Float): FiniteAnimationSp
 fun systemMode(): Mode = if (isSystemInDarkTheme()) Mode.Dark else Mode.Light
 
 /**
- * Gives the components under it their colors and sizes. The mode follows the system unless it is
- * set; the sizes follow the platform's input device: pointer on the desktop, touch on phones.
+ * Gives the components under it their tokens: the colors of [theme] for [mode], its sizes for
+ * [input], and its shared values. It may be placed around the whole app or any part of it, and
+ * one inside another applies to its own part only.
+ *
+ * @param mode The color mode. Without one, it is the mode of the theme composable around this
+ *   one, or the system's mode when there is none.
+ * @param input The input device the sizes are for. Without one, it is that of the theme
+ *   composable around this one, or the platform's: pointer on the desktop, touch on phones.
+ * @param theme The token values. Without one, it is the theme around this one, or
+ *   [DefaultTheme].
  */
 @Composable
 fun AcmeTheme(
-    mode: Mode = systemMode(),
-    sizes: Sizes = platformSizes,
+    mode: Mode = if (LocalThemed.current) LocalMode.current else systemMode(),
+    input: Input = if (LocalThemed.current) LocalInput.current else platformInput,
+    theme: Theme = LocalTheme.current,
     content: @Composable () -> Unit,
 ) {
-    val colors = colors(mode)
+    val colors = theme.colors(mode)
+    val sizes = theme.sizes(input)
     val platform = LocalViewConfiguration.current
     // Compose widens the area that reacts to a touch up to this size, whatever is drawn. Taking
     // it from the token makes every pressable part honor `targetMin` without changing its layout.
@@ -117,8 +134,13 @@ fun AcmeTheme(
         }
     }
     CompositionLocalProvider(
+        LocalThemed provides true,
+        LocalTheme provides theme,
+        LocalMode provides mode,
+        LocalInput provides input,
         LocalColors provides colors,
         LocalSizes provides sizes,
+        LocalTextStyle provides theme.typography.body,
         LocalReducedMotion provides systemReducedMotion(),
         LocalViewConfiguration provides viewConfiguration,
         // An opaque highlight: the token set has no translucent colors to layer over text.
@@ -163,6 +185,7 @@ internal fun TextStyle.resolved(color: Color): TextStyle = copy(color = color, l
 internal fun Modifier.focusRing(shape: Shape): Modifier {
     val keyboard = LocalInputModeManager.current.inputMode == InputMode.Keyboard
     val color = LocalColors.current.borderFocus
+    val focus = Focus
     var visible by remember { mutableStateOf(false) }
     // Where there is a mouse, pressing a control focuses it as well. Whether a press is under
     // way is noted on the way down to the control, so it is known by the time focus arrives.
@@ -179,9 +202,9 @@ internal fun Modifier.focusRing(shape: Shape): Modifier {
         .drawWithContent {
             drawContent()
             if (!visible || !keyboard) return@drawWithContent
-            val width = Focus.width.toPx()
+            val width = focus.width.toPx()
             // The gap keeps the ring from blending into the control's own fill.
-            val outset = Focus.offset.toPx() + width / 2
+            val outset = focus.offset.toPx() + width / 2
             val outline = shape.createOutline(
                 Size(size.width + outset * 2, size.height + outset * 2),
                 layoutDirection,
@@ -199,6 +222,7 @@ private class Press(var underWay: Boolean = false)
  * it, which would cut the focus rings of the controls in it, so the part that scrolls reaches
  * past the row's bounds by a ring's width on every side. The row keeps its own size and place.
  */
+@Composable
 internal fun Modifier.sidewaysScroll(state: ScrollState): Modifier {
     val room = Focus.offset + Focus.width
     return this

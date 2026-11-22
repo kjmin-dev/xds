@@ -246,6 +246,15 @@ description = "Install the web library's packages in new apps and compare their 
 depends = ["install"]
 run = "node npm/web/consumer.ts"
 
+# The same for the Compose library: it builds it into a Maven repository directory, consumes it
+# from a desktop app and an Android app outside the repository, and compares their design
+# previews with a scaffolded project's, pixel by pixel. It needs a JDK, the Android SDK with an
+# emulator system image installed in $ANDROID_HOME, and the network; `-- --platforms desktop`
+# leaves Android out. docs/compose-library.md says what it compares.
+[tasks."check:library-compose"]
+description = "Consume the Compose library from new desktop and Android apps and compare their design previews with a scaffolded project"
+run = "node maven/consumer.ts"
+
 # The pictures of the iOS, Android and Compose apps on the component pages. It needs ffmpeg and
 # cwebp; iOS needs macOS with Xcode and CocoaPods, and Android an emulator system image already
 # installed in $ANDROID_HOME. apps/docs/scripts/capture.ts says what it does.

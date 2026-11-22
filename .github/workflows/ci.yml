@@ -191,15 +191,21 @@ jobs:
   # release, which runs them whole before it publishes. Each builds the CLI to scaffold its
   # reference projects.
   library-web:
-    name: Web library
+    name: Web library (${{ matrix.framework }})
     runs-on: ubuntu-latest
+    # The check takes over half an hour on a runner, nearly all of it in each framework's
+    # captures, so the frameworks run side by side.
+    strategy:
+      fail-fast: false
+      matrix:
+        framework: [react, solid, vue, svelte]
     steps:
       - uses: actions/checkout@v7
       - uses: jdx/mise-action@v5
         with:
           install_args: rust node pnpm
       - uses: Swatinem/rust-cache@v2
-      - run: mise run check:library-web
+      - run: mise run check:library-web -- --frameworks ${{ matrix.framework }}
 
   library-react-native:
     name: React Native library

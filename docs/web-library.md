@@ -111,7 +111,7 @@ Each component's root element has the class `xds-` followed by the component nam
 
 - packs the packages and installs them with npm in a new app outside the repository, which has only Vite and the framework's Vite plugin;
 - draws the design preview from `./preview` in that app, once with `styles.css` and once in an app with its own Tailwind CSS that imports `tailwind.css`;
-- compares every section and every open overlay, pixel by pixel, with the same app in a project that `xds create` makes from this repository under the name `xds`, at 1280 and 390 pixels wide, in both modes. A capture that differs is taken again before it counts. Up to 16 pixels may differ by at most 8 levels in a channel: Chrome sometimes draws the anti-aliased corner of a native button differently while the computed styles match;
+- compares every section and every open overlay, pixel by pixel, with the same app in a project that `xds create` makes from this repository under the name `xds`, at 1280 and 390 pixels wide, in both modes. A capture that differs is taken again, twice at most, before it counts. Up to 16 pixels may differ by at most 8 levels in a channel: Chrome sometimes draws the anti-aliased corner of a native button differently while the computed styles match;
 - repeats the comparison with a custom theme ([`npm/web/consumer/brand.json`](../npm/web/consumer/brand.json)). The app built from the packages applies it with the stylesheet `xds export-theme` writes. The scaffolded app applies it with its token build.
 
 CI runs this check on every change. The release workflow runs it again and publishes the web packages only after it passes.

@@ -268,8 +268,8 @@ run = "node npm/react-native/consumer.ts"
 description = "Consume the Compose library from new desktop and Android apps and compare their design previews with a scaffolded project"
 run = "node maven/consumer.ts"
 
-# What CI runs of the three on every change, in a job each: everything but the Android emulator
-# and iOS.
+# What CI runs of the three on every change: everything but the Android emulator and iOS. CI
+# runs them in jobs of their own, the web check in one for each framework.
 [tasks."check:libraries"]
 description = "Run the libraries' consumer checks as CI does, without an emulator or iOS"
 depends = ["install"]

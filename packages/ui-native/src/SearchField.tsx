@@ -1,8 +1,14 @@
-import { border, radius, space, typography } from "@acme/tokens";
 import { type ComponentRef, useRef, useState } from "react";
-import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import {
+  Pressable,
+  type StyleProp,
+  StyleSheet,
+  TextInput,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { Icon } from "./Icon.tsx";
-import { CONTROL_HEIGHT, control, useColors } from "./theme.ts";
+import { themed, useColors, useControl, useTheme } from "./theme.ts";
 
 export type SearchFieldProps = {
   value: string;
@@ -15,6 +21,8 @@ export type SearchFieldProps = {
   disabled?: boolean;
   /** What a screen reader says for the button that empties the field. */
   clearLabel?: string;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -32,7 +40,11 @@ export function SearchField({
   placeholder,
   disabled = false,
   clearLabel = "Clear",
+  style,
 }: SearchFieldProps) {
+  const styles = useStyles();
+  const { border, space } = useTheme();
+  const control = useControl();
   const colors = useColors();
   const input = useRef<ComponentRef<typeof TextInput>>(null);
   const [focused, setFocused] = useState(false);
@@ -40,21 +52,24 @@ export function SearchField({
   // shrinks by the same amount, so nothing inside moves.
   const outline = focused ? border.width.thick : border.width.thin;
   const edge = space[3] - (outline - border.width.thin);
-  const inner = CONTROL_HEIGHT.md - 2 * outline;
+  const inner = control.controlMd - 2 * outline;
   const clearable = value !== "" && !disabled;
 
   return (
     <View
       style={[
-        styles.box,
-        {
-          borderWidth: outline,
-          borderColor: focused ? colors.fieldBorderFocus : colors.fieldBorder,
-          backgroundColor: disabled ? colors.backgroundDisabled : colors.fieldBackground,
-          paddingStart: edge,
-          // The clear button brings its own padding, so a touch at the very end lands on it.
-          paddingEnd: clearable ? 0 : edge,
-        },
+        [
+          styles.box,
+          {
+            borderWidth: outline,
+            borderColor: focused ? colors.fieldBorderFocus : colors.fieldBorder,
+            backgroundColor: disabled ? colors.backgroundDisabled : colors.fieldBackground,
+            paddingStart: edge,
+            // The clear button brings its own padding, so a touch at the very end lands on it.
+            paddingEnd: clearable ? 0 : edge,
+          },
+        ],
+        style,
       ]}
     >
       <Icon name="search" size="sm" color={colors.fieldPlaceholder} />
@@ -104,25 +119,28 @@ export function SearchField({
   );
 }
 
-const styles = StyleSheet.create({
-  box: {
-    alignSelf: "stretch",
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: radius.full,
-  },
-  input: {
-    flex: 1,
-    paddingHorizontal: space[2],
-    // No line height: iOS centers single-line input text on its own, and a line height
-    // pushes it off center.
-    fontSize: typography.body.fontSize,
-  },
-  // As wide as the smallest target, with the icon at the end of it, as far from the outline as
-  // the magnifier is at the other end.
-  clear: {
-    width: control.targetMin,
-    alignItems: "flex-end",
-    justifyContent: "center",
-  },
+const useStyles = themed(({ radius, space, typography, size }) => {
+  const control = size.touch;
+  return StyleSheet.create({
+    box: {
+      alignSelf: "stretch",
+      flexDirection: "row",
+      alignItems: "center",
+      borderRadius: radius.full,
+    },
+    input: {
+      flex: 1,
+      paddingHorizontal: space[2],
+      // No line height: iOS centers single-line input text on its own, and a line height
+      // pushes it off center.
+      fontSize: typography.body.fontSize,
+    },
+    // As wide as the smallest target, with the icon at the end of it, as far from the outline as
+    // the magnifier is at the other end.
+    clear: {
+      width: control.targetMin,
+      alignItems: "flex-end",
+      justifyContent: "center",
+    },
+  });
 });

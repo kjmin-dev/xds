@@ -1,6 +1,13 @@
-import { space } from "@acme/tokens";
 import { useState } from "react";
-import { AccessibilityInfo, I18nManager, Platform, StyleSheet, View } from "react-native";
+import {
+  AccessibilityInfo,
+  I18nManager,
+  Platform,
+  type StyleProp,
+  StyleSheet,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { BottomSheet } from "./BottomSheet.tsx";
 import {
   cellSize,
@@ -22,6 +29,7 @@ import {
 } from "./datePicker.ts";
 import { CHOSEN, UNMARKED } from "./dateRange.ts";
 import { IconButton } from "./IconButton.tsx";
+import { themed, useControl } from "./theme.ts";
 
 export type { IsoDate };
 
@@ -49,6 +57,8 @@ export type DatePickerProps = {
   nextLabel?: string;
   /** Starts with the calendar open, for a preview or a screenshot. */
   defaultOpen?: boolean;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -74,12 +84,14 @@ export function DatePicker({
   previousLabel = "Previous month",
   nextLabel = "Next month",
   defaultOpen = false,
+  style,
 }: DatePickerProps) {
+  const styles = useStyles();
   const names = useCalendarNames();
   const calendar = useCalendarOpen(defaultOpen && !disabled);
 
   return (
-    <View style={styles.field}>
+    <View style={[styles.field, style]}>
       <DateField
         label={label}
         shown={value === undefined ? undefined : names.medium(value)}
@@ -127,10 +139,11 @@ function Month({
   nextLabel: string;
   onChoose: (day: IsoDate) => void;
 }) {
+  const styles = useStyles();
   const names = useCalendarNames();
   const [month, setMonth] = useState(() => monthOf(openingDay({ value, min, max }, today)));
   const [width, measure] = useSheetWidth();
-  const cell = cellSize(width);
+  const cell = cellSize(width, useControl().calendarDay);
   const page = (count: number) => {
     const shown = addMonths(month, count);
     setMonth(shown);
@@ -150,6 +163,7 @@ function Month({
           <IconButton
             icon={back}
             label={previousLabel}
+            variant="ghost"
             size="sm"
             disabled={!hasMonthBefore(month, min)}
             onPress={() => page(-1)}
@@ -160,6 +174,7 @@ function Month({
           <IconButton
             icon={on}
             label={nextLabel}
+            variant="ghost"
             size="sm"
             disabled={!hasMonthAfter(month, max)}
             onPress={() => page(1)}
@@ -183,22 +198,24 @@ function Month({
   );
 }
 
-const styles = StyleSheet.create({
-  field: {
-    alignSelf: "stretch",
-    gap: space[1],
-  },
-  calendar: {
-    alignItems: "center",
-  },
-  month: {
-    gap: space[2],
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  title: {
-    flex: 1,
-  },
-});
+const useStyles = themed(({ space }) =>
+  StyleSheet.create({
+    field: {
+      alignSelf: "stretch",
+      gap: space[1],
+    },
+    calendar: {
+      alignItems: "center",
+    },
+    month: {
+      gap: space[2],
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    title: {
+      flex: 1,
+    },
+  }),
+);

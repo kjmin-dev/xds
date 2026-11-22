@@ -1,10 +1,10 @@
-import { radius, space } from "@acme/tokens";
 import type { ReactNode } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, type StyleProp, StyleSheet, View, type ViewStyle } from "react-native";
 import { GlassMaterial, type Surface } from "./Glass";
 import { Icon } from "./Icon.tsx";
-import { Text } from "./Text.tsx";
-import { CONTROL_HEIGHT, control, useColors } from "./theme.ts";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
+import { themed, useColors, useControl } from "./theme.ts";
 
 export type TopBarProps = {
   surface?: Surface;
@@ -15,6 +15,8 @@ export type TopBarProps = {
   backLabel?: string;
   /** An action at the far end, such as a ghost button. */
   trailing?: ReactNode;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -28,7 +30,10 @@ export function TopBar({
   backLabel = "Back",
   trailing,
   surface = "solid",
+  style,
 }: TopBarProps) {
+  const styles = useStyles();
+  const control = useControl();
   const colors = useColors();
   const content = (
     <>
@@ -38,10 +43,10 @@ export function TopBar({
           aria-label={backLabel}
           onPress={onBack}
           // The circle is smaller than the smallest target, so the press area reaches past it.
-          hitSlop={(control.targetMin - CONTROL_HEIGHT.sm) / 2}
+          hitSlop={(control.targetMin - control.controlSm) / 2}
           style={[styles.back, { backgroundColor: colors.topBarActionBackground }]}
         >
-          <Icon name="chevron-left" color={colors.topBarAction} directional />
+          <Icon name="chevron-left" size="md" color={colors.topBarAction} directional />
         </Pressable>
       )}
       <Text
@@ -60,29 +65,32 @@ export function TopBar({
     </>
   );
   return surface === "glass" ? (
-    <GlassMaterial corners={0} style={styles.bar}>
+    <GlassMaterial corners={0} style={[styles.bar, style]}>
       {content}
     </GlassMaterial>
   ) : (
-    <View style={[styles.bar, { backgroundColor: colors.topBarBackground }]}>{content}</View>
+    <View style={[styles.bar, { backgroundColor: colors.topBarBackground }, style]}>{content}</View>
   );
 }
 
-const styles = StyleSheet.create({
-  bar: {
-    alignSelf: "stretch",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[3],
-    height: control.bar,
-    paddingHorizontal: space[4],
-  },
-  back: {
-    width: CONTROL_HEIGHT.sm,
-    height: CONTROL_HEIGHT.sm,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: radius.full,
-  },
-  title: { flex: 1 },
+const useStyles = themed(({ radius, space, size }) => {
+  const control = size.touch;
+  return StyleSheet.create({
+    bar: {
+      alignSelf: "stretch",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: space[3],
+      height: control.bar,
+      paddingHorizontal: space[4],
+    },
+    back: {
+      width: control.controlSm,
+      height: control.controlSm,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: radius.full,
+    },
+    title: { flex: 1 },
+  });
 });

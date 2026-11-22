@@ -1,12 +1,12 @@
 // The first screen of the app. Replace it with your own.
 
-import { space } from "@acme/tokens";
-import { Badge, Button, Card, Text, useColors } from "@acme/ui-native";
+import { Badge, Button, Card, Text, themed, useColors } from "@acme/ui-native";
 import { useRouter } from "expo-router";
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Home() {
+  const styles = useStyles();
   const colors = useColors();
   const router = useRouter();
 
@@ -31,10 +31,12 @@ export default function Home() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    padding: space[4],
-    gap: space[4],
-  },
-});
+const useStyles = themed(({ space }) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      padding: space[4],
+      gap: space[4],
+    },
+  }),
+);

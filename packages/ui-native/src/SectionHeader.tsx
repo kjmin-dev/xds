@@ -1,9 +1,16 @@
-import { space, typography } from "@acme/tokens";
-import { I18nManager, StyleSheet, useWindowDimensions, View } from "react-native";
+import {
+  I18nManager,
+  type StyleProp,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { Button } from "./Button.tsx";
 import { Icon, type IconName } from "./Icon.tsx";
-import { Text } from "./Text.tsx";
-import { CONTROL_HEIGHT, control, useColors } from "./theme.ts";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
+import { themed, useColors, useControl, useTheme } from "./theme.ts";
 
 export type SectionHeaderProps = {
   title: string;
@@ -18,22 +25,27 @@ export type SectionHeaderProps = {
    * screen readers know headings without levels, so here this changes nothing.
    */
   level?: number;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /** The title row of a group of content. The title is a heading for a screen reader. */
-export function SectionHeader({ title, description, icon, action }: SectionHeaderProps) {
+export function SectionHeader({ title, description, icon, action, style }: SectionHeaderProps) {
+  const styles = useStyles();
+  const { typography } = useTheme();
+  const control = useControl();
   const colors = useColors();
   const { fontScale } = useWindowDimensions();
   // The icon and the action are centered on the title's first line, not on the title and the
   // description together. Of the title's line and the button, the lower one moves down by half
   // the difference.
   const line = typography.heading.lineHeight * fontScale;
-  const button = CONTROL_HEIGHT.sm;
+  const button = control.controlSm;
   const lower = action ? Math.max(0, (button - line) / 2) : 0;
   const drop = action ? Math.max(0, (line - button) / 2) : 0;
 
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, style]}>
       {icon && (
         <View style={[styles.icon, { height: line, marginTop: lower }]}>
           <Icon name={icon} size="md" color={colors.textSecondary} />
@@ -65,22 +77,25 @@ export function SectionHeader({ title, description, icon, action }: SectionHeade
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    alignSelf: "stretch",
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  icon: {
-    width: control.iconMd,
-    justifyContent: "center",
-    marginEnd: space[2],
-  },
-  titles: {
-    flex: 1,
-    gap: space["0_5"],
-  },
-  action: {
-    marginStart: space[4],
-  },
+const useStyles = themed(({ space, size }) => {
+  const control = size.touch;
+  return StyleSheet.create({
+    header: {
+      alignSelf: "stretch",
+      flexDirection: "row",
+      alignItems: "flex-start",
+    },
+    icon: {
+      width: control.iconMd,
+      justifyContent: "center",
+      marginEnd: space[2],
+    },
+    titles: {
+      flex: 1,
+      gap: space["0_5"],
+    },
+    action: {
+      marginStart: space[4],
+    },
+  });
 });

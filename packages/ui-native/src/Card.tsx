@@ -1,8 +1,8 @@
-import { border, radius, shadow, space } from "@acme/tokens";
 import type { ReactNode } from "react";
 import { Pressable, type StyleProp, StyleSheet, View, type ViewStyle } from "react-native";
-import { Text } from "./Text.tsx";
-import { useColors } from "./theme.ts";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
+import { themed, useColors } from "./theme.ts";
 
 export type CardProps = {
   title?: string;
@@ -50,6 +50,7 @@ export function Card({
   style,
   children,
 }: CardProps) {
+  const styles = useStyles();
   const colors = useColors();
   const header =
     title || actions ? (
@@ -124,60 +125,68 @@ export function Card({
 }
 
 /** A line between groups of content. */
-export function Divider() {
+export function Divider({
+  style,
+}: {
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
+}) {
+  const styles = useStyles();
   const colors = useColors();
-  return <View style={[styles.divider, { backgroundColor: colors.borderDefault }]} />;
+  return <View style={[styles.divider, { backgroundColor: colors.borderDefault }, style]} />;
 }
 
-const INNER_RADIUS = radius.lg - border.width.thin;
-
-const styles = StyleSheet.create({
-  card: {
-    alignSelf: "stretch",
-    borderWidth: border.width.thin,
-    borderRadius: radius.lg,
-    // The token color carries the alpha.
-    shadowColor: shadow.subtle.color,
-    shadowOffset: { width: shadow.subtle.offsetX, height: shadow.subtle.offsetY },
-    shadowRadius: shadow.subtle.blur,
-    shadowOpacity: 1,
-  },
-  padded: {
-    gap: space[4],
-    padding: space[4],
-  },
-  clip: {
-    overflow: "hidden",
-    borderRadius: INNER_RADIUS,
-  },
-  media: {
-    overflow: "hidden",
-    borderTopStartRadius: INNER_RADIUS,
-    borderTopEndRadius: INNER_RADIUS,
-  },
-  // Absolute offsets are measured from inside the hairline, so stepping out by its width
-  // lays the outline on the card's own edge.
-  outline: {
-    position: "absolute",
-    top: -border.width.thin,
-    bottom: -border.width.thin,
-    start: -border.width.thin,
-    end: -border.width.thin,
-    borderWidth: border.width.thick,
-    borderRadius: radius.lg,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: space[3],
-  },
-  titles: {
-    flex: 1,
-    gap: space["0_5"],
-  },
-  divider: {
-    alignSelf: "stretch",
-    height: border.width.thin,
-  },
+const useStyles = themed(({ border, radius, shadow, space }) => {
+  // Inside the outline, so that what fills the card's corners follows its curve.
+  const INNER_RADIUS = radius.lg - border.width.thin;
+  return StyleSheet.create({
+    card: {
+      alignSelf: "stretch",
+      borderWidth: border.width.thin,
+      borderRadius: radius.lg,
+      // The token color carries the alpha.
+      shadowColor: shadow.subtle.color,
+      shadowOffset: { width: shadow.subtle.offsetX, height: shadow.subtle.offsetY },
+      shadowRadius: shadow.subtle.blur,
+      shadowOpacity: 1,
+    },
+    padded: {
+      gap: space[4],
+      padding: space[4],
+    },
+    clip: {
+      overflow: "hidden",
+      borderRadius: INNER_RADIUS,
+    },
+    media: {
+      overflow: "hidden",
+      borderTopStartRadius: INNER_RADIUS,
+      borderTopEndRadius: INNER_RADIUS,
+    },
+    // Absolute offsets are measured from inside the hairline, so stepping out by its width
+    // lays the outline on the card's own edge.
+    outline: {
+      position: "absolute",
+      top: -border.width.thin,
+      bottom: -border.width.thin,
+      start: -border.width.thin,
+      end: -border.width.thin,
+      borderWidth: border.width.thick,
+      borderRadius: radius.lg,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: space[3],
+    },
+    titles: {
+      flex: 1,
+      gap: space["0_5"],
+    },
+    divider: {
+      alignSelf: "stretch",
+      height: border.width.thin,
+    },
+  });
 });

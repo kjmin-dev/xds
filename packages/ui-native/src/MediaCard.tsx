@@ -1,8 +1,9 @@
-import { radius, space } from "@acme/tokens";
 import type { ReactNode } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
-import { Text } from "./Text.tsx";
-import { useColors } from "./theme.ts";
+import { Pressable, type StyleProp, StyleSheet, View, type ViewStyle } from "react-native";
+import { useDefaults } from "./defaults.ts";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
+import { themed, useColors } from "./theme.ts";
 import { Thumbnail, type ThumbnailRatio } from "./Thumbnail.tsx";
 
 export type MediaCardProps = {
@@ -33,6 +34,8 @@ export type MediaCardProps = {
   action?: ReactNode;
   /** Makes the whole card one button, named by its title and then its details. */
   onPress?: () => void;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
 const HIDDEN = { "aria-hidden": true };
@@ -42,7 +45,7 @@ const HIDDEN = { "aria-hidden": true };
  * card has no surface at rest; a press tints it.
  */
 export function MediaCard({
-  layout = "vertical",
+  layout: givenLayout,
   src,
   alt = "",
   ratio,
@@ -53,7 +56,12 @@ export function MediaCard({
   leading,
   action,
   onPress,
+  style,
 }: MediaCardProps) {
+  const defaults = useDefaults("MediaCard");
+  const layout = givenLayout ?? defaults.layout ?? "vertical";
+
+  const styles = useStyles();
   const colors = useColors();
   const horizontal = layout === "horizontal";
   const name = [title, ...meta].join(", ");
@@ -67,7 +75,7 @@ export function MediaCard({
   const content = (
     <View style={[horizontal ? styles.horizontal : styles.vertical, through]}>
       <View {...hidden} style={[horizontal && styles.side, none]}>
-        <Thumbnail src={src} alt={alt} ratio={ratio} badge={badge} progress={progress} />
+        <Thumbnail src={src} alt={alt} ratio={ratio ?? "16:9"} badge={badge} progress={progress} />
       </View>
       <View style={[styles.row, horizontal && styles.grow, through]}>
         {!horizontal && leading && (
@@ -97,7 +105,7 @@ export function MediaCard({
 
   if (!onPress) return content;
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, style]}>
       {/* The button lies under the content rather than around it: a screen reader takes what
           is inside a button as its name, and the action would be lost in it. */}
       <Pressable
@@ -115,44 +123,46 @@ export function MediaCard({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    alignSelf: "stretch",
-    padding: space[2],
-  },
-  surface: {
-    borderRadius: radius.lg,
-  },
-  // The view takes no touches itself, but what is in it may: the action.
-  through: {
-    pointerEvents: "box-none",
-  },
-  none: {
-    pointerEvents: "none",
-  },
-  vertical: {
-    alignSelf: "stretch",
-    gap: space[3],
-  },
-  horizontal: {
-    alignSelf: "stretch",
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: space[3],
-  },
-  side: {
-    width: "40%",
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: space[3],
-  },
-  grow: {
-    flex: 1,
-  },
-  text: {
-    flex: 1,
-    gap: space["0_5"],
-  },
-});
+const useStyles = themed(({ radius, space }) =>
+  StyleSheet.create({
+    card: {
+      alignSelf: "stretch",
+      padding: space[2],
+    },
+    surface: {
+      borderRadius: radius.lg,
+    },
+    // The view takes no touches itself, but what is in it may: the action.
+    through: {
+      pointerEvents: "box-none",
+    },
+    none: {
+      pointerEvents: "none",
+    },
+    vertical: {
+      alignSelf: "stretch",
+      gap: space[3],
+    },
+    horizontal: {
+      alignSelf: "stretch",
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: space[3],
+    },
+    side: {
+      width: "40%",
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: space[3],
+    },
+    grow: {
+      flex: 1,
+    },
+    text: {
+      flex: 1,
+      gap: space["0_5"],
+    },
+  }),
+);

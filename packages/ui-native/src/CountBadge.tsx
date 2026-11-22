@@ -1,7 +1,6 @@
-import { radius, space, typography } from "@acme/tokens";
 import type { ReactNode } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { control, useColors } from "./theme.ts";
+import { type StyleProp, StyleSheet, Text, View, type ViewStyle } from "react-native";
+import { themed, useColors, useTheme } from "./theme.ts";
 
 export type CountBadgeProps = {
   /** Nothing is drawn for zero or less. */
@@ -15,13 +14,17 @@ export type CountBadgeProps = {
   label?: string;
   /** What is being counted on: an icon, an avatar, a button. The badge sits on its corner. */
   children?: ReactNode;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
  * A count of things that wait: unread messages, items in a cart. Around a child it sits on the
  * child's top corner, on the far side from where reading starts; alone it is laid out in line.
  */
-export function CountBadge({ count, max = 99, label, children }: CountBadgeProps) {
+export function CountBadge({ count, max = 99, label, children, style }: CountBadgeProps) {
+  const styles = useStyles();
+  const { typography } = useTheme();
   const colors = useColors();
   const badge = count > 0 && (
     <View
@@ -47,7 +50,7 @@ export function CountBadge({ count, max = 99, label, children }: CountBadgeProps
   );
   if (children === undefined) return badge ? <View style={styles.frame}>{badge}</View> : null;
   return (
-    <View style={styles.frame}>
+    <View style={[styles.frame, style]}>
       {/* As large as the child and no larger: its corner is the corner the badge sits on. */}
       <View>
         {children}
@@ -57,27 +60,30 @@ export function CountBadge({ count, max = 99, label, children }: CountBadgeProps
   );
 }
 
-const styles = StyleSheet.create({
-  // A row holds its content at the content's own width, which a column would stretch, and it
-  // leaves the place of the whole to the container, which `alignSelf` would overrule.
-  frame: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  badge: {
-    alignItems: "center",
-    justifyContent: "center",
-    height: control.countBadge,
-    minWidth: control.countBadge,
-    paddingHorizontal: space[1],
-    borderRadius: radius.full,
-  },
-  // Corner on corner, then out by a quarter of the badge's height, up and toward the end: the
-  // badge laps over the corner without hiding much of the child. `end` follows the layout
-  // direction.
-  corner: {
-    position: "absolute",
-    top: -control.countBadge / 4,
-    end: -control.countBadge / 4,
-  },
+const useStyles = themed(({ radius, space, size }) => {
+  const control = size.touch;
+  return StyleSheet.create({
+    // A row holds its content at the content's own width, which a column would stretch, and it
+    // leaves the place of the whole to the container, which `alignSelf` would overrule.
+    frame: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+    },
+    badge: {
+      alignItems: "center",
+      justifyContent: "center",
+      height: control.countBadge,
+      minWidth: control.countBadge,
+      paddingHorizontal: space[1],
+      borderRadius: radius.full,
+    },
+    // Corner on corner, then out by a quarter of the badge's height, up and toward the end: the
+    // badge laps over the corner without hiding much of the child. `end` follows the layout
+    // direction.
+    corner: {
+      position: "absolute",
+      top: -control.countBadge / 4,
+      end: -control.countBadge / 4,
+    },
+  });
 });

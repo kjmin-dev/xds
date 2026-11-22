@@ -1,8 +1,7 @@
-import { border, glass, shadow } from "@acme/tokens";
-import { requireOptionalNativeModule } from "expo";
-import { BlurTargetView, BlurView } from "expo-blur";
-import { GlassView, isGlassEffectAPIAvailable, isLiquidGlassAvailable } from "expo-glass-effect";
-import { LinearGradient } from "expo-linear-gradient";
+import type * as Expo from "expo";
+import type * as ExpoBlur from "expo-blur";
+import type * as ExpoGlassEffect from "expo-glass-effect";
+import type * as ExpoLinearGradient from "expo-linear-gradient";
 import {
   type ComponentRef,
   createContext,
@@ -20,7 +19,7 @@ import {
 import { PixelRatio, Platform, StyleSheet, View, type ViewProps } from "react-native";
 import { PreviewGlassTier } from "./glassPreview.ts";
 import { glassTier } from "./glassTier.ts";
-import { useColors, useScheme } from "./theme.ts";
+import { useColors, useScheme, useTheme } from "./theme.ts";
 
 export type Surface = "solid" | "glass";
 
@@ -28,12 +27,29 @@ type Settings = {
   allowed(): boolean;
   addListener(event: "change", listener: () => void): { remove(): void };
 };
-const settings = requireOptionalNativeModule<Settings>("AcmeGlassSettings");
+// The glass surfaces draw with Expo's blur, gradient and glass effect modules, which are optional
+// peers: an app without them, such as a React Native app without Expo, gets the opaque material
+// for its bars and sheets, and every other component as it is. Metro lets a require that fails
+// inside a try be missing from the bundle.
+function optional<T>(load: () => T): T | undefined {
+  try {
+    return load();
+  } catch {
+    return undefined;
+  }
+}
+const expo = optional(() => require("expo") as typeof Expo);
+const blur = optional(() => require("expo-blur") as typeof ExpoBlur);
+const effect = optional(() => require("expo-glass-effect") as typeof ExpoGlassEffect);
+const gradient = optional(() => require("expo-linear-gradient") as typeof ExpoLinearGradient);
+
+const settings = expo?.requireOptionalNativeModule<Settings>("AcmeGlassSettings");
 const subscribe = (changed: () => void) => {
   const subscription = settings?.addListener("change", changed);
   return () => subscription?.remove();
 };
-const allowed = () => settings?.allowed() ?? false;
+// The blurred material needs the blur and the gradient; without them only the opaque one is left.
+const allowed = () => (blur && gradient ? (settings?.allowed() ?? false) : false);
 
 type Target = ComponentRef<typeof View>;
 const Scene = createContext<
@@ -76,7 +92,7 @@ export function GlassBackdrop(props: ViewProps) {
   // RenderNode even with no blur attached. Live power changes keep the same host and scroll state.
   const tracksBackdrop =
     scene && preview?.requested !== "solid" && Platform.OS === "android" && Platform.Version >= 33;
-  const TargetView = tracksBackdrop ? BlurTargetView : View;
+  const TargetView = tracksBackdrop && blur ? blur.BlurTargetView : View;
   return (
     <TargetView {...props} collapsable={false} ref={scene?.register}>
       <Scene value={undefined}>{props.children}</Scene>
@@ -88,6 +104,7 @@ export type MaterialProps = ViewProps & { corners: number; sheet?: boolean };
 
 /** Draws the component's children inside the system material on iOS 26. */
 export function GlassMaterial({ corners, sheet, style, children, ...props }: MaterialProps) {
+  const { border, glass, shadow } = useTheme();
   const scene = useContext(Scene);
   const preview = useContext(PreviewGlassTier);
   const colors = useColors();
@@ -100,7 +117,11 @@ export function GlassMaterial({ corners, sheet, style, children, ...props }: Mat
   // UIKit samples everything behind this view. While a modal sheet is visible, flatten the
   // earlier materials so it samples the same dimmed, single-layer backdrop the reader sees.
   const covered = scene?.topSheet !== undefined && scene.topSheet !== id;
-  const native = Platform.OS === "ios" && isLiquidGlassAvailable() && isGlassEffectAPIAvailable();
+  const native =
+    Platform.OS === "ios" &&
+    effect !== undefined &&
+    effect.isLiquidGlassAvailable() &&
+    effect.isGlassEffectAPIAvailable();
   const tier = glassTier(
     Boolean(scene?.allowed && !covered),
     Boolean(scene?.target.current),
@@ -130,9 +151,10 @@ export function GlassMaterial({ corners, sheet, style, children, ...props }: Mat
   const opaque = [style, edge, { backgroundColor: colors.glassFallback }];
   // Backdrop registration and live accessibility settings select an effect after mount.
   // Keep the same UIKit contentView so controls inside the bar retain their state and focus.
+  const GlassView = effect?.GlassView;
   const usesSystemHost =
     native && scene && settings && preview?.requested !== "blur" && preview?.requested !== "solid";
-  if (usesSystemHost) {
+  if (usesSystemHost && GlassView) {
     return (
       <GlassView
         {...props}
@@ -147,13 +169,15 @@ export function GlassMaterial({ corners, sheet, style, children, ...props }: Mat
   }
   // Keep the shadow and controls outside the mask. The backing alone must stop at the
   // rounded edge; clipping a host with a boxShadow makes Fabric wrap all its content.
+  const BlurView = blur?.BlurView;
+  const LinearGradient = gradient?.LinearGradient;
   const backingClip = corners > 0 && {
     borderRadius: Math.max(0, corners - border.width.thin),
     overflow: "hidden" as const,
   };
   return (
     <View {...props} testID={testID} style={tier === "blur" ? [style, edge] : opaque}>
-      {tier === "blur" && (
+      {tier === "blur" && BlurView && LinearGradient && (
         <BlurView
           pointerEvents="none"
           style={[StyleSheet.absoluteFill, backingClip]}

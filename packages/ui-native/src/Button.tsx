@@ -1,4 +1,3 @@
-import { border, motion, shadow, space, typography } from "@acme/tokens";
 import { useContext, useState } from "react";
 import {
   ActivityIndicator,
@@ -10,15 +9,18 @@ import {
   View,
   type ViewStyle,
 } from "react-native";
+import { useDefaults } from "./defaults.ts";
 import { Icon, type IconName, type IconSize } from "./Icon.tsx";
 import { useSpring } from "./motion.ts";
 import {
-  CONTROL_HEIGHT,
   type Colors,
+  controlHeight,
   type ControlSize,
-  control,
   MenuOpen,
+  themed,
   useColors,
+  useControl,
+  useTheme,
 } from "./theme.ts";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
@@ -55,14 +57,7 @@ export function look(colors: Colors, variant: ButtonVariant): Look {
   }
 }
 
-const PADDING: Record<ControlSize, number> = { sm: space[3], md: space[4], lg: space[6] };
-
 const ICON: Record<ControlSize, IconSize> = { sm: "sm", md: "sm", lg: "md" };
-const ICON_WIDTH: Record<ControlSize, number> = {
-  sm: control.iconSm,
-  md: control.iconSm,
-  lg: control.iconMd,
-};
 
 export type ButtonProps = {
   /**
@@ -109,8 +104,8 @@ export type ButtonProps = {
 );
 
 export function Button({
-  variant = "secondary",
-  size = "md",
+  variant: givenVariant,
+  size: givenSize,
   disabled = false,
   loading = false,
   fullWidth = false,
@@ -122,6 +117,13 @@ export function Button({
   accessibilityLabel,
   style,
 }: ButtonProps) {
+  const defaults = useDefaults("Button");
+  const variant = givenVariant ?? defaults.variant ?? "secondary";
+  const size = givenSize ?? defaults.size ?? "md";
+
+  const styles = useStyles();
+  const { border, motion, space, typography } = useTheme();
+  const control = useControl();
   const colors = useColors();
   const menuOpen = useContext(MenuOpen);
   // Only the quiet variants have a look of their own for "on": a filled button already is one.
@@ -136,7 +138,7 @@ export function Button({
   // A press shrinks the button a little, on a spring: feedback that does not depend on color.
   const [held, setHeld] = useState(false);
   const scale = useSpring(held ? motion.pressScale : 1, motion.spring.fast);
-  const height = CONTROL_HEIGHT[size];
+  const height = controlHeight(control, size);
   // A small button still reacts to a press anywhere in the minimum target around it.
   const slop = Math.max(0, (control.targetMin - height) / 2);
   const labelColor = disabled ? colors.buttonDisabledText : text;
@@ -156,7 +158,8 @@ export function Button({
         : undefined;
   // A ghost button has no outline until it is on. The padding gives up the room the outline
   // takes, so the button is as wide on as off.
-  const padding = PADDING[size] - (outline && variant === "ghost" ? border.width.thin : 0);
+  const sidePadding = { sm: space[3], md: space[4], lg: space[6] }[size];
+  const padding = sidePadding - (outline && variant === "ghost" ? border.width.thin : 0);
 
   // Filled buttons carry the same trace of shadow as the outlined one, so none looks flatter.
   const raised = variant !== "ghost" && !disabled;
@@ -193,7 +196,9 @@ export function Button({
           iconStart ? (
             // The platform's small spinner is a little wider than a small icon. Centered in
             // the icon's room it spills into the gap, and the label does not move.
-            <View style={[styles.spinner, { width: ICON_WIDTH[size] }]}>
+            <View
+              style={[styles.spinner, { width: size === "lg" ? control.iconMd : control.iconSm }]}
+            >
               <ActivityIndicator size="small" color={labelColor} />
             </View>
           ) : (
@@ -219,22 +224,24 @@ export function Button({
   );
 }
 
-const styles = StyleSheet.create({
-  button: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: space[2],
-  },
-  spinner: {
-    alignItems: "center",
-  },
-  raised: {
-    // The token color carries the alpha.
-    shadowColor: shadow.subtle.color,
-    shadowOffset: { width: shadow.subtle.offsetX, height: shadow.subtle.offsetY },
-    shadowRadius: shadow.subtle.blur,
-    shadowOpacity: 1,
-  },
-  fullWidth: { alignSelf: "stretch" },
-});
+const useStyles = themed(({ shadow, space }) =>
+  StyleSheet.create({
+    button: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: space[2],
+    },
+    spinner: {
+      alignItems: "center",
+    },
+    raised: {
+      // The token color carries the alpha.
+      shadowColor: shadow.subtle.color,
+      shadowOffset: { width: shadow.subtle.offsetX, height: shadow.subtle.offsetY },
+      shadowRadius: shadow.subtle.blur,
+      shadowOpacity: 1,
+    },
+    fullWidth: { alignSelf: "stretch" },
+  }),
+);

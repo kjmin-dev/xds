@@ -15,6 +15,7 @@ export { Chip, type ChipProps } from "./Chip.tsx";
 export { ChipBar, type ChipBarProps } from "./ChipBar.tsx";
 export { CountBadge, type CountBadgeProps } from "./CountBadge.tsx";
 export { DatePicker, type DatePickerProps, type IsoDate } from "./DatePicker.tsx";
+export { type ComponentDefaults, Defaults } from "./defaults.ts";
 export { type DateRange, DateRangePicker, type DateRangePickerProps } from "./DateRangePicker.tsx";
 export { Dialog, type DialogProps } from "./Dialog.tsx";
 export { EmptyState, type EmptyStateProps } from "./EmptyState.tsx";
@@ -32,7 +33,7 @@ export { SegmentedControl, type SegmentedControlProps } from "./SegmentedControl
 export { Select, type SelectOption, type SelectProps } from "./Select.tsx";
 export { Skeleton, type SkeletonProps } from "./Skeleton.tsx";
 export { Slider, type SliderProps } from "./Slider.tsx";
-export { Spinner } from "./Spinner.tsx";
+export { Spinner, type SpinnerSize } from "./Spinner.tsx";
 export { Switch, type SwitchProps } from "./Switch.tsx";
 export { TabBar, type TabBarItem, type TabBarProps } from "./TabBar.tsx";
 export { Tabs, type TabsItem, type TabsProps } from "./Tabs.tsx";
@@ -41,4 +42,13 @@ export { TextField, type TextFieldProps } from "./TextField.tsx";
 export { Thumbnail, type ThumbnailProps, type ThumbnailRatio } from "./Thumbnail.tsx";
 export { Toast, type ToastProps } from "./Toast.tsx";
 export { TopBar, type TopBarProps } from "./TopBar.tsx";
-export { type ControlSize, useColors } from "./theme.ts";
+export {
+  AcmeTheme,
+  type Colors,
+  type ControlSize,
+  type Theme,
+  themed,
+  useColors,
+  useScheme,
+  useTheme,
+} from "./theme.ts";

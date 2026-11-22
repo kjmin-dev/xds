@@ -550,7 +550,18 @@
           "source": "flutter/ui/lib/src/indicators.dart",
           "symbol": "Spinner"
         }
-      }
+      },
+      "differences": [
+        {
+          "option": "size",
+          "value": "lg",
+          "clients": [
+            "mobile-react-native"
+          ],
+          "kind": "system",
+          "note": "React Native draws the platform's own spinner at the size of the `size.spinner-*` tokens. iOS draws its spinner in two sizes only, so there `lg` is the large one, as `md` is."
+        }
+      ]
     },
     {
       "name": "Switch",

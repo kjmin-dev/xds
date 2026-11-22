@@ -1,17 +1,19 @@
-import { space } from "@acme/tokens";
 import type { ReactNode } from "react";
-import { ScrollView, StyleSheet } from "react-native";
-import { control } from "./theme.ts";
+import { ScrollView, type StyleProp, StyleSheet, type ViewStyle } from "react-native";
+import { themed } from "./theme.ts";
 
 export type ChipBarProps = {
   /** Says what the chips filter, for a screen reader. */
   label: string;
   /** The chips. Which of them are selected is the app's business: the bar holds no state. */
   children: ReactNode;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /** One row of chips. It scrolls sideways when the chips do not fit, and never wraps. */
-export function ChipBar({ label, children }: ChipBarProps) {
+export function ChipBar({ label, children, style }: ChipBarProps) {
+  const styles = useStyles();
   return (
     <ScrollView
       horizontal
@@ -20,7 +22,7 @@ export function ChipBar({ label, children }: ChipBarProps) {
       // ScrollView hands its props to the native view as they are, and only View, Pressable,
       // Text, TextInput and Image turn `aria-label` into the label a screen reader reads.
       accessibilityLabel={label}
-      style={styles.bar}
+      style={[styles.bar, style]}
       contentContainerStyle={styles.chips}
     >
       {children}
@@ -28,17 +30,20 @@ export function ChipBar({ label, children }: ChipBarProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  bar: {
-    alignSelf: "stretch",
-    flexGrow: 0,
-  },
-  chips: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[2],
-    // A scroll view passes on no touch that falls outside it, so the bar is as tall as the
-    // smallest target and the press area of a chip stays inside it.
-    minHeight: control.targetMin,
-  },
+const useStyles = themed(({ space, size }) => {
+  const control = size.touch;
+  return StyleSheet.create({
+    bar: {
+      alignSelf: "stretch",
+      flexGrow: 0,
+    },
+    chips: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: space[2],
+      // A scroll view passes on no touch that falls outside it, so the bar is as tall as the
+      // smallest target and the press area of a chip stays inside it.
+      minHeight: control.targetMin,
+    },
+  });
 });

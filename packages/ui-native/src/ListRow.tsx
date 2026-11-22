@@ -1,9 +1,9 @@
-import { space } from "@acme/tokens";
 import type { ReactNode } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, type StyleProp, StyleSheet, View, type ViewStyle } from "react-native";
 import { Icon } from "./Icon.tsx";
-import { Text } from "./Text.tsx";
-import { control, useColors } from "./theme.ts";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
+import { themed, useColors, useControl } from "./theme.ts";
 
 export type ListRowProps = {
   title: string;
@@ -24,10 +24,9 @@ export type ListRowProps = {
   selected?: boolean;
   /** A lower row with smaller text, for long lists and menus. */
   compact?: boolean;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
-
-// A compact row is lower than the smallest target, so its press area reaches past it.
-const COMPACT_SLOP = Math.max(0, (control.targetMin - control.listRowCompact) / 2);
 
 /** One line of a list or a settings screen. Separate rows with a Divider. */
 export function ListRow({
@@ -40,7 +39,12 @@ export function ListRow({
   disabled = false,
   selected = false,
   compact = false,
+  style,
 }: ListRowProps) {
+  const styles = useStyles();
+  const control = useControl();
+  // A compact row is lower than the smallest target, so its press area reaches past it.
+  const compactSlop = Math.max(0, (control.targetMin - control.listRowCompact) / 2);
   const colors = useColors();
   const titleVariant = compact
     ? selected
@@ -74,7 +78,9 @@ export function ListRow({
   );
   if (!onPress) {
     return (
-      <View style={[layout, selected && { backgroundColor: colors.listRowBackgroundSelected }]}>
+      <View
+        style={[layout, selected && { backgroundColor: colors.listRowBackgroundSelected }, style]}
+      >
         {content}
       </View>
     );
@@ -85,7 +91,7 @@ export function ListRow({
       aria-disabled={disabled}
       aria-selected={selected}
       disabled={disabled}
-      {...(compact ? { hitSlop: { top: COMPACT_SLOP, bottom: COMPACT_SLOP } } : {})}
+      {...(compact ? { hitSlop: { top: compactSlop, bottom: compactSlop } } : {})}
       onPress={onPress}
       style={({ pressed }) => [
         layout,
@@ -96,6 +102,7 @@ export function ListRow({
                 : colors.listRowBackgroundSelected,
             }
           : pressed && { backgroundColor: colors.listRowBackgroundPressed },
+        style,
       ]}
     >
       {content}
@@ -103,22 +110,25 @@ export function ListRow({
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    alignSelf: "stretch",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[3],
-    minHeight: control.listRow,
-    paddingHorizontal: space[4],
-    paddingVertical: space[2],
-  },
-  compact: {
-    minHeight: control.listRowCompact,
-    paddingVertical: space[1],
-  },
-  text: {
-    flex: 1,
-    gap: space["0_5"],
-  },
+const useStyles = themed(({ space, size }) => {
+  const control = size.touch;
+  return StyleSheet.create({
+    row: {
+      alignSelf: "stretch",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: space[3],
+      minHeight: control.listRow,
+      paddingHorizontal: space[4],
+      paddingVertical: space[2],
+    },
+    compact: {
+      minHeight: control.listRowCompact,
+      paddingVertical: space[1],
+    },
+    text: {
+      flex: 1,
+      gap: space["0_5"],
+    },
+  });
 });

@@ -1,10 +1,18 @@
-import { border, motion, space } from "@acme/tokens";
 import { Fragment, type ReactNode, useEffect, useRef, useState } from "react";
-import { Animated, Easing, Pressable, StyleSheet, View } from "react-native";
+import {
+  Animated,
+  Easing,
+  Pressable,
+  type StyleProp,
+  StyleSheet,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { Icon } from "./Icon.tsx";
 import { useReducedMotion } from "./motion.ts";
-import { Text } from "./Text.tsx";
-import { ContentColor, control, useColors } from "./theme.ts";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
+import { ContentColor, themed, useColors, useTheme } from "./theme.ts";
 
 export type AccordionItem<Value extends string> = {
   value: Value;
@@ -22,6 +30,8 @@ export type AccordionProps<Value extends string> = {
   onChange: (expanded: Value[]) => void;
   /** Lets several items be open at once. Without it, opening one closes the others. */
   multiple?: boolean;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -33,11 +43,13 @@ export function Accordion<Value extends string>({
   expanded,
   onChange,
   multiple = false,
+  style,
 }: AccordionProps<Value>) {
+  const styles = useStyles();
   const colors = useColors();
   const hairline = [styles.hairline, { backgroundColor: colors.accordionBorder }];
   return (
-    <View style={styles.accordion}>
+    <View style={[styles.accordion, style]}>
       <View style={hairline} />
       {items.map((item) => {
         const open = expanded.includes(item.value);
@@ -74,6 +86,8 @@ function Entry<Value extends string>({
   open: boolean;
   onToggle: () => void;
 }) {
+  const styles = useStyles();
+  const { motion } = useTheme();
   const colors = useColors();
   const reduced = useReducedMotion();
   // 0 is closed, 1 open. Height cannot be animated on the native thread, so neither is the
@@ -93,7 +107,7 @@ function Entry<Value extends string>({
     });
     animation.start();
     return () => animation.stop();
-  }, [open, progress, reduced]);
+  }, [motion, open, progress, reduced]);
 
   return (
     <View>
@@ -151,35 +165,38 @@ function Entry<Value extends string>({
   );
 }
 
-const styles = StyleSheet.create({
-  accordion: {
-    alignSelf: "stretch",
-  },
-  hairline: {
-    height: border.width.thin,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[3],
-    minHeight: control.listRow,
-    paddingHorizontal: space[4],
-    paddingVertical: space[2],
-  },
-  titles: {
-    flex: 1,
-    gap: space["0_5"],
-  },
-  clip: {
-    overflow: "hidden",
-  },
-  // Out of the flow, so it keeps its own height while the box around it is shorter.
-  body: {
-    position: "absolute",
-    top: 0,
-    start: 0,
-    end: 0,
-    paddingHorizontal: space[4],
-    paddingBottom: space[4],
-  },
+const useStyles = themed(({ border, space, size }) => {
+  const control = size.touch;
+  return StyleSheet.create({
+    accordion: {
+      alignSelf: "stretch",
+    },
+    hairline: {
+      height: border.width.thin,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: space[3],
+      minHeight: control.listRow,
+      paddingHorizontal: space[4],
+      paddingVertical: space[2],
+    },
+    titles: {
+      flex: 1,
+      gap: space["0_5"],
+    },
+    clip: {
+      overflow: "hidden",
+    },
+    // Out of the flow, so it keeps its own height while the box around it is shorter.
+    body: {
+      position: "absolute",
+      top: 0,
+      start: 0,
+      end: 0,
+      paddingHorizontal: space[4],
+      paddingBottom: space[4],
+    },
+  });
 });

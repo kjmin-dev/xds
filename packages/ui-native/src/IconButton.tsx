@@ -1,4 +1,3 @@
-import { border, motion, shadow } from "@acme/tokens";
 import { useContext, useState } from "react";
 import {
   ActivityIndicator,
@@ -9,9 +8,18 @@ import {
   type ViewStyle,
 } from "react-native";
 import { type ButtonVariant, look } from "./Button.tsx";
+import { useDefaults } from "./defaults.ts";
 import { Icon, type IconName } from "./Icon.tsx";
 import { useSpring } from "./motion.ts";
-import { CONTROL_HEIGHT, type ControlSize, control, MenuOpen, useColors } from "./theme.ts";
+import {
+  controlHeight,
+  type ControlSize,
+  MenuOpen,
+  themed,
+  useColors,
+  useControl,
+  useTheme,
+} from "./theme.ts";
 
 export type IconButtonProps = {
   icon: IconName;
@@ -40,14 +48,21 @@ export type IconButtonProps = {
 export function IconButton({
   icon,
   label,
-  variant = "ghost",
-  size = "md",
+  variant: givenVariant,
+  size: givenSize,
   selected,
   disabled = false,
   loading = false,
   onPress,
   style,
 }: IconButtonProps) {
+  const defaults = useDefaults("IconButton");
+  const variant = givenVariant ?? defaults.variant ?? "ghost";
+  const size = givenSize ?? defaults.size ?? "md";
+
+  const styles = useStyles();
+  const { border, motion } = useTheme();
+  const control = useControl();
   const colors = useColors();
   const menuOpen = useContext(MenuOpen);
   // Only the quiet variants have a look of their own for "on": a filled button already is one.
@@ -62,7 +77,7 @@ export function IconButton({
   // A press shrinks the button a little, on a spring: feedback that does not depend on color.
   const [held, setHeld] = useState(false);
   const scale = useSpring(held ? motion.pressScale : 1, motion.spring.fast);
-  const side = CONTROL_HEIGHT[size];
+  const side = controlHeight(control, size);
   // A small button still reacts to a press anywhere in the minimum target around it.
   const slop = Math.max(0, (control.targetMin - side) / 2);
   const iconColor = disabled ? colors.buttonDisabledText : text;
@@ -119,16 +134,18 @@ export function IconButton({
   );
 }
 
-const styles = StyleSheet.create({
-  button: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  raised: {
-    // The token color carries the alpha.
-    shadowColor: shadow.subtle.color,
-    shadowOffset: { width: shadow.subtle.offsetX, height: shadow.subtle.offsetY },
-    shadowRadius: shadow.subtle.blur,
-    shadowOpacity: 1,
-  },
-});
+const useStyles = themed(({ shadow }) =>
+  StyleSheet.create({
+    button: {
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    raised: {
+      // The token color carries the alpha.
+      shadowColor: shadow.subtle.color,
+      shadowOffset: { width: shadow.subtle.offsetX, height: shadow.subtle.offsetY },
+      shadowRadius: shadow.subtle.blur,
+      shadowOpacity: 1,
+    },
+  }),
+);

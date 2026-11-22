@@ -1,10 +1,19 @@
-import { motion, radius, shadow, space, typography } from "@acme/tokens";
 import { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Animated, Easing, Platform, Pressable, StyleSheet } from "react-native";
+import {
+  AccessibilityInfo,
+  Animated,
+  Easing,
+  Platform,
+  Pressable,
+  type StyleProp,
+  StyleSheet,
+  type ViewStyle,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useReducedMotion } from "./motion.ts";
-import { Text } from "./Text.tsx";
-import { control, useColors } from "./theme.ts";
+// The text of the component's own parts takes nothing from an app's `Defaults`.
+import { PartText as Text } from "./Text.tsx";
+import { themed, useColors, useTheme } from "./theme.ts";
 
 export type ToastProps = {
   /** The toast does not close itself: this decides. */
@@ -16,6 +25,8 @@ export type ToastProps = {
   action?: { label: string; onPress: () => void };
   /** How long the toast stays, in milliseconds. 0 keeps it until `open` is false. */
   duration?: number;
+  /** Put on the component's root view, after its own style. */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -23,13 +34,10 @@ export type ToastProps = {
  * of its parent, inside the safe area: put it last in the view that fills the screen, outside
  * any SafeAreaView, which would add the same margins a second time.
  */
-export function Toast({
-  open,
-  onClose,
-  message,
-  action,
-  duration = motion.duration.toast,
-}: ToastProps) {
+export function Toast({ open, onClose, message, action, duration: given, style }: ToastProps) {
+  const styles = useStyles();
+  const { motion, space } = useTheme();
+  const duration = given ?? motion.duration.toast;
   const colors = useColors();
   const reduced = useReducedMotion();
   const insets = useSafeAreaInsets();
@@ -52,7 +60,7 @@ export function Toast({
     }).start(({ finished }) => {
       if (finished && !open) setMounted(false);
     });
-  }, [open, progress, reduced]);
+  }, [motion, open, progress, reduced]);
 
   useEffect(() => {
     if (!open || duration <= 0) return;
@@ -69,18 +77,24 @@ export function Toast({
   return (
     <Animated.View
       style={[
-        styles.layer,
-        {
-          bottom: insets.bottom + space[4],
-          start: insets.left + space[4],
-          end: insets.right + space[4],
-          opacity: progress,
-          transform: [
-            {
-              translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [space[4], 0] }),
-            },
-          ],
-        },
+        [
+          styles.layer,
+          {
+            bottom: insets.bottom + space[4],
+            start: insets.left + space[4],
+            end: insets.right + space[4],
+            opacity: progress,
+            transform: [
+              {
+                translateY: progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [space[4], 0],
+                }),
+              },
+            ],
+          },
+        ],
+        style,
       ]}
     >
       <Animated.View
@@ -110,41 +124,44 @@ export function Toast({
   );
 }
 
-const styles = StyleSheet.create({
-  // Spans the width so that the toast can be centered in it, and lets touches beside the toast
-  // through to the screen.
-  layer: {
-    position: "absolute",
-    alignItems: "center",
-    pointerEvents: "box-none",
-  },
-  toast: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[3],
-    maxWidth: control.toast,
-    paddingVertical: space[3],
-    paddingHorizontal: space[4],
-    borderRadius: radius.md,
-    // The token color carries the alpha.
-    shadowColor: shadow.raised.color,
-    shadowOffset: { width: shadow.raised.offsetX, height: shadow.raised.offsetY },
-    shadowRadius: shadow.raised.blur,
-    shadowOpacity: 1,
-    elevation: 6,
-  },
-  message: {
-    flexShrink: 1,
-  },
-  // As large as the smallest target. The margins take back what that adds, so the toast is as
-  // tall as its message needs and the label ends where the padding does.
-  action: {
-    minWidth: control.targetMin,
-    minHeight: control.targetMin,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: space[2],
-    marginVertical: -(control.targetMin - typography.detail.lineHeight) / 2,
-    marginEnd: -space[2],
-  },
+const useStyles = themed(({ radius, shadow, space, typography, size }) => {
+  const control = size.touch;
+  return StyleSheet.create({
+    // Spans the width so that the toast can be centered in it, and lets touches beside the toast
+    // through to the screen.
+    layer: {
+      position: "absolute",
+      alignItems: "center",
+      pointerEvents: "box-none",
+    },
+    toast: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: space[3],
+      maxWidth: control.toast,
+      paddingVertical: space[3],
+      paddingHorizontal: space[4],
+      borderRadius: radius.md,
+      // The token color carries the alpha.
+      shadowColor: shadow.raised.color,
+      shadowOffset: { width: shadow.raised.offsetX, height: shadow.raised.offsetY },
+      shadowRadius: shadow.raised.blur,
+      shadowOpacity: 1,
+      elevation: 6,
+    },
+    message: {
+      flexShrink: 1,
+    },
+    // As large as the smallest target. The margins take back what that adds, so the toast is as
+    // tall as its message needs and the label ends where the padding does.
+    action: {
+      minWidth: control.targetMin,
+      minHeight: control.targetMin,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: space[2],
+      marginVertical: -(control.targetMin - typography.detail.lineHeight) / 2,
+      marginEnd: -space[2],
+    },
+  });
 });

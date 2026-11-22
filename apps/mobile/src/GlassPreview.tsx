@@ -1,5 +1,13 @@
-import { space } from "@acme/tokens";
-import { BottomSheet, Button, Icon, TabBar, Text, TopBar, useColors } from "@acme/ui-native";
+import {
+  BottomSheet,
+  Button,
+  Icon,
+  TabBar,
+  Text,
+  themed,
+  TopBar,
+  useColors,
+} from "@acme/ui-native";
 import { GlassBackdrop, GlassScene } from "@acme/ui-native/glass";
 import {
   DISPLAY_FRAME_MS,
@@ -44,6 +52,7 @@ export function GlassPreview({
   settle = false,
   initiallyOpen = false,
 }: Props) {
+  const styles = useStyles();
   const colors = useColors();
   const [sheet, setSheet] = useState(initiallyOpen);
   const [tab, setTab] = useState("home");
@@ -237,11 +246,19 @@ export function GlassPreview({
     </PreviewGlassTier>
   );
 }
-const styles = StyleSheet.create({
-  fill: { flex: 1 },
-  sample: { height: 440 },
-  row: { padding: space[4], gap: space[1] },
-  results: { position: "absolute", top: "40%", left: space[3], right: space[3], padding: space[3] },
-  top: { position: "absolute", top: 0, left: 0, right: 0 },
-  bottom: { position: "absolute", bottom: space[3], left: space[3], right: space[3] },
-});
+const useStyles = themed(({ space }) =>
+  StyleSheet.create({
+    fill: { flex: 1 },
+    sample: { height: 440 },
+    row: { padding: space[4], gap: space[1] },
+    results: {
+      position: "absolute",
+      top: "40%",
+      left: space[3],
+      right: space[3],
+      padding: space[3],
+    },
+    top: { position: "absolute", top: 0, left: 0, right: 0 },
+    bottom: { position: "absolute", bottom: space[3], left: space[3], right: space[3] },
+  }),
+);

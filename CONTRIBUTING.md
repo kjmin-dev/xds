@@ -9,7 +9,7 @@ mise install
 mise run check
 ```
 
-`mise run check` runs the same checks as CI, so make sure it passes locally before opening a pull request. The GPUI desktop checks require macOS, the Kotlin checks download Gradle and the required Android SDK components on their first run, and the web components' behavior tests run in the installed Google Chrome.
+`mise run check` runs the same checks as CI, so make sure it passes locally before opening a pull request. The GPUI desktop checks require macOS, the Kotlin checks download Gradle and the required Android SDK components on their first run, and the web components' behavior tests run in the installed Google Chrome. The libraries' consumer checks run last (`mise run check:libraries`): they install the built packages in new apps, which take the rest of their dependencies from the npm registry and Maven repositories, so they need the network and take several minutes.
 
 ## Guidelines for changes
 

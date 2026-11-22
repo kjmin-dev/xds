@@ -108,4 +108,4 @@ Each app is type-checked with its own TypeScript and bundled by Metro for iOS an
 
 A screen is taken once the app has drawn its first frame, the system's splash window is gone and two pictures in a row are the same. A pair that differs is taken again, twice at most, before it counts. Nothing is built or drawn for iOS: Metro bundles every app for iOS, and the native module's iOS half is the one the scaffolded app builds.
 
-The release workflow publishes the package only after this check passes.
+CI runs this check on every change, up to the bundles (`--skip-android`). The release workflow runs it whole and publishes the package only after it passes.

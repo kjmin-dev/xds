@@ -4,5 +4,6 @@
     "lib": ["ES2024", "ESNext.Disposable", "DOM", "DOM.Iterable"],
     "types": ["node"]
   },
-  "include": ["*.ts"]
+  // npm/publish.ts publishes every channel, and belongs to no package of its own.
+  "include": ["*.ts", "../publish.ts"]
 }

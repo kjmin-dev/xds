@@ -76,7 +76,7 @@ The maintainer owns the GitHub repository and npm scope. The crates.io and pub.d
 | npm scope | `@xds` | Registered on 2026-11-16 as an npm organization of the maintainer | Every npm package is published under it |
 | npm packages | `@xds/react`, `@xds/solid`, `@xds/vue`, `@xds/svelte`, `@xds/core`, `@xds/tokens`, `@xds/react-native` | Held by the scope. The web packages are built by `npm/web/build.ts` and published with the CLI's release | The unscoped name `xds` is taken by an unrelated Vue state library, so nothing is published unscoped |
 | crates.io | `xds-ui`, `xds-tokens` | Unregistered | Claim with the first functional L4 packages. The unsuffixed `xds` belongs to another crate |
-| Maven Central | group `io.github.kjmin-dev`, artifact `xds-ui` | The group corresponds to the maintainer’s GitHub account. The release workflow builds and checks the artifacts | Verify the namespace in Central Portal and set the publishing secrets before the first tag. [Namespace verification](https://central.sonatype.org/register/namespace/) |
+| Maven Central | group `io.github.kjmin-dev`, artifact `xds-ui` | The group corresponds to the maintainer’s GitHub account. The release workflow builds and checks the artifacts | Verify the namespace in Central Portal and set the publishing secrets before the first tag, then [rehearse the release](cli.md#rehearsing-a-release), which has Central validate the signed artifacts. [Namespace verification](https://central.sonatype.org/register/namespace/) |
 | pub.dev | `xds_ui`, `xds_tokens` | Unregistered | Claim with the first functional L5 packages. A verified publisher needs a domain |
 | GitHub | `kjmin-dev/xds` | Owned | The source of truth for every channel |
 
@@ -206,7 +206,7 @@ Glass material tokens and the Flutter scaffold are in the template. The L0 contr
 
 L1 goes first because the web's theme carrier already exists and its audience is the widest. L2 follows because its theme change is the smallest. L3 and L4 each need their theme moved from constants to a value, which is the largest single change in this design.
 
-Each phase adds its channel to the continuous checks: the package is built, installed into a project that is not part of the xds workspace, and compared with the scaffolded app. A channel that is not checked this way is not published.
+Each phase adds its channel to the continuous checks: the package is built, installed into a project that is not part of the xds workspace, and compared with the scaffolded app. CI runs these checks on every change, without the Android emulator and iOS, and the release workflow runs them whole. A channel that is not checked this way is not published. A run of the release workflow started by hand [rehearses a release](cli.md#rehearsing-a-release): it runs every check, checks the publishing secrets, has Maven Central validate the library, and publishes nothing.
 
 ## Not in this design
 

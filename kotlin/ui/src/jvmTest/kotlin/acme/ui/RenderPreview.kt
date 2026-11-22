@@ -130,10 +130,21 @@ private fun draw(file: File, width: Int, height: Int?, content: @Composable () -
     val scene = ImageComposeScene(pixels, tall, Density(Scale), content = content)
     try {
         // Half a second of frames, so what animates on appearing has settled: the sheet slides
-        // in, the dialog and the toast fade in.
+        // in, the dialog and the toast fade in. Each frame's image is closed before the next is
+        // drawn: while one is open, drawing copies every pixel for it, in Skia's memory, which
+        // the JVM does not count and frees late. The whole preview at a desktop width is 175 MB
+        // a frame; left open, the frames took the renderer to nearly twice the memory, and a CI
+        // runner on Linux stopped while it drew.
         var image = scene.render()
-        for (frame in 1..30) image = scene.render(nanoTime = frame * 16_000_000L)
-        file.writeBytes(image.encodeToData(EncodedImageFormat.PNG)!!.bytes)
+        for (frame in 1..30) {
+            image.close()
+            image = scene.render(nanoTime = frame * 16_000_000L)
+        }
+        try {
+            file.writeBytes(image.encodeToData(EncodedImageFormat.PNG)!!.bytes)
+        } finally {
+            image.close()
+        }
     } finally {
         scene.close()
     }
@@ -148,7 +159,7 @@ private fun measureHeight(pixels: Int, content: @Composable () -> Unit): Int {
         }
     }
     try {
-        scene.render()
+        scene.render().close()
     } finally {
         scene.close()
     }

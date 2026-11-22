@@ -34,10 +34,17 @@ struct Report {
 pub struct ExportArgs {
     /// A full theme, overrides on a preset, or an accent and neutral palette file
     file: PathBuf,
-    /// What the page names the theme with, in `data-<prefix>-theme` [default: the file's name]
+    /// The theme's name: what a page names it with, in `data-<prefix>-theme`, and the Kotlin
+    /// value's, `<Name>Theme` [default: the file's name]
     #[arg(long)]
     name: Option<String>,
-    /// Where to write the stylesheet [default: standard output]
+    /// What to write: a stylesheet for the web, or a Kotlin file for the Compose components
+    #[arg(long, value_enum, default_value_t = Format::Css)]
+    format: Format,
+    /// The Kotlin file's package, with `--format compose` [default: `<prefix>.themes`]
+    #[arg(long)]
+    package: Option<String>,
+    /// Where to write it [default: standard output]
     #[arg(long, short)]
     out: Option<PathBuf>,
     /// The project to read tokens from [default: the current directory, or the embedded template]
@@ -45,12 +52,39 @@ pub struct ExportArgs {
     project: Option<PathBuf>,
 }
 
+/// The kinds of file `export-theme` writes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+pub enum Format {
+    /// A stylesheet that sets every token as a custom property
+    Css,
+    /// A Kotlin file with the theme as a value for the theme composable
+    Compose,
+}
+
+impl Format {
+    /// The format's name, as the token tool takes it.
+    fn field_format(self) -> &'static str {
+        match self {
+            Self::Css => "css",
+            Self::Compose => "compose",
+        }
+    }
+
+    /// The field of the JSON result that holds what was written.
+    fn field(self) -> &'static str {
+        match self {
+            Self::Css => "css",
+            Self::Compose => "kotlin",
+        }
+    }
+}
+
 #[derive(Deserialize)]
 struct Export {
     version: String,
     ok: bool,
     failures: Vec<String>,
-    css: Option<String>,
+    output: Option<String>,
 }
 
 /// The token tools in a temporary directory, and the directory holding the design data.
@@ -168,8 +202,9 @@ fn default_name(file: &Path) -> String {
     name.trim_end_matches('-').to_owned()
 }
 
-/// Checks a theme as `check-theme` does and, when it passes, writes it as a stylesheet: every
-/// token as a custom property on the elements that carry `data-<prefix>-theme="<name>"`.
+/// Checks a theme as `check-theme` does and, when it passes, writes it for a client: as a
+/// stylesheet that sets every token as a custom property on the elements that carry
+/// `data-<prefix>-theme="<name>"`, or as a Kotlin value for the Compose theme composable.
 pub fn export(args: &ExportArgs, out: Out) -> Result<Value> {
     let name = args
         .name
@@ -185,16 +220,31 @@ pub fn export(args: &ExportArgs, out: Out) -> Result<Value> {
         )
         .into());
     }
+    if args.package.is_some() && args.format != Format::Compose {
+        return Err("--package names the Kotlin file's package: use it with --format compose".into());
+    }
     let checker = Checker::new(args.project.as_deref())?;
-    // A project's custom properties carry its own name, and its styles sit in no layer. Outside
-    // one, the stylesheet is for the published web library: its names and its cascade layer.
-    let (prefix, layer) = match &checker.location {
+    // A project's custom properties and packages carry its own name, and its styles sit in no
+    // layer. Outside one, the file is for the published library: its names and its cascade layer.
+    let (prefix, layer, title) = match &checker.location {
         Location::Project(root) => match render::Record::read(root) {
-            Ok(record) => (record.name, String::new()),
+            Ok(record) => {
+                let title = theme_identifier(&record.name, &record.title);
+                (record.name, String::new(), title)
+            }
             // This repository itself: the placeholder name.
-            Err(_) => ("acme".to_owned(), String::new()),
+            Err(_) => ("acme".to_owned(), String::new(), "Acme".to_owned()),
         },
-        Location::Embedded => ("xds".to_owned(), "xds.theme".to_owned()),
+        Location::Embedded => ("xds".to_owned(), "xds.theme".to_owned(), "Xds".to_owned()),
+    };
+    let package = args
+        .package
+        .clone()
+        .unwrap_or_else(|| format!("{prefix}.themes"));
+    let tokens = format!("{prefix}.tokens");
+    let (first, second) = match args.format {
+        Format::Css => (prefix.as_str(), layer.as_str()),
+        Format::Compose => (package.as_str(), tokens.as_str()),
     };
     let version = env!("CARGO_PKG_VERSION");
     let output = checker.run(
@@ -203,8 +253,9 @@ pub fn export(args: &ExportArgs, out: Out) -> Result<Value> {
             args.file.as_os_str(),
             OsStr::new(version),
             OsStr::new(&name),
-            OsStr::new(&prefix),
-            OsStr::new(&layer),
+            OsStr::new(args.format.field_format()),
+            OsStr::new(first),
+            OsStr::new(second),
         ],
     )?;
     let export: Export = report(&args.file, &output)?;
@@ -212,7 +263,7 @@ pub fn export(args: &ExportArgs, out: Out) -> Result<Value> {
         return Err("the theme checker exited with an inconsistent result".into());
     }
     let mut result = json!({ "source": checker.location.label(), "version": export.version, "ok": export.ok, "failures": export.failures, "name": name });
-    let Some(css) = export.css.filter(|_| export.ok) else {
+    let Some(text) = export.output.filter(|_| export.ok) else {
         for failure in &export.failures {
             say!(out, "{failure}");
         }
@@ -220,16 +271,68 @@ pub fn export(args: &ExportArgs, out: Out) -> Result<Value> {
     };
     match &args.out {
         Some(path) => {
-            fs::write(path, &css).context(format!("writing {}", path.display()))?;
+            fs::write(path, &text).context(format!("writing {}", path.display()))?;
             result["out"] = json!(path);
-            say!(
-                out,
-                "Wrote {}: set data-{prefix}-theme=\"{name}\" on an element to apply it.",
-                path.display()
-            );
+            match args.format {
+                Format::Css => say!(
+                    out,
+                    "Wrote {}: set data-{prefix}-theme=\"{name}\" on an element to apply it.",
+                    path.display()
+                ),
+                Format::Compose => say!(
+                    out,
+                    "Wrote {}: pass {package}.{value} to {title}Theme(theme = {value}) to apply it.",
+                    path.display(),
+                    value = kotlin_value(&name),
+                ),
+            }
         }
-        None if out.json => result["css"] = json!(css),
-        None => print!("{css}"),
+        None if out.json => result[args.format.field()] = json!(text),
+        None => print!("{text}"),
     }
     Ok(result)
+}
+
+/// The Kotlin value a theme of this name is written as, as the token tool names it: `brand` is
+/// `BrandTheme`, and a hyphen between two digits stays, as `_`: `v1-2` is `V1_2Theme`.
+fn kotlin_value(name: &str) -> String {
+    let characters: Vec<char> = name.chars().collect();
+    let mut value = String::new();
+    let mut upper = true;
+    for (index, &character) in characters.iter().enumerate() {
+        let digits = index > 0
+            && characters[index - 1].is_ascii_digit()
+            && characters.get(index + 1).is_some_and(char::is_ascii_digit);
+        if character == '-' && digits {
+            value.push('_');
+        } else if character == '-' {
+            upper = true;
+        } else if upper {
+            value.push(character.to_ascii_uppercase());
+            upper = false;
+        } else {
+            value.push(character);
+        }
+    }
+    value + "Theme"
+}
+
+/// The project's theme composable without its `Theme`: `Orbit` for `OrbitTheme`.
+fn theme_identifier(name: &str, title: &str) -> String {
+    crate::rename::Names::new(name, Some(title))
+        .map(|names| names.identifier().to_owned())
+        .unwrap_or_else(|_| crate::rename::capitalize(name))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::kotlin_value;
+
+    #[test]
+    fn a_theme_is_written_as_a_kotlin_value_named_as_the_token_tool_names_it() {
+        assert_eq!(kotlin_value("brand"), "BrandTheme");
+        assert_eq!(kotlin_value("brand-theme"), "BrandThemeTheme");
+        assert_eq!(kotlin_value("checkout-2"), "Checkout2Theme");
+        assert_eq!(kotlin_value("v1-2"), "V1_2Theme");
+    }
 }

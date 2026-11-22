@@ -773,6 +773,77 @@ fn exports_a_checked_theme_as_a_stylesheet_for_the_library_or_a_project() {
 }
 
 #[test]
+fn exports_a_checked_theme_as_a_kotlin_value_for_the_library_or_a_project() {
+    let temp = TempDir::new().unwrap();
+    let theme = temp.path().join("brand.json");
+    let project = temp.path().join("my-project");
+    let (created, _, stderr) = run(xds().arg("create").arg(&project).args([
+        "--name",
+        "orbit",
+        "--targets",
+        "kotlin-compose",
+        "--yes",
+    ]));
+    assert!(created.status.success(), "{stderr}");
+    let version = env!("CARGO_PKG_VERSION");
+    let file = serde_json::json!({ "version": version, "preset": "ocean" });
+    fs::write(&theme, file.to_string()).unwrap();
+
+    // Outside a project the value is for the published library's types.
+    let (output, stdout, stderr) = run(xds()
+        .current_dir(temp.path())
+        .args(["export-theme", "--format", "compose"])
+        .arg(&theme));
+    assert!(output.status.success(), "{stderr}");
+    assert!(stdout.contains("\npackage xds.themes\n"), "{stdout}");
+    assert!(stdout.contains("\nimport xds.tokens.Theme\n"), "{stdout}");
+    assert!(stdout.contains("\nval BrandTheme: Theme = Theme(\n"), "{stdout}");
+    assert!(stdout.contains("private object BrandDarkColors : Colors {"), "{stdout}");
+    assert!(!stdout.contains("acme"), "{stdout}");
+
+    // In a project it refers to the project's own token types, in the package it is given.
+    let kotlin = temp.path().join("BrandTheme.kt");
+    let (output, stdout, stderr) = run(xds()
+        .current_dir(&project)
+        .args(["--json", "export-theme", "--format", "compose"])
+        .args(["--package", "com.example.orbit.brand", "--out"])
+        .arg(&kotlin)
+        .arg(&theme));
+    assert!(output.status.success(), "{stderr}");
+    let report: Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(report["source"], "project");
+    assert_eq!(report["name"], "brand");
+    let written = fs::read_to_string(&kotlin).unwrap();
+    assert!(
+        written.contains("\npackage com.example.orbit.brand\n"),
+        "{written}"
+    );
+    assert!(written.contains("\nimport orbit.tokens.Sizes\n"), "{written}");
+
+    // Without --out and with --json, the file is in the result.
+    let (output, stdout, stderr) = run(xds()
+        .current_dir(&project)
+        .args(["--json", "export-theme", "--format", "compose"])
+        .arg(&theme));
+    assert!(output.status.success(), "{stderr}");
+    let report: Value = serde_json::from_str(&stdout).unwrap();
+    assert!(
+        report["kotlin"]
+            .as_str()
+            .unwrap()
+            .contains("package orbit.themes"),
+        "{report}"
+    );
+
+    let (output, _, stderr) = run(xds()
+        .current_dir(temp.path())
+        .args(["export-theme", "--package", "brand"])
+        .arg(&theme));
+    assert_eq!(output.status.code(), Some(1));
+    assert!(stderr.contains("--format compose"), "{stderr}");
+}
+
+#[test]
 fn checks_a_theme_from_a_project_or_the_embedded_release_without_applying_it() {
     let temp = TempDir::new().unwrap();
     let theme = temp.path().join("brand theme.json");

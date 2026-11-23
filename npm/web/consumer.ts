@@ -27,6 +27,7 @@ import { chromium } from "playwright";
 import type * as Vite from "vite";
 import type { InlineConfig, ViteDevServer } from "vite";
 import {
+  type Captured,
   capture,
   compareCaptures,
   THEMES,
@@ -325,8 +326,9 @@ const scaffoldTheme = join(work, "brand-theme.css");
 // What the scaffold's token build writes for the theme, under the scaffold's name.
 await writeFile(scaffoldTheme, emitCss(model).replaceAll("acme", "xds"));
 
-// The scaffolded apps, named as the packages are.
-let xds = options.xds;
+// The scaffolded apps, named as the packages are. The binary runs from the work directory, so a
+// path given relative to this one is resolved first.
+let xds = options.xds && resolve(options.xds);
 if (!xds) {
   run("cargo", ["build", "--quiet", "--package", "xds"], root);
   xds = join(root, "target/debug/xds");
@@ -366,6 +368,9 @@ try {
       await devServer(app, { resolve: { alias: { "@xds/tokens/theme.css": scaffoldTheme } } }),
       servers,
     );
+    // Both of the library's apps are compared with the same scaffolded pages, which are taken
+    // once for both: each capture opens every overlay, so a quarter of the run is saved.
+    const references = new Map<string, Map<string, Buffer>>();
     for (const [label, library, reference, query] of [
       ["default theme", finished, scaffolded, ""],
       ["custom theme", finished, branded, "&xds-theme=brand"],
@@ -374,6 +379,7 @@ try {
     ] as const) {
       for (const width of WIDTHS) {
         for (const theme of THEMES) {
+          const key = `${reference} ${width} ${theme}`;
           const both = async (tab = page) =>
             [
               { name: "scaffold", shots: await capture(tab, reference, width, theme) },
@@ -381,23 +387,32 @@ try {
             ] as const;
           const where = join(out, framework, label.replaceAll(/\W+/g, "-"), `${width}-${theme}`);
           const title = `${framework}, ${label}, ${width} ${theme}:`;
-          let [first, other] = await both();
+          let shots = references.get(key);
+          if (!shots) references.set(key, (shots = await capture(page, reference, width, theme)));
+          let first: Captured = { name: "scaffold", shots };
+          let other: Captured = {
+            name: "library",
+            shots: await capture(page, library, width, theme, query),
+          };
           // A picture may decode, or a frame rasterize, a moment later in one capture than in
-          // the other, which changes a few pixels at an edge. A real difference is drawn again.
-          if ((await compareCaptures(compare, first, other, where, title, true, TOLERANCE)) > 0) {
+          // the other, which changes a few pixels at an edge, now and then in two captures in a
+          // row. A pair that differs is taken again, twice at most: a real difference stays.
+          let found = await compareCaptures(compare, first, other, where, title, true, TOLERANCE);
+          for (let retake = 1; found > 0 && retake <= 2; retake++) {
             const tab = await browser.newPage({ deviceScaleFactor: 1 });
             [first, other] = await both(tab);
             await tab.close();
-            differences += await compareCaptures(
+            found = await compareCaptures(
               compare,
               first,
               other,
               where,
               title,
-              false,
+              retake < 2,
               TOLERANCE,
             );
           }
+          differences += found;
         }
       }
     }

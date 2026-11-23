@@ -60,10 +60,13 @@ configure<PublishingExtension> {
     }
 }
 
-val signingKey = providers.environmentVariable("SIGNING_KEY")
+// GitHub Actions gives a secret that is not set as an empty variable. That is no key: the files
+// are left unsigned, the consumer checks still run, and upload.ts refuses to send them.
+val signingKey = providers.environmentVariable("SIGNING_KEY").filter { it.isNotBlank() }
+val signingPassword = providers.environmentVariable("SIGNING_PASSWORD").filter { it.isNotEmpty() }
 if (signingKey.isPresent) {
     configure<SigningExtension> {
-        useInMemoryPgpKeys(signingKey.get(), providers.environmentVariable("SIGNING_PASSWORD").orNull)
+        useInMemoryPgpKeys(signingKey.get(), signingPassword.orNull)
         sign(the<PublishingExtension>().publications)
     }
     // Every publication's module file names the others' artifacts, so publishing one reads what

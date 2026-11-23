@@ -185,4 +185,55 @@ jobs:
           install_args: rust node
       - uses: Swatinem/rust-cache@v2
       - run: mise run check:cli
+
+  # The libraries' external consumer checks (check:libraries), as far as they run without an
+  # emulator or macOS, so that a change that breaks a library fails here rather than in the
+  # release, which runs them whole before it publishes. Each builds the CLI to scaffold its
+  # reference projects.
+  library-web:
+    name: Web library (${{ matrix.framework }})
+    runs-on: ubuntu-latest
+    # The check takes over half an hour on a runner, nearly all of it in each framework's
+    # captures, so the frameworks run side by side.
+    strategy:
+      fail-fast: false
+      matrix:
+        framework: [react, solid, vue, svelte]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+        with:
+          install_args: rust node pnpm
+      - uses: Swatinem/rust-cache@v2
+      - run: mise run check:library-web -- --frameworks ${{ matrix.framework }}
+
+  library-react-native:
+    name: React Native library
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+        with:
+          install_args: rust node pnpm
+      - uses: Swatinem/rust-cache@v2
+      - run: mise run check:library-react-native -- --skip-android
+
+  library-compose:
+    name: Compose library
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+        with:
+          install_args: rust node java
+      - uses: Swatinem/rust-cache@v2
+      # The Kotlin job's cache: the projects the check makes take the same dependencies.
+      - uses: actions/cache/restore@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('kotlin/**') }}
+          restore-keys: gradle-${{ runner.os }}-
+      - run: mise run check:library-compose -- --platforms desktop
   # @endif

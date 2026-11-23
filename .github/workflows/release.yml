@@ -14,11 +14,19 @@ name: Release
 # MAVEN_CENTRAL_PASSWORD secrets, a Central Portal user token, and SIGNING_KEY and
 # SIGNING_PASSWORD, an ASCII-armored PGP secret key whose public key is on a key server.
 #
+# A run started by hand (Actions > Release > Run workflow, or `gh workflow run release.yml`) is a
+# rehearsal of a release from the commit it runs on, at the version in cli/Cargo.toml: every job
+# builds and checks what it would publish, and nothing is released or published. Each publishing
+# step is rehearsed instead: npm packs each package and must accept NPM_TOKEN, and Maven Central
+# validates the signed bundle, which the rehearsal then drops. It fails when a secret a release
+# needs is missing or refused, and its summary shows the GitHub release a tag would create.
+#
 # Actions are pinned to a commit, because a tag can be moved to other code, and these jobs can
 # write a release and publish to npm.
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -59,6 +67,7 @@ jobs:
           persist-credentials: false
 
       - name: Check that the tag is the crate's version
+        if: github.event_name == 'push'
         run: |
           version="$(sed -n 's/^version = "\(.*\)"$/\1/p' cli/Cargo.toml | head -n 1)"
           if [ "v$version" != "$GITHUB_REF_NAME" ]; then
@@ -114,13 +123,29 @@ jobs:
         with:
           persist-credentials: false
 
+      # The version every package of the release carries. On a tag, the build job has checked
+      # that the tag names it.
+      - name: Read the version
+        run: echo "VERSION=$(sed -n 's/^version = "\(.*\)"$/\1/p' cli/Cargo.toml | head -n 1)" >> "$GITHUB_ENV"
+
+      # A rehearsal runs before the entries move from `## Unreleased` to the version's section, so
+      # it takes those and warns; a release fails without the version's own.
       - name: Read this version's changelog
         run: |
-          awk -v heading="## ${GITHUB_REF_NAME#v}" '
-            /^## / { selected = ($0 == heading); if (selected) matches++; next }
-            selected { print; if (NF) lines++ }
-            END { if (matches != 1 || !lines) exit 1 }
-          ' CHANGELOG.md > "$RUNNER_TEMP/release-notes.md"
+          notes() {
+            awk -v heading="## $1" '
+              /^## / { selected = ($0 == heading); if (selected) matches++; next }
+              selected { print; if (NF) lines++ }
+              END { if (matches != 1 || !lines) exit 1 }
+            ' CHANGELOG.md > "$RUNNER_TEMP/release-notes.md"
+          }
+          if notes "$VERSION"; then exit 0; fi
+          if [ "$GITHUB_EVENT_NAME" = push ]; then
+            echo "::error::CHANGELOG.md has no nonempty section '## $VERSION'."
+            exit 1
+          fi
+          echo "::warning::CHANGELOG.md has no nonempty section '## $VERSION', which a release needs: move the entries under '## Unreleased' there before tagging."
+          notes Unreleased
 
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -128,16 +153,37 @@ jobs:
           merge-multiple: true
 
       - name: Create the release
+        if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           flags=()
-          if [[ "${GITHUB_REF_NAME#v}" == *-* ]]; then flags+=(--prerelease); fi
+          if [[ "$VERSION" == *-* ]]; then flags+=(--prerelease); fi
           gh release create "$GITHUB_REF_NAME" dist/* "${flags[@]}" \
             --repo "$GITHUB_REPOSITORY" \
-            --title "xds ${GITHUB_REF_NAME#v}" \
+            --title "xds $VERSION" \
             --notes-file "$RUNNER_TEMP/release-notes.md" \
             --verify-tag
+
+      - name: Rehearse the release
+        if: github.event_name != 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::warning::v$VERSION is already released: raise the version in cli/Cargo.toml for the next release."
+          fi
+          kind=release
+          if [[ "$VERSION" == *-* ]]; then kind=prerelease; fi
+          {
+            echo "## Rehearsal of xds $VERSION"
+            echo
+            echo "Nothing was created or published. The tag \`v$VERSION\` on this commit would create a GitHub $kind with these files and notes:"
+            echo
+            for file in dist/*; do echo "- \`$(basename "$file")\`, $(du -k "$file" | cut -f1) KB"; done
+            echo
+            cat "$RUNNER_TEMP/release-notes.md"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   npm:
     name: npm packages
@@ -172,25 +218,19 @@ jobs:
       - name: Build the packages
         run: mise exec -- node npm/build-packages.mjs --binaries binaries --require-all
 
+      # The platform packages, then xds-cli, then create-xds, under `latest`. npm/publish.ts
+      # says how it publishes, and what a rehearsal checks instead.
       - name: Publish
+        if: github.event_name == 'push'
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          mise exec -- npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
-          # In dependency order: the platform packages, then xds-cli, which depends on them,
-          # then create-xds, which depends on xds-cli.
-          tag=latest
-          if [[ "${GITHUB_REF_NAME#v}" == *-* ]]; then tag=next; fi
-          for package in npm/dist/xds-cli-*/ npm/dist/xds-cli/ npm/dist/create-xds/; do
-            name="$(basename "$package")"
-            version="$(sed -n 's/^  "version": "\(.*\)",$/\1/p' "$package/package.json")"
-            # A rerun after a partial failure skips what the first run published.
-            if mise exec -- npm view "$name@$version" version >/dev/null 2>&1; then
-              echo "$name@$version is already published"
-            else
-              mise exec -- npm publish "$package" --access public --tag "$tag"
-            fi
-          done
+        run: mise exec -- node npm/publish.ts cli
+
+      - name: Rehearse publishing
+        if: github.event_name != 'push'
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: mise exec -- node npm/publish.ts cli --dry-run
 
   web:
     name: Web library packages
@@ -223,27 +263,19 @@ jobs:
       - name: Build and check the packages
         run: mise exec -- node npm/web/consumer.ts --xds binary/xds
 
+      # The tokens, what the frameworks share, then the frameworks, under `preview` while the
+      # channel is a preview (docs/library.md, "Stability levels").
       - name: Publish
+        if: github.event_name == 'push'
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          mise exec -- npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
-          # The web channel is a preview while its behavior library, Zag.js 2, is a prerelease
-          # (docs/library.md, "Stability levels"), so its releases take the `preview` dist-tag.
-          tag=preview
-          if [[ "${GITHUB_REF_NAME#v}" == *-* ]]; then tag=next; fi
-          # In dependency order: the tokens, what the frameworks share, then the frameworks.
-          for package in tokens core react solid vue svelte; do
-            dir="npm/dist/web/$package"
-            name="$(mise exec -- node -p "require('./$dir/package.json').name")"
-            version="$(mise exec -- node -p "require('./$dir/package.json').version")"
-            # A rerun after a partial failure skips what the first run published.
-            if mise exec -- npm view "$name@$version" version >/dev/null 2>&1; then
-              echo "$name@$version is already published"
-            else
-              mise exec -- npm publish "$dir" --access public --tag "$tag"
-            fi
-          done
+        run: mise exec -- node npm/publish.ts web
+
+      - name: Rehearse publishing
+        if: github.event_name != 'push'
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: mise exec -- node npm/publish.ts web --dry-run
 
   react-native:
     name: React Native library
@@ -289,23 +321,18 @@ jobs:
       - name: Build and check the package
         run: mise exec -- node npm/react-native/consumer.ts --xds binary/xds
 
+      # Under `preview` while React Native is 0.x (docs/library.md, "Stability levels").
       - name: Publish
+        if: github.event_name == 'push'
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          mise exec -- npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
-          # A preview channel while React Native is 0.x (docs/library.md, "Stability levels").
-          tag=preview
-          if [[ "${GITHUB_REF_NAME#v}" == *-* ]]; then tag=next; fi
-          dir=npm/dist/react-native/package
-          name="$(mise exec -- node -p "require('./$dir/package.json').name")"
-          version="$(mise exec -- node -p "require('./$dir/package.json').version")"
-          # A rerun after a partial failure skips what the first run published.
-          if mise exec -- npm view "$name@$version" version >/dev/null 2>&1; then
-            echo "$name@$version is already published"
-          else
-            mise exec -- npm publish "$dir" --access public --tag "$tag"
-          fi
+        run: mise exec -- node npm/publish.ts react-native
+
+      - name: Rehearse publishing
+        if: github.event_name != 'push'
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: mise exec -- node npm/publish.ts react-native --dry-run
 
   maven:
     name: Compose library
@@ -333,6 +360,7 @@ jobs:
         run: mkdir -p binary && tar -xzf archives/xds-aarch64-apple-darwin.tar.gz -C binary
 
       # Signed here, so the files the checks below consume are the ones Maven Central gets.
+      # Without SIGNING_KEY the files are left unsigned, and the upload refuses them.
       - name: Build the library
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
@@ -416,7 +444,17 @@ jobs:
       # Sends the files both checks consumed, signed, and waits until Central accepts them. A
       # rerun after Central has the version does nothing.
       - name: Publish
+        if: github.event_name == 'push'
         env:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
         run: mise exec -- node maven/upload.ts
+
+      # Central validates the same files as it would before publishing them: the namespace, the
+      # signatures against the key servers, the POMs. Then the rehearsal drops the deployment.
+      - name: Rehearse publishing
+        if: github.event_name != 'push'
+        env:
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+        run: mise exec -- node maven/upload.ts --dry-run

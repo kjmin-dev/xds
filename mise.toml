@@ -238,34 +238,46 @@ description = "Build the documentation site, which fails on a page whose source 
 depends = ["install"]
 run = "pnpm --filter @acme/docs build"
 
-# What the release workflow runs before it publishes the web packages: it builds them, installs
-# them with npm in apps outside the repository, and compares those apps' design previews with
-# scaffolded ones, pixel by pixel. It needs the network and Google Chrome, and is not part of
-# `check`. docs/web-library.md says what it compares.
+# The libraries' external consumer checks. Each builds a library's packages, installs them in
+# new apps outside the repository and compares those apps' design previews with scaffolded ones,
+# pixel by pixel, with the default theme and with a custom one. The release workflow runs them
+# whole before it publishes; CI runs them on every change without what needs an emulator or
+# macOS (check:libraries). They need the network.
+#
+# The web packages, in Google Chrome. docs/web-library.md says what it compares.
 [tasks."check:library-web"]
 description = "Install the web library's packages in new apps and compare their design previews with scaffolded apps"
 depends = ["install"]
 run = "node npm/web/consumer.ts"
 
-# The same for the Compose library: it builds it into a Maven repository directory, consumes it
-# from a desktop app and an Android app outside the repository, and compares their design
-# previews with a scaffolded project's, pixel by pixel; on macOS it also links it for iOS. It
-# needs a JDK, the Android SDK with an emulator system image installed in $ANDROID_HOME, and the
-# network; `-- --platforms desktop` leaves Android and iOS out. docs/compose-library.md says what
-# it compares.
-# The same for the React Native library: it builds the npm package, installs it in an Expo app
-# and in apps on the oldest and newest React Native it supports, type-checks and bundles them,
-# and compares their design previews on an Android emulator, pixel by pixel. It needs a JDK, the
-# Android SDK with an emulator system image, and the network; `-- --skip-android` stops after the
-# bundles. docs/react-native-library.md says what it compares.
+# The React Native package, in an Expo app and in apps on the oldest and newest React Native it
+# supports: it type-checks and bundles them, then compares their design previews on an Android
+# emulator. That needs a JDK and the Android SDK with an emulator system image;
+# `-- --skip-android` stops after the bundles. docs/react-native-library.md says what it
+# compares.
 [tasks."check:library-react-native"]
 description = "Install the React Native package in new Expo and React Native apps and compare their design previews with a scaffolded app"
 depends = ["install"]
 run = "node npm/react-native/consumer.ts"
 
+# The Compose library, built into a Maven repository directory and consumed from a desktop app
+# and an Android app; on macOS it is also linked for iOS. It needs a JDK and the Android SDK, with
+# an emulator system image for Android; `-- --platforms desktop` leaves Android and iOS out.
+# docs/compose-library.md says what it compares.
 [tasks."check:library-compose"]
 description = "Consume the Compose library from new desktop and Android apps and compare their design previews with a scaffolded project"
 run = "node maven/consumer.ts"
+
+# What CI runs of the three on every change: everything but the Android emulator and iOS. CI
+# runs them in jobs of their own, the web check in one for each framework.
+[tasks."check:libraries"]
+description = "Run the libraries' consumer checks as CI does, without an emulator or iOS"
+depends = ["install"]
+run = [
+  "node npm/web/consumer.ts",
+  "node npm/react-native/consumer.ts --skip-android",
+  "node maven/consumer.ts --platforms desktop",
+]
 
 # The pictures of the iOS, Android and Compose apps on the component pages. It needs ffmpeg and
 # cwebp; iOS needs macOS with Xcode and CocoaPods, and Android an emulator system image already
@@ -336,4 +348,9 @@ run = [
     # @endif
     "check:workflows",
   ] },
+  # @if template
+  # After the others: check:js builds the libraries' packages into the directories these
+  # checks build them into.
+  { task = "check:libraries" },
+  # @endif
 ]

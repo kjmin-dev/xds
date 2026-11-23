@@ -203,7 +203,7 @@ fn is_excluded(relative: &str, exclude: &[String]) -> bool {
 
 #[cfg(unix)]
 fn is_executable(path: &Path) -> io::Result<bool> {
-    use std::os::unix::fs::PermissionsExt;
+    use std::os::unix::fs::PermissionsExt as _;
     Ok(fs::metadata(path)?.permissions().mode() & 0o111 != 0)
 }
 

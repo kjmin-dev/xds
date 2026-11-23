@@ -468,7 +468,7 @@ node = "26.13.1"
 pnpm = "12.19.0"
 # @endif
 # @if desktop-gpui
-rust = { version = "1.99.1", components = "rustfmt,clippy" }
+rust = { version = "1.100.0", components = "rustfmt,clippy" }
 # @endif
 ```
 

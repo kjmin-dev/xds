@@ -5,8 +5,8 @@ use acme_ui::{
     Badge, BadgeTone, ButtonVariant, ControlSize, DesignPreview, button, card, color, palette, text,
 };
 use gpui_kit::{
-    App, AppContext, Bounds, Context, IntoElement, ParentElement, Render, Styled, Window,
-    WindowBounds, WindowOptions, div, px, size,
+    App, AppContext as _, Bounds, Context, IntoElement, ParentElement as _, Render, Styled as _,
+    Window, WindowBounds, WindowOptions, div, px, size,
 };
 
 pub struct Home;
@@ -21,7 +21,7 @@ impl Home {
             ))),
             ..Default::default()
         };
-        gpui_kit::open_window(options, cx, |_, cx| cx.new(|_| Home))
+        gpui_kit::open_window(options, cx, |_, cx| cx.new(|_| Self))
             .expect("the home window could not open");
         cx.activate(true);
     }

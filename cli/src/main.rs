@@ -23,7 +23,7 @@ mod tests;
 
 use std::process::ExitCode;
 
-use clap::{ColorChoice, CommandFactory, FromArgMatches, Parser, Subcommand};
+use clap::{ColorChoice, CommandFactory as _, FromArgMatches as _, Parser, Subcommand};
 
 use crate::commands::{AddArgs, CreateArgs, ThemeArgs};
 use crate::error::Error;
@@ -40,7 +40,7 @@ use crate::style::Style;
     propagate_version = true
 )]
 struct Cli {
-    /// Print without colors (also: the NO_COLOR environment variable)
+    /// Print without colors (also: the `NO_COLOR` environment variable)
     #[arg(long, global = true)]
     no_color: bool,
     /// Print the result as JSON on stdout, and errors as JSON on stderr. Never asks anything

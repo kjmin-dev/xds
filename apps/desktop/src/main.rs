@@ -39,9 +39,8 @@ impl Options {
         let args: Vec<String> = std::env::args().skip(1).collect();
         let has = |flag: &str| args.iter().any(|arg| arg == flag);
         let value = |flag: &str| {
-            args.iter()
-                .position(|arg| arg == flag)
-                .and_then(|index| args.get(index + 1))
+            let index = args.iter().position(|arg| arg == flag)?;
+            args.get(index + 1)
         };
         let exit_after = value("--exit-after")
             .and_then(|seconds| seconds.parse().ok())

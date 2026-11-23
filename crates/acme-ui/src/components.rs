@@ -9,23 +9,23 @@ use std::rc::Rc;
 
 use acme_tokens as tokens;
 use gpui_kit::component::{
-    Disableable, Sizable, Size, ThemeStyled,
-    button::{Button as KitButton, ButtonCustomVariant, ButtonVariants},
+    Disableable as _, Sizable as _, Size, ThemeStyled as _,
+    button::{Button as KitButton, ButtonCustomVariant, ButtonVariants as _},
     input::{Input, InputEvent, InputState, Textarea, TextareaState},
 };
-use gpui_kit::prelude::FluentBuilder;
+use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
     AnyElement, App, Bounds, BoxShadow, ClickEvent, ContentMask, Corners, Div, ElementId, Entity,
-    Focusable, Hsla, ImageSource, InteractiveElement, IntoElement, MouseButton, ObjectFit,
-    ParentElement, Pixels, Refineable, RenderOnce, Role, SharedString, StatefulInteractiveElement,
-    StyleRefinement, Styled, StyledImage, Subscription, Window, canvas, div, fill, img, point, px,
-    relative, size,
+    Focusable as _, Hsla, ImageSource, InteractiveElement as _, IntoElement, MouseButton,
+    ObjectFit, ParentElement, Pixels, Refineable as _, RenderOnce, Role, SharedString,
+    StatefulInteractiveElement as _, StyleRefinement, Styled, StyledImage as _, Subscription,
+    Window, canvas, div, fill, img, point, px, relative, size,
 };
 
 use crate::controls::{
     ClickHandler, IconSize, SpinnerSize, focus_handle, icon, icon_filled, spinner,
 };
-use crate::theme::{TypographyExt, color, palette};
+use crate::theme::{TypographyExt as _, color, palette};
 
 // ---------------------------------------------------------------- button
 
@@ -50,19 +50,19 @@ pub enum ControlSize {
 
 impl ControlSize {
     /// The height of a control of this size. The desktop is used with a pointer.
-    pub fn height(self) -> Pixels {
+    pub const fn height(self) -> Pixels {
         px(match self {
-            ControlSize::Sm => tokens::POINTER.control_sm,
-            ControlSize::Md => tokens::POINTER.control_md,
-            ControlSize::Lg => tokens::POINTER.control_lg,
+            Self::Sm => tokens::POINTER.control_sm,
+            Self::Md => tokens::POINTER.control_md,
+            Self::Lg => tokens::POINTER.control_lg,
         })
     }
 
-    fn padding(self) -> Pixels {
+    const fn padding(self) -> Pixels {
         px(match self {
-            ControlSize::Sm => tokens::SPACE_3,
-            ControlSize::Md => tokens::SPACE_4,
-            ControlSize::Lg => tokens::SPACE_6,
+            Self::Sm => tokens::SPACE_3,
+            Self::Md => tokens::SPACE_4,
+            Self::Lg => tokens::SPACE_6,
         })
     }
 }
@@ -140,25 +140,25 @@ pub struct Button {
 }
 
 impl Button {
-    pub fn variant(mut self, variant: ButtonVariant) -> Self {
+    pub const fn variant(mut self, variant: ButtonVariant) -> Self {
         self.variant = variant;
         self
     }
 
     /// Named apart from `Styled::size`, which sets a width and a height.
-    pub fn control_size(mut self, size: ControlSize) -> Self {
+    pub const fn control_size(mut self, size: ControlSize) -> Self {
         self.size = size;
         self
     }
 
     /// An icon in front of the label, in the label's color.
-    pub fn icon_start(mut self, icon: tokens::Icon) -> Self {
+    pub const fn icon_start(mut self, icon: tokens::Icon) -> Self {
         self.icon_start = Some(icon);
         self
     }
 
     /// An icon after the label, in the label's color.
-    pub fn icon_end(mut self, icon: tokens::Icon) -> Self {
+    pub const fn icon_end(mut self, icon: tokens::Icon) -> Self {
         self.icon_end = Some(icon);
         self
     }
@@ -166,19 +166,19 @@ impl Button {
     /// Makes the button a toggle that reports its state to assistive technology. While it is
     /// `true` a secondary or ghost button is tinted and outlined and its start icon is filled,
     /// so the state does not depend on color; a primary or danger button only reports it.
-    pub fn selected(mut self, selected: bool) -> Self {
+    pub const fn selected(mut self, selected: bool) -> Self {
         self.selected = Some(selected);
         self
     }
 
-    pub fn disabled(mut self, disabled: bool) -> Self {
+    pub const fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
         self
     }
 
     /// Shows a spinner and ignores clicks. The spinner takes the place of the start icon, so
     /// the button keeps its width.
-    pub fn loading(mut self, loading: bool) -> Self {
+    pub const fn loading(mut self, loading: bool) -> Self {
         self.loading = loading;
         self
     }
@@ -453,7 +453,7 @@ impl TextField {
 
     /// Leaves the label to assistive technology and draws the box as a pill: what a search
     /// field is, whose icon says what the label would.
-    fn search(mut self) -> Self {
+    const fn search(mut self) -> Self {
         self.label_hidden = true;
         self.pill = true;
         self
@@ -469,7 +469,7 @@ impl TextField {
         self
     }
 
-    pub fn disabled(mut self, disabled: bool) -> Self {
+    pub const fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
         self
     }
@@ -488,14 +488,14 @@ impl TextField {
     }
 
     /// How many lines tall a multiline field is. Three unless set.
-    pub fn rows(mut self, rows: usize) -> Self {
+    pub const fn rows(mut self, rows: usize) -> Self {
         self.rows = rows;
         self
     }
 
     /// The field takes no more characters than this, and counts them under its end edge.
     /// On a one-line field this replaces the validator of the input state.
-    pub fn max_length(mut self, max_length: usize) -> Self {
+    pub const fn max_length(mut self, max_length: usize) -> Self {
         self.max_length = Some(max_length);
         self
     }
@@ -701,7 +701,7 @@ impl SearchField {
         }
     }
 
-    pub fn disabled(mut self, disabled: bool) -> Self {
+    pub const fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
         self
     }
@@ -821,18 +821,18 @@ impl Badge {
         }
     }
 
-    pub fn tone(mut self, tone: BadgeTone) -> Self {
+    pub const fn tone(mut self, tone: BadgeTone) -> Self {
         self.tone = tone;
         self
     }
 
-    pub fn dot(mut self) -> Self {
+    pub const fn dot(mut self) -> Self {
         self.dot = true;
         self
     }
 
     /// An icon in front of the label, in the label's color.
-    pub fn icon(mut self, icon: tokens::Icon) -> Self {
+    pub const fn icon(mut self, icon: tokens::Icon) -> Self {
         self.icon = Some(icon);
         self
     }
@@ -899,7 +899,7 @@ impl CountBadge {
     }
 
     /// The largest count shown as a number; a larger one shows as `99+`. 99 unless set.
-    pub fn max(mut self, max: i64) -> Self {
+    pub const fn max(mut self, max: i64) -> Self {
         self.max = max;
         self
     }
@@ -1168,7 +1168,7 @@ impl Card {
 
     /// Outlines the card as the current choice. The outline is thick, so the state shows in
     /// the form and not in the color alone.
-    pub fn selected(mut self, selected: bool) -> Self {
+    pub const fn selected(mut self, selected: bool) -> Self {
         self.selected = selected;
         self
     }
@@ -1204,23 +1204,20 @@ impl RenderOnce for Card {
             .flex_col()
             .gap(px(tokens::SPACE_4))
             .p(px(tokens::SPACE_4));
-        let surface = match self.media {
-            Some(media) => {
-                // The padding and the gap the caller set belong under the picture; the rest
-                // of the caller's style belongs to the card as a whole.
-                let mut outer = self.style;
-                body.style().padding.refine(&outer.padding);
-                body.style().gap.refine(&outer.gap);
-                outer.padding = Default::default();
-                outer.gap = Default::default();
-                surface.style().refine(&outer);
-                surface.child(media).child(body.children(self.children))
-            }
-            None => {
-                surface.style().refine(body.style());
-                surface.style().refine(&self.style);
-                surface.children(self.children)
-            }
+        let surface = if let Some(media) = self.media {
+            // The padding and the gap the caller set belong under the picture; the rest
+            // of the caller's style belongs to the card as a whole.
+            let mut outer = self.style;
+            body.style()
+                .padding
+                .refine(&std::mem::take(&mut outer.padding));
+            body.style().gap.refine(&std::mem::take(&mut outer.gap));
+            surface.style().refine(&outer);
+            surface.child(media).child(body.children(self.children))
+        } else {
+            surface.style().refine(body.style());
+            surface.style().refine(&self.style);
+            surface.children(self.children)
         };
         // Drawn over the hairline and over the picture rather than as a wider border, so
         // selecting does not change the size of the card.
@@ -1282,10 +1279,10 @@ impl ThumbnailRatio {
     /// The width divided by the height.
     fn value(self) -> f32 {
         match self {
-            ThumbnailRatio::Ratio16x9 => 16.0 / 9.0,
-            ThumbnailRatio::Ratio1x1 => 1.0,
-            ThumbnailRatio::Ratio4x3 => 4.0 / 3.0,
-            ThumbnailRatio::Ratio9x16 => 9.0 / 16.0,
+            Self::Ratio16x9 => 16.0 / 9.0,
+            Self::Ratio1x1 => 1.0,
+            Self::Ratio4x3 => 4.0 / 3.0,
+            Self::Ratio9x16 => 9.0 / 16.0,
         }
     }
 }
@@ -1341,7 +1338,7 @@ impl Thumbnail {
         self
     }
 
-    pub fn ratio(mut self, ratio: ThumbnailRatio) -> Self {
+    pub const fn ratio(mut self, ratio: ThumbnailRatio) -> Self {
         self.ratio = ratio;
         self
     }
@@ -1353,7 +1350,7 @@ impl Thumbnail {
     }
 
     /// How much was watched, from 0 to 1, as a bar along the bottom edge. Zero draws nothing.
-    pub fn progress(mut self, progress: f32) -> Self {
+    pub const fn progress(mut self, progress: f32) -> Self {
         self.progress = Some(progress);
         self
     }
@@ -1373,7 +1370,7 @@ impl RenderOnce for Thumbnail {
             // bar clipped by the picture's corners would.
             canvas(
                 |_, _, _| {},
-                move |bounds, _, window, _| {
+                move |bounds, (), window, _| {
                     let shape =
                         |paint: Hsla| fill(bounds, paint).corner_radii(Corners::all(radius));
                     let slit = Bounds::new(
@@ -1475,7 +1472,7 @@ impl MediaCard {
         }
     }
 
-    pub fn layout(mut self, layout: MediaCardLayout) -> Self {
+    pub const fn layout(mut self, layout: MediaCardLayout) -> Self {
         self.layout = layout;
         self
     }
@@ -1663,7 +1660,7 @@ impl SectionHeader {
     }
 
     /// An icon in front of the title.
-    pub fn icon(mut self, icon: tokens::Icon) -> Self {
+    pub const fn icon(mut self, icon: tokens::Icon) -> Self {
         self.icon = Some(icon);
         self
     }
@@ -1680,7 +1677,7 @@ impl SectionHeader {
     }
 
     /// The level of the title in the outline of the view. 2 unless set.
-    pub fn level(mut self, level: usize) -> Self {
+    pub const fn level(mut self, level: usize) -> Self {
         self.level = level;
         self
     }

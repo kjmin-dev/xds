@@ -206,7 +206,7 @@ fn says_the_generated_files_are_stale_when_node_is_missing() {
     );
 
     // The same for `theme`, and the palette is changed all the same.
-    let before = std::fs::read(directory.join("design/tokens/palette.json")).expect("a palette");
+    let before = fs::read(directory.join("design/tokens/palette.json")).expect("a palette");
     let (output, stdout, stderr) = run(xds()
         .env("PATH", temp.path())
         .args(["theme", "plum", "--project"])
@@ -217,7 +217,7 @@ fn says_the_generated_files_are_stale_when_node_is_missing() {
         "{stdout}"
     );
     assert_ne!(
-        std::fs::read(directory.join("design/tokens/palette.json")).expect("a palette"),
+        fs::read(directory.join("design/tokens/palette.json")).expect("a palette"),
         before
     );
 }
@@ -298,7 +298,7 @@ fn rejects_a_name_that_would_not_work() {
     assert!(is_empty(&directory));
 }
 
-fn parse(text: &str) -> serde_json::Value {
+fn parse(text: &str) -> Value {
     serde_json::from_str(text).unwrap_or_else(|error| panic!("not JSON ({error}): {text}"))
 }
 
@@ -311,13 +311,13 @@ fn json_output_is_one_document_and_nothing_else() {
     let list = parse(&stdout);
     // Every target of template.json, where `default` may be left out.
     let manifest = parse(include_str!("../../template.json"));
-    let expected: Vec<(&serde_json::Value, bool)> = manifest["targets"]
+    let expected: Vec<(&Value, bool)> = manifest["targets"]
         .as_array()
         .expect("targets")
         .iter()
         .map(|target| (&target["id"], target["default"] == true))
         .collect();
-    let listed: Vec<(&serde_json::Value, bool)> = list["targets"]
+    let listed: Vec<(&Value, bool)> = list["targets"]
         .as_array()
         .expect("targets")
         .iter()
@@ -539,7 +539,7 @@ fn json_errors_go_to_stderr_with_the_documented_exit_codes() {
 /// answers read back from stdout.
 #[test]
 fn mcp_serves_the_tools_over_stdio() {
-    use std::io::{BufRead, BufReader, Write};
+    use std::io::{BufRead as _, BufReader, Write as _};
 
     let temp = TempDir::new().expect("a temporary directory");
     let mut child = xds()
@@ -552,11 +552,11 @@ fn mcp_serves_the_tools_over_stdio() {
         .expect("xds mcp starts");
     let mut stdin = child.stdin.take().expect("stdin");
     let mut stdout = BufReader::new(child.stdout.take().expect("stdout"));
-    let mut send = |message: serde_json::Value| {
+    let mut send = |message: Value| {
         writeln!(stdin, "{message}").expect("xds mcp reads");
         stdin.flush().expect("flushes");
     };
-    let mut answer = |id: u64| -> serde_json::Value {
+    let mut answer = |id: u64| -> Value {
         loop {
             let mut line = String::new();
             assert!(
@@ -569,7 +569,7 @@ fn mcp_serves_the_tools_over_stdio() {
             }
         }
     };
-    let call = |id: u64, name: &str, arguments: serde_json::Value| {
+    let call = |id: u64, name: &str, arguments: Value| {
         serde_json::json!({
             "jsonrpc": "2.0",
             "id": id,
@@ -578,7 +578,7 @@ fn mcp_serves_the_tools_over_stdio() {
         })
     };
     // The text of a tool result, parsed: every tool answers with the command's JSON.
-    let result = |message: &serde_json::Value| -> serde_json::Value {
+    let result = |message: &Value| -> Value {
         assert_eq!(message["result"]["isError"], false, "{message}");
         parse(
             message["result"]["content"][0]["text"]
@@ -680,7 +680,7 @@ fn mcp_serves_the_tools_over_stdio() {
     let added = result(&answer(8));
     assert_eq!(added["dryRun"], true);
     assert!(!directory.join("apps/web").exists());
-    let record = std::fs::read_to_string(directory.join(".xds.json")).expect("a record");
+    let record = fs::read_to_string(directory.join(".xds.json")).expect("a record");
     assert!(
         record.contains("\"indigo\"") && !record.contains("web-react"),
         "{record}"
@@ -993,7 +993,7 @@ fn checks_a_theme_from_a_project_or_the_embedded_release_without_applying_it() {
     fs::write(&theme, "{").unwrap();
     let (output, stdout, stderr) = check(temp.path());
     assert_eq!(output.status.code(), Some(1));
-    assert!(stdout.is_empty());
+    assert_eq!(stdout, "");
     assert_eq!(
         serde_json::from_str::<Value>(&stderr).unwrap()["error"]["kind"],
         "error"

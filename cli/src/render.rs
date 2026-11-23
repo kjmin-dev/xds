@@ -12,7 +12,7 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-use crate::error::{Context, Error, Result};
+use crate::error::{Context as _, Error, Result};
 use crate::inspect::COMPONENTS_PATH;
 use crate::json;
 use crate::manifest::{Manifest, TEMPLATE_ONLY, Target, is_under};
@@ -98,7 +98,7 @@ pub fn render(
     names: &Names,
 ) -> Result<Files> {
     let prefixes = manifest.prefixes(targets);
-    let kinds = manifest.output_kinds(targets);
+    let kinds = Manifest::output_kinds(targets);
     let outputs = build_outputs(template)?;
     let is_selected = |id: &str| targets.iter().any(|target| target.id == id);
     // A marker may also name a shared unit. A block about the JavaScript workspace then follows
@@ -346,7 +346,7 @@ pub fn write_file(root: &Path, path: &str, file: &File) -> Result<()> {
 
 #[cfg(unix)]
 fn make_executable(path: &Path) -> std::io::Result<()> {
-    use std::os::unix::fs::PermissionsExt;
+    use std::os::unix::fs::PermissionsExt as _;
     let mut permissions = fs::metadata(path)?.permissions();
     // Readable implies executable, as `chmod +x` does under the usual umask.
     permissions.set_mode(permissions.mode() | ((permissions.mode() & 0o444) >> 2));

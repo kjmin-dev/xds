@@ -21,7 +21,7 @@ pub struct Manifest {
     pub default_theme: String,
     /// Paths that stay in the template repository. `build.rs` leaves them out of the binary,
     /// so at run time only the tests look at the list.
-    #[cfg_attr(not(test), expect(dead_code))]
+    #[cfg_attr(not(test), expect(dead_code, reason = "only the tests read it"))]
     pub exclude: Vec<String>,
     /// Paths every project gets.
     pub common: Vec<String>,
@@ -86,7 +86,7 @@ pub enum Input {
 impl Input {
     pub const ALL: [Self; 2] = [Self::Pointer, Self::Touch];
 
-    pub fn name(self) -> &'static str {
+    pub const fn name(self) -> &'static str {
         match self {
             Self::Pointer => "pointer",
             Self::Touch => "touch",
@@ -178,7 +178,7 @@ impl Manifest {
     }
 
     /// The generator output kinds a project with these targets needs.
-    pub fn output_kinds<'a>(&self, targets: &[&'a Target]) -> BTreeSet<&'a str> {
+    pub fn output_kinds<'a>(targets: &[&'a Target]) -> BTreeSet<&'a str> {
         targets
             .iter()
             .flat_map(|target| target.outputs.iter().map(String::as_str))

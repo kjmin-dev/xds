@@ -5,7 +5,7 @@
 //! pnpm = "12.19.0"
 //! # @endif
 //! # @if desktop-gpui
-//! rust = "1.99.1"
+//! rust = "1.100.0"
 //! # @endif
 //! ```
 //!
@@ -202,9 +202,9 @@ mod tests {
     #[test]
     fn rejects_markers_that_do_not_pair_up_or_name_no_target() {
         let known = |id: &str| id == "a";
-        assert!(apply("# @if a\n", |_| true, known).is_err());
-        assert!(apply("# @endif\n", |_| true, known).is_err());
-        assert!(apply("# @if\n# @endif\n", |_| true, known).is_err());
-        assert!(apply("# @if typo\n# @endif\n", |_| true, known).is_err());
+        apply("# @if a\n", |_| true, known).unwrap_err();
+        apply("# @endif\n", |_| true, known).unwrap_err();
+        apply("# @if\n# @endif\n", |_| true, known).unwrap_err();
+        apply("# @if typo\n# @endif\n", |_| true, known).unwrap_err();
     }
 }

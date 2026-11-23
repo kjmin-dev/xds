@@ -1,7 +1,7 @@
 //! The template files that `build.rs` packed into the binary.
 
 use std::collections::BTreeMap;
-use std::io::Read;
+use std::io::Read as _;
 use std::sync::OnceLock;
 
 use flate2::read::GzDecoder;

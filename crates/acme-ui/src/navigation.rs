@@ -9,16 +9,17 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 use acme_tokens as tokens;
-use gpui_kit::prelude::FluentBuilder;
+use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
-    AnyElement, App, ElementId, FontFeatures, InteractiveElement, IntoElement, ParentElement,
-    RenderOnce, Role, SharedString, StatefulInteractiveElement, Styled, Window, div, px,
+    AnyElement, App, ElementId, FontFeatures, InteractiveElement as _, IntoElement,
+    ParentElement as _, RenderOnce, Role, SharedString, StatefulInteractiveElement as _,
+    Styled as _, Window, div, px,
 };
 
 use crate::components::count_text;
 use crate::controls::{IconSize, ListRow, ValueHandler, icon, icon_filled};
 use crate::overlays::tooltip;
-use crate::theme::{TypographyExt, color, palette};
+use crate::theme::{TypographyExt as _, color, palette};
 
 /// One place of a [`Sidebar`].
 pub struct SidebarItem {
@@ -46,7 +47,7 @@ impl SidebarItem {
 
     /// How many things the place holds, at the end of its row: a count of things, not of
     /// unread ones, so it is a quiet number and not a badge. Zero shows nothing.
-    pub fn count(mut self, count: i64) -> Self {
+    pub const fn count(mut self, count: i64) -> Self {
         self.count = count;
         self
     }
@@ -116,7 +117,7 @@ impl Sidebar {
     }
 
     /// Shows the places as icons only, at the width of a rail.
-    pub fn collapsed(mut self, collapsed: bool) -> Self {
+    pub const fn collapsed(mut self, collapsed: bool) -> Self {
         self.collapsed = collapsed;
         self
     }

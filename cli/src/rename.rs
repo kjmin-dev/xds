@@ -150,7 +150,7 @@ impl Names {
     }
 }
 
-fn is_identifier_part(character: char) -> bool {
+const fn is_identifier_part(character: char) -> bool {
     character.is_ascii_alphanumeric() || character == '_'
 }
 

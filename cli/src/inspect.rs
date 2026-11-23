@@ -8,7 +8,7 @@ use std::process::{Command, Stdio};
 
 use serde_json::{Map, Value, json};
 
-use crate::error::{Context, Error, Result};
+use crate::error::{Context as _, Error, Result};
 use crate::manifest::{Input, manifest};
 use crate::output::Out;
 use crate::render::{RECORD, Record};
@@ -45,7 +45,7 @@ impl Location {
     /// `project` when it holds design tokens, the embedded template otherwise. A directory that
     /// was named and holds none is an error: the answer would be about something else.
     pub fn find(project: Option<&Path>) -> Result<Self> {
-        let directory = project.unwrap_or(Path::new("."));
+        let directory = project.unwrap_or_else(|| Path::new("."));
         if theme::palette_file(directory).is_file() {
             return Ok(Self::Project(directory.to_path_buf()));
         }
@@ -66,7 +66,7 @@ impl Location {
     }
 
     /// `project` or `template`, for the `source` field of a result.
-    pub fn label(&self) -> &'static str {
+    pub const fn label(&self) -> &'static str {
         match self {
             Self::Project(_) => "project",
             Self::Embedded => "template",
@@ -412,8 +412,7 @@ pub fn load_components(location: &Location) -> Result<Vec<Value>> {
 fn clients(component: &Value) -> Vec<&String> {
     component["clients"]
         .as_object()
-        .map(|clients| clients.keys().collect())
-        .unwrap_or_default()
+        .map_or_default(|clients| clients.keys().collect())
 }
 
 /// What a `differences` entry says about the clients it names: an option or value only they
@@ -545,10 +544,10 @@ pub fn difference_problems(component: &Value) -> Vec<String> {
                 "{at}: status is {status}; the only status is \"planned\""
             ));
         }
-        if !entry
+        if entry
             .get("note")
             .and_then(Value::as_str)
-            .is_some_and(|note| !note.trim().is_empty())
+            .is_none_or(|note| note.trim().is_empty())
         {
             problems.push(format!("{at} has no note saying what changes"));
         }
@@ -685,8 +684,7 @@ pub fn components(args: &ComponentsArgs, out: Out) -> Result<Value> {
             let ids: Vec<&str> = clients(component).into_iter().map(String::as_str).collect();
             let reach = reaches
                 .get(name)
-                .map(|reach| format!("  {}", style.yellow(&format!("({reach})"))))
-                .unwrap_or_default();
+                .map_or_default(|reach| format!("  {}", style.yellow(&format!("({reach})"))));
             say!(out, "{:width$}  {}{reach}", "", style.dim(&ids.join(", ")));
         }
         say!(
@@ -909,7 +907,7 @@ impl Side {
         })
     }
 
-    fn color(&self, dark: bool) -> [u8; 3] {
+    const fn color(&self, dark: bool) -> [u8; 3] {
         match self {
             Self::Fixed(color) => *color,
             Self::Token {
@@ -978,7 +976,7 @@ pub fn contrast(args: &ContrastArgs, out: Out) -> Result<Value> {
         say!(
             out,
             "  {}{}  {}  {}:1   {}   {}   {}",
-            mode.map(|mode| format!("{mode:<6}")).unwrap_or_default(),
+            mode.map_or_default(|mode| format!("{mode:<6}")),
             hex(text),
             hex(surface),
             style.bold(&format!("{ratio:.2}")),
@@ -1081,13 +1079,7 @@ pub fn doctor(args: &DoctorArgs, out: Out) -> Result<Value> {
 
     // The tokens and the theme they hold.
     let palette_file = theme::palette_file(&project);
-    if !palette_file.is_file() {
-        check(
-            "tokens",
-            "failed",
-            format!("{} has no {PALETTE_PATH}", project.display()),
-        );
-    } else {
+    if palette_file.is_file() {
         let source = Source::Project(&project);
         match load_tokens(&source) {
             Ok(tokens) => check("tokens", "ok", format!("{} tokens load", tokens.len())),
@@ -1161,46 +1153,49 @@ pub fn doctor(args: &DoctorArgs, out: Out) -> Result<Value> {
         }
 
         // Node, and with it whether the generated files are current.
-        match theme::check_node() {
-            Err(reason) => {
-                check("node", "warning", reason);
-                check(
+        if let Err(reason) = theme::check_node() {
+            check("node", "warning", reason);
+            check(
+                "generated",
+                "skipped",
+                "needs Node to compare the generated files with the tokens".to_owned(),
+            );
+        } else {
+            check("node", "ok", "node can run the token generator".to_owned());
+            let script = project.join(GENERATOR);
+            match Command::new("node")
+                .arg(&script)
+                .arg("--check")
+                .stdin(Stdio::null())
+                .output()
+            {
+                Ok(output) if output.status.success() => check(
+                    "generated",
+                    "ok",
+                    "the generated token files match the tokens".to_owned(),
+                ),
+                Ok(output) => {
+                    let mut text = String::from_utf8_lossy(&output.stderr).into_owned();
+                    text.push_str(&String::from_utf8_lossy(&output.stdout));
+                    check(
+                        "generated",
+                        "failed",
+                        format!("run `mise run tokens`. The generator said: {}", text.trim()),
+                    );
+                }
+                Err(error) => check(
                     "generated",
                     "skipped",
-                    "needs Node to compare the generated files with the tokens".to_owned(),
-                );
-            }
-            Ok(()) => {
-                check("node", "ok", "node can run the token generator".to_owned());
-                let script = project.join(GENERATOR);
-                match Command::new("node")
-                    .arg(&script)
-                    .arg("--check")
-                    .stdin(Stdio::null())
-                    .output()
-                {
-                    Ok(output) if output.status.success() => check(
-                        "generated",
-                        "ok",
-                        "the generated token files match the tokens".to_owned(),
-                    ),
-                    Ok(output) => {
-                        let mut text = String::from_utf8_lossy(&output.stderr).into_owned();
-                        text.push_str(&String::from_utf8_lossy(&output.stdout));
-                        check(
-                            "generated",
-                            "failed",
-                            format!("run `mise run tokens`. The generator said: {}", text.trim()),
-                        );
-                    }
-                    Err(error) => check(
-                        "generated",
-                        "skipped",
-                        format!("{} could not be started: {error}", script.display()),
-                    ),
-                }
+                    format!("{} could not be started: {error}", script.display()),
+                ),
             }
         }
+    } else {
+        check(
+            "tokens",
+            "failed",
+            format!("{} has no {PALETTE_PATH}", project.display()),
+        );
     }
 
     let width = checks

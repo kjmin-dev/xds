@@ -16,7 +16,7 @@ members = [
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.99"
+rust-version = "1.100"
 publish = false
 
 # @if desktop-gpui
@@ -36,13 +36,80 @@ sys-locale = "0.3.2"
 
 # @endif
 
+# The lints are the Rust guidelines that hold whoever writes the code, a person or a model, to the
+# pinned toolchain's idioms: Clippy proposes an API once `rust-version` reaches the release that
+# stabilized it. AGENTS.md lists the idioms no lint knows.
 [workspace.lints.rust]
 unsafe_code = "deny"
+ambiguous_negative_literals = "warn"
+closure_returning_async_block = "warn"
+explicit_outlives_requirements = "warn"
+impl_trait_redundant_captures = "warn"
+redundant_imports = "warn"
+redundant_lifetimes = "warn"
+single_use_lifetimes = "warn"
+trivial_numeric_casts = "warn"
+unit_bindings = "warn"
+unused_import_braces = "warn"
+unused_lifetimes = "warn"
+unused_macro_rules = "warn"
+unused_qualifications = "warn"
 
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
 dbg_macro = "warn"
 todo = "warn"
+
+# Pedantic lints that are wrong for this code.
+# A GPUI builder returns `Self` from every method, and nothing is gained by marking each one.
+must_use_candidate = "allow"
+return_self_not_must_use = "allow"
+# A render function is one long expression, and splitting it by length hides the tree it draws.
+too_many_lines = "allow"
+# Pixel geometry and color channels: the casts are between values that are in range by design.
+cast_possible_truncation = "allow"
+cast_possible_wrap = "allow"
+cast_precision_loss = "allow"
+cast_sign_loss = "allow"
+# Its suggestion names a GPUI method by a path that is not public, and a closure reads better
+# beside the other closures of a builder chain.
+redundant_closure_for_method_calls = "allow"
+# Tokens are compared with the exact values they were written with.
+float_cmp = "allow"
+similar_names = "allow"
+struct_excessive_bools = "allow"
+
+# From the nursery: the ones that are right here, and whose suggestions hold.
+equatable_if_let = "warn"
+missing_const_for_fn = "warn"
+needless_collect = "warn"
+or_fun_call = "warn"
+redundant_clone = "warn"
+use_self = "warn"
+
+# From the restriction group.
+allow_attributes = "warn"
+allow_attributes_without_reason = "warn"
+assertions_on_result_states = "warn"
+empty_enum_variants_with_brackets = "warn"
+empty_structs_with_brackets = "warn"
+format_push_string = "warn"
+get_unwrap = "warn"
+if_then_some_else_none = "warn"
+needless_raw_strings = "warn"
+pathbuf_init_then_push = "warn"
+rc_buffer = "warn"
+rc_mutex = "warn"
+redundant_test_prefix = "warn"
+return_and_then = "warn"
+str_to_string = "warn"
+string_add = "warn"
+string_lit_chars_any = "warn"
+try_err = "warn"
+unnecessary_self_imports = "warn"
+unused_trait_names = "warn"
+verbose_file_reads = "warn"
 
 # @if desktop-gpui
 # GPUI is unusably slow without optimizations, even in dev builds.

@@ -10,14 +10,14 @@
 use std::rc::Rc;
 
 use acme_tokens as tokens;
-use chrono::{Datelike, NaiveDate, Weekday};
+use chrono::{Datelike as _, NaiveDate, Weekday};
 use gpui_kit::{
-    AnyElement, App, ElementId, InteractiveElement, IntoElement, ParentElement, RenderOnce, Role,
-    SharedString, StatefulInteractiveElement, Styled, Window, div, px,
+    AnyElement, App, ElementId, InteractiveElement as _, IntoElement, ParentElement as _,
+    RenderOnce, Role, SharedString, StatefulInteractiveElement as _, Styled as _, Window, div, px,
 };
 
 use crate::date_picker::{CalendarField, CalendarLocale, Choosing, NodeFlags, a11y_flags};
-use crate::theme::{TypographyExt, color};
+use crate::theme::{TypographyExt as _, color};
 
 // ---------------------------------------------------------------- ranges
 
@@ -136,7 +136,7 @@ impl DayMarks {
 
     /// Whether the day is selected for assistive technology: every day of the range, and the
     /// start alone, but not a preview.
-    pub(crate) fn selected(&self) -> bool {
+    pub(crate) const fn selected(self) -> bool {
         (self.start || self.end || self.band.is_some()) && !self.preview
     }
 }
@@ -205,7 +205,7 @@ pub(crate) fn months_for_width(width: f32) -> u32 {
 /// The range as the field shows it: both days in the medium form, joined by an en dash. chrono
 /// has no formatter for an interval, which would leave out what the two days share, as the
 /// web's `formatRange` does ("Mar 10 – 14, 2026").
-pub(crate) fn format_range(range: &DateRange, locale: &CalendarLocale) -> String {
+pub(crate) fn format_range(range: DateRange, locale: CalendarLocale) -> String {
     format!(
         "{} \u{2013} {}",
         locale.medium(range.start),
@@ -237,7 +237,7 @@ impl RangeChoosing {
     }
 
     /// A day's name for assistive technology: its long form, after the name of the end it is.
-    pub(crate) fn day_name(&self, marks: &DayMarks, long: String) -> SharedString {
+    pub(crate) fn day_name(&self, marks: DayMarks, long: &str) -> SharedString {
         let mut name = String::new();
         if marks.start {
             name.push_str(&self.start_label);
@@ -247,7 +247,7 @@ impl RangeChoosing {
             name.push_str(&self.end_label);
             name.push_str(", ");
         }
-        name.push_str(&long);
+        name.push_str(long);
         name.into()
     }
 
@@ -257,11 +257,11 @@ impl RangeChoosing {
         &self,
         id: &ElementId,
         draft: &[NaiveDate],
-        locale: &CalendarLocale,
+        locale: CalendarLocale,
         c: &tokens::Colors,
     ) -> AnyElement {
         let shown = |day: Option<&NaiveDate>| {
-            day.map_or_else(|| "\u{2013}".to_string(), |day| locale.medium(*day))
+            day.map_or_else(|| "\u{2013}".to_owned(), |day| locale.medium(*day))
         };
         let start = format!("{}: {}", self.start_label, shown(draft.first()));
         let end = format!("{}: {}", self.end_label, shown(draft.get(1)));
@@ -348,32 +348,32 @@ impl DateRangePicker {
     }
 
     /// The chosen range. Nothing is chosen unless this is set.
-    pub fn value(mut self, value: DateRange) -> Self {
+    pub const fn value(mut self, value: DateRange) -> Self {
         self.value = Some(value);
         self
     }
 
     /// The first day that can be chosen.
-    pub fn min(mut self, min: NaiveDate) -> Self {
+    pub const fn min(mut self, min: NaiveDate) -> Self {
         self.min = Some(min);
         self
     }
 
     /// The last day that can be chosen.
-    pub fn max(mut self, max: NaiveDate) -> Self {
+    pub const fn max(mut self, max: NaiveDate) -> Self {
         self.max = Some(max);
         self
     }
 
     /// The fewest days the end can be after the start: 1 for a stay of at least one night.
     /// With 0, the default, the start can be the end too.
-    pub fn min_length(mut self, days: u32) -> Self {
+    pub const fn min_length(mut self, days: u32) -> Self {
         self.min_length = days;
         self
     }
 
     /// The most days the end can be after the start. There is no limit unless this is set.
-    pub fn max_length(mut self, days: u32) -> Self {
+    pub const fn max_length(mut self, days: u32) -> Self {
         self.max_length = Some(days);
         self
     }
@@ -395,7 +395,7 @@ impl DateRangePicker {
         self
     }
 
-    pub fn disabled(mut self, disabled: bool) -> Self {
+    pub const fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
         self
     }
@@ -437,7 +437,7 @@ impl DateRangePicker {
 
     /// Whether the calendar is open when the picker first appears, for a screenshot of the
     /// design preview. After that it opens and closes itself.
-    pub(crate) fn default_open(mut self, open: bool) -> Self {
+    pub(crate) const fn default_open(mut self, open: bool) -> Self {
         self.default_open = open;
         self
     }
@@ -449,7 +449,7 @@ impl RenderOnce for DateRangePicker {
         CalendarField {
             id: self.id,
             label: self.label,
-            shown: self.value.map(|range| format_range(&range, &locale).into()),
+            shown: self.value.map(|range| format_range(range, locale).into()),
             chosen: self.value.map(|range| range.start),
             min: self.min,
             max: self.max,
@@ -552,6 +552,10 @@ mod tests {
         day_marks(date(day), &days(range), preview.map(date), Weekday::Sun)
     }
 
+    #[expect(
+        clippy::unnecessary_wraps,
+        reason = "written as the optional band the marks hold, so a test compares the two directly"
+    )]
     const fn band(leading: BandEdge, trailing: BandEdge) -> Option<Band> {
         Some(Band { leading, trailing })
     }
@@ -706,11 +710,11 @@ mod tests {
     fn the_field_joins_both_days_in_the_medium_form() {
         let range = DateRange::new(date("2026-03-10"), date("2026-03-14"));
         assert_eq!(
-            format_range(&range, &CalendarLocale::from_tag("en-US")),
+            format_range(range, CalendarLocale::from_tag("en-US")),
             "Mar 10, 2026 \u{2013} Mar 14, 2026"
         );
         assert_eq!(
-            format_range(&range, &CalendarLocale::from_tag("ko-KR")),
+            format_range(range, CalendarLocale::from_tag("ko-KR")),
             "2026년 3월 10일 \u{2013} 2026년 3월 14일"
         );
     }

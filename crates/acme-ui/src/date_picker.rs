@@ -17,18 +17,18 @@ use std::rc::Rc;
 use std::sync::OnceLock;
 
 use acme_tokens as tokens;
-use chrono::{Datelike, Local, Locale, Months, NaiveDate, Weekday};
-use gpui_kit::base::FocusTrapElement;
+use chrono::{Datelike as _, Local, Locale, Months, NaiveDate, Weekday};
+use gpui_kit::base::FocusTrapElement as _;
 use gpui_kit::component::{
-    Selectable, ThemeStyled,
+    Selectable, ThemeStyled as _,
     popover::{Popover, PopoverState},
 };
-use gpui_kit::prelude::FluentBuilder;
+use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
     Anchor, AnyElement, App, Bounds, Div, Element, ElementId, Entity, FocusHandle, GlobalElementId,
-    InspectorElementId, InteractiveElement, IntoElement, KeyDownEvent, LayoutId, MouseButton,
-    ParentElement, Pixels, RenderOnce, Role, SharedString, StatefulInteractiveElement,
-    StyleRefinement, Styled, Window, accesskit, div, px,
+    InspectorElementId, InteractiveElement as _, IntoElement, KeyDownEvent, LayoutId, MouseButton,
+    ParentElement as _, Pixels, RenderOnce, Role, SharedString, StatefulInteractiveElement as _,
+    StyleRefinement, Styled as _, Window, accesskit, div, px,
 };
 
 use crate::components::{
@@ -39,7 +39,7 @@ use crate::date_range_picker::{
     BandEdge, DateRange, DayMarks, RangeChoice, RangeChoosing, day_marks, months_for_width,
     range_day_choice,
 };
-use crate::theme::{TypographyExt, color, palette};
+use crate::theme::{TypographyExt as _, color, palette};
 
 // ---------------------------------------------------------------- dates
 
@@ -84,9 +84,9 @@ pub(crate) fn month_button_enabled(
     max: Option<NaiveDate>,
 ) -> bool {
     if months < 0 {
-        !min.is_some_and(|min| first_of_month(day) <= min)
+        min.is_none_or(|min| first_of_month(day) > min)
     } else {
-        !max.is_some_and(|max| last_of_month(day) >= max)
+        max.is_none_or(|max| last_of_month(day) < max)
     }
 }
 
@@ -278,7 +278,7 @@ impl CalendarLocale {
             .find(|(code, _)| *code == language)
             .map_or_else(
                 || format!("{language}_{}", language.to_ascii_uppercase()),
-                |(_, name)| (*name).to_string(),
+                |(_, name)| (*name).to_owned(),
             );
         let locale = region
             .map(|region| format!("{language}_{region}"))
@@ -318,12 +318,12 @@ impl CalendarLocale {
         }
     }
 
-    pub(crate) fn first_weekday(&self) -> Weekday {
+    pub(crate) const fn first_weekday(self) -> Weekday {
         self.first_weekday
     }
 
     /// The short form with its numbers unpadded and the full year: "%Y년 %-m월 %-d일".
-    fn spelled_short(&self) -> String {
+    fn spelled_short(self) -> String {
         pure_rust_locales::locale_match!(self.locale => LC_TIME::D_FMT)
             .replace("%m", "%-m")
             .replace("%d", "%-d")
@@ -331,15 +331,15 @@ impl CalendarLocale {
             .replace("%y", "%Y")
     }
 
-    fn format(&self, day: NaiveDate, pattern: &str) -> String {
+    fn format(self, day: NaiveDate, pattern: &str) -> String {
         day.format_localized(pattern, self.locale)
             .to_string()
             .trim()
-            .to_string()
+            .to_owned()
     }
 
     /// The form the field shows: "Mar 10, 2026".
-    pub(crate) fn medium(&self, day: NaiveDate) -> String {
+    pub(crate) fn medium(self, day: NaiveDate) -> String {
         match self.order {
             LeadingField::Month => self.format(day, "%b %-d, %Y"),
             LeadingField::Day => self.format(day, "%-d %b %Y"),
@@ -348,7 +348,7 @@ impl CalendarLocale {
     }
 
     /// The name of a day, in full: "Tuesday, March 10, 2026".
-    pub(crate) fn long(&self, day: NaiveDate) -> String {
+    pub(crate) fn long(self, day: NaiveDate) -> String {
         match self.order {
             LeadingField::Month => self.format(day, "%A, %B %-d, %Y"),
             LeadingField::Day => self.format(day, "%A %-d %B %Y"),
@@ -357,7 +357,7 @@ impl CalendarLocale {
     }
 
     /// The month and year the calendar shows: "March 2026", "2026년 3월".
-    pub(crate) fn month_year(&self, day: NaiveDate) -> String {
+    pub(crate) fn month_year(self, day: NaiveDate) -> String {
         if self.order == LeadingField::Year {
             // The short form up to the month and the word that follows it, where it has one
             // ("%Y년 %-m월"). A form of bare numbers ("%Y-%m-%d") has none, and takes the name.
@@ -380,7 +380,7 @@ impl CalendarLocale {
 
     /// The days of the week from the first, each with its initial and its full name. glibc
     /// has no narrow names, so the initial is the first letter of the short one.
-    pub(crate) fn weekdays(&self) -> [(String, String); 7] {
+    pub(crate) fn weekdays(self) -> [(String, String); 7] {
         let short = pure_rust_locales::locale_match!(self.locale => LC_TIME::ABDAY);
         let long = pure_rust_locales::locale_match!(self.locale => LC_TIME::DAY);
         let mut day = self.first_weekday;
@@ -388,7 +388,7 @@ impl CalendarLocale {
             let index = day.num_days_from_sunday() as usize;
             day = day.succ();
             let initial = short[index].trim().chars().take(1).collect::<String>();
-            (initial.to_uppercase(), long[index].to_string())
+            (initial.to_uppercase(), long[index].to_owned())
         })
     }
 }
@@ -412,7 +412,7 @@ pub(crate) struct Flagged<E> {
     flags: NodeFlags,
 }
 
-pub(crate) fn a11y_flags<E: Element>(inner: E, flags: NodeFlags) -> Flagged<E> {
+pub(crate) const fn a11y_flags<E: Element>(inner: E, flags: NodeFlags) -> Flagged<E> {
     Flagged { inner, flags }
 }
 
@@ -562,19 +562,19 @@ impl DatePicker {
     }
 
     /// The chosen day. Nothing is chosen unless this is set.
-    pub fn value(mut self, value: NaiveDate) -> Self {
+    pub const fn value(mut self, value: NaiveDate) -> Self {
         self.value = Some(value);
         self
     }
 
     /// The first day that can be chosen.
-    pub fn min(mut self, min: NaiveDate) -> Self {
+    pub const fn min(mut self, min: NaiveDate) -> Self {
         self.min = Some(min);
         self
     }
 
     /// The last day that can be chosen.
-    pub fn max(mut self, max: NaiveDate) -> Self {
+    pub const fn max(mut self, max: NaiveDate) -> Self {
         self.max = Some(max);
         self
     }
@@ -596,7 +596,7 @@ impl DatePicker {
         self
     }
 
-    pub fn disabled(mut self, disabled: bool) -> Self {
+    pub const fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
         self
     }
@@ -626,7 +626,7 @@ impl DatePicker {
 
     /// Whether the calendar is open when the picker first appears, for a screenshot of the
     /// design preview. After that it opens and closes itself.
-    pub(crate) fn default_open(mut self, open: bool) -> Self {
+    pub(crate) const fn default_open(mut self, open: bool) -> Self {
         self.default_open = open;
         self
     }
@@ -787,7 +787,7 @@ pub(crate) enum Choosing {
 }
 
 /// What the calendar is drawn from, shared with the popover, which draws it whenever it draws.
-/// DatePicker and DateRangePicker draw the same calendar: one month or more, each a grid of
+/// `DatePicker` and `DateRangePicker` draw the same calendar: one month or more, each a grid of
 /// days, which a range marks with a band between its ends.
 struct Calendar {
     id: ElementId,
@@ -931,7 +931,7 @@ impl Calendar {
 
     fn render(
         self: &Rc<Self>,
-        popover: Entity<PopoverState>,
+        popover: &Entity<PopoverState>,
         window: &mut Window,
         cx: &mut App,
     ) -> AnyElement {
@@ -995,7 +995,7 @@ impl Calendar {
                 } else {
                     None
                 };
-                self.month(*month, before, after, &draft, active, &popover, window, cx)
+                self.month(*month, before, after, &draft, active, popover, window, cx)
             })
             .collect::<Vec<_>>();
 
@@ -1017,9 +1017,7 @@ impl Calendar {
             .shadow(shadow(tokens::SHADOW_RAISED))
             .when_some(
                 match &self.choosing {
-                    Choosing::Range(range) => {
-                        Some(range.summary(&self.id, &draft, &self.locale, c))
-                    }
+                    Choosing::Range(range) => Some(range.summary(&self.id, &draft, self.locale, c)),
                     Choosing::Day { .. } => None,
                 },
                 |calendar, summary| calendar.child(summary),
@@ -1039,7 +1037,10 @@ impl Calendar {
 
     /// One month: its heading between the month buttons that sit at the ends of the calendar,
     /// and its grid of days.
-    #[allow(clippy::too_many_arguments)]
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "what a frame hands down; a struct would only name the arguments again"
+    )]
     fn month(
         self: &Rc<Self>,
         month: NaiveDate,
@@ -1162,7 +1163,10 @@ impl Calendar {
             .into_any_element()
     }
 
-    #[allow(clippy::too_many_arguments)]
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "what a frame hands down; a struct would only name the arguments again"
+    )]
     fn day(
         self: &Rc<Self>,
         day: NaiveDate,
@@ -1282,7 +1286,7 @@ impl Calendar {
                 .bg(color(c.date_picker_range_background))
         });
         let name = match &self.choosing {
-            Choosing::Range(range) => range.day_name(&marks, self.locale.long(day)),
+            Choosing::Range(range) => range.day_name(marks, &self.locale.long(day)),
             Choosing::Day { .. } => self.locale.long(day).into(),
         };
         let cell = div()
@@ -1333,7 +1337,7 @@ impl Calendar {
     }
 }
 
-/// What DatePicker and DateRangePicker share: the label, the field, the popover with the
+/// What `DatePicker` and `DateRangePicker` share: the label, the field, the popover with the
 /// calendar, and the description or the error.
 pub(crate) struct CalendarField {
     pub(crate) id: ElementId,
@@ -1364,7 +1368,7 @@ impl CalendarField {
             label: self.label.clone(),
             shown: self.shown,
             placeholder: self.placeholder,
-            note: self.error.clone().or(self.description.clone()),
+            note: self.error.clone().or_else(|| self.description.clone()),
             invalid: self.error.is_some(),
             disabled: self.disabled,
             open: false,
@@ -1407,7 +1411,7 @@ impl CalendarField {
                 .trigger(field)
                 .content(move |_, window, cx| {
                     let popover = cx.entity();
-                    calendar.render(popover, window, cx)
+                    calendar.render(&popover, window, cx)
                 })
                 .into_any_element()
         };
@@ -1615,7 +1619,7 @@ mod tests {
         assert_eq!(us.long(day), "Tuesday, March 10, 2026");
         assert_eq!(us.month_year(day), "March 2026");
         assert_eq!(us.first_weekday(), Weekday::Sun);
-        assert_eq!(us.weekdays()[0], ("S".to_string(), "Sunday".to_string()));
+        assert_eq!(us.weekdays()[0], ("S".to_owned(), "Sunday".to_owned()));
 
         let korean = CalendarLocale::from_tag("ko-KR");
         assert_eq!(korean.medium(day), "2026년 3월 10일");

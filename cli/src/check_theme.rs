@@ -9,7 +9,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use tempfile::{TempDir, tempdir};
 
-use crate::error::{Context, Error, Result};
+use crate::error::{Context as _, Error, Result};
 use crate::inspect::Location;
 use crate::output::Out;
 use crate::{render, say, template, theme};
@@ -66,7 +66,7 @@ pub enum Format {
 
 impl Format {
     /// The format's name, as the token tool takes it.
-    fn field_format(self) -> &'static str {
+    const fn field_format(self) -> &'static str {
         match self {
             Self::Css => "css",
             Self::Compose => "compose",
@@ -75,7 +75,7 @@ impl Format {
     }
 
     /// The field of the JSON result that holds what was written.
-    fn field(self) -> &'static str {
+    const fn field(self) -> &'static str {
         match self {
             Self::Css => "css",
             Self::Compose => "kotlin",
@@ -119,7 +119,7 @@ impl Checker {
             let path = format!("{SCRIPT_DIR}/{file}");
             render::write_file(work.path(), &path, &template.files[&path])?;
         }
-        if let Location::Embedded = location {
+        if matches!(location, Location::Embedded) {
             for (path, file) in &template.files {
                 if path == "design/theme-contract.json"
                     || path.starts_with("design/tokens/")
@@ -333,7 +333,8 @@ fn kotlin_value(name: &str) -> String {
             value.push(character);
         }
     }
-    value + "Theme"
+    value.push_str("Theme");
+    value
 }
 
 /// The TypeScript value a theme of this name is written as, as the token tool names it:
@@ -342,16 +343,17 @@ fn typescript_value(name: &str) -> String {
     let pascal = kotlin_value(name);
     let mut characters = pascal.chars();
     match characters.next() {
-        Some(first) => first.to_ascii_lowercase().to_string() + characters.as_str(),
+        Some(first) => format!("{}{}", first.to_ascii_lowercase(), characters.as_str()),
         None => pascal,
     }
 }
 
 /// The project's theme composable without its `Theme`: `Orbit` for `OrbitTheme`.
 fn theme_identifier(name: &str, title: &str) -> String {
-    crate::rename::Names::new(name, Some(title))
-        .map(|names| names.identifier().to_owned())
-        .unwrap_or_else(|_| crate::rename::capitalize(name))
+    crate::rename::Names::new(name, Some(title)).map_or_else(
+        |_| crate::rename::capitalize(name),
+        |names| names.identifier().to_owned(),
+    )
 }
 
 #[cfg(test)]

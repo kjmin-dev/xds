@@ -2,12 +2,12 @@
 
 use std::collections::BTreeMap;
 use std::fs;
-use std::io::{IsTerminal, stdout};
+use std::io::{IsTerminal as _, stdout};
 use std::path::{Path, PathBuf};
 
 use serde_json::{Value, json};
 
-use crate::error::{Context, Error, Result};
+use crate::error::{Context as _, Error, Result};
 use crate::manifest::{self as target_manifest, Manifest, Target, manifest};
 use crate::output::Out;
 use crate::preview::{Layout, Preview};
@@ -132,8 +132,7 @@ pub fn list(out: Out) -> Result<Value> {
         let swatch = theme
             .ramp("accent")
             .get(6)
-            .map(|color| style.swatch(*color))
-            .unwrap_or_default();
+            .map_or_default(|color| style.swatch(*color));
         let gap = if swatch.is_empty() { "" } else { " " };
         let default = if theme.name == manifest.default_theme {
             " (default)"
@@ -265,8 +264,7 @@ fn pick_theme<'a>(
             return previews[index].lines(Layout::SideBySide, style);
         }
         Layout::fit(columns, Some(rows))
-            .map(|layout| previews[index].lines(layout, style))
-            .unwrap_or_default()
+            .map_or_default(|layout| previews[index].lines(layout, style))
     })?;
     Ok(&themes[index])
 }
@@ -290,9 +288,9 @@ pub fn create(args: &CreateArgs, out: Out) -> Result<Value> {
         rename::validate_title(title)?;
     }
     if let Some(web) = &args.wrap
-        && !manifest
+        && manifest
             .target(web)
-            .is_some_and(|target| target.package.is_some())
+            .is_none_or(|target| target.package.is_none())
     {
         return Err(Error::Message(format!(
             "--wrap needs a web target, but {web} is not one"
@@ -815,7 +813,7 @@ pub fn add(args: &AddArgs, out: Out) -> Result<Value> {
                 say!(
                     out,
                     "\nRegenerated the token files from the project's tokens."
-                )
+                );
             }
             Regenerated::Skipped(reason) | Regenerated::Failed(reason) => {
                 tokens = "from-template";
@@ -879,7 +877,7 @@ pub fn theme(args: &ThemeArgs, out: Out) -> Result<Value> {
                 .find(|theme| theme::is_applied(&palette, theme));
             let initial = applied
                 .map(|theme| theme.name.as_str())
-                .or(record.as_ref().map(|record| record.theme.as_str()))
+                .or_else(|| record.as_ref().map(|record| record.theme.as_str()))
                 .unwrap_or_default();
             pick_theme(style, &source, &themes, initial)?
         }

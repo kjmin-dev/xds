@@ -12,17 +12,17 @@ use std::time::Duration;
 
 use acme_tokens as tokens;
 use chrono::NaiveDate;
-use gpui_kit::base::ElementExt;
+use gpui_kit::base::ElementExt as _;
 use gpui_kit::component::{
-    Disableable,
+    Disableable as _,
     input::{InputState, TextareaState},
 };
-use gpui_kit::prelude::FluentBuilder;
+use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
-    App, AppContext, Bounds, ClickEvent, Context, Div, Entity, Image, ImageFormat,
-    InteractiveElement, IntoElement, ObjectFit, ParentElement, Pixels, Render, Role, ScrollHandle,
-    SharedString, StatefulInteractiveElement, Styled, StyledImage, Window, WindowBounds,
-    WindowOptions, div, img, point, px, relative, size,
+    App, AppContext as _, Bounds, ClickEvent, Context, Div, Entity, Image, ImageFormat,
+    InteractiveElement as _, IntoElement, ObjectFit, ParentElement as _, Pixels, Render, Role,
+    ScrollHandle, SharedString, StatefulInteractiveElement as _, Styled as _, StyledImage as _,
+    Window, WindowBounds, WindowOptions, div, img, point, px, relative, size,
 };
 
 use crate::{
@@ -32,8 +32,8 @@ use crate::{
     MenuAlign, MenuItem, Person, ProgressBar, RadioGroup, RadioOption, SearchField, SectionHeader,
     SegmentedControl, Select, SelectOption, Sidebar, SidebarItem, SidebarSection, Skeleton,
     SkeletonShape, Slider, SpinnerSize, TabItem, Tabs, TextField, Thumbnail, ThumbnailRatio, Toast,
-    TooltipPlacement, TypographyExt, button, card, checkbox, color, divider, icon, icon_button,
-    icon_filled, mode, palette, set_mode, spinner, switch, text, tooltip,
+    TooltipPlacement, TypographyExt as _, button, card, checkbox, color, divider, icon,
+    icon_button, icon_filled, mode, palette, set_mode, spinner, switch, text, tooltip,
 };
 
 /// Component colors are shown by the components that use them, not as swatches.
@@ -531,6 +531,10 @@ impl DesignPreview {
     /// list and a tooltip open beside their control, so without an offset the preview starts at
     /// that control. A toast opened this way stays until it is closed, so a capture does not race
     /// its timer.
+    ///
+    /// # Panics
+    ///
+    /// When the window cannot open.
     pub fn open_scripted(offset: f32, overlay: Option<PreviewOverlay>, cx: &mut App) {
         let options = WindowOptions {
             window_bounds: Some(WindowBounds::Windowed(Bounds::centered(
@@ -582,7 +586,7 @@ impl DesignPreview {
 }
 
 /// A day of the preview's fixtures.
-fn day(year: i32, month: u32, day: u32) -> NaiveDate {
+const fn day(year: i32, month: u32, day: u32) -> NaiveDate {
     NaiveDate::from_ymd_opt(year, month, day).expect("a fixture day is a real day")
 }
 
@@ -1004,7 +1008,7 @@ impl Render for DesignPreview {
         ];
         let searched = match &self.searched {
             Some(query) => format!("Searched for “{query}”."),
-            None => "Enter searches.".to_string(),
+            None => "Enter searches.".to_owned(),
         };
 
         let state_chips = labelled("state", secondary).child(
@@ -1428,7 +1432,7 @@ impl Render for DesignPreview {
                 div().w(px(460.0)).child(
                     MediaCard::new("card-bread", "Bread at home, in four steps")
                         .layout(MediaCardLayout::Horizontal)
-                        .src(picture.clone())
+                        .src(picture)
                         .badge("8:30")
                         .meta(["Grace Bakes", "2 weeks ago"])
                         .action(card_menu("card-bread-menu", "bread at home"))
@@ -1575,7 +1579,7 @@ impl Render for DesignPreview {
             .description(
                 "The report and its 12 comments are removed for everyone. This cannot be undone.",
             )
-            .on_close(cx.listener(|this, _: &(), _, cx| {
+            .on_close(cx.listener(|this, (): &(), _, cx| {
                 this.confirming = false;
                 cx.notify();
             }))
@@ -1609,7 +1613,7 @@ impl Render for DesignPreview {
             .open(self.asking)
             .dismissible(false)
             .description("You edited the report in another window.")
-            .on_close(cx.listener(|this, _: &(), _, cx| {
+            .on_close(cx.listener(|this, (): &(), _, cx| {
                 this.asking = false;
                 cx.notify();
             }))
@@ -1643,7 +1647,7 @@ impl Render for DesignPreview {
 
         let toast = Toast::new("draft-toast", "The draft was deleted.")
             .open(self.toast_open)
-            .on_close(cx.listener(|this, _: &(), _, cx| {
+            .on_close(cx.listener(|this, (): &(), _, cx| {
                 this.toast_open = false;
                 cx.notify();
             }))
@@ -2460,7 +2464,7 @@ mod tests {
         assert_eq!("dialog".parse(), Ok(PreviewOverlay::Dialog));
         assert_eq!("toast".parse(), Ok(PreviewOverlay::Toast));
         assert_eq!("tooltip".parse(), Ok(PreviewOverlay::Tooltip));
-        assert!("sheet".parse::<PreviewOverlay>().is_err());
+        "sheet".parse::<PreviewOverlay>().unwrap_err();
     }
 
     #[test]

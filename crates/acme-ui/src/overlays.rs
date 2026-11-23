@@ -21,25 +21,25 @@ use std::time::Duration;
 use acme_tokens as tokens;
 use gpui_kit::base::animation::cubic_bezier;
 use gpui_kit::base::{
-    Dialog as DialogHost, DialogBackdrop, DialogDescription, DialogPopup, DialogTitle, ElementExt,
-    Placement, Positioner, Tooltip as TooltipPopup,
+    Dialog as DialogHost, DialogBackdrop, DialogDescription, DialogPopup, DialogTitle,
+    ElementExt as _, Placement, Positioner, Tooltip as TooltipPopup,
 };
 use gpui_kit::component::{
-    Selectable, ThemeStyled,
+    Selectable, ThemeStyled as _,
     popover::{Popover, PopoverState},
 };
-use gpui_kit::prelude::FluentBuilder;
+use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
-    Anchor, Animation, AnimationExt, AnyElement, App, Bounds, BoxShadow, ClickEvent, DispatchPhase,
-    Div, ElementId, Entity, FocusHandle, InteractiveElement, IntoElement, KeyDownEvent,
-    MouseButton, ParentElement, Pixels, RenderOnce, Role, ScrollHandle, SharedString, Stateful,
-    StatefulInteractiveElement, StyleRefinement, Styled, Task, WeakFocusHandle, Window, anchored,
-    canvas, deferred, div, point, px,
+    Anchor, Animation, AnimationExt as _, AnyElement, App, Bounds, BoxShadow, ClickEvent,
+    DispatchPhase, Div, ElementId, Entity, FocusHandle, InteractiveElement as _, IntoElement,
+    KeyDownEvent, MouseButton, ParentElement, Pixels, RenderOnce, Role, ScrollHandle, SharedString,
+    Stateful, StatefulInteractiveElement as _, StyleRefinement, Styled as _, Task, WeakFocusHandle,
+    Window, anchored, canvas, deferred, div, point, px,
 };
 
 use crate::components::{ControlSize, field_frame, field_label, field_note, field_outline, shadow};
 use crate::controls::{ClickHandler, IconSize, Step, ValueHandler, focus_handle, icon, move_index};
-use crate::theme::{TypographyExt, color, palette};
+use crate::theme::{TypographyExt as _, color, palette};
 
 /// Called when an overlay asks to be closed. Takes a reference, like the handlers of GPUI
 /// Component, so `cx.listener` fits.
@@ -115,7 +115,7 @@ impl MenuItem {
     }
 
     /// An icon in front of the label.
-    pub fn icon(mut self, icon: tokens::Icon) -> Self {
+    pub const fn icon(mut self, icon: tokens::Icon) -> Self {
         self.icon = Some(icon);
         self
     }
@@ -130,18 +130,18 @@ impl MenuItem {
     }
 
     /// For an action that destroys.
-    pub fn danger(mut self, danger: bool) -> Self {
+    pub const fn danger(mut self, danger: bool) -> Self {
         self.danger = danger;
         self
     }
 
-    pub fn disabled(mut self, disabled: bool) -> Self {
+    pub const fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
         self
     }
 
     /// Marks the item as the current choice, with a check mark at its end.
-    pub fn selected(mut self, selected: bool) -> Self {
+    pub const fn selected(mut self, selected: bool) -> Self {
         self.selected = selected;
         self
     }
@@ -196,13 +196,13 @@ impl Menu {
         self
     }
 
-    pub fn align(mut self, align: MenuAlign) -> Self {
+    pub const fn align(mut self, align: MenuAlign) -> Self {
         self.align = align;
         self
     }
 
     /// Whether the menu is open when it first appears. After that it opens and closes itself.
-    pub fn default_open(mut self, open: bool) -> Self {
+    pub const fn default_open(mut self, open: bool) -> Self {
         self.default_open = open;
         self
     }
@@ -555,7 +555,7 @@ impl Select {
         self
     }
 
-    pub fn disabled(mut self, disabled: bool) -> Self {
+    pub const fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
         self
     }
@@ -573,7 +573,7 @@ impl Select {
 
     /// Whether the list is open when the select first appears, for a screenshot of the
     /// design preview. After that it opens and closes itself.
-    pub(crate) fn default_open(mut self, open: bool) -> Self {
+    pub(crate) const fn default_open(mut self, open: bool) -> Self {
         self.default_open = open;
         self
     }
@@ -832,7 +832,7 @@ impl Dialog {
         }
     }
 
-    pub fn open(mut self, open: bool) -> Self {
+    pub const fn open(mut self, open: bool) -> Self {
         self.open = open;
         self
     }
@@ -850,7 +850,7 @@ impl Dialog {
 
     /// Whether Escape and a press on the scrim ask to close. Turn it off for a question that
     /// must be answered.
-    pub fn dismissible(mut self, dismissible: bool) -> Self {
+    pub const fn dismissible(mut self, dismissible: bool) -> Self {
         self.dismissible = dismissible;
         self
     }
@@ -1016,7 +1016,7 @@ impl Toast {
         }
     }
 
-    pub fn open(mut self, open: bool) -> Self {
+    pub const fn open(mut self, open: bool) -> Self {
         self.open = open;
         self
     }
@@ -1039,7 +1039,7 @@ impl Toast {
 
     /// How long the toast stays. `motion.duration.toast` unless set; zero keeps it until it
     /// is closed.
-    pub fn duration(mut self, duration: Duration) -> Self {
+    pub const fn duration(mut self, duration: Duration) -> Self {
         self.duration = duration;
         self
     }
@@ -1053,7 +1053,7 @@ impl RenderOnce for Toast {
         let (open, duration) = (self.open, self.duration);
         timer.update(cx, |timer, cx| {
             // The handler is new every frame; the clock calls the latest.
-            timer.on_close = self.on_close.clone();
+            timer.on_close.clone_from(&self.on_close);
             if !open {
                 timer.started = false;
                 timer.task = None;
@@ -1222,13 +1222,13 @@ impl Tooltip {
         self
     }
 
-    pub fn placement(mut self, placement: TooltipPlacement) -> Self {
+    pub const fn placement(mut self, placement: TooltipPlacement) -> Self {
         self.placement = placement;
         self
     }
 
     /// Shows the tooltip whatever the pointer does, for a screenshot of the design preview.
-    pub(crate) fn pinned(mut self, pinned: bool) -> Self {
+    pub(crate) const fn pinned(mut self, pinned: bool) -> Self {
         self.pinned = pinned;
         self
     }
@@ -1340,7 +1340,7 @@ impl RenderOnce for Tooltip {
         // Escape hides the tooltip wherever the focus is, so it is heard at the window.
         let escape = canvas(|_, _, _| {}, {
             let state = state.downgrade();
-            move |_, _, window, _| {
+            move |_, (), window, _| {
                 window.on_key_event(move |event: &KeyDownEvent, phase, _, cx| {
                     if phase == DispatchPhase::Capture && event.keystroke.key == "escape" {
                         let _ = state.update(cx, |state, cx| {

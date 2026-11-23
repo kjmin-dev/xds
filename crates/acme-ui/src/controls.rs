@@ -18,19 +18,19 @@ use gpui_kit::base::{
     Transition, transition,
 };
 use gpui_kit::component::{
-    Icon, Sizable, ThemeStyled, checkbox::Checkbox, spinner::Spinner, switch::Switch,
+    Icon, Sizable as _, ThemeStyled as _, checkbox::Checkbox, spinner::Spinner, switch::Switch,
 };
-use gpui_kit::prelude::FluentBuilder;
+use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
-    Animation, AnimationExt, AnyElement, App, AppContext, BoxShadow, ClickEvent, Div, ElementId,
-    Entity, FocusHandle, FontFeatures, Hsla, ImageSource, InteractiveElement, IntoElement,
-    KeyDownEvent, Length, MouseButton, ObjectFit, ParentElement, Refineable, RenderOnce, Rgba,
-    Role, SharedString, StatefulInteractiveElement, StyleRefinement, Styled, StyledImage,
-    Subscription, Toggled, Window, div, img, percentage, point, px, relative,
+    Animation, AnimationExt as _, AnyElement, App, AppContext as _, BoxShadow, ClickEvent, Div,
+    ElementId, Entity, FocusHandle, FontFeatures, Hsla, ImageSource, InteractiveElement as _,
+    IntoElement, KeyDownEvent, Length, MouseButton, ObjectFit, ParentElement, Refineable as _,
+    RenderOnce, Rgba, Role, SharedString, StatefulInteractiveElement as _, StyleRefinement, Styled,
+    StyledImage as _, Subscription, Toggled, Window, div, img, percentage, point, px, relative,
 };
 
 use crate::components::{ControlSize, field_label, shadow};
-use crate::theme::{TypographyExt, color, palette};
+use crate::theme::{TypographyExt as _, color, palette};
 
 /// Turns a setting on or off, and takes effect at once. The result is a GPUI Component switch:
 /// add `.label`, `.on_click` or `.disabled` to it.
@@ -57,7 +57,7 @@ pub(crate) enum Step {
 
 /// The place `step` leads to from `current` among `len` places, going round at the ends. With
 /// nothing current, `Next` starts at the first place and `Previous` at the last.
-pub(crate) fn move_index(current: Option<usize>, len: usize, step: Step) -> Option<usize> {
+pub(crate) const fn move_index(current: Option<usize>, len: usize, step: Step) -> Option<usize> {
     if len == 0 {
         return None;
     }
@@ -136,7 +136,7 @@ impl RadioGroup {
     }
 
     /// Disables the whole group.
-    pub fn disabled(mut self, disabled: bool) -> Self {
+    pub const fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
         self
     }
@@ -362,7 +362,7 @@ impl SegmentedControl {
     }
 
     /// The index of the selected segment.
-    pub fn selected(mut self, index: usize) -> Self {
+    pub const fn selected(mut self, index: usize) -> Self {
         self.selected = index;
         self
     }
@@ -456,19 +456,19 @@ impl Chip {
         }
     }
 
-    pub fn selected(mut self, selected: bool) -> Self {
+    pub const fn selected(mut self, selected: bool) -> Self {
         self.selected = selected;
         self
     }
 
     /// An icon in front of the label. The check mark takes its place while the chip is
     /// selected.
-    pub fn icon_start(mut self, icon: tokens::Icon) -> Self {
+    pub const fn icon_start(mut self, icon: tokens::Icon) -> Self {
         self.icon_start = Some(icon);
         self
     }
 
-    pub fn disabled(mut self, disabled: bool) -> Self {
+    pub const fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
         self
     }
@@ -627,7 +627,7 @@ impl TabItem {
     }
 
     /// An icon in front of the label.
-    pub fn icon(mut self, icon: tokens::Icon) -> Self {
+    pub const fn icon(mut self, icon: tokens::Icon) -> Self {
         self.icon = Some(icon);
         self
     }
@@ -670,7 +670,7 @@ impl Tabs {
     }
 
     /// The tabs share the width of the row equally.
-    pub fn full_width(mut self, full_width: bool) -> Self {
+    pub const fn full_width(mut self, full_width: bool) -> Self {
         self.full_width = full_width;
         self
     }
@@ -816,7 +816,7 @@ impl Skeleton {
         }
     }
 
-    pub fn shape(mut self, shape: SkeletonShape) -> Self {
+    pub const fn shape(mut self, shape: SkeletonShape) -> Self {
         self.shape = shape;
         self
     }
@@ -904,29 +904,29 @@ pub enum AvatarSize {
 }
 
 impl AvatarSize {
-    fn diameter(self) -> f32 {
+    const fn diameter(self) -> f32 {
         match self {
-            AvatarSize::Sm => tokens::POINTER.avatar_sm,
-            AvatarSize::Md => tokens::POINTER.avatar_md,
-            AvatarSize::Lg => tokens::POINTER.avatar_lg,
-            AvatarSize::Xl => tokens::POINTER.avatar_xl,
+            Self::Sm => tokens::POINTER.avatar_sm,
+            Self::Md => tokens::POINTER.avatar_md,
+            Self::Lg => tokens::POINTER.avatar_lg,
+            Self::Xl => tokens::POINTER.avatar_xl,
         }
     }
 
     /// The type role of the initials.
-    fn typography(self) -> tokens::Typography {
+    const fn typography(self) -> tokens::Typography {
         match self {
-            AvatarSize::Sm => tokens::TYPOGRAPHY_FOOTNOTE,
-            AvatarSize::Md => tokens::TYPOGRAPHY_LABEL,
-            AvatarSize::Lg => tokens::TYPOGRAPHY_BODY_STRONG,
-            AvatarSize::Xl => tokens::TYPOGRAPHY_TITLE,
+            Self::Sm => tokens::TYPOGRAPHY_FOOTNOTE,
+            Self::Md => tokens::TYPOGRAPHY_LABEL,
+            Self::Lg => tokens::TYPOGRAPHY_BODY_STRONG,
+            Self::Xl => tokens::TYPOGRAPHY_TITLE,
         }
     }
 
     /// The small size has room for one letter.
-    fn letters(self) -> usize {
+    const fn letters(self) -> usize {
         match self {
-            AvatarSize::Sm => 1,
+            Self::Sm => 1,
             _ => 2,
         }
     }
@@ -985,7 +985,7 @@ impl Avatar {
         }
     }
 
-    pub fn size(mut self, size: AvatarSize) -> Self {
+    pub const fn size(mut self, size: AvatarSize) -> Self {
         self.size = size;
         self
     }
@@ -1089,12 +1089,12 @@ impl AvatarStack {
     }
 
     /// How many avatars to draw before counting the rest. Four unless set.
-    pub fn max(mut self, max: usize) -> Self {
+    pub const fn max(mut self, max: usize) -> Self {
         self.max = max;
         self
     }
 
-    pub fn size(mut self, size: AvatarSize) -> Self {
+    pub const fn size(mut self, size: AvatarSize) -> Self {
         self.size = size;
         self
     }
@@ -1107,7 +1107,7 @@ impl AvatarStack {
 }
 
 /// How many people a stack counts instead of drawing.
-fn overflow(people: usize, max: usize) -> usize {
+const fn overflow(people: usize, max: usize) -> usize {
     people.saturating_sub(max)
 }
 
@@ -1197,7 +1197,7 @@ pub struct ProgressBar {
 }
 
 impl ProgressBar {
-    pub fn new(value: f32) -> Self {
+    pub const fn new(value: f32) -> Self {
         Self { value }
     }
 }
@@ -1303,29 +1303,29 @@ impl Slider {
         }
     }
 
-    pub fn min(mut self, min: f32) -> Self {
+    pub const fn min(mut self, min: f32) -> Self {
         self.min = min;
         self
     }
 
-    pub fn max(mut self, max: f32) -> Self {
+    pub const fn max(mut self, max: f32) -> Self {
         self.max = max;
         self
     }
 
     /// Values snap to multiples of this, counted from the minimum.
-    pub fn step(mut self, step: f32) -> Self {
+    pub const fn step(mut self, step: f32) -> Self {
         self.step = step;
         self
     }
 
-    pub fn disabled(mut self, disabled: bool) -> Self {
+    pub const fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
         self
     }
 
     /// Shows the value at the end of the label's row.
-    pub fn show_value(mut self, show_value: bool) -> Self {
+    pub const fn show_value(mut self, show_value: bool) -> Self {
         self.show_value = show_value;
         self
     }
@@ -1368,7 +1368,7 @@ impl RenderOnce for Slider {
         });
         // The handler is new every frame; the subscription calls the latest.
         let state = watch.update(cx, |watch, _| {
-            watch.handler = self.on_change.clone();
+            watch.handler.clone_from(&self.on_change);
             watch.state.clone()
         });
         // GPUI Base's state follows the value given here, and is only touched when it differs,
@@ -1567,7 +1567,7 @@ impl ListRow {
 
     /// Draws the leading element alone, centered, and leaves the title to assistive
     /// technology: a row of a collapsed sidebar.
-    pub(crate) fn title_hidden(mut self) -> Self {
+    pub(crate) const fn title_hidden(mut self) -> Self {
         self.title_hidden = true;
         self
     }
@@ -1575,14 +1575,14 @@ impl ListRow {
     /// Marks the row as the current choice: the open page of a sidebar, the picked item of a
     /// menu. The title is set heavier as well as the row tinted, so the choice does not
     /// depend on color.
-    pub fn selected(mut self, selected: bool) -> Self {
+    pub const fn selected(mut self, selected: bool) -> Self {
         self.selected = selected;
         self
     }
 
     /// A lower row with smaller type, for a menu or a sidebar, where many rows share little
     /// room.
-    pub fn compact(mut self) -> Self {
+    pub const fn compact(mut self) -> Self {
         self.compact = true;
         self
     }
@@ -1605,12 +1605,12 @@ impl ListRow {
     }
 
     /// Draws a chevron at the far end, for a row that leads somewhere else.
-    pub fn chevron(mut self) -> Self {
+    pub const fn chevron(mut self) -> Self {
         self.chevron = true;
         self
     }
 
-    pub fn disabled(mut self, disabled: bool) -> Self {
+    pub const fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
         self
     }
@@ -1831,7 +1831,7 @@ impl Accordion {
     }
 
     /// Lets several items be open at once. Unless it is set, opening one closes the others.
-    pub fn multiple(mut self, multiple: bool) -> Self {
+    pub const fn multiple(mut self, multiple: bool) -> Self {
         self.multiple = multiple;
         self
     }
@@ -1980,13 +1980,13 @@ pub enum IconSize {
 }
 
 impl IconSize {
-    pub(crate) fn side(self) -> f32 {
+    pub(crate) const fn side(self) -> f32 {
         match self {
-            IconSize::Xs => tokens::POINTER.icon_xs,
-            IconSize::Sm => tokens::POINTER.icon_sm,
-            IconSize::Md => tokens::POINTER.icon_md,
-            IconSize::Lg => tokens::POINTER.icon_lg,
-            IconSize::Xl => tokens::POINTER.icon_xl,
+            Self::Xs => tokens::POINTER.icon_xs,
+            Self::Sm => tokens::POINTER.icon_sm,
+            Self::Md => tokens::POINTER.icon_md,
+            Self::Lg => tokens::POINTER.icon_lg,
+            Self::Xl => tokens::POINTER.icon_xl,
         }
     }
 }

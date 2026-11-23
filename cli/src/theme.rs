@@ -13,7 +13,7 @@ use std::process::{Command, Stdio};
 
 use serde_json::{Map, Value};
 
-use crate::error::{Context, Error, Result};
+use crate::error::{Context as _, Error, Result};
 use crate::json;
 use crate::template::Template;
 
@@ -44,14 +44,14 @@ pub enum Mode {
 impl Mode {
     pub const ALL: [Self; 2] = [Self::Light, Self::Dark];
 
-    pub fn label(self) -> &'static str {
+    pub const fn label(self) -> &'static str {
         match self {
             Self::Light => "Light",
             Self::Dark => "Dark",
         }
     }
 
-    fn file(self) -> &'static str {
+    const fn file(self) -> &'static str {
         match self {
             Self::Light => "design/tokens/color.light.json",
             Self::Dark => "design/tokens/color.dark.json",
@@ -510,8 +510,8 @@ mod tests {
             light: tokens.clone(),
             dark: tokens,
         };
-        assert!(resolved.color(Mode::Light, "a").is_err());
-        assert!(resolved.color(Mode::Dark, "c").is_err());
+        resolved.color(Mode::Light, "a").unwrap_err();
+        resolved.color(Mode::Dark, "c").unwrap_err();
     }
 
     #[test]

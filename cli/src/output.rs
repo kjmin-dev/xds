@@ -25,12 +25,12 @@ pub struct Out {
 }
 
 impl Out {
-    pub fn new(style: Style, json: bool) -> Self {
+    pub const fn new(style: Style, json: bool) -> Self {
         Self { style, json }
     }
 
     #[cfg(test)]
-    pub fn plain() -> Self {
+    pub const fn plain() -> Self {
         Self::new(Style::plain(), false)
     }
 }
@@ -63,7 +63,7 @@ pub fn error_json(kind: &str, message: &str) -> Value {
     json!({ "error": { "kind": kind, "message": message } })
 }
 
-pub fn error_kind(error: &Error) -> &'static str {
+pub const fn error_kind(error: &Error) -> &'static str {
     match error {
         Error::Message(_) => "error",
         Error::Cancelled => "cancelled",

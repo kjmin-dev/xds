@@ -207,7 +207,7 @@ fn assert_clean(tree: &Tree, ids: &[&str]) {
     let targets = manifest()
         .select(&ids.iter().map(|id| (*id).to_owned()).collect::<Vec<_>>())
         .expect("known ids");
-    let wanted = manifest().output_kinds(&targets);
+    let wanted = crate::manifest::Manifest::output_kinds(&targets);
     let outputs = build_outputs(tree);
     assert_eq!(
         outputs.keys().map(String::as_str).collect::<BTreeSet<_>>(),
@@ -488,13 +488,12 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
         let aliases: BTreeSet<&str> = mise["monorepo"]
             .get("path_aliases")
             .and_then(toml::Value::as_table)
-            .map(|aliases| {
+            .map_or_default(|aliases| {
                 aliases
                     .values()
                     .map(|path| path.as_str().expect("a path"))
                     .collect()
-            })
-            .unwrap_or_default();
+            });
         assert_eq!(aliases, apps, "{selected:?}");
 
         // `check` runs exactly the checks that exist.
@@ -820,7 +819,7 @@ fn shared_files_are_valid_for_every_combination_of_targets() {
         ] {
             assert_eq!(ci.contains(job), expected, "{selected:?}: job {job:?}");
         }
-        assert!(ci.ends_with("\n") && !ci.ends_with("\n\n"), "{selected:?}");
+        assert!(ci.ends_with('\n') && !ci.ends_with("\n\n"), "{selected:?}");
         // CI turns off mise's automatic installs, so a job has only the tools it names, and it
         // can only name tools the project pins.
         for names in ci
@@ -1622,7 +1621,7 @@ fn creates_a_kotlin_project() {
 #[cfg(unix)]
 #[test]
 fn keeps_scripts_executable() {
-    use std::os::unix::fs::PermissionsExt;
+    use std::os::unix::fs::PermissionsExt as _;
     let (_temp, directory) = project(&[KOTLIN]);
     let mode = fs::metadata(directory.join("kotlin/gradlew"))
         .expect("gradlew exists")
@@ -1717,6 +1716,10 @@ fn takes_the_name_from_the_directory_and_a_title_from_the_flag() {
     assert!(text(&tree, "apps/web/index.html").contains("<title>Orbit Notes</title>"));
     assert_eq!(json(&tree, "package.json")["name"], "orbitnotes");
     // Where the title is part of an identifier, it loses its space.
+    #[expect(
+        clippy::case_sensitive_file_extension_comparisons,
+        reason = "the template spells every Kotlin file `.kt`"
+    )]
     let kotlin: String = tree
         .iter()
         .filter(|(path, contents)| path.ends_with(".kt") && !is_binary(contents))
@@ -1983,7 +1986,7 @@ fn add_needs_a_project_and_a_known_target() {
         project: Some(directory),
         dry_run: false,
     };
-    assert!(commands::add(&args, Out::plain()).is_err());
+    commands::add(&args, Out::plain()).unwrap_err();
 }
 
 // ---------------------------------------------------------------- themes
@@ -2207,10 +2210,7 @@ fn the_component_contract_matches_the_code() {
         let index = String::from_utf8_lossy(&template.files[index].contents).into_owned();
         // An export list may run over several lines once the formatter wraps it.
         for statement in index.split("\nexport {").skip(1) {
-            let names = statement
-                .split_once('}')
-                .map(|(names, _)| names)
-                .unwrap_or_default();
+            let names = statement.split_once('}').map_or_default(|(names, _)| names);
             for name in names
                 .split(',')
                 .map(str::trim)
@@ -2357,7 +2357,7 @@ fn contrast_matches_the_wcag_reference_values() {
 #[test]
 fn a_named_directory_without_tokens_is_not_answered_from_the_template() {
     let temp = TempDir::new().expect("a temporary directory");
-    assert!(Location::find(Some(temp.path())).is_err());
+    Location::find(Some(temp.path())).unwrap_err();
 }
 
 #[test]
@@ -2399,7 +2399,7 @@ fn desktop_shells_keep_their_web_apps_across_add_and_dry_run() {
         );
         add.targets = vec![shell.to_owned()];
         add.wrap = Some(WEB.to_owned());
-        assert!(commands::add(&add, Out::plain()).is_err());
+        commands::add(&add, Out::plain()).unwrap_err();
     }
     assert_eq!(tree, read_tree(&project));
 }
@@ -2418,7 +2418,7 @@ fn a_shell_needs_a_web_app_before_anything_is_written() {
             wrap,
             ..create_args(&directory, &targets)
         };
-        assert!(commands::create(&args, Out::plain()).is_err());
+        commands::create(&args, Out::plain()).unwrap_err();
         assert!(!directory.exists());
     }
     let args = create_args(

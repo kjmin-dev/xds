@@ -3,13 +3,13 @@
 
 use std::io;
 
-use serde::Serialize;
+use serde::Serialize as _;
 use serde_json::Value;
 use serde_json::ser::{Formatter, PrettyFormatter, Serializer};
 
 /// The layout of `JSON.stringify(value, null, 2)` plus a final newline, which is what
 /// `tools/design-build` writes: every array and object spread over lines, and whole numbers
-/// without a fraction (`1`, where serde_json alone would keep `1.0`).
+/// without a fraction (`1`, where `serde_json` alone would keep `1.0`).
 pub fn stringify(value: &Value) -> String {
     let mut bytes = Vec::new();
     let formatter = JavaScript(PrettyFormatter::with_indent(b"  "));

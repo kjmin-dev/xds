@@ -1,7 +1,7 @@
 //! Whether to color the output, and with how many colors.
 
 use std::env;
-use std::io::{IsTerminal, stdout};
+use std::io::{IsTerminal as _, stdout};
 
 use crate::theme::Rgb;
 
@@ -40,14 +40,14 @@ impl Style {
         }
     }
 
-    pub fn plain() -> Self {
+    pub const fn plain() -> Self {
         Self {
             color: false,
             depth: Depth::TrueColor,
         }
     }
 
-    fn wrap(&self, code: &str, text: &str) -> String {
+    fn wrap(self, code: &str, text: &str) -> String {
         if self.color {
             format!("\x1b[{code}m{text}\x1b[0m")
         } else {
@@ -55,32 +55,32 @@ impl Style {
         }
     }
 
-    pub fn bold(&self, text: &str) -> String {
+    pub fn bold(self, text: &str) -> String {
         self.wrap("1", text)
     }
 
-    pub fn dim(&self, text: &str) -> String {
+    pub fn dim(self, text: &str) -> String {
         self.wrap("2", text)
     }
 
-    pub fn green(&self, text: &str) -> String {
+    pub fn green(self, text: &str) -> String {
         self.wrap("32", text)
     }
 
-    pub fn yellow(&self, text: &str) -> String {
+    pub fn yellow(self, text: &str) -> String {
         self.wrap("33", text)
     }
 
-    pub fn red(&self, text: &str) -> String {
+    pub fn red(self, text: &str) -> String {
         self.wrap("31", text)
     }
 
-    pub fn cyan(&self, text: &str) -> String {
+    pub fn cyan(self, text: &str) -> String {
         self.wrap("36", text)
     }
 
     /// Two cells filled with `color`, or nothing when color is off.
-    pub fn swatch(&self, color: Rgb) -> String {
+    pub fn swatch(self, color: Rgb) -> String {
         if self.color {
             format!("\x1b[{}m  \x1b[0m", background(color, self.depth))
         } else {
@@ -110,7 +110,7 @@ fn terminal_takes_escapes() -> bool {
 }
 
 #[cfg(not(windows))]
-fn terminal_takes_escapes() -> bool {
+const fn terminal_takes_escapes() -> bool {
     true
 }
 

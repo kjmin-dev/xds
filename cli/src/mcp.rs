@@ -8,7 +8,7 @@ use std::path::PathBuf;
 use rmcp::handler::server::router::tool::ToolRouter;
 use rmcp::handler::server::wrapper::Parameters;
 use rmcp::model::{CallToolResult, ContentBlock, Implementation, ServerCapabilities, ServerConfig};
-use rmcp::{ServerHandler, ServiceExt, schemars, tool, tool_handler, tool_router};
+use rmcp::{ServerHandler, ServiceExt as _, schemars, tool, tool_handler, tool_router};
 use serde::Deserialize;
 use serde_json::Value;
 
@@ -26,15 +26,14 @@ fn reply(result: crate::error::Result<Value>) -> CallToolResult {
         )]
     };
     match result {
-        Ok(value) => CallToolResult::success(text(&value)),
         // A check that did not pass is still an answer.
-        Err(Error::Failed(value)) => CallToolResult::success(text(&value)),
+        Ok(value) | Err(Error::Failed(value)) => CallToolResult::success(text(&value)),
         Err(error) => CallToolResult::error(vec![ContentBlock::text(error.to_string())]),
     }
 }
 
 /// Nothing is printed for a person: stdout carries the protocol.
-fn out() -> Out {
+const fn out() -> Out {
     Out::new(Style::plain(), true)
 }
 
@@ -132,6 +131,10 @@ struct Server {
 }
 
 #[tool_router]
+#[expect(
+    clippy::unused_self,
+    reason = "the tool router calls every tool as a method"
+)]
 impl Server {
     #[tool(description = "List the client stacks (targets) and color themes.")]
     fn list(&self) -> CallToolResult {
@@ -244,6 +247,10 @@ impl Server {
 }
 
 #[tool_handler(router = self.tool_router)]
+#[expect(
+    clippy::unused_async_trait_impl,
+    reason = "the handler macro writes the async methods, and they await nothing"
+)]
 impl ServerHandler for Server {
     fn get_info(&self) -> ServerConfig {
         ServerConfig::new(ServerCapabilities::builder().enable_tools().build())

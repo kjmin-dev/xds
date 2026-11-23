@@ -74,7 +74,7 @@ pub enum Layout {
 
 impl Layout {
     /// Rows the layout takes.
-    pub fn height(self) -> usize {
+    pub const fn height(self) -> usize {
         match self {
             Self::SideBySide => PANEL_ROWS,
             Self::Stacked => PANEL_ROWS * 2,
@@ -142,7 +142,7 @@ struct Row {
 }
 
 impl Row {
-    fn new() -> Self {
+    const fn new() -> Self {
         Self {
             spans: Vec::new(),
             width: 0,
@@ -217,7 +217,7 @@ impl Preview {
         })
     }
 
-    fn colors(&self, mode: Mode) -> &Colors {
+    const fn colors(&self, mode: Mode) -> &Colors {
         match mode {
             Mode::Light => &self.light,
             Mode::Dark => &self.dark,
@@ -255,7 +255,7 @@ impl Preview {
                 for (label, ramp) in [("accent", &self.accent), ("neutral", &self.neutral)] {
                     lines.push(format!(
                         "{MARGIN}{}",
-                        paint(&self.ramp_row(label, ramp, colors))
+                        paint(&Self::ramp_row(label, ramp, colors))
                     ));
                 }
                 lines
@@ -325,19 +325,19 @@ impl Preview {
             card(title),
             card(Row::new().text("Secondary text on a surface", secondary, surface)),
             card(Row::new()),
-            card(self.controls(colors, surface)),
+            card(Self::controls(colors, surface)),
             card(Row::new().text(&"─".repeat(CONTENT), border, surface)),
             card(statuses),
             edge("╰", "╯"),
             blank(),
-            self.ramp_row("accent", &self.accent, colors),
-            self.ramp_row("neutral", &self.neutral, colors),
+            Self::ramp_row("accent", &self.accent, colors),
+            Self::ramp_row("neutral", &self.neutral, colors),
             blank(),
         ]
     }
 
     /// A primary button, a secondary button and a link, on `backdrop`.
-    fn controls(&self, colors: &Colors, backdrop: Rgb) -> Row {
+    fn controls(colors: &Colors, backdrop: Rgb) -> Row {
         Row::new()
             .text(
                 " Primary ",
@@ -365,14 +365,14 @@ impl Preview {
             colors.get("color.text.secondary"),
             page,
         );
-        let controls = self.controls(colors, page);
+        let controls = Self::controls(colors, page);
         row.width += controls.width;
         row.spans.extend(controls.spans);
         row.fill(page)
     }
 
     /// A ramp as a row of swatches from its lightest step to its darkest.
-    fn ramp_row(&self, label: &str, ramp: &[Rgb], colors: &Colors) -> Row {
+    fn ramp_row(label: &str, ramp: &[Rgb], colors: &Colors) -> Row {
         let page = colors.get("color.background.base");
         let mut row = Row::new().text(
             &format!("  {label:<8}"),

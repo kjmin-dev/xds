@@ -4,7 +4,7 @@
 //! is put into raw mode while a prompt is open and always put back, also when the prompt is
 //! cancelled or the program panics.
 
-use std::io::{self, IsTerminal, Write, stdin, stdout};
+use std::io::{self, IsTerminal as _, Write as _, stdin, stdout};
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use crossterm::cursor::{Hide, MoveToColumn, MoveUp, Show};
@@ -62,7 +62,7 @@ struct Frame {
 }
 
 impl Frame {
-    fn new() -> Self {
+    const fn new() -> Self {
         Self { drawn: 0 }
     }
 
@@ -257,7 +257,7 @@ fn name_width(choices: &[Choice]) -> usize {
         .unwrap_or(0)
 }
 
-fn step_cursor(cursor: &mut usize, count: usize, key: &Key) -> bool {
+const fn step_cursor(cursor: &mut usize, count: usize, key: &Key) -> bool {
     match key {
         Key::Up | Key::Char('k') => *cursor = (*cursor + count - 1) % count,
         Key::Down | Key::Char('j') => *cursor = (*cursor + 1) % count,
@@ -320,7 +320,7 @@ pub fn multi_select(
                 }
                 Key::Char('a') => {
                     let all = picked.iter().all(|picked| *picked);
-                    picked.iter_mut().for_each(|picked| *picked = !all);
+                    picked.fill(!all);
                     *nagging = false;
                 }
                 Key::Enter => {

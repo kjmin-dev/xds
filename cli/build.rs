@@ -208,6 +208,11 @@ fn is_executable(path: &Path) -> io::Result<bool> {
 }
 
 #[cfg(not(unix))]
+#[expect(
+    clippy::missing_const_for_fn,
+    clippy::unnecessary_wraps,
+    reason = "the signature of the Unix function, which reads the file system and can fail"
+)]
 fn is_executable(_path: &Path) -> io::Result<bool> {
     Ok(false)
 }

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="115" height="50" viewBox="0 0 115 50">
+  <title>xds</title>
+  <style>
+    :root { color: #222228; }
+    .prompt { fill: #4338ca; }
+    @media (prefers-color-scheme: dark) {
+      :root { color: #eef2ff; }
+      .prompt { fill: #c7d2fe; }
+    }
+  </style>
+  <path class="prompt" d="M1 16h13l13 15-13 15H1l13-15Z"/>
+  <path fill="#818cf8" d="m33 12 9 9-10 10-9-9Zm-3 21 12 13H29l-5-6Z"/>
+  <g fill="currentColor" transform="translate(3)">
+    <path d="M65 3h10v43H56c-10 0-16-6-16-15s6-15 16-15h9Zm-8 21q-7 0-7 7t7 7h8V24Z"/>
+    <path d="m110 16-6 8H93q-4 0-4 2t4 2h6q11 0 11 9t-12 9H78l7-8h12q3 0 3-2t-3-2h-6q-12 0-12-9t12-9Z"/>
+  </g>
+</svg>

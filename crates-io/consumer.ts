@@ -60,13 +60,16 @@ function consumerProgram(renderer: string): string {
       `${RENDERER} sets up the components in a way this check does not know how to give a theme to`,
     );
   }
-  return `mod brand;\n\n${renderer.replaceAll("xds_tokens::", "xds_ui::tokens::").replace(
+  const program = renderer.replaceAll("xds_tokens::", "xds_ui::tokens::").replace(
     init,
     `${init}
         if std::env::var("XDS_CONSUMER_THEME").as_deref() == Ok("brand") {
             xds_ui::set_theme(&brand::BRAND_THEME, cx);
         }`,
-  )}`;
+  );
+  // The module goes after the program's own documentation, which only a file's start may hold.
+  const start = program.match(/^(?:\/\/!.*\n)*\n?/)?.[0].length ?? 0;
+  return `${program.slice(0, start)}mod brand;\n\n${program.slice(start)}`;
 }
 
 /**

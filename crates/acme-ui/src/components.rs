@@ -25,7 +25,8 @@ use gpui_kit::{
 use crate::controls::{
     ClickHandler, IconSize, SpinnerSize, focus_handle, icon, icon_filled, spinner,
 };
-use crate::theme::{TypographyExt as _, color, palette};
+use crate::defaults::defaults;
+use crate::theme::{TypographyExt as _, color, palette, theme};
 
 // ---------------------------------------------------------------- button
 
@@ -49,20 +50,20 @@ pub enum ControlSize {
 }
 
 impl ControlSize {
-    /// The height of a control of this size. The desktop is used with a pointer.
-    pub const fn height(self) -> Pixels {
+    /// The height of a control of this size in `theme`. The desktop is used with a pointer.
+    pub const fn height(self, t: &tokens::Theme) -> Pixels {
         px(match self {
-            Self::Sm => tokens::POINTER.control_sm,
-            Self::Md => tokens::POINTER.control_md,
-            Self::Lg => tokens::POINTER.control_lg,
+            Self::Sm => t.pointer.control_sm,
+            Self::Md => t.pointer.control_md,
+            Self::Lg => t.pointer.control_lg,
         })
     }
 
-    const fn padding(self) -> Pixels {
+    const fn padding(self, t: &tokens::Theme) -> Pixels {
         px(match self {
-            Self::Sm => tokens::SPACE_3,
-            Self::Md => tokens::SPACE_4,
-            Self::Lg => tokens::SPACE_6,
+            Self::Sm => t.space.s3,
+            Self::Md => t.space.s4,
+            Self::Lg => t.space.s6,
         })
     }
 }
@@ -78,23 +79,18 @@ pub(crate) fn shadow(shadow: tokens::Shadow) -> Vec<BoxShadow> {
     }]
 }
 
-/// A button in one of Acme's variants and sizes. Add `.on_click`, `.disabled`, `.loading`,
-/// `.icon_start`, `.icon_end` or `.selected` to it, and size it like any element
-/// (`.w_full()`).
-pub fn button(
-    id: impl Into<ElementId>,
-    label: impl Into<SharedString>,
-    variant: ButtonVariant,
-    size: ControlSize,
-    _cx: &App,
-) -> Button {
+/// A button in one of Acme's variants and sizes: `.variant` and `.control_size` choose them,
+/// and without them it takes the registered [`Defaults`](crate::Defaults), or else a secondary
+/// button of the middle size. Add `.on_click`, `.disabled`, `.loading`, `.icon_start`,
+/// `.icon_end` or `.selected` to it, and size it like any element (`.w_full()`).
+pub fn button(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Button {
     Button {
         id: id.into(),
         style: StyleRefinement::default(),
         on_click: None,
         label: label.into(),
-        variant,
-        size,
+        variant: None,
+        size: None,
         icon_start: None,
         icon_end: None,
         icon_only: false,
@@ -105,16 +101,15 @@ pub fn button(
 }
 
 /// A button that holds only an icon. The label is not drawn: it names the button for assistive
-/// technology. It is a ghost button of the middle size unless `.variant` and `.control_size`
-/// say otherwise, and takes `.selected`, `.disabled`, `.loading` and `.on_click` as a button
-/// does.
+/// technology. It is a ghost button of the middle size unless `.variant` and `.control_size`, or
+/// the registered [`Defaults`](crate::Defaults), say otherwise, and takes `.selected`,
+/// `.disabled`, `.loading` and `.on_click` as a button does.
 pub fn icon_button(
     id: impl Into<ElementId>,
     icon: tokens::Icon,
     label: impl Into<SharedString>,
-    cx: &App,
 ) -> Button {
-    let mut button = button(id, label, ButtonVariant::Ghost, ControlSize::Md, cx);
+    let mut button = button(id, label);
     button.icon_start = Some(icon);
     button.icon_only = true;
     button
@@ -129,8 +124,8 @@ pub struct Button {
     style: StyleRefinement,
     on_click: Option<ClickHandler>,
     label: SharedString,
-    variant: ButtonVariant,
-    size: ControlSize,
+    variant: Option<ButtonVariant>,
+    size: Option<ControlSize>,
     icon_start: Option<tokens::Icon>,
     icon_end: Option<tokens::Icon>,
     icon_only: bool,
@@ -141,13 +136,13 @@ pub struct Button {
 
 impl Button {
     pub const fn variant(mut self, variant: ButtonVariant) -> Self {
-        self.variant = variant;
+        self.variant = Some(variant);
         self
     }
 
     /// Named apart from `Styled::size`, which sets a width and a height.
     pub const fn control_size(mut self, size: ControlSize) -> Self {
-        self.size = size;
+        self.size = Some(size);
         self
     }
 
@@ -200,20 +195,33 @@ impl Styled for Button {
 
 impl RenderOnce for Button {
     fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let t = theme(cx);
         let c = palette(cx);
+        let (variant, size) = if self.icon_only {
+            let given = defaults(cx).icon_button;
+            (
+                self.variant
+                    .or(given.variant)
+                    .unwrap_or(ButtonVariant::Ghost),
+                self.size.or(given.size).unwrap_or_default(),
+            )
+        } else {
+            let given = defaults(cx).button;
+            (
+                self.variant.or(given.variant).unwrap_or_default(),
+                self.size.or(given.size).unwrap_or_default(),
+            )
+        };
         // A disabled button looks disabled whether or not it is selected.
         let tinted = self.selected == Some(true)
             && !self.disabled
-            && matches!(
-                self.variant,
-                ButtonVariant::Secondary | ButtonVariant::Ghost
-            );
-        let (icon_size, label_style) = match self.size {
-            ControlSize::Lg => (IconSize::Md, tokens::TYPOGRAPHY_BODY_STRONG),
-            _ => (IconSize::Sm, tokens::TYPOGRAPHY_LABEL),
+            && matches!(variant, ButtonVariant::Secondary | ButtonVariant::Ghost);
+        let (icon_size, label_style) = match size {
+            ControlSize::Lg => (IconSize::Md, t.typography.body_strong),
+            _ => (IconSize::Sm, t.typography.label),
         };
         // Alone in its square the icon has the room to follow the size of the control.
-        let icon_size = match (self.icon_only, self.size) {
+        let icon_size = match (self.icon_only, size) {
             (false, _) => icon_size,
             (true, ControlSize::Sm) => IconSize::Sm,
             (true, ControlSize::Md) => IconSize::Md,
@@ -221,28 +229,28 @@ impl RenderOnce for Button {
         };
 
         let base = KitButton::new(self.id);
-        let base = match self.variant {
+        let base = match variant {
             // Filled buttons carry the same trace of shadow, so none looks flatter than the
             // outlined one.
-            ButtonVariant::Primary => base.primary().shadow(shadow(tokens::SHADOW_SUBTLE)),
+            ButtonVariant::Primary => base.primary().shadow(shadow(t.shadow.subtle)),
             // Outlined, so it sits quietly beside a primary button.
             ButtonVariant::Secondary => base
                 .secondary()
                 .border_1()
                 .border_color(color(c.button_secondary_border))
-                .shadow(shadow(tokens::SHADOW_SUBTLE)),
+                .shadow(shadow(t.shadow.subtle)),
             ButtonVariant::Ghost => base.ghost(),
-            ButtonVariant::Danger => base.danger().shadow(shadow(tokens::SHADOW_SUBTLE)),
+            ButtonVariant::Danger => base.danger().shadow(shadow(t.shadow.subtle)),
         };
-        let height = self.size.height();
+        let height = size.height(t);
         let mut base = base
             .h(height)
             .min_w(height)
-            .px(self.size.padding())
-            .rounded(px(tokens::POINTER.button_radius));
+            .px(size.padding(t))
+            .rounded(px(t.pointer.button_radius));
         if self.icon_only {
             // A square, and never smaller than the least a pointer can be asked to hit.
-            let side = height.max(px(tokens::POINTER.target_min));
+            let side = height.max(px(t.pointer.target_min));
             base = base.px(px(0.0)).size(side);
         }
         base.style().refine(&self.style);
@@ -258,16 +266,16 @@ impl RenderOnce for Button {
                     .flex_none()
                     .items_center()
                     .justify_center()
-                    .size(px(icon_size.side()))
-                    .child(spinner(SpinnerSize::Sm))
+                    .size(px(icon_size.side(t)))
+                    .child(spinner().spinner_size(SpinnerSize::Sm))
                     .into_any_element(),
             )
         } else {
             self.icon_start.map(|name| {
                 if tinted {
-                    icon_filled(name, icon_size).into_any_element()
+                    icon_filled(name).icon_size(icon_size).into_any_element()
                 } else {
-                    icon(name, icon_size).into_any_element()
+                    icon(name).icon_size(icon_size).into_any_element()
                 }
             })
         };
@@ -279,7 +287,7 @@ impl RenderOnce for Button {
                 .typography(label_style)
                 .child(self.label.clone())
         });
-        let end = self.icon_end.map(|name| icon(name, icon_size));
+        let end = self.icon_end.map(|name| icon(name).icon_size(icon_size));
 
         let base = if tinted {
             // GPUI Component paints its own selected look and drops hover and pressed for it,
@@ -291,12 +299,12 @@ impl RenderOnce for Button {
                 .active(color(c.button_selected_background_pressed));
             base.custom(selected)
                 .bg(color(c.button_selected_background))
-                .border(px(tokens::BORDER_WIDTH_THIN))
+                .border(px(t.border.width_thin))
                 .border_color(color(c.button_selected_border))
-        } else if self.selected.is_some() && self.variant == ButtonVariant::Ghost {
+        } else if self.selected.is_some() && variant == ButtonVariant::Ghost {
             // The outline a selected ghost button gets, already there and transparent, so
             // toggling does not change the width.
-            base.border(px(tokens::BORDER_WIDTH_THIN))
+            base.border(px(t.border.width_thin))
                 .border_color(gpui_kit::transparent_black())
         } else {
             base
@@ -316,9 +324,14 @@ impl RenderOnce for Button {
 // ---------------------------------------------------------------- text field
 
 /// The label above a field. A text field and a select share it, so they line up in a form.
-pub(crate) fn field_label(label: SharedString, disabled: bool, c: &tokens::Colors) -> Div {
+pub(crate) fn field_label(
+    label: SharedString,
+    disabled: bool,
+    t: &tokens::Theme,
+    c: &tokens::Colors,
+) -> Div {
     div()
-        .typography(tokens::TYPOGRAPHY_LABEL)
+        .typography(t.typography.label)
         .text_color(color(if disabled {
             c.text_secondary
         } else {
@@ -336,12 +349,13 @@ pub(crate) fn field_frame(
     window: &Window,
     cx: &App,
 ) -> Div {
+    let t = theme(cx);
     let c = palette(cx);
     div()
         .flex()
         .w_full()
         .rounded(radius)
-        .border(px(tokens::BORDER_WIDTH_THIN))
+        .border(px(t.border.width_thin))
         .border_color(color(if invalid {
             c.field_border_invalid
         } else {
@@ -368,6 +382,7 @@ pub(crate) fn field_frame(
 pub(crate) fn field_outline(
     invalid: bool,
     radius: Pixels,
+    t: &tokens::Theme,
     c: &tokens::Colors,
     frame: impl IntoElement,
 ) -> Div {
@@ -375,7 +390,7 @@ pub(crate) fn field_outline(
         .rounded(radius)
         .when(invalid, |outline| {
             outline
-                .border(px(tokens::BORDER_WIDTH_THIN))
+                .border(px(t.border.width_thin))
                 .border_color(color(c.field_border_invalid))
         })
         .child(frame)
@@ -385,13 +400,14 @@ pub(crate) fn field_outline(
 pub(crate) fn field_note(
     error: Option<SharedString>,
     description: Option<SharedString>,
+    t: &tokens::Theme,
     c: &tokens::Colors,
 ) -> Option<Div> {
     let invalid = error.is_some();
     error.or(description).map(|text| {
         div()
             .flex_1()
-            .typography(tokens::TYPOGRAPHY_DETAIL)
+            .typography(t.typography.detail)
             .text_color(color(if invalid {
                 c.status_danger
             } else {
@@ -412,6 +428,7 @@ enum FieldState {
 /// is one.
 #[derive(IntoElement)]
 pub struct TextField {
+    style: StyleRefinement,
     label: SharedString,
     state: FieldState,
     description: Option<SharedString>,
@@ -437,6 +454,7 @@ impl TextField {
 
     fn with_state(label: impl Into<SharedString>, state: FieldState) -> Self {
         Self {
+            style: StyleRefinement::default(),
             label: label.into(),
             state,
             description: None,
@@ -501,16 +519,17 @@ impl TextField {
     }
 }
 
-impl RenderOnce for TextField {
-    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl TextField {
+    fn draw(self, window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let colors = palette(cx);
         let invalid = self.error.is_some();
         let multiline = matches!(self.state, FieldState::Area(_));
-        let line = px(tokens::TYPOGRAPHY_BODY.line_height_px());
+        let line = px(t.typography.body.line_height_px());
         let radius = px(if self.pill {
-            tokens::RADIUS_FULL
+            t.radius.full
         } else {
-            tokens::RADIUS_MD
+            t.radius.md
         });
 
         if let Some(max) = self.max_length {
@@ -547,7 +566,7 @@ impl RenderOnce for TextField {
 
         // The text control keeps this much room of its own around the text; the frame and
         // the slots add the rest of `space.3` to the edge and leave `space.2` to the text.
-        let inset = px(tokens::SPACE_2);
+        let inset = px(t.space.s2);
         // A text area's lines start this far below its top edge, so the slots start there too.
         let area_inset = Size::Small.input_py();
         let slot = |element: AnyElement| {
@@ -557,7 +576,7 @@ impl RenderOnce for TextField {
                 .items_center()
                 .h(line)
                 .when(multiline, |slot| slot.mt(area_inset))
-                .typography(tokens::TYPOGRAPHY_BODY)
+                .typography(t.typography.body)
                 .text_color(color(colors.field_placeholder))
                 .child(element)
         };
@@ -571,7 +590,7 @@ impl RenderOnce for TextField {
                     .min_w_0()
                     .px(inset)
                     .py(px(0.0))
-                    .typography(tokens::TYPOGRAPHY_BODY);
+                    .typography(t.typography.body);
                 // `Input::h` sets the height of a text area only.
                 Styled::h(input, line).into_any_element()
             }
@@ -584,7 +603,7 @@ impl RenderOnce for TextField {
                 .h(line * self.rows.max(1) as f32 + area_inset * 2.0)
                 .flex_1()
                 .min_w_0()
-                .typography(tokens::TYPOGRAPHY_BODY)
+                .typography(t.typography.body)
                 .into_any_element(),
         };
         let focus_text = {
@@ -606,33 +625,30 @@ impl RenderOnce for TextField {
             }
         };
         let frame = field_frame(invalid, self.disabled, focused, radius, window, cx)
-            .px(px(tokens::SPACE_1))
+            .px(px(t.space.s1))
             .map(|frame| {
                 if multiline {
-                    frame.items_start().py(px(tokens::SPACE_1))
+                    frame.items_start().py(px(t.space.s1))
                 } else {
-                    frame.items_center().h(ControlSize::Md.height())
+                    frame.items_center().h(ControlSize::Md.height(t))
                 }
             })
             .when(!self.disabled, |frame| {
                 // The whole box takes the caret, not only the text inside it.
                 frame.on_mouse_down(MouseButton::Left, focus_text)
             })
-            .children(
-                self.leading
-                    .map(|element| slot(element).ml(px(tokens::SPACE_2))),
-            )
+            .children(self.leading.map(|element| slot(element).ml(px(t.space.s2))))
             .child(control)
             .children(
                 self.trailing
-                    .map(|element| slot(element).mr(px(tokens::SPACE_2))),
+                    .map(|element| slot(element).mr(px(t.space.s2))),
             );
 
-        let note = field_note(self.error, self.description, colors);
+        let note = field_note(self.error, self.description, t, colors);
         let counter = self.max_length.map(|max| {
             div()
                 .flex_none()
-                .typography(tokens::TYPOGRAPHY_FOOTNOTE)
+                .typography(t.typography.footnote)
                 .text_color(color(colors.text_secondary))
                 .child(format!("{length}/{max}"))
         });
@@ -642,7 +658,7 @@ impl RenderOnce for TextField {
                 .items_start()
                 // Keeps the counter at the end edge when there is no note beside it.
                 .justify_end()
-                .gap(px(tokens::SPACE_3))
+                .gap(px(t.space.s3))
                 .children(note)
                 .children(counter)
         });
@@ -650,12 +666,27 @@ impl RenderOnce for TextField {
         div()
             .flex()
             .flex_col()
-            .gap(px(tokens::SPACE_1))
+            .gap(px(t.space.s1))
             .when(!self.label_hidden, |field| {
-                field.child(field_label(self.label, self.disabled, colors))
+                field.child(field_label(self.label, self.disabled, t, colors))
             })
-            .child(field_outline(invalid, radius, colors, frame))
+            .child(field_outline(invalid, radius, t, colors, frame))
             .children(footer)
+    }
+}
+
+impl Styled for TextField {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for TextField {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }
 
@@ -677,6 +708,7 @@ struct SubmitWatch {
 /// value from it, and subscribe to it to hear of changes.
 #[derive(IntoElement)]
 pub struct SearchField {
+    style: StyleRefinement,
     id: ElementId,
     label: SharedString,
     state: Entity<InputState>,
@@ -692,6 +724,7 @@ impl SearchField {
         state: &Entity<InputState>,
     ) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             label: label.into(),
             state: state.clone(),
@@ -722,8 +755,9 @@ impl SearchField {
     }
 }
 
-impl RenderOnce for SearchField {
-    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl SearchField {
+    fn draw(self, window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
         let input = self.state.clone();
         let watch = window.use_keyed_state((self.id.clone(), "submit"), cx, |window, cx| {
@@ -761,7 +795,7 @@ impl RenderOnce for SearchField {
                 .flex()
                 .items_center()
                 .justify_center()
-                .size(px(tokens::POINTER.target_min))
+                .size(px(t.pointer.target_min))
                 .rounded_full()
                 .hover(|clear| clear.text_color(color(c.field_text)))
                 // Keeps the press from the box around it, which would take it for its own.
@@ -774,16 +808,31 @@ impl RenderOnce for SearchField {
                     });
                 })
                 .when(focused, |clear| clear.focus_ring_style(window, cx))
-                .child(icon(tokens::Icon::CircleX, IconSize::Sm))
+                .child(icon(tokens::Icon::CircleX).icon_size(IconSize::Sm))
         });
         let field = TextField::new(self.label, &self.state)
             .search()
             .disabled(self.disabled)
-            .leading(icon(tokens::Icon::Search, IconSize::Sm));
+            .leading(icon(tokens::Icon::Search).icon_size(IconSize::Sm));
         match clear {
             Some(clear) => field.trailing(clear),
             None => field,
         }
+    }
+}
+
+impl Styled for SearchField {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for SearchField {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }
 
@@ -805,8 +854,9 @@ pub enum BadgeTone {
 /// `dot` adds a small mark for live states such as "connected".
 #[derive(IntoElement)]
 pub struct Badge {
+    style: StyleRefinement,
     label: SharedString,
-    tone: BadgeTone,
+    tone: Option<BadgeTone>,
     dot: bool,
     icon: Option<tokens::Icon>,
 }
@@ -814,15 +864,16 @@ pub struct Badge {
 impl Badge {
     pub fn new(label: impl Into<SharedString>) -> Self {
         Self {
+            style: StyleRefinement::default(),
             label: label.into(),
-            tone: BadgeTone::default(),
+            tone: None,
             dot: false,
             icon: None,
         }
     }
 
     pub const fn tone(mut self, tone: BadgeTone) -> Self {
-        self.tone = tone;
+        self.tone = Some(tone);
         self
     }
 
@@ -838,10 +889,15 @@ impl Badge {
     }
 }
 
-impl RenderOnce for Badge {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl Badge {
+    fn draw(self, _window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
-        let (background, text) = match self.tone {
+        let tone = self
+            .tone
+            .or_else(|| defaults(cx).badge.tone)
+            .unwrap_or_default();
+        let (background, text) = match tone {
             BadgeTone::Neutral => (c.badge_neutral_background, c.badge_neutral_text),
             BadgeTone::Accent => (c.badge_accent_background, c.badge_accent_text),
             BadgeTone::Success => (c.badge_success_background, c.badge_success_text),
@@ -853,24 +909,39 @@ impl RenderOnce for Badge {
             .flex()
             .flex_none()
             .items_center()
-            .gap(px(tokens::SPACE_1_5))
-            .h(px(tokens::POINTER.badge))
-            .px(px(tokens::SPACE_2_5))
+            .gap(px(t.space.s1_5))
+            .h(px(t.pointer.badge))
+            .px(px(t.space.s2_5))
             .rounded_full()
             .bg(color(background))
             .text_color(color(text))
-            .typography(tokens::TYPOGRAPHY_FOOTNOTE)
+            .typography(t.typography.footnote)
             .when(self.dot, |badge| {
                 badge.child(
                     div()
                         .flex_none()
-                        .size(px(tokens::SPACE_1_5))
+                        .size(px(t.space.s1_5))
                         .rounded_full()
                         .bg(color(text)),
                 )
             })
-            .children(self.icon.map(|name| icon(name, IconSize::Xs)))
+            .children(self.icon.map(|name| icon(name).icon_size(IconSize::Xs)))
             .child(self.label)
+    }
+}
+
+impl Styled for Badge {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for Badge {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }
 
@@ -878,6 +949,7 @@ impl RenderOnce for Badge {
 /// zero or less draws nothing but the child.
 #[derive(IntoElement)]
 pub struct CountBadge {
+    style: StyleRefinement,
     id: ElementId,
     count: i64,
     max: i64,
@@ -890,6 +962,7 @@ impl CountBadge {
     /// takes one.
     pub fn new(id: impl Into<ElementId>, count: i64) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             count,
             max: 99,
@@ -927,10 +1000,11 @@ pub(crate) fn count_text(count: i64, max: i64) -> String {
     }
 }
 
-impl RenderOnce for CountBadge {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl CountBadge {
+    fn draw(self, _window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
-        let side = tokens::POINTER.count_badge;
+        let side = t.pointer.count_badge;
         let pill = (self.count > 0).then(|| {
             let shown: SharedString = count_text(self.count, self.max).into();
             div()
@@ -943,11 +1017,11 @@ impl RenderOnce for CountBadge {
                 .justify_center()
                 .h(px(side))
                 .min_w(px(side))
-                .px(px(tokens::SPACE_1))
+                .px(px(t.space.s1))
                 .rounded_full()
                 .bg(color(c.badge_count_background))
                 .text_color(color(c.badge_count_text))
-                .typography(tokens::TYPOGRAPHY_FOOTNOTE)
+                .typography(t.typography.footnote)
                 .child(shown)
         });
         let Some(child) = self.child else {
@@ -969,6 +1043,21 @@ impl RenderOnce for CountBadge {
     }
 }
 
+impl Styled for CountBadge {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for CountBadge {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
+    }
+}
+
 // ---------------------------------------------------------------- banner
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -984,8 +1073,9 @@ pub enum BannerTone {
 /// does not depend on color.
 #[derive(IntoElement)]
 pub struct Banner {
+    style: StyleRefinement,
     id: ElementId,
-    tone: BannerTone,
+    tone: Option<BannerTone>,
     title: Option<SharedString>,
     message: SharedString,
     action: Option<(SharedString, ClickHandler)>,
@@ -994,16 +1084,24 @@ pub struct Banner {
 }
 
 impl Banner {
-    pub fn new(tone: BannerTone, message: impl Into<SharedString>) -> Self {
+    /// A banner in the tone `.tone` gives, or else the registered
+    /// [`Defaults`](crate::Defaults), or else `Info`.
+    pub fn new(message: impl Into<SharedString>) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: "banner".into(),
-            tone,
+            tone: None,
             title: None,
             message: message.into(),
             action: None,
             on_dismiss: None,
             dismiss_label: "Dismiss".into(),
         }
+    }
+
+    pub const fn tone(mut self, tone: BannerTone) -> Self {
+        self.tone = Some(tone);
+        self
     }
 
     /// Tells this banner's buttons apart from those of another banner beside it. Set it when
@@ -1044,10 +1142,15 @@ impl Banner {
     }
 }
 
-impl RenderOnce for Banner {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl Banner {
+    fn draw(self, _window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
-        let (background, accent, mark) = match self.tone {
+        let tone = self
+            .tone
+            .or_else(|| defaults(cx).banner.tone)
+            .unwrap_or_default();
+        let (background, accent, mark) = match tone {
             BannerTone::Info => (c.banner_info_background, c.banner_info_accent, "i"),
             BannerTone::Success => (c.banner_success_background, c.banner_success_accent, "✓"),
             BannerTone::Warning => (c.banner_warning_background, c.banner_warning_accent, "!"),
@@ -1055,15 +1158,11 @@ impl RenderOnce for Banner {
         };
         let action = self.action.map(|(label, handler)| {
             // In a row of its own, so the button keeps the width of its label.
-            div().flex().pt(px(tokens::SPACE_2)).child(
-                button(
-                    (self.id.clone(), "action"),
-                    label,
-                    ButtonVariant::Secondary,
-                    ControlSize::Sm,
-                    cx,
-                )
-                .on_click(move |event, window, cx| handler(event, window, cx)),
+            div().flex().pt(px(t.space.s2)).child(
+                button((self.id.clone(), "action"), label)
+                    .variant(ButtonVariant::Secondary)
+                    .control_size(ControlSize::Sm)
+                    .on_click(move |event, window, cx| handler(event, window, cx)),
             )
         });
         let dismiss = self.on_dismiss.map(|handler| {
@@ -1071,7 +1170,6 @@ impl RenderOnce for Banner {
                 (self.id.clone(), "dismiss"),
                 tokens::Icon::X,
                 self.dismiss_label,
-                cx,
             )
             .control_size(ControlSize::Sm)
             .on_click(move |event, window, cx| handler(event, window, cx))
@@ -1079,9 +1177,9 @@ impl RenderOnce for Banner {
         div()
             .flex()
             .items_start()
-            .gap(px(tokens::SPACE_3))
-            .p(px(tokens::SPACE_3))
-            .rounded(px(tokens::RADIUS_MD))
+            .gap(px(t.space.s3))
+            .p(px(t.space.s3))
+            .rounded(px(t.radius.md))
             .bg(color(background))
             .text_color(color(c.banner_text))
             .child(
@@ -1090,11 +1188,11 @@ impl RenderOnce for Banner {
                     .flex_none()
                     .items_center()
                     .justify_center()
-                    .size(px(tokens::POINTER.icon_md))
+                    .size(px(t.pointer.icon_md))
                     .rounded_full()
                     .bg(color(accent))
                     .text_color(color(background))
-                    .typography(tokens::TYPOGRAPHY_FOOTNOTE)
+                    .typography(t.typography.footnote)
                     .child(mark),
             )
             .child(
@@ -1102,19 +1200,30 @@ impl RenderOnce for Banner {
                     .flex_1()
                     .flex()
                     .flex_col()
-                    .gap(px(tokens::SPACE_0_5))
+                    .gap(px(t.space.s0_5))
                     .children(
                         self.title
-                            .map(|title| div().typography(tokens::TYPOGRAPHY_LABEL).child(title)),
+                            .map(|title| div().typography(t.typography.label).child(title)),
                     )
-                    .child(
-                        div()
-                            .typography(tokens::TYPOGRAPHY_DETAIL)
-                            .child(self.message),
-                    )
+                    .child(div().typography(t.typography.detail).child(self.message))
                     .children(action),
             )
             .children(dismiss)
+    }
+}
+
+impl Styled for Banner {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for Banner {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }
 
@@ -1140,7 +1249,8 @@ pub fn card(_cx: &App) -> Card {
 pub struct Card {
     style: StyleRefinement,
     children: Vec<AnyElement>,
-    media: Option<AnyElement>,
+    /// The picture, given the radius of the card's top corners.
+    media: Option<Box<dyn FnOnce(Pixels) -> AnyElement>>,
     selected: bool,
     press: Option<(ElementId, ClickHandler)>,
 }
@@ -1149,10 +1259,10 @@ impl Card {
     /// A picture at the top of the card, edge to edge above the padding. GPUI clips to
     /// rectangles only, so the card rounds the top corners of the element it is given: pass
     /// the picture itself (an `img`, or a `div` with a background), not a wrapper around it.
-    pub fn media(mut self, media: impl IntoElement + Styled) -> Self {
-        // Inside the hairline, so the picture's corners follow the inner edge of the outline.
-        let radius = px(tokens::RADIUS_LG - tokens::BORDER_WIDTH_THIN);
-        self.media = Some(media.rounded_t(radius).into_any_element());
+    pub fn media(mut self, media: impl IntoElement + Styled + 'static) -> Self {
+        self.media = Some(Box::new(move |radius| {
+            media.rounded_t(radius).into_any_element()
+        }));
         self
     }
 
@@ -1188,22 +1298,23 @@ impl ParentElement for Card {
 
 impl RenderOnce for Card {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let t = theme(cx);
         let c = palette(cx);
-        let hairline = px(tokens::BORDER_WIDTH_THIN);
+        let hairline = px(t.border.width_thin);
         let mut surface = div()
             .relative()
             .flex()
             .flex_col()
-            .rounded(px(tokens::RADIUS_LG))
+            .rounded(px(t.radius.lg))
             .border(hairline)
             .border_color(color(c.border_default))
             .bg(color(c.background_surface))
-            .shadow(shadow(tokens::SHADOW_SUBTLE));
+            .shadow(shadow(t.shadow.subtle));
         let mut body = div()
             .flex()
             .flex_col()
-            .gap(px(tokens::SPACE_4))
-            .p(px(tokens::SPACE_4));
+            .gap(px(t.space.s4))
+            .p(px(t.space.s4));
         let surface = if let Some(media) = self.media {
             // The padding and the gap the caller set belong under the picture; the rest
             // of the caller's style belongs to the card as a whole.
@@ -1213,6 +1324,9 @@ impl RenderOnce for Card {
                 .refine(&std::mem::take(&mut outer.padding));
             body.style().gap.refine(&std::mem::take(&mut outer.gap));
             surface.style().refine(&outer);
+            // Inside the hairline, so the picture's corners follow the inner edge of the
+            // outline.
+            let media = media(px(t.radius.lg - t.border.width_thin));
             surface.child(media).child(body.children(self.children))
         } else {
             surface.style().refine(body.style());
@@ -1229,8 +1343,8 @@ impl RenderOnce for Card {
                     .left(-hairline)
                     .right(-hairline)
                     .bottom(-hairline)
-                    .rounded(px(tokens::RADIUS_LG))
-                    .border(px(tokens::BORDER_WIDTH_THICK))
+                    .rounded(px(t.radius.lg))
+                    .border(px(t.border.width_thick))
                     .border_color(color(c.card_border_selected)),
             )
         });
@@ -1299,10 +1413,11 @@ fn watched(progress: Option<f32>) -> Option<f32> {
 /// given and takes its height from the ratio.
 #[derive(IntoElement)]
 pub struct Thumbnail {
+    style: StyleRefinement,
     id: ElementId,
     src: Option<ImageSource>,
     alt: SharedString,
-    ratio: ThumbnailRatio,
+    ratio: Option<ThumbnailRatio>,
     badge: Option<SharedString>,
     progress: Option<f32>,
 }
@@ -1312,10 +1427,11 @@ impl Thumbnail {
     /// thumbnail takes one.
     pub fn new(id: impl Into<ElementId>) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             src: None,
             alt: SharedString::default(),
-            ratio: ThumbnailRatio::default(),
+            ratio: None,
             badge: None,
             progress: None,
         }
@@ -1339,7 +1455,7 @@ impl Thumbnail {
     }
 
     pub const fn ratio(mut self, ratio: ThumbnailRatio) -> Self {
-        self.ratio = ratio;
+        self.ratio = Some(ratio);
         self
     }
 
@@ -1356,13 +1472,14 @@ impl Thumbnail {
     }
 }
 
-impl RenderOnce for Thumbnail {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl Thumbnail {
+    fn draw(self, _window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
-        let radius = px(tokens::RADIUS_MD);
+        let radius = px(t.radius.md);
         let watched = watched(self.progress);
-        let inset = px(tokens::SPACE_2);
-        let bar = px(tokens::SPACE_1);
+        let inset = px(t.space.s2);
+        let bar = px(t.space.s1);
         let (track, accent) = (color(c.overlay_background), color(c.overlay_accent));
         let progress = watched.map(|watched| {
             // GPUI clips to rectangles only, so the bar is the whole rounded shape painted
@@ -1414,11 +1531,16 @@ impl RenderOnce for Thumbnail {
             .items_center()
             .justify_center()
             .w_full()
-            .aspect_ratio(self.ratio.value())
+            .aspect_ratio(
+                self.ratio
+                    .or_else(|| defaults(cx).thumbnail.ratio)
+                    .unwrap_or_default()
+                    .value(),
+            )
             .rounded(radius)
             .bg(color(c.thumbnail_background))
             .text_color(color(c.thumbnail_icon))
-            .child(icon(tokens::Icon::Image, IconSize::Lg))
+            .child(icon(tokens::Icon::Image).icon_size(IconSize::Lg))
             // Over the mark, and drawn only once it has loaded, so the mark is what shows
             // until then and when it fails.
             .children(self.src.map(|src| {
@@ -1431,6 +1553,21 @@ impl RenderOnce for Thumbnail {
             }))
             .children(progress)
             .children(badge)
+    }
+}
+
+impl Styled for Thumbnail {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for Thumbnail {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }
 
@@ -1447,9 +1584,10 @@ pub enum MediaCardLayout {
 /// A thumbnail with its title and details: a video in a feed, an article in a list.
 #[derive(IntoElement)]
 pub struct MediaCard {
+    style: StyleRefinement,
     id: ElementId,
     title: SharedString,
-    layout: MediaCardLayout,
+    layout: Option<MediaCardLayout>,
     thumbnail: Thumbnail,
     meta: Vec<SharedString>,
     leading: Option<AnyElement>,
@@ -1461,10 +1599,12 @@ impl MediaCard {
     pub fn new(id: impl Into<ElementId>, title: impl Into<SharedString>) -> Self {
         let id = id.into();
         Self {
-            thumbnail: Thumbnail::new((id.clone(), "thumbnail")),
+            style: StyleRefinement::default(),
+            // A part of the card, so the app's defaults for a thumbnail do not reach it.
+            thumbnail: Thumbnail::new((id.clone(), "thumbnail")).ratio(ThumbnailRatio::default()),
             id,
             title: title.into(),
-            layout: MediaCardLayout::default(),
+            layout: None,
             meta: Vec::new(),
             leading: None,
             action: None,
@@ -1473,7 +1613,7 @@ impl MediaCard {
     }
 
     pub const fn layout(mut self, layout: MediaCardLayout) -> Self {
-        self.layout = layout;
+        self.layout = Some(layout);
         self
     }
 
@@ -1546,20 +1686,23 @@ fn media_name(title: &str, meta: &[SharedString]) -> String {
         .join(", ")
 }
 
-impl RenderOnce for MediaCard {
-    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl MediaCard {
+    /// What the component draws, with the app's style on its root: the card, which is pressable
+    /// or not.
+    fn draw(self, window: &mut Window, cx: &mut App) -> AnyElement {
+        let t = theme(cx);
         let c = palette(cx);
-        let gap = px(tokens::SPACE_3);
+        let gap = px(t.space.s3);
         let name = media_name(&self.title, &self.meta);
         let text = div()
             .flex_1()
             .min_w_0()
             .flex()
             .flex_col()
-            .gap(px(tokens::SPACE_0_5))
+            .gap(px(t.space.s0_5))
             .child(
                 div()
-                    .typography(tokens::TYPOGRAPHY_BODY_STRONG)
+                    .typography(t.typography.body_strong)
                     .text_color(color(c.text_primary))
                     .line_clamp(2)
                     .text_ellipsis()
@@ -1567,7 +1710,7 @@ impl RenderOnce for MediaCard {
             )
             .children(self.meta.into_iter().map(|line| {
                 div()
-                    .typography(tokens::TYPOGRAPHY_DETAIL)
+                    .typography(t.typography.detail)
                     .text_color(color(c.text_secondary))
                     .truncate()
                     .child(line)
@@ -1581,7 +1724,11 @@ impl RenderOnce for MediaCard {
                 .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
                 .child(action)
         });
-        let body = match self.layout {
+        let body = match self
+            .layout
+            .or_else(|| defaults(cx).media_card.layout)
+            .unwrap_or_default()
+        {
             MediaCardLayout::Vertical => div()
                 .flex()
                 .flex_col()
@@ -1605,24 +1752,40 @@ impl RenderOnce for MediaCard {
                 .children(action),
         };
         let Some(on_press) = self.on_press else {
+            let mut body = body;
+            body.style().refine(&self.style);
             return body.into_any_element();
         };
         let focus = focus_handle(&self.id, window, cx);
         let focused = focus.is_focused(window);
-        body.id(self.id)
+        let mut card = body
+            .id(self.id)
             .role(Role::Button)
             .aria_label(name)
             .track_focus(&focus.tab_index(0).tab_stop(true))
-            .p(px(tokens::SPACE_2))
-            .rounded(px(tokens::RADIUS_LG))
+            .p(px(t.space.s2))
+            .rounded(px(t.radius.lg))
             .hover(|card| card.bg(color(c.card_background_hover)))
             .active(|card| card.bg(color(c.card_background_pressed)))
             // A click does not move the focus here, as on a button, so the ring shows only
             // when the keyboard got there.
             .on_mouse_down(MouseButton::Left, |_, window, _| window.prevent_default())
             .on_click(move |event, window, cx| on_press(event, window, cx))
-            .when(focused, |card| card.focus_ring_style(window, cx))
-            .into_any_element()
+            .when(focused, |card| card.focus_ring_style(window, cx));
+        card.style().refine(&self.style);
+        card.into_any_element()
+    }
+}
+
+impl Styled for MediaCard {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for MediaCard {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        self.draw(window, cx)
     }
 }
 
@@ -1632,6 +1795,7 @@ impl RenderOnce for MediaCard {
 /// "See all".
 #[derive(IntoElement)]
 pub struct SectionHeader {
+    style: StyleRefinement,
     id: ElementId,
     title: SharedString,
     description: Option<SharedString>,
@@ -1644,6 +1808,7 @@ impl SectionHeader {
     /// GPUI reports the title as a heading only when it has an id, so the header takes one.
     pub fn new(id: impl Into<ElementId>, title: impl Into<SharedString>) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             title: title.into(),
             description: None,
@@ -1683,24 +1848,21 @@ impl SectionHeader {
     }
 }
 
-impl RenderOnce for SectionHeader {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl SectionHeader {
+    fn draw(self, _window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
         // The icon and the action are centered on the title's line, not on the title and the
         // description together.
-        let line = px(tokens::TYPOGRAPHY_HEADING.line_height_px());
+        let line = px(t.typography.heading.line_height_px());
         let on_title_line = || div().flex().flex_none().items_center().h(line);
         let action = self.action.map(|(label, handler)| {
-            on_title_line().ml(px(tokens::SPACE_4)).child(
-                button(
-                    (self.id.clone(), "action"),
-                    label,
-                    ButtonVariant::Ghost,
-                    ControlSize::Sm,
-                    cx,
-                )
-                .icon_end(tokens::Icon::ChevronRight)
-                .on_click(move |event, window, cx| handler(event, window, cx)),
+            on_title_line().ml(px(t.space.s4)).child(
+                button((self.id.clone(), "action"), label)
+                    .variant(ButtonVariant::Ghost)
+                    .control_size(ControlSize::Sm)
+                    .icon_end(tokens::Icon::ChevronRight)
+                    .on_click(move |event, window, cx| handler(event, window, cx)),
             )
         });
         div()
@@ -1709,9 +1871,9 @@ impl RenderOnce for SectionHeader {
             .w_full()
             .children(self.icon.map(|name| {
                 on_title_line()
-                    .mr(px(tokens::SPACE_2))
+                    .mr(px(t.space.s2))
                     .text_color(color(c.text_secondary))
-                    .child(icon(name, IconSize::Md))
+                    .child(icon(name).icon_size(IconSize::Md))
             }))
             .child(
                 div()
@@ -1719,25 +1881,40 @@ impl RenderOnce for SectionHeader {
                     .min_w_0()
                     .flex()
                     .flex_col()
-                    .gap(px(tokens::SPACE_0_5))
+                    .gap(px(t.space.s0_5))
                     .child(
                         div()
                             .id(self.id)
                             .role(Role::Heading)
                             .aria_level(self.level)
                             .aria_label(self.title.clone())
-                            .typography(tokens::TYPOGRAPHY_HEADING)
+                            .typography(t.typography.heading)
                             .text_color(color(c.text_primary))
                             .child(self.title),
                     )
                     .children(self.description.map(|description| {
                         div()
-                            .typography(tokens::TYPOGRAPHY_DETAIL)
+                            .typography(t.typography.detail)
                             .text_color(color(c.text_secondary))
                             .child(description)
                     })),
             )
             .children(action)
+    }
+}
+
+impl Styled for SectionHeader {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for SectionHeader {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }
 
@@ -1747,6 +1924,7 @@ impl RenderOnce for SectionHeader {
 /// itself in the room it is given.
 #[derive(IntoElement)]
 pub struct EmptyState {
+    style: StyleRefinement,
     icon: tokens::Icon,
     title: SharedString,
     description: Option<SharedString>,
@@ -1757,6 +1935,7 @@ impl EmptyState {
     /// The icon is decoration; the title says what is missing.
     pub fn new(icon: tokens::Icon, title: impl Into<SharedString>) -> Self {
         Self {
+            style: StyleRefinement::default(),
             icon,
             title: title.into(),
             description: None,
@@ -1776,8 +1955,9 @@ impl EmptyState {
     }
 }
 
-impl RenderOnce for EmptyState {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl EmptyState {
+    fn draw(self, _window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
         div().flex().justify_center().w_full().child(
             div()
@@ -1785,44 +1965,191 @@ impl RenderOnce for EmptyState {
                 .flex_col()
                 .items_center()
                 .w_full()
-                .max_w(px(tokens::POINTER.dialog))
-                .py(px(tokens::SPACE_8))
+                .max_w(px(t.pointer.dialog))
+                .py(px(t.space.s8))
                 .text_center()
-                .child(icon(self.icon, IconSize::Xl).text_color(color(c.empty_state_icon)))
+                .child(
+                    icon(self.icon)
+                        .icon_size(IconSize::Xl)
+                        .text_color(color(c.empty_state_icon)),
+                )
                 .child(
                     div()
-                        .mt(px(tokens::SPACE_4))
-                        .typography(tokens::TYPOGRAPHY_HEADING)
+                        .mt(px(t.space.s4))
+                        .typography(t.typography.heading)
                         .text_color(color(c.text_primary))
                         .child(self.title),
                 )
                 .children(self.description.map(|description| {
                     div()
-                        .mt(px(tokens::SPACE_2))
-                        .typography(tokens::TYPOGRAPHY_BODY)
+                        .mt(px(t.space.s2))
+                        .typography(t.typography.body)
                         .text_color(color(c.text_secondary))
                         .child(description)
                 }))
                 .children(
                     self.action
-                        .map(|action| div().flex().mt(px(tokens::SPACE_6)).child(action)),
+                        .map(|action| div().flex().mt(px(t.space.s6)).child(action)),
                 ),
         )
     }
 }
 
+impl Styled for EmptyState {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for EmptyState {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
+    }
+}
+
 /// A line between groups of content.
 pub fn divider(cx: &App) -> Div {
+    let t = theme(cx);
     div()
         .flex_none()
-        .h(px(tokens::BORDER_WIDTH_THIN))
+        .h(px(t.border.width_thin))
         .w_full()
         .bg(color(palette(cx).border_default))
 }
 
-/// Text in one of the design system's roles, for example `tokens::TYPOGRAPHY_HEADING`.
-pub fn text(content: impl Into<SharedString>, style: tokens::Typography) -> Div {
-    div().typography(style).child(content.into())
+/// What a piece of [`text`] is for: one of the design system's type roles, which sets its size,
+/// weight, line height and tracking together.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum TextVariant {
+    Display,
+    Title,
+    Heading,
+    #[default]
+    Body,
+    BodyStrong,
+    Label,
+    Detail,
+    Footnote,
+}
+
+impl TextVariant {
+    pub const ALL: [Self; 8] = [
+        Self::Display,
+        Self::Title,
+        Self::Heading,
+        Self::Body,
+        Self::BodyStrong,
+        Self::Label,
+        Self::Detail,
+        Self::Footnote,
+    ];
+
+    /// The variant's name in the component contract.
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Display => "display",
+            Self::Title => "title",
+            Self::Heading => "heading",
+            Self::Body => "body",
+            Self::BodyStrong => "body-strong",
+            Self::Label => "label",
+            Self::Detail => "detail",
+            Self::Footnote => "footnote",
+        }
+    }
+
+    /// The type role of this variant in `theme`.
+    pub const fn typography(self, t: &tokens::Theme) -> tokens::Typography {
+        match self {
+            Self::Display => t.typography.display,
+            Self::Title => t.typography.title,
+            Self::Heading => t.typography.heading,
+            Self::Body => t.typography.body,
+            Self::BodyStrong => t.typography.body_strong,
+            Self::Label => t.typography.label,
+            Self::Detail => t.typography.detail,
+            Self::Footnote => t.typography.footnote,
+        }
+    }
+}
+
+/// The color of a piece of [`text`]. A status tone is never the only signal: the words say it
+/// too.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum TextTone {
+    Primary,
+    Secondary,
+    Accent,
+    Danger,
+    Success,
+    Warning,
+    /// The color of the text around it.
+    #[default]
+    Inherit,
+}
+
+/// Text in one of the design system's type roles. `.variant` and `.tone` choose them, and
+/// without them it takes the registered [`Defaults`](crate::Defaults), or else body text in
+/// the color of the text around it. `.text_color` and the other text styles win over both.
+pub fn text(content: impl Into<SharedString>) -> Text {
+    Text {
+        content: content.into(),
+        variant: None,
+        tone: None,
+        style: StyleRefinement::default(),
+    }
+}
+
+/// What [`text`] returns.
+#[derive(IntoElement)]
+pub struct Text {
+    content: SharedString,
+    variant: Option<TextVariant>,
+    tone: Option<TextTone>,
+    style: StyleRefinement,
+}
+
+impl Text {
+    pub const fn variant(mut self, variant: TextVariant) -> Self {
+        self.variant = Some(variant);
+        self
+    }
+
+    pub const fn tone(mut self, tone: TextTone) -> Self {
+        self.tone = Some(tone);
+        self
+    }
+}
+
+impl Styled for Text {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for Text {
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let given = defaults(cx).text;
+        let variant = self.variant.or(given.variant).unwrap_or_default();
+        let c = palette(cx);
+        let tone = match self.tone.or(given.tone).unwrap_or_default() {
+            TextTone::Primary => Some(c.text_primary),
+            TextTone::Secondary => Some(c.text_secondary),
+            TextTone::Accent => Some(c.text_accent),
+            TextTone::Danger => Some(c.status_danger),
+            TextTone::Success => Some(c.status_success),
+            TextTone::Warning => Some(c.status_warning),
+            TextTone::Inherit => None,
+        };
+        let mut text = div()
+            .typography(variant.typography(theme(cx)))
+            .when_some(tone, |text, tone| text.text_color(color(tone)));
+        text.style().refine(&self.style);
+        text.child(self.content)
+    }
 }
 
 #[cfg(test)]

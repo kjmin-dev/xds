@@ -13,7 +13,8 @@ use acme_tokens as tokens;
 use chrono::{Datelike as _, NaiveDate, Weekday};
 use gpui_kit::{
     AnyElement, App, ElementId, InteractiveElement as _, IntoElement, ParentElement as _,
-    RenderOnce, Role, SharedString, StatefulInteractiveElement as _, Styled as _, Window, div, px,
+    Refineable as _, RenderOnce, Role, SharedString, StatefulInteractiveElement as _,
+    StyleRefinement, Styled, Window, div, px,
 };
 
 use crate::date_picker::{CalendarField, CalendarLocale, Choosing, NodeFlags, a11y_flags};
@@ -258,6 +259,7 @@ impl RangeChoosing {
         id: &ElementId,
         draft: &[NaiveDate],
         locale: CalendarLocale,
+        t: &tokens::Theme,
         c: &tokens::Colors,
     ) -> AnyElement {
         let shown = |day: Option<&NaiveDate>| {
@@ -271,8 +273,8 @@ impl RangeChoosing {
             .aria_label(format!("{start}, {end}"))
             .flex()
             .justify_between()
-            .gap(px(tokens::SPACE_3))
-            .typography(tokens::TYPOGRAPHY_FOOTNOTE)
+            .gap(px(t.space.s3))
+            .typography(t.typography.footnote)
             .text_color(color(c.date_picker_weekday))
             .child(start)
             .child(end);
@@ -303,6 +305,7 @@ impl RangeChoosing {
 /// without an end, and the focus goes back to the field.
 #[derive(IntoElement)]
 pub struct DateRangePicker {
+    style: StyleRefinement,
     id: ElementId,
     label: SharedString,
     value: Option<DateRange>,
@@ -327,6 +330,7 @@ impl DateRangePicker {
     /// technology.
     pub fn new(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             label: label.into(),
             value: None,
@@ -443,8 +447,8 @@ impl DateRangePicker {
     }
 }
 
-impl RenderOnce for DateRangePicker {
-    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl DateRangePicker {
+    fn draw(self, window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
         let locale = CalendarLocale::system();
         CalendarField {
             id: self.id,
@@ -470,6 +474,21 @@ impl RenderOnce for DateRangePicker {
             }),
         }
         .render(window, cx)
+    }
+}
+
+impl Styled for DateRangePicker {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for DateRangePicker {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }
 

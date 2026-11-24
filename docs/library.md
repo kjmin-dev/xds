@@ -1,6 +1,6 @@
 # xds as a library
 
-The CLI ships the theme contract and can check a custom theme file. The web, Compose and React Native channels are built: [the web library](web-library.md), [the Compose library](compose-library.md) and [the React Native library](react-native-library.md) describe their packages and how an app uses them. The other platform packages below are planned, and apps on those platforms get the components through `xds create`. The [CLI guide](cli.md#xds-check-theme-file) describes the theme file format and the [changelog](../CHANGELOG.md) tracks changes across channels.
+The CLI ships the theme contract and can check a custom theme file. The web, Compose and React Native channels are built: [the web library](web-library.md), [the Compose library](compose-library.md) and [the React Native library](react-native-library.md) describe their packages and how an app uses them. The GPUI channel's crates are built and checked, and not yet published: [the GPUI library](gpui-library.md) describes them. The other platform packages below are planned, and apps on those platforms get the components through `xds create`. The [CLI guide](cli.md#xds-check-theme-file) describes the theme file format and the [changelog](../CHANGELOG.md) tracks changes across channels.
 
 ## Two ways to take xds
 
@@ -63,7 +63,7 @@ Decisions that hold for every channel:
 | --- | --- |
 | npm, web | Nothing: built in L1 ([the web library](web-library.md)) |
 | npm, React Native | Nothing: built in L3 ([the React Native library](react-native-library.md)) |
-| crates.io | The theme moves from generated constants to a registered value; the one-to-one tie to the GPUI kit's version is documented and enforced |
+| crates.io | Publication: the crates are built and checked in L4 ([the GPUI library](gpui-library.md)), and publishing them is a step of the release still to come |
 | Maven Central | Nothing: built in L2 ([the Compose library](compose-library.md)) |
 | pub.dev | Build and publish the Flutter component and token packages, and verify them in an external app |
 
@@ -75,7 +75,7 @@ The maintainer owns the GitHub repository and npm scope. The crates.io and pub.d
 | --- | --- | --- | --- |
 | npm scope | `@xds` | Registered on 2026-11-16 as an npm organization of the maintainer | Every npm package is published under it |
 | npm packages | `@xds/react`, `@xds/solid`, `@xds/vue`, `@xds/svelte`, `@xds/core`, `@xds/tokens`, `@xds/react-native` | Held by the scope. The web packages are built by `npm/web/build.ts` and published with the CLI's release | The unscoped name `xds` is taken by an unrelated Vue state library, so nothing is published unscoped |
-| crates.io | `xds-ui`, `xds-tokens` | Unregistered | Claim with the first functional L4 packages. The unsuffixed `xds` belongs to another crate |
+| crates.io | `xds-ui`, `xds-tokens` | Unregistered. The L4 crates are built and checked under these names | Claimed when the L4 crates are first published. The unsuffixed `xds` belongs to another crate |
 | Maven Central | group `io.github.kjmin-dev`, artifact `xds-ui` | The group corresponds to the maintainer’s GitHub account. The release workflow builds and checks the artifacts | Verify the namespace in Central Portal and set the publishing secrets before the first tag, then [rehearse the release](cli.md#rehearsing-a-release), which has Central validate the signed artifacts. [Namespace verification](https://central.sonatype.org/register/namespace/) |
 | pub.dev | `xds_ui`, `xds_tokens` | Unregistered | Claim with the first functional L5 packages. A verified publisher needs a domain |
 | GitHub | `kjmin-dev/xds` | Owned | The source of truth for every channel |
@@ -119,11 +119,11 @@ Rules that make the layers hold together:
 | --- | --- | --- |
 | Web | Custom properties, set by a stylesheet or a provider | Any element |
 | React Native | A provider holding the theme value | Any subtree |
-| GPUI | A theme value registered with the app | A window; a subtree where the toolkit allows |
+| GPUI | A theme value registered with the app | None: the theme applies to the app. GPUI has no context that reaches a subtree together with the overlays opened from it |
 | Compose | The theme composable | Any subtree |
 | Flutter | A theme extension | Any subtree |
 
-The L0 CLI checks a theme file against the versioned contract and all contrast pairs. Each channel adds its runtime carrier in its own phase. `xds export-theme` checks the file the same way and writes it for a channel: on the web, as a stylesheet that applies to the elements carrying `data-xds-theme="<name>"`; for Compose (`--format compose`), as a Kotlin `Theme` value that the theme composable takes; for React Native (`--format react-native`), as a TypeScript `Theme` value that the theme provider takes. Scaffolded projects can already generate color ramps from a hue.
+The L0 CLI checks a theme file against the versioned contract and all contrast pairs. Each channel adds its runtime carrier in its own phase. `xds export-theme` checks the file the same way and writes it for a channel: on the web, as a stylesheet that applies to the elements carrying `data-xds-theme="<name>"`; for Compose (`--format compose`), as a Kotlin `Theme` value that the theme composable takes; for React Native (`--format react-native`), as a TypeScript `Theme` value that the theme provider takes; for GPUI (`--format gpui`), as a Rust `Theme` constant that the app registers with the components. Scaffolded projects can already generate color ramps from a hue.
 
 ### Against other systems
 
@@ -192,7 +192,7 @@ A change that needs trying before it is promised goes out as a prerelease of the
 
 ## Order of work
 
-Glass material tokens and the Flutter scaffold are in the template. The L0 contract, checker, version source and changelog are implemented. Registry ownership is recorded above. The CLI release workflow ships the binary and its npm launchers. Each library channel joins the same tag when its external consumer check passes. L1 is implemented: the release workflow builds the web packages, runs their consumer check (`npm/web/consumer.ts`) and publishes them with the CLI. L2 is implemented: the release workflow builds and signs the Compose library, runs its consumer check (`maven/consumer.ts`) on the desktop and on Android, and uploads it to Maven Central. L3 is implemented: the release workflow builds the React Native package, runs its consumer check (`npm/react-native/consumer.ts`) in an Expo app and in apps on the oldest and newest supported React Native, and publishes it to npm. The date picker draws its calendar from the tokens, so the package has no calendar peer.
+Glass material tokens and the Flutter scaffold are in the template. The L0 contract, checker, version source and changelog are implemented. Registry ownership is recorded above. The CLI release workflow ships the binary and its npm launchers. Each library channel joins the same tag when its external consumer check passes. L1 is implemented: the release workflow builds the web packages, runs their consumer check (`npm/web/consumer.ts`) and publishes them with the CLI. L2 is implemented: the release workflow builds and signs the Compose library, runs its consumer check (`maven/consumer.ts`) on the desktop and on Android, and uploads it to Maven Central. L3 is implemented: the release workflow builds the React Native package, runs its consumer check (`npm/react-native/consumer.ts`) in an Expo app and in apps on the oldest and newest supported React Native, and publishes it to npm. The date picker draws its calendar from the tokens, so the package has no calendar peer. L4 is implemented up to publication: the release workflow packages the GPUI crates, runs their consumer check (`crates-io/consumer.ts`) on macOS, and keeps the checked `.crate` files. Publishing them to crates.io is the step still to come.
 
 | Phase | Work | Done when | Depends on |
 | --- | --- | --- | --- |

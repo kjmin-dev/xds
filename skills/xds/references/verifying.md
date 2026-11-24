@@ -62,6 +62,8 @@ cargo run --package acme-desktop -- --design --dark --scroll 800 --exit-after 5
 
 `--scroll <pixels>` opens the preview at a vertical scroll offset, `--light` and `--dark` pin the color mode, `--open menu|select|datepicker|daterange|dialog|toast|tooltip` opens the preview with that overlay showing, and `--exit-after <seconds>` closes the window automatically after the given delay. Capture the window while it is open using a tool such as `screencapture`.
 
+`mise run //desktop:render` draws every page of the preview and each overlay off screen, in both modes, into PNG files in `target/preview`, with no window on the screen. Two runs of the same components give the same files, so it also shows whether a change moved any pixel: render before and after, and compare.
+
 ## React Native
 
 Start the app with `mise run //mobile:ios`. The design preview lives at the `/design` route and accepts query parameters:

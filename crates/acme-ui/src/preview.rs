@@ -31,9 +31,10 @@ use crate::{
     DateRangePicker, Dialog, EmptyState, IconSize, ListRow, MediaCard, MediaCardLayout, Menu,
     MenuAlign, MenuItem, Person, ProgressBar, RadioGroup, RadioOption, SearchField, SectionHeader,
     SegmentedControl, Select, SelectOption, Sidebar, SidebarItem, SidebarSection, Skeleton,
-    SkeletonShape, Slider, SpinnerSize, TabItem, Tabs, TextField, Thumbnail, ThumbnailRatio, Toast,
-    TooltipPlacement, TypographyExt as _, button, card, checkbox, color, divider, icon,
-    icon_button, icon_filled, mode, palette, set_mode, spinner, switch, text, tooltip,
+    SkeletonShape, Slider, SpinnerSize, TabItem, Tabs, TextField, TextVariant, Thumbnail,
+    ThumbnailRatio, Toast, TooltipPlacement, TypographyExt as _, button, card, checkbox, color,
+    divider, icon, icon_button, icon_filled, mode, palette, set_mode, spinner, switch, text, theme,
+    tooltip,
 };
 
 /// Component colors are shown by the components that use them, not as swatches.
@@ -81,23 +82,44 @@ pub enum PreviewOverlay {
     Tooltip,
 }
 
+impl PreviewOverlay {
+    pub const ALL: [Self; 7] = [
+        Self::Menu,
+        Self::Select,
+        Self::DatePicker,
+        Self::DateRange,
+        Self::Dialog,
+        Self::Toast,
+        Self::Tooltip,
+    ];
+
+    /// The overlay's name, as `--open` and the web's `?open=` take it.
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Menu => "menu",
+            Self::Select => "select",
+            Self::DatePicker => "datepicker",
+            Self::DateRange => "daterange",
+            Self::Dialog => "dialog",
+            Self::Toast => "toast",
+            Self::Tooltip => "tooltip",
+        }
+    }
+}
+
 impl FromStr for PreviewOverlay {
     type Err = String;
 
     fn from_str(name: &str) -> Result<Self, Self::Err> {
-        match name {
-            "menu" => Ok(Self::Menu),
-            "select" => Ok(Self::Select),
-            "datepicker" => Ok(Self::DatePicker),
-            "daterange" => Ok(Self::DateRange),
-            "dialog" => Ok(Self::Dialog),
-            "toast" => Ok(Self::Toast),
-            "tooltip" => Ok(Self::Tooltip),
-            _ => Err(format!(
-                "there is no overlay called `{name}`: use menu, select, datepicker, daterange, \
+        Self::ALL
+            .into_iter()
+            .find(|overlay| overlay.name() == name)
+            .ok_or_else(|| {
+                format!(
+                    "there is no overlay called `{name}`: use menu, select, datepicker, daterange, \
                  dialog, toast or tooltip"
-            )),
-        }
+                )
+            })
     }
 }
 
@@ -295,8 +317,8 @@ fn picture(svg: String) -> Arc<Image> {
     Arc::new(Image::from_bytes(ImageFormat::Svg, svg.into_bytes()))
 }
 
-fn portrait() -> Arc<Image> {
-    let c = tokens::colors(tokens::Mode::Light);
+fn portrait(t: &tokens::Theme) -> Arc<Image> {
+    let c = &t.light;
     picture(format!(
         r#"<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 120 120"><rect width="120" height="120" fill="{wall}"/><circle cx="60" cy="48" r="22" fill="{face}"/><path d="M14 120c0-28 20-44 46-44s46 16 46 44z" fill="{coat}"/></svg>"#,
         wall = rgb(c.accent_subtle_pressed),
@@ -305,8 +327,8 @@ fn portrait() -> Arc<Image> {
     ))
 }
 
-fn landscape() -> Arc<Image> {
-    let c = tokens::colors(tokens::Mode::Light);
+fn landscape(t: &tokens::Theme) -> Arc<Image> {
+    let c = &t.light;
     picture(format!(
         r#"<svg xmlns="http://www.w3.org/2000/svg" width="640" height="320" viewBox="0 0 320 160"><rect width="320" height="160" fill="{sky}"/><circle cx="236" cy="52" r="24" fill="{sun}"/><path d="M0 160V104l70-48 64 40 46-26 140 90z" fill="{far}"/><path d="M0 160v-30l96-44 104 52 120-36v58z" fill="{near}"/></svg>"#,
         sky = rgb(c.accent_subtle),
@@ -325,40 +347,33 @@ const VARIANTS: [(&str, ButtonVariant); 4] = [
     ("danger", ButtonVariant::Danger),
 ];
 
-const TEXT_STYLES: [(&str, tokens::Typography); 8] = [
-    ("display", tokens::TYPOGRAPHY_DISPLAY),
-    ("title", tokens::TYPOGRAPHY_TITLE),
-    ("heading", tokens::TYPOGRAPHY_HEADING),
-    ("body", tokens::TYPOGRAPHY_BODY),
-    ("body-strong", tokens::TYPOGRAPHY_BODY_STRONG),
-    ("label", tokens::TYPOGRAPHY_LABEL),
-    ("detail", tokens::TYPOGRAPHY_DETAIL),
-    ("footnote", tokens::TYPOGRAPHY_FOOTNOTE),
-];
+const fn spaces(t: &tokens::Theme) -> [(&'static str, f32); 13] {
+    [
+        ("0.5", t.space.s0_5),
+        ("1", t.space.s1),
+        ("1.5", t.space.s1_5),
+        ("2", t.space.s2),
+        ("2.5", t.space.s2_5),
+        ("3", t.space.s3),
+        ("4", t.space.s4),
+        ("5", t.space.s5),
+        ("6", t.space.s6),
+        ("8", t.space.s8),
+        ("10", t.space.s10),
+        ("12", t.space.s12),
+        ("16", t.space.s16),
+    ]
+}
 
-const SPACES: [(&str, f32); 13] = [
-    ("0.5", tokens::SPACE_0_5),
-    ("1", tokens::SPACE_1),
-    ("1.5", tokens::SPACE_1_5),
-    ("2", tokens::SPACE_2),
-    ("2.5", tokens::SPACE_2_5),
-    ("3", tokens::SPACE_3),
-    ("4", tokens::SPACE_4),
-    ("5", tokens::SPACE_5),
-    ("6", tokens::SPACE_6),
-    ("8", tokens::SPACE_8),
-    ("10", tokens::SPACE_10),
-    ("12", tokens::SPACE_12),
-    ("16", tokens::SPACE_16),
-];
-
-const RADII: [(&str, f32); 5] = [
-    ("sm", tokens::RADIUS_SM),
-    ("md", tokens::RADIUS_MD),
-    ("lg", tokens::RADIUS_LG),
-    ("xl", tokens::RADIUS_XL),
-    ("full", tokens::RADIUS_FULL),
-];
+const fn radii(t: &tokens::Theme) -> [(&'static str, f32); 5] {
+    [
+        ("sm", t.radius.sm),
+        ("md", t.radius.md),
+        ("lg", t.radius.lg),
+        ("xl", t.radius.xl),
+        ("full", t.radius.full),
+    ]
+}
 
 pub struct DesignPreview {
     email: Entity<InputState>,
@@ -423,6 +438,7 @@ pub struct DesignPreview {
 
 impl DesignPreview {
     pub fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
+        let t = theme(cx);
         let mut field = |placeholder: &'static str| {
             cx.new(|cx| InputState::new(window, cx).placeholder(placeholder))
         };
@@ -477,8 +493,8 @@ impl DesignPreview {
             banner_open: true,
             folder: 0,
             plan: 1,
-            portrait: portrait(),
-            landscape: landscape(),
+            portrait: portrait(t),
+            landscape: landscape(t),
             search_projects,
             search_people,
             search_files,
@@ -545,28 +561,48 @@ impl DesignPreview {
             ..Default::default()
         };
         gpui_kit::open_window(options, cx, |window, cx| {
-            cx.new(|cx| {
-                let mut preview = Self::new(window, cx);
-                preview.start_at = (offset > 0.0).then_some(offset);
-                preview.overlay = overlay;
-                preview.confirming = overlay == Some(PreviewOverlay::Dialog);
-                preview.toast_open = overlay == Some(PreviewOverlay::Toast);
-                preview.find_overlay = preview.start_at.is_none()
-                    && matches!(
-                        overlay,
-                        Some(
-                            PreviewOverlay::Menu
-                                | PreviewOverlay::Select
-                                | PreviewOverlay::DatePicker
-                                | PreviewOverlay::DateRange
-                                | PreviewOverlay::Tooltip
-                        )
-                    );
-                preview
-            })
+            cx.new(|cx| Self::scripted(offset, overlay, window, cx))
         })
         .expect("the design preview window could not open");
         cx.activate(true);
+    }
+
+    /// The preview as [`open_scripted`](Self::open_scripted) shows it, for a window the caller
+    /// opens: a program that draws the preview off screen.
+    pub fn scripted(
+        offset: f32,
+        overlay: Option<PreviewOverlay>,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> Self {
+        let mut preview = Self::new(window, cx);
+        preview.start_at = (offset > 0.0).then_some(offset);
+        preview.overlay = overlay;
+        preview.confirming = overlay == Some(PreviewOverlay::Dialog);
+        preview.toast_open = overlay == Some(PreviewOverlay::Toast);
+        preview.find_overlay = preview.start_at.is_none()
+            && matches!(
+                overlay,
+                Some(
+                    PreviewOverlay::Menu
+                        | PreviewOverlay::Select
+                        | PreviewOverlay::DatePicker
+                        | PreviewOverlay::DateRange
+                        | PreviewOverlay::Tooltip
+                )
+            );
+        preview
+    }
+
+    /// Scrolls the page `offset` pixels down, once it has been laid out.
+    pub fn scroll_to(&mut self, offset: f32, cx: &mut Context<Self>) {
+        self.start_at = Some(offset);
+        cx.notify();
+    }
+
+    /// How far the page scrolls, once it has been laid out: zero before then.
+    pub fn scroll_height(&self) -> Pixels {
+        self.scroll.max_offset().y
     }
 
     /// Notes how far down the page `element` is drawn, when it is the control of the overlay
@@ -590,29 +626,25 @@ const fn day(year: i32, month: u32, day: u32) -> NaiveDate {
     NaiveDate::from_ymd_opt(year, month, day).expect("a fixture day is a real day")
 }
 
-fn row() -> Div {
-    div()
-        .flex()
-        .flex_wrap()
-        .items_center()
-        .gap(px(tokens::SPACE_3))
+fn row(t: &tokens::Theme) -> Div {
+    div().flex().flex_wrap().items_center().gap(px(t.space.s3))
 }
 
-fn section(title: &'static str) -> Div {
+fn section(title: &'static str, t: &tokens::Theme) -> Div {
     div()
         .flex()
         .flex_col()
-        .gap(px(tokens::SPACE_4))
-        .child(text(title, tokens::TYPOGRAPHY_TITLE))
+        .gap(px(t.space.s4))
+        .child(text(title).variant(TextVariant::Title))
 }
 
 /// A row with its name on the left, as in a specification sheet.
-fn labelled(label: impl Into<SharedString>, secondary: tokens::Color) -> Div {
-    row().child(
+fn labelled(label: impl Into<SharedString>, secondary: tokens::Color, t: &tokens::Theme) -> Div {
+    row(t).child(
         div()
             .flex_none()
             .w(px(120.0))
-            .typography(tokens::TYPOGRAPHY_DETAIL)
+            .typography(t.typography.detail)
             .text_color(color(secondary))
             .child(label.into()),
     )
@@ -620,6 +652,7 @@ fn labelled(label: impl Into<SharedString>, secondary: tokens::Color) -> Div {
 
 impl Render for DesignPreview {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let t = theme(cx);
         if self.find_overlay {
             // The first frames can be laid out before the window has its size, with the
             // control further down than it ends up, so the page follows the control until two
@@ -631,7 +664,7 @@ impl Render for DesignPreview {
                 (Some(top), _) => {
                     self.overlay_scrolled_to = Some(top);
                     // Some room above the control, which a tooltip on top of it needs.
-                    self.start_at = Some((f32::from(top) - tokens::SPACE_16).max(0.0));
+                    self.start_at = Some((f32::from(top) - t.space.s16).max(0.0));
                     window.request_animation_frame();
                 }
                 (None, _) => window.request_animation_frame(),
@@ -651,26 +684,22 @@ impl Render for DesignPreview {
         let secondary = colors.text_secondary;
         let dark = mode(cx) == tokens::Mode::Dark;
 
-        let header = row()
+        let header = row(t)
             .justify_between()
-            .child(text("Acme design system", tokens::TYPOGRAPHY_DISPLAY))
+            .child(text("Acme design system").variant(TextVariant::Display))
             .child(
-                button(
-                    "toggle-mode",
-                    if dark { "Light mode" } else { "Dark mode" },
-                    ButtonVariant::Ghost,
-                    ControlSize::Sm,
-                    cx,
-                )
-                .on_click(move |_, _, cx| {
-                    let next = if dark {
-                        tokens::Mode::Light
-                    } else {
-                        tokens::Mode::Dark
-                    };
-                    set_mode(next, cx);
-                    cx.refresh_windows();
-                }),
+                button("toggle-mode", if dark { "Light mode" } else { "Dark mode" })
+                    .variant(ButtonVariant::Ghost)
+                    .control_size(ControlSize::Sm)
+                    .on_click(move |_, _, cx| {
+                        let next = if dark {
+                            tokens::Mode::Light
+                        } else {
+                            tokens::Mode::Dark
+                        };
+                        set_mode(next, cx);
+                        cx.refresh_windows();
+                    }),
             );
 
         // Semantic colors, grouped by the first word of their name.
@@ -690,21 +719,21 @@ impl Render for DesignPreview {
         }
         let color_groups = groups.into_iter().map(|(group, entries)| {
             let swatches = entries.into_iter().map(|(name, value)| {
-                row()
+                row(t)
                     .w(px(210.0))
-                    .gap(px(tokens::SPACE_2))
+                    .gap(px(t.space.s2))
                     .child(
                         div()
                             .flex_none()
                             .size(px(28.0))
-                            .rounded(px(tokens::RADIUS_SM))
-                            .border(px(tokens::BORDER_WIDTH_THIN))
+                            .rounded(px(t.radius.sm))
+                            .border(px(t.border.width_thin))
                             .border_color(color(colors.border_default))
                             .bg(color(value)),
                     )
                     .child(
                         div()
-                            .typography(tokens::TYPOGRAPHY_FOOTNOTE)
+                            .typography(t.typography.footnote)
                             .text_color(color(secondary))
                             .child(name),
                     )
@@ -712,154 +741,154 @@ impl Render for DesignPreview {
             div()
                 .flex()
                 .flex_col()
-                .gap(px(tokens::SPACE_2))
-                .child(text(group, tokens::TYPOGRAPHY_LABEL).text_color(color(secondary)))
-                .child(row().gap(px(tokens::SPACE_2)).children(swatches))
+                .gap(px(t.space.s2))
+                .child(
+                    text(group)
+                        .variant(TextVariant::Label)
+                        .text_color(color(secondary)),
+                )
+                .child(row(t).gap(px(t.space.s2)).children(swatches))
         });
 
-        let texts = TEXT_STYLES.map(|(name, style)| {
-            labelled(format!("{name} {}", style.size), secondary).child(text(
-                "다람쥐 헌 쳇바퀴에 타고파. The quick brown fox 123",
-                style,
-            ))
+        let texts = TextVariant::ALL.map(|variant| {
+            labelled(
+                format!("{} {}", variant.name(), variant.typography(t).size),
+                secondary,
+                t,
+            )
+            .child(text("다람쥐 헌 쳇바퀴에 타고파. The quick brown fox 123").variant(variant))
         });
 
-        let spaces = SPACES.map(|(name, value)| {
+        let spaces = spaces(t).map(|(name, value)| {
             div()
                 .flex()
                 .flex_col()
                 .items_center()
-                .gap(px(tokens::SPACE_1))
+                .gap(px(t.space.s1))
                 .child(div().size(px(value)).bg(color(colors.accent_default)))
-                .child(text(name, tokens::TYPOGRAPHY_FOOTNOTE).text_color(color(secondary)))
+                .child(
+                    text(name)
+                        .variant(TextVariant::Footnote)
+                        .text_color(color(secondary)),
+                )
         });
-        let radii = RADII.map(|(name, value)| {
+        let radii = radii(t).map(|(name, value)| {
             div()
                 .flex()
                 .items_center()
                 .justify_center()
                 .size(px(48.0))
                 .rounded(px(value))
-                .border(px(tokens::BORDER_WIDTH_THIN))
+                .border(px(t.border.width_thin))
                 .border_color(color(colors.border_strong))
-                .typography(tokens::TYPOGRAPHY_FOOTNOTE)
+                .typography(t.typography.footnote)
                 .text_color(color(secondary))
                 .child(name)
         });
         let sizes = format!(
             "Pointer {}/{}/{}, touch {}/{}/{}. The desktop app uses the pointer sizes.",
-            tokens::POINTER.control_sm,
-            tokens::POINTER.control_md,
-            tokens::POINTER.control_lg,
-            tokens::TOUCH.control_sm,
-            tokens::TOUCH.control_md,
-            tokens::TOUCH.control_lg,
+            t.pointer.control_sm,
+            t.pointer.control_md,
+            t.pointer.control_lg,
+            t.touch.control_sm,
+            t.touch.control_md,
+            t.touch.control_lg,
         );
 
         let buttons = VARIANTS.map(|(name, variant)| {
-            labelled(name, secondary)
-                .child(button((name, 0usize), "Save", variant, ControlSize::Sm, cx))
-                .child(button((name, 1usize), "Save", variant, ControlSize::Md, cx))
-                .child(button((name, 2usize), "Save", variant, ControlSize::Lg, cx))
+            labelled(name, secondary, t)
                 .child(
-                    button((name, 3usize), "Disabled", variant, ControlSize::Md, cx).disabled(true),
+                    button((name, 0usize), "Save")
+                        .variant(variant)
+                        .control_size(ControlSize::Sm),
                 )
-                .child(button((name, 4usize), "Saving", variant, ControlSize::Md, cx).loading(true))
+                .child(
+                    button((name, 1usize), "Save")
+                        .variant(variant)
+                        .control_size(ControlSize::Md),
+                )
+                .child(
+                    button((name, 2usize), "Save")
+                        .variant(variant)
+                        .control_size(ControlSize::Lg),
+                )
+                .child(
+                    button((name, 3usize), "Disabled")
+                        .variant(variant)
+                        .control_size(ControlSize::Md)
+                        .disabled(true),
+                )
+                .child(
+                    button((name, 4usize), "Saving")
+                        .variant(variant)
+                        .control_size(ControlSize::Md)
+                        .loading(true),
+                )
         });
-        let icon_buttons = labelled("icons", secondary)
+        let icon_buttons = labelled("icons", secondary, t)
             .child(
-                button(
-                    "icon-sm",
-                    "New",
-                    ButtonVariant::Primary,
-                    ControlSize::Sm,
-                    cx,
-                )
-                .icon_start(tokens::Icon::Plus),
+                button("icon-sm", "New")
+                    .variant(ButtonVariant::Primary)
+                    .control_size(ControlSize::Sm)
+                    .icon_start(tokens::Icon::Plus),
             )
             .child(
-                button(
-                    "icon-md",
-                    "Filter",
-                    ButtonVariant::Secondary,
-                    ControlSize::Md,
-                    cx,
-                )
-                .icon_start(tokens::Icon::ListFilter),
+                button("icon-md", "Filter")
+                    .variant(ButtonVariant::Secondary)
+                    .control_size(ControlSize::Md)
+                    .icon_start(tokens::Icon::ListFilter),
             )
             .child(
-                button(
-                    "icon-lg",
-                    "Continue",
-                    ButtonVariant::Primary,
-                    ControlSize::Lg,
-                    cx,
-                )
-                .icon_end(tokens::Icon::ArrowRight),
+                button("icon-lg", "Continue")
+                    .variant(ButtonVariant::Primary)
+                    .control_size(ControlSize::Lg)
+                    .icon_end(tokens::Icon::ArrowRight),
             )
             .child(
-                button(
-                    "icon-both",
-                    "Search",
-                    ButtonVariant::Ghost,
-                    ControlSize::Md,
-                    cx,
-                )
-                .icon_start(tokens::Icon::Search)
-                .icon_end(tokens::Icon::ChevronRight),
+                button("icon-both", "Search")
+                    .variant(ButtonVariant::Ghost)
+                    .control_size(ControlSize::Md)
+                    .icon_start(tokens::Icon::Search)
+                    .icon_end(tokens::Icon::ChevronRight),
             )
             .child(
-                button(
-                    "icon-disabled",
-                    "Filter",
-                    ButtonVariant::Secondary,
-                    ControlSize::Md,
-                    cx,
-                )
-                .icon_start(tokens::Icon::ListFilter)
-                .disabled(true),
+                button("icon-disabled", "Filter")
+                    .variant(ButtonVariant::Secondary)
+                    .control_size(ControlSize::Md)
+                    .icon_start(tokens::Icon::ListFilter)
+                    .disabled(true),
             )
             .child(
                 // The spinner stands where the icon was, so this one is as wide as "Filter".
-                button(
-                    "icon-loading",
-                    "Filter",
-                    ButtonVariant::Secondary,
-                    ControlSize::Md,
-                    cx,
-                )
-                .icon_start(tokens::Icon::ListFilter)
-                .loading(true),
+                button("icon-loading", "Filter")
+                    .variant(ButtonVariant::Secondary)
+                    .control_size(ControlSize::Md)
+                    .icon_start(tokens::Icon::ListFilter)
+                    .loading(true),
             );
-        let toggles = labelled("selected", secondary)
+        let toggles = labelled("selected", secondary, t)
             .child(
-                button(
-                    "like",
-                    "Like",
-                    ButtonVariant::Secondary,
-                    ControlSize::Md,
-                    cx,
-                )
-                .icon_start(tokens::Icon::Heart)
-                .selected(self.liked)
-                .on_click(cx.listener(|this, _, _, cx| {
-                    this.liked = !this.liked;
-                    cx.notify();
-                })),
+                button("like", "Like")
+                    .variant(ButtonVariant::Secondary)
+                    .control_size(ControlSize::Md)
+                    .icon_start(tokens::Icon::Heart)
+                    .selected(self.liked)
+                    .on_click(cx.listener(|this, _, _, cx| {
+                        this.liked = !this.liked;
+                        cx.notify();
+                    })),
             )
             .child(
-                button(
-                    "like-off",
-                    "Like",
-                    ButtonVariant::Secondary,
-                    ControlSize::Md,
-                    cx,
-                )
-                .icon_start(tokens::Icon::Heart)
-                .selected(false),
+                button("like-off", "Like")
+                    .variant(ButtonVariant::Secondary)
+                    .control_size(ControlSize::Md)
+                    .icon_start(tokens::Icon::Heart)
+                    .selected(false),
             )
             .child(
-                button("save", "Save", ButtonVariant::Ghost, ControlSize::Md, cx)
+                button("save", "Save")
+                    .variant(ButtonVariant::Ghost)
+                    .control_size(ControlSize::Md)
                     .icon_start(tokens::Icon::Bookmark)
                     .selected(self.saved)
                     .on_click(cx.listener(|this, _, _, cx| {
@@ -868,101 +897,89 @@ impl Render for DesignPreview {
                     })),
             )
             .child(
-                button(
-                    "save-off",
-                    "Save",
-                    ButtonVariant::Ghost,
-                    ControlSize::Md,
-                    cx,
-                )
-                .icon_start(tokens::Icon::Bookmark)
-                .selected(false),
+                button("save-off", "Save")
+                    .variant(ButtonVariant::Ghost)
+                    .control_size(ControlSize::Md)
+                    .icon_start(tokens::Icon::Bookmark)
+                    .selected(false),
             )
             .child(
-                button(
-                    "like-disabled",
-                    "Like",
-                    ButtonVariant::Secondary,
-                    ControlSize::Md,
-                    cx,
-                )
-                .icon_start(tokens::Icon::Heart)
-                .selected(true)
-                .disabled(true),
+                button("like-disabled", "Like")
+                    .variant(ButtonVariant::Secondary)
+                    .control_size(ControlSize::Md)
+                    .icon_start(tokens::Icon::Heart)
+                    .selected(true)
+                    .disabled(true),
             )
             .child(
                 // Primary and danger buttons keep their look and only report the state.
-                button(
-                    "follow",
-                    "Following",
-                    ButtonVariant::Primary,
-                    ControlSize::Md,
-                    cx,
-                )
-                .icon_start(tokens::Icon::UserCheck)
-                .selected(true),
+                button("follow", "Following")
+                    .variant(ButtonVariant::Primary)
+                    .control_size(ControlSize::Md)
+                    .icon_start(tokens::Icon::UserCheck)
+                    .selected(true),
             );
 
         let icon_button_rows = VARIANTS.map(|(name, variant)| {
             let settings = |index: usize, label: &'static str| {
-                icon_button((name, index), tokens::Icon::Settings, label, cx).variant(variant)
+                icon_button((name, index), tokens::Icon::Settings, label).variant(variant)
             };
-            labelled(format!("icon, {name}"), secondary)
+            labelled(format!("icon, {name}"), secondary, t)
                 .child(settings(10, "Settings, sm").control_size(ControlSize::Sm))
                 .child(settings(11, "Settings, md"))
                 .child(settings(12, "Settings, lg").control_size(ControlSize::Lg))
                 .child(settings(13, "Disabled").disabled(true))
                 .child(settings(14, "Loading").loading(true))
         });
-        let icon_toggles = labelled("icon, selected", secondary)
+        let icon_toggles = labelled("icon, selected", secondary, t)
             .child(
-                icon_button("icon-pin", tokens::Icon::Pin, "Pin", cx)
+                icon_button("icon-pin", tokens::Icon::Pin, "Pin")
                     .selected(self.pinned)
                     .on_click(cx.listener(|this, _, _, cx| {
                         this.pinned = !this.pinned;
                         cx.notify();
                     })),
             )
-            .child(icon_button("icon-pin-off", tokens::Icon::Pin, "Pin", cx).selected(false))
+            .child(icon_button("icon-pin-off", tokens::Icon::Pin, "Pin").selected(false))
             .child(
-                icon_button("icon-star", tokens::Icon::Star, "Star", cx)
+                icon_button("icon-star", tokens::Icon::Star, "Star")
                     .variant(ButtonVariant::Secondary)
                     .selected(true),
             )
             .child(
-                icon_button("icon-star-off", tokens::Icon::Star, "Star", cx)
+                icon_button("icon-star-off", tokens::Icon::Star, "Star")
                     .variant(ButtonVariant::Secondary)
                     .selected(false),
             )
             .child(
-                icon_button("icon-like-sm", tokens::Icon::Heart, "Like", cx)
+                icon_button("icon-like-sm", tokens::Icon::Heart, "Like")
                     .control_size(ControlSize::Sm)
                     .selected(true),
             )
             .child(
-                icon_button("icon-like-lg", tokens::Icon::Heart, "Like", cx)
+                icon_button("icon-like-lg", tokens::Icon::Heart, "Like")
                     .control_size(ControlSize::Lg)
                     .selected(true),
             )
             .child(
-                icon_button("icon-save-disabled", tokens::Icon::Bookmark, "Save", cx)
+                icon_button("icon-save-disabled", tokens::Icon::Bookmark, "Save")
                     .selected(true)
                     .disabled(true),
             )
             .child(
                 // Primary and danger buttons keep their look and only report the state.
-                icon_button("icon-notify", tokens::Icon::Bell, "Notify", cx)
+                icon_button("icon-notify", tokens::Icon::Bell, "Notify")
                     .variant(ButtonVariant::Primary)
                     .selected(true),
             );
         let tooltips = self.mark_overlay(
             PreviewOverlay::Tooltip,
-            labelled("tooltip", secondary)
+            labelled("tooltip", secondary, t)
                 .child(
                     tooltip(
                         "tooltip-search",
                         "Search",
-                        icon_button("tooltip-search-button", tokens::Icon::Search, "Search", cx),
+                        icon_button("tooltip-search-button", tokens::Icon::Search, "Search"),
                     )
                     .shortcut("⌘K")
                     .pinned(self.overlay == Some(PreviewOverlay::Tooltip)),
@@ -971,7 +988,7 @@ impl Render for DesignPreview {
                     tooltip(
                         "tooltip-share",
                         "Share",
-                        icon_button("tooltip-share-button", tokens::Icon::Share2, "Share", cx)
+                        icon_button("tooltip-share-button", tokens::Icon::Share2, "Share")
                             .variant(ButtonVariant::Secondary),
                     )
                     .placement(TooltipPlacement::Bottom),
@@ -979,21 +996,15 @@ impl Render for DesignPreview {
                 .child(tooltip(
                     "tooltip-export",
                     "Export as a spreadsheet",
-                    button(
-                        "tooltip-export-button",
-                        "Export",
-                        ButtonVariant::Secondary,
-                        ControlSize::Md,
-                        cx,
-                    )
-                    .icon_start(tokens::Icon::Download),
+                    button("tooltip-export-button", "Export")
+                        .variant(ButtonVariant::Secondary)
+                        .control_size(ControlSize::Md)
+                        .icon_start(tokens::Icon::Download),
                 ))
                 .child(
-                    text(
-                        "Rest the pointer on a control, or focus it with the keyboard.",
-                        tokens::TYPOGRAPHY_DETAIL,
-                    )
-                    .text_color(color(secondary)),
+                    text("Rest the pointer on a control, or focus it with the keyboard.")
+                        .variant(TextVariant::Detail)
+                        .text_color(color(secondary)),
                 ),
         );
 
@@ -1011,9 +1022,9 @@ impl Render for DesignPreview {
             None => "Enter searches.".to_owned(),
         };
 
-        let state_chips = labelled("state", secondary).child(
+        let state_chips = labelled("state", secondary, t).child(
             // A row of its own, so the chips that wrap line up with the first ones.
-            row()
+            row(t)
                 .flex_1()
                 .child(Chip::new("chip-unselected", "Unselected"))
                 .child(Chip::new("chip-selected", "Selected").selected(true))
@@ -1083,7 +1094,7 @@ impl Render for DesignPreview {
         };
 
         let delivery = || DELIVERY.map(|(value, label)| RadioOption::new(value, label));
-        let radio_groups = labelled("radio", secondary)
+        let radio_groups = labelled("radio", secondary, t)
             .items_start()
             .child(
                 div().w(px(280.0)).child(
@@ -1130,12 +1141,12 @@ impl Render for DesignPreview {
         let countries = || COUNTRIES.map(|(value, label)| SelectOption::new(value, label));
         let selects = self.mark_overlay(
             PreviewOverlay::Select,
-            labelled("select", secondary).items_start().child(
+            labelled("select", secondary, t).items_start().child(
                 div()
                     .flex_1()
                     .flex()
                     .flex_wrap()
-                    .gap(px(tokens::SPACE_4))
+                    .gap(px(t.space.s4))
                     .child(field(
                         Select::new(
                             "time-zone",
@@ -1184,12 +1195,12 @@ impl Render for DesignPreview {
         // does not change from day to day.
         let date_pickers = self.mark_overlay(
             PreviewOverlay::DatePicker,
-            labelled("date picker", secondary).items_start().child(
+            labelled("date picker", secondary, t).items_start().child(
                 div()
                     .flex_1()
                     .flex()
                     .flex_wrap()
-                    .gap(px(tokens::SPACE_4))
+                    .gap(px(t.space.s4))
                     .child(
                         div().w(px(300.0)).child(
                             DatePicker::new("due-date", "Due date")
@@ -1233,14 +1244,14 @@ impl Render for DesignPreview {
         // bounds and no minimum, where the same day twice is a range of one day.
         let date_range_pickers = self.mark_overlay(
             PreviewOverlay::DateRange,
-            labelled("date range picker", secondary)
+            labelled("date range picker", secondary, t)
                 .items_start()
                 .child(
                     div()
                         .flex_1()
                         .flex()
                         .flex_wrap()
-                        .gap(px(tokens::SPACE_4))
+                        .gap(px(t.space.s4))
                         .child(
                             div().w(px(300.0)).child(
                                 DateRangePicker::new("stay", "Stay")
@@ -1284,7 +1295,7 @@ impl Render for DesignPreview {
                         ),
                 ),
         );
-        let sliders = labelled("slider", secondary)
+        let sliders = labelled("slider", secondary, t)
             .items_start()
             .child(
                 div().w(px(240.0)).child(
@@ -1322,12 +1333,16 @@ impl Render for DesignPreview {
             div()
                 .flex()
                 .flex_col()
-                .gap(px(tokens::SPACE_1))
+                .gap(px(t.space.s1))
                 .w(px(width))
                 .child(thumbnail)
-                .child(text(caption, tokens::TYPOGRAPHY_FOOTNOTE).text_color(color(secondary)))
+                .child(
+                    text(caption)
+                        .variant(TextVariant::Footnote)
+                        .text_color(color(secondary)),
+                )
         };
-        let ratios = labelled("ratio", secondary)
+        let ratios = labelled("ratio", secondary, t)
             .items_start()
             .child(shot(
                 176.0,
@@ -1357,7 +1372,7 @@ impl Render for DesignPreview {
                     .src(picture.clone())
                     .ratio(ThumbnailRatio::Ratio9x16),
             ));
-        let thumbnail_states = labelled("state", secondary)
+        let thumbnail_states = labelled("state", secondary, t)
             .items_start()
             .child(shot(
                 176.0,
@@ -1395,7 +1410,6 @@ impl Render for DesignPreview {
                         format!("{id}-trigger"),
                         tokens::Icon::EllipsisVertical,
                         "More actions",
-                        cx,
                     )
                     .control_size(ControlSize::Sm),
                 )
@@ -1410,9 +1424,9 @@ impl Render for DesignPreview {
                 cx.notify();
             })
         };
-        let media_cards = row()
+        let media_cards = row(t)
             .items_start()
-            .gap(px(tokens::SPACE_4))
+            .gap(px(t.space.s4))
             .child(
                 div().w(px(280.0)).child(
                     MediaCard::new(
@@ -1450,11 +1464,11 @@ impl Render for DesignPreview {
                 .flex_none()
                 .items_center()
                 .justify_center()
-                .size(px(tokens::POINTER.avatar_sm))
-                .rounded(px(tokens::RADIUS_SM))
+                .size(px(t.pointer.avatar_sm))
+                .rounded(px(t.radius.sm))
                 .bg(color(colors.accent_default))
                 .text_color(color(colors.text_on_accent))
-                .child(icon_filled(tokens::Icon::Play, IconSize::Xs))
+                .child(icon_filled(tokens::Icon::Play).icon_size(IconSize::Xs))
         };
         let sidebar = |id: &'static str, collapsed: bool| {
             let on_place = on_place.clone();
@@ -1463,7 +1477,7 @@ impl Render for DesignPreview {
                     div().flex().justify_center().w_full().child(brand()),
                     div().flex().justify_center().w_full().child(
                         Avatar::new("Ada Lovelace")
-                            .size(AvatarSize::Sm)
+                            .avatar_size(AvatarSize::Sm)
                             .src(self.portrait.clone()),
                     ),
                 )
@@ -1472,28 +1486,28 @@ impl Render for DesignPreview {
                     div()
                         .flex()
                         .items_center()
-                        .gap(px(tokens::SPACE_2))
-                        .px(px(tokens::SPACE_2))
+                        .gap(px(t.space.s2))
+                        .px(px(t.space.s2))
                         .child(brand())
-                        .child(text("Acme", tokens::TYPOGRAPHY_LABEL)),
+                        .child(text("Acme").variant(TextVariant::Label)),
                     div()
                         .flex()
                         .items_center()
-                        .gap(px(tokens::SPACE_2))
-                        .px(px(tokens::SPACE_2))
+                        .gap(px(t.space.s2))
+                        .px(px(t.space.s2))
                         .child(
                             Avatar::new("Ada Lovelace")
-                                .size(AvatarSize::Sm)
+                                .avatar_size(AvatarSize::Sm)
                                 .src(self.portrait.clone()),
                         )
-                        .child(text("Ada Lovelace", tokens::TYPOGRAPHY_DETAIL)),
+                        .child(text("Ada Lovelace").variant(TextVariant::Detail)),
                 )
             };
             Sidebar::new(id, "Places", places())
                 .value(self.place.clone())
                 .collapsed(collapsed)
-                .header(header.h(px(tokens::POINTER.list_row_compact)))
-                .footer(footer.h(px(tokens::POINTER.list_row_compact)))
+                .header(header.h(px(t.pointer.list_row_compact)))
+                .footer(footer.h(px(t.pointer.list_row_compact)))
                 .on_change(move |value, window, cx| on_place(value, window, cx))
         };
         let place = PLACES
@@ -1506,28 +1520,24 @@ impl Render for DesignPreview {
                 .flex()
                 .h(px(420.0))
                 .w(px(width))
-                .rounded(px(tokens::RADIUS_MD))
-                .border(px(tokens::BORDER_WIDTH_THIN))
+                .rounded(px(t.radius.md))
+                .border(px(t.border.width_thin))
                 .border_color(color(colors.border_default))
                 .overflow_hidden()
                 .child(sidebar)
                 .child(
                     div()
                         .flex_1()
-                        .p(px(tokens::SPACE_4))
-                        .child(text(place, tokens::TYPOGRAPHY_HEADING)),
+                        .p(px(t.space.s4))
+                        .child(text(place).variant(TextVariant::Heading)),
                 )
         };
         let report_menu = Menu::new("report-menu", "Report actions")
             .trigger(
-                button(
-                    "report-actions",
-                    "Actions",
-                    ButtonVariant::Secondary,
-                    ControlSize::Md,
-                    cx,
-                )
-                .icon_end(tokens::Icon::ChevronDown),
+                button("report-actions", "Actions")
+                    .variant(ButtonVariant::Secondary)
+                    .control_size(ControlSize::Md)
+                    .icon_end(tokens::Icon::ChevronDown),
             )
             .default_open(self.overlay == Some(PreviewOverlay::Menu))
             .item(
@@ -1568,7 +1578,7 @@ impl Render for DesignPreview {
         let more_menu = Menu::new("more-menu", "More actions")
             .align(MenuAlign::End)
             .trigger(
-                icon_button("more-actions", tokens::Icon::Ellipsis, "More actions", cx)
+                icon_button("more-actions", tokens::Icon::Ellipsis, "More actions")
                     .variant(ButtonVariant::Secondary),
             )
             .item(MenuItem::new("Copy the link").on_select(choose("Copy the link")))
@@ -1584,30 +1594,22 @@ impl Render for DesignPreview {
                 cx.notify();
             }))
             .action(
-                button(
-                    "delete-cancel",
-                    "Cancel",
-                    ButtonVariant::Secondary,
-                    ControlSize::Md,
-                    cx,
-                )
-                .on_click(cx.listener(|this, _, _, cx| {
-                    this.confirming = false;
-                    cx.notify();
-                })),
+                button("delete-cancel", "Cancel")
+                    .variant(ButtonVariant::Secondary)
+                    .control_size(ControlSize::Md)
+                    .on_click(cx.listener(|this, _, _, cx| {
+                        this.confirming = false;
+                        cx.notify();
+                    })),
             )
             .action(
-                button(
-                    "delete-confirm",
-                    "Delete",
-                    ButtonVariant::Danger,
-                    ControlSize::Md,
-                    cx,
-                )
-                .on_click(cx.listener(|this, _, _, cx| {
-                    this.confirming = false;
-                    cx.notify();
-                })),
+                button("delete-confirm", "Delete")
+                    .variant(ButtonVariant::Danger)
+                    .control_size(ControlSize::Md)
+                    .on_click(cx.listener(|this, _, _, cx| {
+                        this.confirming = false;
+                        cx.notify();
+                    })),
             );
         let question_dialog = Dialog::new("question-dialog", "Keep the changes?")
             .open(self.asking)
@@ -1618,30 +1620,22 @@ impl Render for DesignPreview {
                 cx.notify();
             }))
             .action(
-                button(
-                    "question-discard",
-                    "Discard",
-                    ButtonVariant::Secondary,
-                    ControlSize::Md,
-                    cx,
-                )
-                .on_click(cx.listener(|this, _, _, cx| {
-                    this.asking = false;
-                    cx.notify();
-                })),
+                button("question-discard", "Discard")
+                    .variant(ButtonVariant::Secondary)
+                    .control_size(ControlSize::Md)
+                    .on_click(cx.listener(|this, _, _, cx| {
+                        this.asking = false;
+                        cx.notify();
+                    })),
             )
             .action(
-                button(
-                    "question-keep",
-                    "Keep",
-                    ButtonVariant::Primary,
-                    ControlSize::Md,
-                    cx,
-                )
-                .on_click(cx.listener(|this, _, _, cx| {
-                    this.asking = false;
-                    cx.notify();
-                })),
+                button("question-keep", "Keep")
+                    .variant(ButtonVariant::Primary)
+                    .control_size(ControlSize::Md)
+                    .on_click(cx.listener(|this, _, _, cx| {
+                        this.asking = false;
+                        cx.notify();
+                    })),
             )
             .child(TextField::new("Name of the copy", &self.copy_name));
 
@@ -1662,7 +1656,7 @@ impl Render for DesignPreview {
             .duration(if self.overlay == Some(PreviewOverlay::Toast) {
                 Duration::ZERO
             } else {
-                tokens::MOTION_DURATION_TOAST
+                t.motion.duration_toast
             });
 
         // Stand-ins for a dark and a light picture, the same in both modes.
@@ -1673,43 +1667,37 @@ impl Render for DesignPreview {
                 .justify_end()
                 .w(px(140.0))
                 .h(px(80.0))
-                .p(px(tokens::SPACE_2))
-                .rounded(px(tokens::RADIUS_MD))
-                .border(px(tokens::BORDER_WIDTH_THIN))
+                .p(px(t.space.s2))
+                .rounded(px(t.radius.md))
+                .border(px(t.border.width_thin))
                 .border_color(color(colors.border_default))
-                .bg(color(tokens::colors(mode).background_base))
+                .bg(color(t.colors(mode).background_base))
                 .child(badge)
         };
 
         // The banner does not hide itself: the preview does, and offers it back.
         let closable_banner = if self.banner_open {
-            Banner::new(
-                BannerTone::Warning,
-                "Storage is almost full. Remove files you no longer need, or add room.",
-            )
-            .id("banner-storage")
-            .title("action and dismiss")
-            .action("Manage storage", |_, _, _| {})
-            .on_dismiss(cx.listener(|this, _, _, cx| {
-                this.banner_open = false;
-                cx.notify();
-            }))
-            .dismiss_label("Dismiss the storage warning")
-            .into_any_element()
+            Banner::new("Storage is almost full. Remove files you no longer need, or add room.")
+                .tone(BannerTone::Warning)
+                .id("banner-storage")
+                .title("action and dismiss")
+                .action("Manage storage", |_, _, _| {})
+                .on_dismiss(cx.listener(|this, _, _, cx| {
+                    this.banner_open = false;
+                    cx.notify();
+                }))
+                .dismiss_label("Dismiss the storage warning")
+                .into_any_element()
         } else {
-            row()
+            row(t)
                 .child(
-                    button(
-                        "banner-restore",
-                        "Show the dismissed banner",
-                        ButtonVariant::Ghost,
-                        ControlSize::Sm,
-                        cx,
-                    )
-                    .on_click(cx.listener(|this, _, _, cx| {
-                        this.banner_open = true;
-                        cx.notify();
-                    })),
+                    button("banner-restore", "Show the dismissed banner")
+                        .variant(ButtonVariant::Ghost)
+                        .control_size(ControlSize::Sm)
+                        .on_click(cx.listener(|this, _, _, cx| {
+                            this.banner_open = true;
+                            cx.notify();
+                        })),
                 )
                 .into_any_element()
         };
@@ -1721,7 +1709,7 @@ impl Render for DesignPreview {
                 let folder = ListRow::new(("folder", index), name)
                     .compact()
                     .selected(self.folder == index)
-                    .leading(icon(glyph, IconSize::Sm))
+                    .leading(icon(glyph).icon_size(IconSize::Sm))
                     .on_click(cx.listener(move |this, _, _, cx| {
                         this.folder = index;
                         cx.notify();
@@ -1748,8 +1736,12 @@ impl Render for DesignPreview {
                             cx.notify();
                         }),
                     )
-                    .child(text(name, tokens::TYPOGRAPHY_HEADING))
-                    .child(text(terms, tokens::TYPOGRAPHY_BODY).text_color(color(secondary)))
+                    .child(text(name).variant(TextVariant::Heading))
+                    .child(
+                        text(terms)
+                            .variant(TextVariant::Body)
+                            .text_color(color(secondary)),
+                    )
             })
             .collect::<Vec<_>>();
 
@@ -1761,41 +1753,41 @@ impl Render for DesignPreview {
         ]
         .map(|(tone, name)| {
             Banner::new(
-                tone,
                 "Your changes are saved on this device. They sync when you are back online.",
             )
+            .tone(tone)
             .title(name)
         });
 
         let page = div()
             .flex()
             .flex_col()
-            .gap(px(tokens::SPACE_12))
-            .p(px(tokens::SPACE_6))
+            .gap(px(t.space.s12))
+            .p(px(t.space.s6))
             .child(header)
-            .child(section("Colors").children(color_groups))
-            .child(section("Typography").children(texts))
+            .child(section("Colors", t).children(color_groups))
+            .child(section("Typography", t).children(texts))
             .child(
-                section("Space, radius, size")
-                    .child(labelled("space", secondary).children(spaces))
-                    .child(labelled("radius", secondary).children(radii))
+                section("Space, radius, size", t)
+                    .child(labelled("space", secondary, t).children(spaces))
+                    .child(labelled("radius", secondary, t).children(radii))
                     .child(
-                        labelled("control", secondary)
-                            .child(text(sizes, tokens::TYPOGRAPHY_DETAIL)),
+                        labelled("control", secondary, t)
+                            .child(text(sizes).variant(TextVariant::Detail)),
                     ),
             )
             .child(
-                section("Icons")
+                section("Icons", t)
                     .child(
                         div()
                             .flex()
                             .flex_wrap()
-                            .gap(px(tokens::SPACE_4))
-                            .children(tokens::Icon::ALL.map(|name| icon(name, IconSize::Md))),
+                            .gap(px(t.space.s4))
+                            .children(tokens::Icon::ALL.map(|name| icon(name).icon_size(IconSize::Md))),
                     )
                     .child(
-                        labelled("sizes", secondary).child(
-                            div().flex().items_end().gap(px(tokens::SPACE_3)).children(
+                        labelled("sizes", secondary, t).child(
+                            div().flex().items_end().gap(px(t.space.s3)).children(
                                 [
                                     IconSize::Xs,
                                     IconSize::Sm,
@@ -1803,17 +1795,17 @@ impl Render for DesignPreview {
                                     IconSize::Lg,
                                     IconSize::Xl,
                                 ]
-                                .map(|size| icon(tokens::Icon::House, size)),
+                                .map(|size| icon(tokens::Icon::House).icon_size(size)),
                             ),
                         ),
                     )
                     .child(
-                        labelled("filled", secondary).child(
+                        labelled("filled", secondary, t).child(
                             // Icons made of closed shapes, which is what the filled drawing is for.
                             div()
                                 .flex()
                                 .items_center()
-                                .gap(px(tokens::SPACE_3))
+                                .gap(px(t.space.s3))
                                 .children(
                                     [
                                         tokens::Icon::Heart,
@@ -1825,16 +1817,16 @@ impl Render for DesignPreview {
                                     .map(|name| {
                                         div()
                                             .flex()
-                                            .gap(px(tokens::SPACE_1))
-                                            .child(icon(name, IconSize::Md))
-                                            .child(icon_filled(name, IconSize::Md))
+                                            .gap(px(t.space.s1))
+                                            .child(icon(name).icon_size(IconSize::Md))
+                                            .child(icon_filled(name).icon_size(IconSize::Md))
                                     }),
                                 ),
                         ),
                     ),
             )
             .child(
-                section("Buttons")
+                section("Buttons", t)
                     .children(buttons)
                     .child(icon_buttons)
                     .child(toggles)
@@ -1843,7 +1835,7 @@ impl Render for DesignPreview {
                     .child(tooltips),
             )
             .child(
-                section("Text fields")
+                section("Text fields", t)
                     .child(
                         TextField::new("Email", &self.email)
                             .description("We send the sign-in code to this address."),
@@ -1855,7 +1847,7 @@ impl Render for DesignPreview {
                     .child(TextField::new("Organization", &self.organization).disabled(true))
                     .child(
                         TextField::new("Search", &self.search)
-                            .leading(icon(tokens::Icon::Search, IconSize::Sm)),
+                            .leading(icon(tokens::Icon::Search).icon_size(IconSize::Sm)),
                     )
                     .child(TextField::new("Weight", &self.weight).trailing("kg"))
                     .child(
@@ -1872,23 +1864,23 @@ impl Render for DesignPreview {
                     .child(
                         TextField::multiline("Message", &self.message)
                             .rows(2)
-                            .leading(icon(tokens::Icon::Mail, IconSize::Sm))
+                            .leading(icon(tokens::Icon::Mail).icon_size(IconSize::Sm))
                             .error(Some("Write a message before you send it.")),
                     )
                     .children(search_fields)
-                    .child(text(searched, tokens::TYPOGRAPHY_DETAIL).text_color(color(secondary))),
+                    .child(text(searched).variant(TextVariant::Detail).text_color(color(secondary))),
             )
             .child(
-                section("Controls")
+                section("Controls", t)
                     .child(selects)
                     .child(date_pickers)
                     .child(date_range_pickers)
                     .child(sliders),
             )
             .child(
-                section("Selection")
+                section("Selection", t)
                     .child(
-                        labelled("switch", secondary)
+                        labelled("switch", secondary, t)
                             .child(
                                 switch("notifications", self.notifications)
                                     .label("Notifications")
@@ -1901,7 +1893,7 @@ impl Render for DesignPreview {
                             .child(switch("switch-locked", true).label("Locked").disabled(true)),
                     )
                     .child(
-                        labelled("checkbox", secondary)
+                        labelled("checkbox", secondary, t)
                             .child(
                                 checkbox("remember", self.remember)
                                     .label("Remember me")
@@ -1918,7 +1910,7 @@ impl Render for DesignPreview {
                             ),
                     )
                     .child(
-                        labelled("segmented", secondary).child(
+                        labelled("segmented", secondary, t).child(
                             SegmentedControl::new("view", VIEWS)
                                 .selected(self.view)
                                 .on_change(cx.listener(|this, index: &usize, _, cx| {
@@ -1930,8 +1922,8 @@ impl Render for DesignPreview {
                     .child(radio_groups),
             )
             .child(
-                section("Chips").child(state_chips).child(
-                    labelled("bar", secondary).child(
+                section("Chips", t).child(state_chips).child(
+                    labelled("bar", secondary, t).child(
                         // Narrower than its chips, so the row has to scroll.
                         div().flex_1().min_w_0().max_w(px(448.0)).child(
                             ChipBar::new("filters", "Filter the tasks").children(filter_chips),
@@ -1940,7 +1932,7 @@ impl Render for DesignPreview {
                 ),
             )
             .child(
-                section("Tabs")
+                section("Tabs", t)
                     .child(
                         tabs("tabs-icons", "Workspace pages", pages(PAGES.len(), true))
                             .value(self.page.clone()),
@@ -1971,9 +1963,9 @@ impl Render for DesignPreview {
                     ),
             )
             .child(
-                section("Badges")
+                section("Badges", t)
                     .child(
-                        labelled("tone", secondary)
+                        labelled("tone", secondary, t)
                             .child(Badge::new("neutral"))
                             .child(Badge::new("accent").tone(BadgeTone::Accent))
                             .child(Badge::new("success").tone(BadgeTone::Success))
@@ -1981,13 +1973,13 @@ impl Render for DesignPreview {
                             .child(Badge::new("danger").tone(BadgeTone::Danger)),
                     )
                     .child(
-                        labelled("dot", secondary)
+                        labelled("dot", secondary, t)
                             .child(Badge::new("Online").tone(BadgeTone::Success).dot())
                             .child(Badge::new("Connecting").tone(BadgeTone::Warning).dot())
                             .child(Badge::new("Offline").tone(BadgeTone::Danger).dot()),
                     )
                     .child(
-                        labelled("icon", secondary)
+                        labelled("icon", secondary, t)
                             .child(
                                 Badge::new("Verified")
                                     .tone(BadgeTone::Success)
@@ -2001,7 +1993,7 @@ impl Render for DesignPreview {
                             ),
                     )
                     .child(
-                        labelled("overlay", secondary)
+                        labelled("overlay", secondary, t)
                             .child(on_picture(
                                 tokens::Mode::Dark,
                                 Badge::new("12:04").tone(BadgeTone::Overlay),
@@ -2014,14 +2006,14 @@ impl Render for DesignPreview {
                             )),
                     )
                     .child(
-                        labelled("count", secondary)
-                            .gap(px(tokens::SPACE_5))
+                        labelled("count", secondary, t)
+                            .gap(px(t.space.s5))
                             .child(CountBadge::new("count-3", 3))
                             .child(CountBadge::new("count-120", 120))
                             .child(
                                 CountBadge::new("count-bell", 3)
                                     .label("3 unread notifications")
-                                    .child(icon(tokens::Icon::Bell, IconSize::Lg)),
+                                    .child(icon(tokens::Icon::Bell).icon_size(IconSize::Lg)),
                             )
                             .child(
                                 CountBadge::new("count-avatar", 120)
@@ -2030,46 +2022,46 @@ impl Render for DesignPreview {
                             .child(
                                 // Nothing to count: only what it would sit on is drawn.
                                 CountBadge::new("count-none", 0)
-                                    .child(icon(tokens::Icon::Mail, IconSize::Lg)),
+                                    .child(icon(tokens::Icon::Mail).icon_size(IconSize::Lg)),
                             ),
                     ),
             )
-            .child(section("Banners").children(banners).child(closable_banner))
+            .child(section("Banners", t).children(banners).child(closable_banner))
             .child(
-                section("Card")
+                section("Card", t)
                     .child(
                         card(cx)
-                            .child(text("Weekly report", tokens::TYPOGRAPHY_HEADING))
+                            .child(text("Weekly report").variant(TextVariant::Heading))
                             .child(
-                                text("A card groups related content.", tokens::TYPOGRAPHY_BODY)
+                                text("A card groups related content.").variant(TextVariant::Body)
                                     .text_color(color(secondary)),
                             )
                             .child(divider(cx))
                             .child(
-                                labelled("avatar", secondary)
-                                    .child(Avatar::new("Ada Lovelace").size(AvatarSize::Sm))
+                                labelled("avatar", secondary, t)
+                                    .child(Avatar::new("Ada Lovelace").avatar_size(AvatarSize::Sm))
                                     .child(Avatar::new("Ada Lovelace"))
-                                    .child(Avatar::new("Grace Hopper").size(AvatarSize::Lg))
-                                    .child(Avatar::new("Katherine Johnson").size(AvatarSize::Xl)),
+                                    .child(Avatar::new("Grace Hopper").avatar_size(AvatarSize::Lg))
+                                    .child(Avatar::new("Katherine Johnson").avatar_size(AvatarSize::Xl)),
                             )
                             .child(
-                                labelled("picture", secondary)
+                                labelled("picture", secondary, t)
                                     .child(Avatar::new("Ada Lovelace").src(self.portrait.clone()))
                                     .child(
                                         Avatar::new("Ada Lovelace")
-                                            .size(AvatarSize::Xl)
+                                            .avatar_size(AvatarSize::Xl)
                                             .src(self.portrait.clone()),
                                     )
                                     .child(
                                         // No such file: the initials stay.
                                         Avatar::new("Grace Hopper")
-                                            .size(AvatarSize::Xl)
+                                            .avatar_size(AvatarSize::Xl)
                                             .src(PathBuf::from("/acme/missing/portrait.png")),
                                     ),
                             )
                             .child(
-                                labelled("stack", secondary)
-                                    .gap(px(tokens::SPACE_5))
+                                labelled("stack", secondary, t)
+                                    .gap(px(t.space.s5))
                                     .child(AvatarStack::new(
                                         "stack-three",
                                         [
@@ -2081,26 +2073,26 @@ impl Render for DesignPreview {
                                     .child(AvatarStack::new("stack-seven", TEAM))
                                     .child(
                                         AvatarStack::new("stack-small", TEAM)
-                                            .size(AvatarSize::Sm)
+                                            .avatar_size(AvatarSize::Sm)
                                             .max(3)
                                             .label("The team"),
                                     ),
                             )
                             .child(
-                                labelled("progress", secondary)
+                                labelled("progress", secondary, t)
                                     .child(div().w(px(320.0)).child(ProgressBar::new(0.6))),
                             )
                             .child(
-                                labelled("spinner", secondary)
-                                    .child(spinner(SpinnerSize::Sm))
-                                    .child(spinner(SpinnerSize::Md))
-                                    .child(spinner(SpinnerSize::Lg)),
+                                labelled("spinner", secondary, t)
+                                    .child(spinner().spinner_size(SpinnerSize::Sm))
+                                    .child(spinner().spinner_size(SpinnerSize::Md))
+                                    .child(spinner().spinner_size(SpinnerSize::Lg)),
                             ),
                     )
                     .child(
-                        row()
+                        row(t)
                             .items_start()
-                            .gap(px(tokens::SPACE_4))
+                            .gap(px(t.space.s4))
                             .child(
                                 card(cx)
                                     .w(px(260.0))
@@ -2110,12 +2102,9 @@ impl Render for DesignPreview {
                                             .h(px(120.0))
                                             .object_fit(ObjectFit::Cover),
                                     )
-                                    .child(text("With media", tokens::TYPOGRAPHY_HEADING))
+                                    .child(text("With media").variant(TextVariant::Heading))
                                     .child(
-                                        text(
-                                            "The picture runs edge to edge.",
-                                            tokens::TYPOGRAPHY_BODY,
-                                        )
+                                        text("The picture runs edge to edge.").variant(TextVariant::Body)
                                         .text_color(color(secondary)),
                                     ),
                             )
@@ -2123,7 +2112,7 @@ impl Render for DesignPreview {
                     ),
             )
             .child(
-                section("List")
+                section("List", t)
                     .child(
                         // Rows bring their own padding, and the dividers run edge to edge.
                         card(cx)
@@ -2159,7 +2148,7 @@ impl Render for DesignPreview {
                             .child(
                                 ListRow::new("row-language", "Language")
                                     .trailing(
-                                        text("English", tokens::TYPOGRAPHY_BODY)
+                                        text("English").variant(TextVariant::Body)
                                             .text_color(color(secondary)),
                                     )
                                     .chevron()
@@ -2180,7 +2169,7 @@ impl Render for DesignPreview {
                         card(cx)
                             .w(px(260.0))
                             .px(px(0.0))
-                            .py(px(tokens::SPACE_2))
+                            .py(px(t.space.s2))
                             .gap(px(0.0))
                             .children(folders),
                     ),
@@ -2188,32 +2177,23 @@ impl Render for DesignPreview {
             .child(
                 self.mark_overlay(
                     PreviewOverlay::Menu,
-                    section("Menu").child(
-                        labelled("menu", secondary)
+                    section("Menu", t).child(
+                        labelled("menu", secondary, t)
                             .child(report_menu)
                             .child(more_menu)
                             .child(
-                                text(
-                                    format!("{} Density: {}.", self.chosen, self.density),
-                                    tokens::TYPOGRAPHY_DETAIL,
-                                )
+                                text(format!("{} Density: {}.", self.chosen, self.density)).variant(TextVariant::Detail)
                                 .text_color(color(secondary)),
                             ),
                     ),
                 ),
             )
             .child(
-                section("Dialog")
+                section("Dialog", t)
                     .child(
-                        labelled("dialog", secondary)
+                        labelled("dialog", secondary, t)
                             .child(
-                                button(
-                                    "open-delete-dialog",
-                                    "Delete the report",
-                                    ButtonVariant::Danger,
-                                    ControlSize::Md,
-                                    cx,
-                                )
+                                button("open-delete-dialog", "Delete the report").variant(ButtonVariant::Danger).control_size(ControlSize::Md)
                                 .on_click(cx.listener(
                                     |this, _, _, cx| {
                                         this.confirming = true;
@@ -2222,13 +2202,7 @@ impl Render for DesignPreview {
                                 )),
                             )
                             .child(
-                                button(
-                                    "open-question-dialog",
-                                    "A question that must be answered",
-                                    ButtonVariant::Secondary,
-                                    ControlSize::Md,
-                                    cx,
-                                )
+                                button("open-question-dialog", "A question that must be answered").variant(ButtonVariant::Secondary).control_size(ControlSize::Md)
                                 .on_click(cx.listener(
                                     |this, _, _, cx| {
                                         this.asking = true;
@@ -2241,17 +2215,11 @@ impl Render for DesignPreview {
                     .child(question_dialog),
             )
             .child(
-                section("Toast")
+                section("Toast", t)
                     .child(
-                        labelled("toast", secondary)
+                        labelled("toast", secondary, t)
                             .child(
-                                button(
-                                    "show-toast",
-                                    "Delete a draft",
-                                    ButtonVariant::Secondary,
-                                    ControlSize::Md,
-                                    cx,
-                                )
+                                button("show-toast", "Delete a draft").variant(ButtonVariant::Secondary).control_size(ControlSize::Md)
                                 .on_click(cx.listener(
                                     |this, _, _, cx| {
                                         this.draft_deleted = true;
@@ -2261,28 +2229,25 @@ impl Render for DesignPreview {
                                 )),
                             )
                             .child(
-                                text(
-                                    if self.draft_deleted {
+                                text(if self.draft_deleted {
                                         "The draft is deleted."
                                     } else {
                                         "The draft is back."
-                                    },
-                                    tokens::TYPOGRAPHY_DETAIL,
-                                )
+                                    }).variant(TextVariant::Detail)
                                 .text_color(color(secondary)),
                             ),
                     )
                     .child(toast),
             )
             .child(
-                section("Skeleton")
+                section("Skeleton", t)
                     .child(
-                        labelled("shape", secondary)
+                        labelled("shape", secondary, t)
                             .child(
                                 div()
                                     .flex()
                                     .flex_col()
-                                    .gap(px(tokens::SPACE_2))
+                                    .gap(px(t.space.s2))
                                     .w(px(192.0))
                                     .child(Skeleton::new("skeleton-line"))
                                     .child(
@@ -2311,7 +2276,7 @@ impl Render for DesignPreview {
                                 .aria_label("Loading the report")
                                 .flex()
                                 .flex_col()
-                                .gap(px(tokens::SPACE_4))
+                                .gap(px(t.space.s4))
                                 .child(
                                     Skeleton::new("loading-picture")
                                         .shape(SkeletonShape::Rect)
@@ -2321,7 +2286,7 @@ impl Render for DesignPreview {
                                     div()
                                         .flex()
                                         .items_center()
-                                        .gap(px(tokens::SPACE_3))
+                                        .gap(px(t.space.s3))
                                         .child(
                                             Skeleton::new("loading-avatar")
                                                 .shape(SkeletonShape::Circle)
@@ -2332,7 +2297,7 @@ impl Render for DesignPreview {
                                                 .flex_1()
                                                 .flex()
                                                 .flex_col()
-                                                .gap(px(tokens::SPACE_2))
+                                                .gap(px(t.space.s2))
                                                 .child(
                                                     Skeleton::new("loading-title")
                                                         .width(relative(0.7)),
@@ -2347,7 +2312,7 @@ impl Render for DesignPreview {
                     ),
             )
             .child(
-                section("Media")
+                section("Media", t)
                     .child(
                         SectionHeader::new("media-header", "Continue watching")
                             .action("See all", |_, _, _| {}),
@@ -2356,11 +2321,11 @@ impl Render for DesignPreview {
                     .child(thumbnail_states)
                     .child(media_cards)
                     .child(
-                        text(self.opened.clone(), tokens::TYPOGRAPHY_DETAIL)
+                        text(self.opened.clone()).variant(TextVariant::Detail)
                             .text_color(color(secondary)),
                     )
                     .child(
-                        labelled("header", secondary).child(
+                        labelled("header", secondary, t).child(
                             div().flex_1().child(
                                 SectionHeader::new("header-recommended", "Recommended for you")
                                     .icon(tokens::Icon::Sparkles)
@@ -2372,26 +2337,20 @@ impl Render for DesignPreview {
                     ),
             )
             .child(
-                section("Empty state").child(
+                section("Empty state", t).child(
                     card(cx).child(
                         EmptyState::new(tokens::Icon::Search, "No results")
                             .description(
                                 "Nothing matches “night hikes”. Check the spelling, or search for something else.",
                             )
-                            .action(button(
-                                "empty-clear",
-                                "Clear the search",
-                                ButtonVariant::Secondary,
-                                ControlSize::Md,
-                                cx,
-                            )),
+                            .action(button("empty-clear", "Clear the search").variant(ButtonVariant::Secondary).control_size(ControlSize::Md)),
                     ),
                 ),
             )
             .child(
-                section("Accordion")
+                section("Accordion", t)
                     .child(
-                        labelled("single", secondary).items_start().child(
+                        labelled("single", secondary, t).items_start().child(
                             div().flex_1().max_w(px(560.0)).child(
                                 Accordion::new(
                                     "questions",
@@ -2410,7 +2369,7 @@ impl Render for DesignPreview {
                         ),
                     )
                     .child(
-                        labelled("multiple", secondary).items_start().child(
+                        labelled("multiple", secondary, t).items_start().child(
                             div().flex_1().max_w(px(560.0)).child(
                                 Accordion::new(
                                     "settings",
@@ -2431,10 +2390,10 @@ impl Render for DesignPreview {
                     ),
             )
             .child(
-                section("Sidebar").child(
-                    row()
+                section("Sidebar", t).child(
+                    row(t)
                         .items_start()
-                        .gap(px(tokens::SPACE_4))
+                        .gap(px(t.space.s4))
                         .child(in_frame(sidebar("sidebar-open", false), 460.0))
                         .child(in_frame(sidebar("sidebar-rail", true), 280.0)),
                 ),
@@ -2469,7 +2428,7 @@ mod tests {
 
     #[test]
     fn every_component_color_is_left_out_of_the_swatches() {
-        let colors = acme_tokens::colors(acme_tokens::Mode::Light);
+        let colors = acme_tokens::DEFAULT_THEME.colors(acme_tokens::Mode::Light);
         for group in [
             "chip",
             "tabs",

@@ -34,12 +34,12 @@ struct Report {
 pub struct ExportArgs {
     /// A full theme, overrides on a preset, or an accent and neutral palette file
     file: PathBuf,
-    /// The theme's name: what a page names it with, in `data-<prefix>-theme`, and the Kotlin
-    /// value's, `<Name>Theme` [default: the file's name]
+    /// The theme's name: what a page names it with, in `data-<prefix>-theme`, the Kotlin
+    /// value's, `<Name>Theme`, and the Rust constant's, `<NAME>_THEME` [default: the file's name]
     #[arg(long)]
     name: Option<String>,
-    /// What to write: a stylesheet for the web, a Kotlin file for the Compose components, or a
-    /// TypeScript module for the React Native components
+    /// What to write: a stylesheet for the web, a Kotlin file for the Compose components, a
+    /// TypeScript module for the React Native components, or a Rust file for the GPUI components
     #[arg(long, value_enum, default_value_t = Format::Css)]
     format: Format,
     /// The Kotlin file's package, with `--format compose` [default: `<prefix>.themes`]
@@ -62,6 +62,8 @@ pub enum Format {
     Compose,
     /// A TypeScript module with the theme as a value for the theme provider
     ReactNative,
+    /// A Rust file with the theme as a constant for the GPUI components
+    Gpui,
 }
 
 impl Format {
@@ -71,6 +73,7 @@ impl Format {
             Self::Css => "css",
             Self::Compose => "compose",
             Self::ReactNative => "react-native",
+            Self::Gpui => "gpui",
         }
     }
 
@@ -80,6 +83,7 @@ impl Format {
             Self::Css => "css",
             Self::Compose => "kotlin",
             Self::ReactNative => "typescript",
+            Self::Gpui => "rust",
         }
     }
 }
@@ -209,7 +213,9 @@ fn default_name(file: &Path) -> String {
 
 /// Checks a theme as `check-theme` does and, when it passes, writes it for a client: as a
 /// stylesheet that sets every token as a custom property on the elements that carry
-/// `data-<prefix>-theme="<name>"`, or as a Kotlin value for the Compose theme composable.
+/// `data-<prefix>-theme="<name>"`, as a Kotlin value for the Compose theme composable, as a
+/// TypeScript value for the React Native theme provider, or as a Rust constant for the GPUI
+/// components.
 pub fn export(args: &ExportArgs, out: Out) -> Result<Value> {
     let name = args
         .name
@@ -254,10 +260,14 @@ pub fn export(args: &ExportArgs, out: Out) -> Result<Value> {
         Location::Embedded => "@xds/react-native".to_owned(),
         Location::Project(_) => format!("@{prefix}/tokens"),
     };
+    // The GPUI library's crate, which also carries the token types, or the project's.
+    let rust_crate = format!("{prefix}_ui");
+    let rust_tokens = format!("{rust_crate}::tokens");
     let (first, second) = match args.format {
         Format::Css => (prefix.as_str(), layer.as_str()),
         Format::Compose => (package.as_str(), tokens.as_str()),
         Format::ReactNative => (module.as_str(), ""),
+        Format::Gpui => (rust_tokens.as_str(), ""),
     };
     let version = env!("CARGO_PKG_VERSION");
     let output = checker.run(
@@ -304,6 +314,12 @@ pub fn export(args: &ExportArgs, out: Out) -> Result<Value> {
                     path.display(),
                     value = typescript_value(&name),
                 ),
+                Format::Gpui => say!(
+                    out,
+                    "Wrote {}: pass it to {rust_crate}::set_theme(&{value}, cx) to apply it.",
+                    path.display(),
+                    value = rust_value(&name),
+                ),
             }
         }
         None if out.json => result[args.format.field()] = json!(text),
@@ -348,6 +364,25 @@ fn typescript_value(name: &str) -> String {
     }
 }
 
+/// The Rust constant a theme of this name is written as, as the token tool names it: `brand` is
+/// `BRAND_THEME`, a hyphen before a letter becomes `_`, and one between two digits stays, as `_`:
+/// `v1-2` is `V1_2_THEME`.
+fn rust_value(name: &str) -> String {
+    let pascal = kotlin_value(name);
+    let mut value = String::new();
+    let mut previous: Option<char> = None;
+    for character in pascal.chars() {
+        if character.is_ascii_uppercase()
+            && previous.is_some_and(|before| before.is_ascii_lowercase() || before.is_ascii_digit())
+        {
+            value.push('_');
+        }
+        value.push(character.to_ascii_uppercase());
+        previous = Some(character);
+    }
+    value
+}
+
 /// The project's theme composable without its `Theme`: `Orbit` for `OrbitTheme`.
 fn theme_identifier(name: &str, title: &str) -> String {
     crate::rename::Names::new(name, Some(title)).map_or_else(
@@ -358,7 +393,7 @@ fn theme_identifier(name: &str, title: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{kotlin_value, typescript_value};
+    use super::{kotlin_value, rust_value, typescript_value};
 
     #[test]
     fn a_theme_is_written_as_a_kotlin_value_named_as_the_token_tool_names_it() {
@@ -368,5 +403,9 @@ mod tests {
         assert_eq!(kotlin_value("v1-2"), "V1_2Theme");
         assert_eq!(typescript_value("brand-theme"), "brandThemeTheme");
         assert_eq!(typescript_value("v1-2"), "v1_2Theme");
+        assert_eq!(rust_value("brand"), "BRAND_THEME");
+        assert_eq!(rust_value("brand-theme"), "BRAND_THEME_THEME");
+        assert_eq!(rust_value("checkout-2"), "CHECKOUT2_THEME");
+        assert_eq!(rust_value("v1-2"), "V1_2_THEME");
     }
 }

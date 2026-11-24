@@ -1,23 +1,28 @@
-use std::sync::OnceLock;
-
 use acme_tokens as tokens;
 use gpui_kit::component::{Theme, ThemeMode};
 use gpui_kit::{
-    App, Font, FontWeight, Hsla, Rgba, SharedString, Styled, WindowAppearance, font as font_family,
-    px,
+    App, Font, FontWeight, Global, Hsla, Rgba, SharedString, Styled, WindowAppearance,
+    font as font_family, px,
 };
 
 /// GPUI's name for the platform's UI font, San Francisco on macOS. GPUI Component draws in it
 /// unless told otherwise.
 const SYSTEM_UI_FONT: &str = ".SystemUIFont";
 
-/// The family the components draw text in, picked by [`init`].
+/// The theme the components draw with, registered with the app by [`init`] and [`set_theme`].
 ///
-/// GPUI takes one family, not a CSS list, and when that family is missing it draws its own
-/// fallback (Helvetica on macOS) at regular weight, whatever weight was asked for. So [`init`]
-/// walks the token list once, as a browser does, and keeps the first family GPUI draws itself. It
-/// lives in a static because [`font`] has no `App` to read it from.
-static FONT_FAMILY: OnceLock<SharedString> = OnceLock::new();
+/// GPUI has no context that reaches a part of the window and the overlays opened from it, so a
+/// theme applies to the whole app, as GPUI Component's own theme does.
+struct Registered {
+    theme: &'static tokens::Theme,
+    /// The family the components draw text in: the first of the theme's list that GPUI draws
+    /// itself. GPUI takes one family, not a CSS list, and when that family is missing it draws
+    /// its own fallback (Helvetica on macOS) at regular weight, whatever weight was asked for. So
+    /// the list is walked once, as a browser does, when the theme is registered.
+    family: SharedString,
+}
+
+impl Global for Registered {}
 
 /// Converts a token color into GPUI's color type.
 pub fn color(color: tokens::Color) -> Hsla {
@@ -30,11 +35,11 @@ pub fn color(color: tokens::Color) -> Hsla {
     .into()
 }
 
-/// The UI typeface at a token weight.
-pub fn font(weight: f32) -> Font {
+/// The UI typeface of the theme in effect, at a token weight.
+pub fn font(weight: f32, cx: &App) -> Font {
     Font {
         weight: gpui_weight(weight),
-        ..font_family(font_family_name())
+        ..font_family(font_family_name(cx))
     }
 }
 
@@ -49,11 +54,11 @@ pub trait TypographyExt: Styled + Sized {
 
 impl<T: Styled> TypographyExt for T {}
 
-fn font_family_name() -> SharedString {
-    FONT_FAMILY
-        .get()
-        .cloned()
-        .unwrap_or_else(|| SYSTEM_UI_FONT.into())
+fn font_family_name(cx: &App) -> SharedString {
+    cx.try_global::<Registered>().map_or_else(
+        || SYSTEM_UI_FONT.into(),
+        |registered| registered.family.clone(),
+    )
 }
 
 /// The weight to ask GPUI for to draw a token weight.
@@ -70,17 +75,37 @@ fn gpui_weight(weight: f32) -> FontWeight {
     }
 }
 
-/// Sets up GPUI Component and applies Acme's tokens to its theme. Call once, before opening
-/// any window. The app starts in the system's appearance; [`set_mode`] overrides it.
+/// Sets up GPUI Component and registers the default theme, which it applies to GPUI
+/// Component's theme as well. Call once, before opening any window. The app starts in the
+/// system's appearance; [`set_mode`] overrides it, and [`set_theme`] registers another theme.
 pub fn init(cx: &mut App) {
     gpui_kit::init(cx);
-    FONT_FAMILY
-        .get_or_init(|| first_drawn(tokens::FONT_FAMILY_SANS, |family| draws(cx, family)).into());
+    register(&tokens::DEFAULT_THEME, cx);
     let mode = match cx.window_appearance() {
         WindowAppearance::Dark | WindowAppearance::VibrantDark => tokens::Mode::Dark,
         WindowAppearance::Light | WindowAppearance::VibrantLight => tokens::Mode::Light,
     };
     set_mode(mode, cx);
+}
+
+/// Registers `theme` with the app, after [`init`]: every component draws with it from the next
+/// frame on, in the color mode in effect. A theme is a constant, such as a preset or what
+/// `xds export-theme --format gpui` writes, so it lives as long as the app; one made while the
+/// app runs is given a static place with `Box::leak` once.
+pub fn set_theme(theme: &'static tokens::Theme, cx: &mut App) {
+    register(theme, cx);
+    set_mode(mode(cx), cx);
+}
+
+fn register(theme: &'static tokens::Theme, cx: &mut App) {
+    let family = first_drawn(theme.font.family_sans, |family| draws(cx, family)).into();
+    cx.set_global(Registered { theme, family });
+}
+
+/// The theme the components draw with: the registered one, or the default before [`init`].
+pub fn theme(cx: &App) -> &'static tokens::Theme {
+    cx.try_global::<Registered>()
+        .map_or(&tokens::DEFAULT_THEME, |registered| registered.theme)
 }
 
 /// The first family of a CSS `font-family` list that `draws` says GPUI draws itself, under
@@ -120,12 +145,12 @@ pub fn mode(cx: &App) -> tokens::Mode {
     }
 }
 
-/// The color tokens for the current mode.
+/// The color tokens of the theme in effect, for the current mode.
 pub fn palette(cx: &App) -> &'static tokens::Colors {
-    tokens::colors(mode(cx))
+    theme(cx).colors(mode(cx))
 }
 
-/// Switches every component to light or dark.
+/// Switches every component to light or dark, and redraws the windows.
 pub fn set_mode(mode: tokens::Mode, cx: &mut App) {
     let theme_mode = match mode {
         tokens::Mode::Light => ThemeMode::Light,
@@ -133,17 +158,19 @@ pub fn set_mode(mode: tokens::Mode, cx: &mut App) {
     };
     Theme::change(theme_mode, None, cx);
 
-    let c = tokens::colors(mode);
+    let registered = theme(cx);
+    let c = registered.colors(mode);
+    let family = font_family_name(cx);
     let theme = Theme::global_mut(cx);
 
     // GPUI Component paints this color under every window's root. Each view paints its own
     // background instead, so a window with a translucent or blurred backdrop keeps it.
     theme.tokens.background = gpui_kit::gpui::transparent_black().into();
 
-    theme.font_family = font_family_name();
-    theme.font_size = px(tokens::TYPOGRAPHY_BODY.size);
-    theme.radius = px(tokens::RADIUS_MD);
-    theme.radius_lg = px(tokens::RADIUS_LG);
+    theme.font_family = family;
+    theme.font_size = px(registered.typography.body.size);
+    theme.radius = px(registered.radius.md);
+    theme.radius_lg = px(registered.radius.lg);
 
     // GPUI Component keeps every color twice: as a plain color, and in `tokens` as a paint,
     // which is what most components draw with. Both are set, so nothing reads a stale default.
@@ -212,6 +239,7 @@ pub fn set_mode(mode: tokens::Mode, cx: &mut App) {
         info = c.status_info;
         info_foreground = c.background_base;
     }
+    cx.refresh_windows();
 }
 
 #[cfg(test)]

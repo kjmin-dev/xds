@@ -909,6 +909,66 @@ fn exports_a_checked_theme_as_a_typescript_value_for_the_library_or_a_project() 
 }
 
 #[test]
+fn exports_a_checked_theme_as_a_rust_constant_for_the_library_or_a_project() {
+    let temp = TempDir::new().unwrap();
+    let theme = temp.path().join("brand.json");
+    let project = temp.path().join("my-project");
+    let (created, _, stderr) = run(xds().arg("create").arg(&project).args([
+        "--name",
+        "orbit",
+        "--targets",
+        "desktop-gpui",
+        "--yes",
+    ]));
+    assert!(created.status.success(), "{stderr}");
+    let version = env!("CARGO_PKG_VERSION");
+    let file = serde_json::json!({ "version": version, "preset": "ocean" });
+    fs::write(&theme, file.to_string()).unwrap();
+
+    // Outside a project the constant is typed by the published library.
+    let (output, stdout, stderr) = run(xds()
+        .current_dir(temp.path())
+        .args(["export-theme", "--format", "gpui"])
+        .arg(&theme));
+    assert!(output.status.success(), "{stderr}");
+    assert!(stdout.contains("\nuse xds_ui::tokens::{"), "{stdout}");
+    assert!(
+        stdout.contains("\npub const BRAND_THEME: Theme = Theme {\n    light: Colors {\n"),
+        "{stdout}"
+    );
+    assert!(stdout.contains("\n    dark: Colors {\n"), "{stdout}");
+    assert!(!stdout.contains("acme"), "{stdout}");
+
+    // In a project it is typed by the project's own crate.
+    let rust = temp.path().join("brand.rs");
+    let (output, stdout, stderr) = run(xds()
+        .current_dir(&project)
+        .args(["--json", "export-theme", "--format", "gpui", "--out"])
+        .arg(&rust)
+        .arg(&theme));
+    assert!(output.status.success(), "{stderr}");
+    let report: Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(report["source"], "project");
+    let written = fs::read_to_string(&rust).unwrap();
+    assert!(written.contains("\nuse orbit_ui::tokens::{"), "{written}");
+
+    // Without --out and with --json, the file is in the result.
+    let (output, stdout, stderr) = run(xds()
+        .current_dir(&project)
+        .args(["--json", "export-theme", "--format", "gpui"])
+        .arg(&theme));
+    assert!(output.status.success(), "{stderr}");
+    let report: Value = serde_json::from_str(&stdout).unwrap();
+    assert!(
+        report["rust"]
+            .as_str()
+            .unwrap()
+            .contains("pub const BRAND_THEME: Theme"),
+        "{report}"
+    );
+}
+
+#[test]
 fn checks_a_theme_from_a_project_or_the_embedded_release_without_applying_it() {
     let temp = TempDir::new().unwrap();
     let theme = temp.path().join("brand theme.json");

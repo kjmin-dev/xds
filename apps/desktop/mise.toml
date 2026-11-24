@@ -10,3 +10,7 @@ run = "cargo build --release --package acme-desktop"
 [tasks.design]
 description = "Open the design preview: every token and GPUI component (add --light or --dark)"
 run = "cargo run --package acme-desktop -- --design"
+
+[tasks.render]
+description = "Draw every page and overlay of the design preview off screen into target/preview, in both modes"
+run = "cargo run --package acme-ui --example render_preview -- ../../target/preview"

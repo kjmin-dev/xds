@@ -296,20 +296,25 @@ Exit code 0 means every pair passed in both modes. To see a failure, set the lig
 
 ### `xds export-theme <file>`
 
-Checks a theme file as `check-theme` does and, if every contrast pair passes, writes it for a client. By default it writes a stylesheet, which sets every token as a custom property on the elements that name the theme: the root element for the whole page, or any element for its contents. With `--format compose`, it writes a Kotlin file that holds the theme as a value for the Compose theme composable, and with `--format react-native` a TypeScript module that holds it as a value for the React Native theme provider.
+Checks a theme file as `check-theme` does and, if every contrast pair passes, writes it for a client. By default it writes a stylesheet, which sets every token as a custom property on the elements that name the theme: the root element for the whole page, or any element for its contents. With `--format compose`, it writes a Kotlin file that holds the theme as a value for the Compose theme composable, with `--format react-native` a TypeScript module that holds it as a value for the React Native theme provider, and with `--format gpui` a Rust file that holds it as a constant for the GPUI components.
 
 ```sh
 xds export-theme brand.json -o brand.css
 xds export-theme brand.json --name checkout
 xds export-theme brand.json --format compose --package com.example.app.theme -o BrandTheme.kt
 xds export-theme brand.json --format react-native -o brand.ts
+xds export-theme brand.json --format gpui -o src/brand.rs
 ```
 
-The theme is named after the file (`Brand Theme.json` becomes `brand-theme`) unless `--name` is given. Without `--out`, the file is written to stdout, or to the `css`, `kotlin` or `typescript` field with `--json`. Outside a project, the stylesheet is for [the web library](web-library.md): its custom properties are `--xds-*`, it applies to `data-xds-theme="<name>"`, and it sits in the library's `xds.theme` cascade layer. In a project, the names use the project's name (`--orbit-*`, `data-orbit-theme`) and no layer, beside the project's own token file.
+The theme is named after the file (`Brand Theme.json` becomes `brand-theme`) unless `--name` is given. Without `--out`, the file is written to stdout, or to the `css`, `kotlin`, `typescript` or `rust` field with `--json`. Outside a project, the stylesheet is for [the web library](web-library.md): its custom properties are `--xds-*`, it applies to `data-xds-theme="<name>"`, and it sits in the library's `xds.theme` cascade layer. In a project, the names use the project's name (`--orbit-*`, `data-orbit-theme`) and no layer, beside the project's own token file.
 
 The Kotlin file declares `val <Name>Theme: Theme` (`brand` becomes `BrandTheme`), with every token's value, in the package `--package` names. Without `--package`, the package is `xds.themes`, or `<name>.themes` in a project. Outside a project, it refers to the types of [the Compose library](compose-library.md) (`xds.tokens`), and an app passes it as `XdsTheme(theme = BrandTheme)`. In a project, it refers to the project's own tokens (`orbit.tokens`), and the project's theme composable takes it the same way.
 
-The TypeScript module exports `const <name>Theme: Theme` (`brand` becomes `brandTheme`). Outside a project, `Theme` comes from [the React Native library](react-native-library.md), and an app passes the value as `<XdsTheme theme={brandTheme}>`. In a project, it comes from the project's tokens (`@orbit/tokens`), and the project's theme provider takes it the same way. A theme that fails a contrast check is not written. The command then exits with 1 and reports the failures as `check-theme` does.
+The TypeScript module exports `const <name>Theme: Theme` (`brand` becomes `brandTheme`). Outside a project, `Theme` comes from [the React Native library](react-native-library.md), and an app passes the value as `<XdsTheme theme={brandTheme}>`. In a project, it comes from the project's tokens (`@orbit/tokens`), and the project's theme provider takes it the same way.
+
+The Rust file declares `pub const <NAME>_THEME: Theme` (`brand` becomes `BRAND_THEME`), with every token's value. Outside a project, `Theme` and the types it holds come from [the GPUI library](gpui-library.md) (`xds_ui::tokens`), and an app registers the constant as `xds_ui::set_theme(&brand::BRAND_THEME, cx)`. In a project, they come from the project's UI crate (`orbit_ui::tokens`), whose `set_theme` takes it the same way.
+
+A theme that fails a contrast check is not written. The command then exits with 1 and reports the failures as `check-theme` does.
 
 ### `xds doctor`
 
@@ -540,5 +545,7 @@ A run started by hand (also Actions > Release > Run workflow) is a rehearsal of 
 - npm packs every package as it would publish it, and must accept `NPM_TOKEN`;
 - the Compose library is signed with `SIGNING_KEY`, and Maven Central validates the bundle as it would before publishing it, including the namespace and the signatures against the key servers; the rehearsal then drops the deployment;
 - the summary of the GitHub release job shows the release the tag would create, with its files and notes.
+
+The GPUI library's crates are built and checked the same way in a rehearsal and for a tag, and kept as the run's `gpui-crates` artifact. Neither publishes them: crates.io is not part of the release yet ([the GPUI library](gpui-library.md)).
 
 The rehearsal fails when a secret is missing or refused, and names every one. It warns, without failing, when `CHANGELOG.md` has no section for the version yet or the version is already released.

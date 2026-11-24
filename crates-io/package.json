@@ -1,0 +1,14 @@
+{
+  "name": "@acme/crates-io-packages",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.ts",
+    "consumer": "node consumer.ts",
+    "typecheck": "tsrs --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.0",
+    "tsrs": "catalog:"
+  }
+}

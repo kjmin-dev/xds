@@ -29,6 +29,7 @@ packages:
   - npm/web
   - npm/react-native
   - maven
+  - crates-io
   # @endif
 
 # One version of each of these across the workspace.

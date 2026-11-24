@@ -30,7 +30,7 @@ Token files use the DTCG format: each token is a JSON object with a `$value` fie
    | --- | --- | --- |
    | Web | `bg-acme-chip-background`, `var(--acme-color-chip-background)` | `var(--acme-space-4)`, `h-acme-control-md` |
    | React Native | `useColors().chipBackground` | `space[4]`, `size.touch.controlMd` |
-   | GPUI | `color(palette(cx).chip_background)` | `tokens::SPACE_4`, `tokens::POINTER.control_md` |
+   | GPUI | `color(palette(cx).chip_background)` | `theme(cx).space.s4`, `theme(cx).pointer.control_md` |
    | Compose | `LocalColors.current.chipBackground` | `Space.s4`, `LocalSizes.current.controlMd` |
 
    In a scaffolded project, `acme` is replaced by the project's name. Check an existing component in the target client for the exact naming pattern.

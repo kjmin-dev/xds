@@ -12,14 +12,14 @@ use acme_tokens as tokens;
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
     AnyElement, App, ElementId, FontFeatures, InteractiveElement as _, IntoElement,
-    ParentElement as _, RenderOnce, Role, SharedString, StatefulInteractiveElement as _,
-    Styled as _, Window, div, px,
+    ParentElement as _, Refineable as _, RenderOnce, Role, SharedString,
+    StatefulInteractiveElement as _, StyleRefinement, Styled, Window, div, px,
 };
 
 use crate::components::count_text;
 use crate::controls::{IconSize, ListRow, ValueHandler, icon, icon_filled};
 use crate::overlays::tooltip;
-use crate::theme::{TypographyExt as _, color, palette};
+use crate::theme::{TypographyExt as _, color, palette, theme};
 
 /// One place of a [`Sidebar`].
 pub struct SidebarItem {
@@ -81,6 +81,7 @@ impl SidebarSection {
 /// not fit, and the header and the footer stay.
 #[derive(IntoElement)]
 pub struct Sidebar {
+    style: StyleRefinement,
     id: ElementId,
     label: SharedString,
     sections: Vec<SidebarSection>,
@@ -99,6 +100,7 @@ impl Sidebar {
         sections: impl IntoIterator<Item = SidebarSection>,
     ) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             label: label.into(),
             sections: sections.into_iter().collect(),
@@ -148,12 +150,13 @@ impl Sidebar {
     }
 }
 
-impl RenderOnce for Sidebar {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl Sidebar {
+    fn draw(self, _window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
         let collapsed = self.collapsed;
-        let hairline = px(tokens::BORDER_WIDTH_THIN);
-        let inset = px(tokens::SPACE_2);
+        let hairline = px(t.border.width_thin);
+        let inset = px(t.space.s2);
         let sections = self
             .sections
             .into_iter()
@@ -172,8 +175,8 @@ impl RenderOnce for Sidebar {
                     section.title.map(|title| {
                         div()
                             .px(inset)
-                            .pb(px(tokens::SPACE_1))
-                            .typography(tokens::TYPOGRAPHY_FOOTNOTE)
+                            .pb(px(t.space.s1))
+                            .typography(t.typography.footnote)
                             .text_color(color(c.sidebar_section_title))
                             .truncate()
                             .child(title)
@@ -184,9 +187,13 @@ impl RenderOnce for Sidebar {
                     // Filled as well as tinted, so the current place does not show by color
                     // alone.
                     let glyph = if current {
-                        icon_filled(item.icon, IconSize::Md).text_color(color(c.text_primary))
+                        icon_filled(item.icon)
+                            .icon_size(IconSize::Md)
+                            .text_color(color(c.text_primary))
                     } else {
-                        icon(item.icon, IconSize::Md).text_color(color(c.text_secondary))
+                        icon(item.icon)
+                            .icon_size(IconSize::Md)
+                            .text_color(color(c.text_secondary))
                     };
                     let on_change = self.on_change.clone();
                     let value = item.value.clone();
@@ -195,7 +202,7 @@ impl RenderOnce for Sidebar {
                             .compact()
                             .selected(current)
                             .leading(glyph)
-                            .rounded(px(tokens::RADIUS_MD))
+                            .rounded(px(t.radius.md))
                             .on_click(move |_, window, cx| {
                                 if let Some(on_change) = &on_change {
                                     on_change(&value, window, cx);
@@ -212,7 +219,7 @@ impl RenderOnce for Sidebar {
                         row.trailing(
                             div()
                                 .flex_none()
-                                .typography(tokens::TYPOGRAPHY_DETAIL)
+                                .typography(t.typography.detail)
                                 .text_color(color(c.text_secondary))
                                 // Figures of one width, so the counts line up.
                                 .font_features(FontFeatures(Arc::new(vec![("tnum".into(), 1)])))
@@ -224,11 +231,7 @@ impl RenderOnce for Sidebar {
                     }
                 });
                 // The hairline of the rail parts the groups by itself, so it needs less room.
-                let gap = if collapsed {
-                    tokens::SPACE_2
-                } else {
-                    tokens::SPACE_4
-                };
+                let gap = if collapsed { t.space.s2 } else { t.space.s4 };
                 div()
                     .flex()
                     .flex_col()
@@ -238,14 +241,14 @@ impl RenderOnce for Sidebar {
             })
             .collect::<Vec<_>>();
         let width = if collapsed {
-            tokens::POINTER.sidebar_rail
+            t.pointer.sidebar_rail
         } else {
-            tokens::POINTER.sidebar
+            t.pointer.sidebar
         };
         // A scrolling area clips what it holds, and the focus ring of a row lies outside the
         // row. The area is this much larger on every side, and pulled back by as much, so the
         // ring has room and the rows stay where they were.
-        let room = px(tokens::SPACE_1);
+        let room = px(t.space.s1);
         div()
             .id(self.id.clone())
             .role(Role::Navigation)
@@ -280,5 +283,20 @@ impl RenderOnce for Sidebar {
                 self.footer
                     .map(|footer| div().flex().flex_none().child(footer)),
             )
+    }
+}
+
+impl Styled for Sidebar {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for Sidebar {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }

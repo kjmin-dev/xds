@@ -18,19 +18,22 @@ use gpui_kit::base::{
     Transition, transition,
 };
 use gpui_kit::component::{
-    Icon, Sizable as _, ThemeStyled as _, checkbox::Checkbox, spinner::Spinner, switch::Switch,
+    Icon as KitIcon, Sizable as _, ThemeStyled as _, checkbox::Checkbox,
+    spinner::Spinner as KitSpinner, switch::Switch,
 };
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
     Animation, AnimationExt as _, AnyElement, App, AppContext as _, BoxShadow, ClickEvent, Div,
     ElementId, Entity, FocusHandle, FontFeatures, Hsla, ImageSource, InteractiveElement as _,
-    IntoElement, KeyDownEvent, Length, MouseButton, ObjectFit, ParentElement, Refineable as _,
-    RenderOnce, Rgba, Role, SharedString, StatefulInteractiveElement as _, StyleRefinement, Styled,
-    StyledImage as _, Subscription, Toggled, Window, div, img, percentage, point, px, relative,
+    IntoElement, KeyDownEvent, Length, MouseButton, ObjectFit, ParentElement, Radians,
+    Refineable as _, RenderOnce, Rgba, Role, SharedString, StatefulInteractiveElement as _,
+    StyleRefinement, Styled, StyledImage as _, Subscription, Toggled, Window, div, img, percentage,
+    point, px, relative,
 };
 
 use crate::components::{ControlSize, field_label, shadow};
-use crate::theme::{TypographyExt as _, color, palette};
+use crate::defaults::defaults;
+use crate::theme::{TypographyExt as _, color, palette, theme};
 
 /// Turns a setting on or off, and takes effect at once. The result is a GPUI Component switch:
 /// add `.label`, `.on_click` or `.disabled` to it.
@@ -102,6 +105,7 @@ impl RadioOption {
 /// and the arrow keys move the choice, as they do in a native group.
 #[derive(IntoElement)]
 pub struct RadioGroup {
+    style: StyleRefinement,
     id: ElementId,
     label: SharedString,
     options: Vec<RadioOption>,
@@ -119,6 +123,7 @@ impl RadioGroup {
         options: impl IntoIterator<Item = RadioOption>,
     ) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             label: label.into(),
             options: options.into_iter().collect(),
@@ -159,8 +164,9 @@ impl RadioGroup {
     }
 }
 
-impl RenderOnce for RadioGroup {
-    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl RadioGroup {
+    fn draw(self, window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
         let disabled = self.disabled;
         let count = self.options.len();
@@ -182,9 +188,9 @@ impl RenderOnce for RadioGroup {
         );
         // Tab reaches the group once, at its choice, and the arrow keys move inside it.
         let stop = chosen.unwrap_or(0);
-        let side = px(tokens::POINTER.radio);
+        let side = px(t.pointer.radio);
         // The circle sits on the middle of the label's first line.
-        let line = px(tokens::TYPOGRAPHY_BODY.line_height_px());
+        let line = px(t.typography.body.line_height_px());
         let (label_color, description_color) = if disabled {
             (c.text_disabled, c.text_disabled)
         } else {
@@ -203,16 +209,12 @@ impl RenderOnce for RadioGroup {
                     (0.0, gpui_kit::transparent_black(), c.radio_disabled_dot)
                 } else if checked {
                     (
-                        tokens::BORDER_WIDTH_THICK,
+                        t.border.width_thick,
                         color(c.radio_border_checked),
                         c.radio_dot,
                     )
                 } else {
-                    (
-                        tokens::BORDER_WIDTH_THIN,
-                        color(c.radio_border),
-                        c.radio_dot,
-                    )
+                    (t.border.width_thin, color(c.radio_border), c.radio_dot)
                 };
                 let circle = div()
                     .flex()
@@ -252,8 +254,8 @@ impl RenderOnce for RadioGroup {
                     .on_mouse_down(MouseButton::Left, |_, window, _| window.prevent_default())
                     .flex()
                     .items_start()
-                    .gap(px(tokens::SPACE_2))
-                    .min_h(px(tokens::POINTER.target_min))
+                    .gap(px(t.space.s2))
+                    .min_h(px(t.pointer.target_min))
                     .child(circle)
                     .child(
                         div()
@@ -261,13 +263,13 @@ impl RenderOnce for RadioGroup {
                             .flex_col()
                             .child(
                                 div()
-                                    .typography(tokens::TYPOGRAPHY_BODY)
+                                    .typography(t.typography.body)
                                     .text_color(color(label_color))
                                     .child(option.label),
                             )
                             .children(option.description.map(|description| {
                                 div()
-                                    .typography(tokens::TYPOGRAPHY_DETAIL)
+                                    .typography(t.typography.detail)
                                     .text_color(color(description_color))
                                     .child(description)
                             })),
@@ -281,7 +283,7 @@ impl RenderOnce for RadioGroup {
             .flex()
             .flex_col()
             .items_start()
-            .gap(px(tokens::SPACE_2))
+            .gap(px(t.space.s2))
             .children(radios)
             .when(!disabled, |group| {
                 group.on_key_down(move |event: &KeyDownEvent, window, cx| {
@@ -310,18 +312,18 @@ impl RenderOnce for RadioGroup {
                 // Read out when it appears.
                 .role(Role::Alert)
                 .aria_label(error.clone())
-                .typography(tokens::TYPOGRAPHY_DETAIL)
+                .typography(t.typography.detail)
                 .text_color(color(c.status_danger))
                 .child(error)
         });
         div()
             .flex()
             .flex_col()
-            .gap(px(tokens::SPACE_1))
+            .gap(px(t.space.s1))
             .child(
                 // In a field's label role; disabled, it fades with the options it names.
                 div()
-                    .typography(tokens::TYPOGRAPHY_LABEL)
+                    .typography(t.typography.label)
                     .text_color(color(if disabled {
                         c.text_disabled
                     } else {
@@ -334,6 +336,21 @@ impl RenderOnce for RadioGroup {
     }
 }
 
+impl Styled for RadioGroup {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for RadioGroup {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
+    }
+}
+
 // ---------------------------------------------------------------- segmented control
 
 type SelectHandler = Rc<dyn Fn(&usize, &mut Window, &mut App)>;
@@ -342,6 +359,7 @@ type SelectHandler = Rc<dyn Fn(&usize, &mut Window, &mut App)>;
 /// as well as filled, so the choice does not depend on telling two greys apart.
 #[derive(IntoElement)]
 pub struct SegmentedControl {
+    style: StyleRefinement,
     id: ElementId,
     labels: Vec<SharedString>,
     selected: usize,
@@ -354,6 +372,7 @@ impl SegmentedControl {
         labels: impl IntoIterator<Item = impl Into<SharedString>>,
     ) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             labels: labels.into_iter().map(Into::into).collect(),
             selected: 0,
@@ -375,9 +394,10 @@ impl SegmentedControl {
     }
 }
 
-impl RenderOnce for SegmentedControl {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl SegmentedControl {
+    fn draw(self, _window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
         const INSET: f32 = 2.0;
+        let t = theme(cx);
         let c = palette(cx);
         let segments = self.labels.into_iter().enumerate().map(|(index, label)| {
             let selected = index == self.selected;
@@ -388,20 +408,20 @@ impl RenderOnce for SegmentedControl {
                 .items_center()
                 .justify_center()
                 .h_full()
-                .px(px(tokens::SPACE_4))
-                .rounded(px(tokens::RADIUS_MD - INSET))
+                .px(px(t.space.s4))
+                .rounded(px(t.radius.md - INSET))
                 // Present on every segment, and transparent until selected, so selecting does
                 // not move the text.
-                .border(px(tokens::BORDER_WIDTH_THIN))
+                .border(px(t.border.width_thin))
                 .border_color(gpui_kit::transparent_black())
-                .typography(tokens::TYPOGRAPHY_LABEL)
+                .typography(t.typography.label)
                 .text_color(color(c.segmented_text))
                 .when(selected, |segment| {
                     segment
                         .bg(color(c.segmented_selected_background))
                         .border_color(color(c.segmented_selected_border))
                         // Raised: a faint shadow under the hairline sets it apart from the track.
-                        .shadow(shadow(tokens::SHADOW_SUBTLE))
+                        .shadow(shadow(t.shadow.subtle))
                         .text_color(color(c.segmented_selected_text))
                 })
                 .when_some(on_change, |segment, on_change| {
@@ -413,11 +433,26 @@ impl RenderOnce for SegmentedControl {
         div()
             .flex()
             .flex_none()
-            .h(ControlSize::Md.height())
+            .h(ControlSize::Md.height(t))
             .p(px(INSET))
-            .rounded(px(tokens::RADIUS_MD))
+            .rounded(px(t.radius.md))
             .bg(color(c.segmented_track))
             .children(segments)
+    }
+}
+
+impl Styled for SegmentedControl {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for SegmentedControl {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }
 
@@ -436,6 +471,7 @@ pub(crate) fn focus_handle(id: &ElementId, window: &mut Window, cx: &mut App) ->
 /// check mark and an outline, so the state does not depend on color.
 #[derive(IntoElement)]
 pub struct Chip {
+    style: StyleRefinement,
     id: ElementId,
     label: SharedString,
     selected: bool,
@@ -447,6 +483,7 @@ pub struct Chip {
 impl Chip {
     pub fn new(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             label: label.into(),
             selected: false,
@@ -483,8 +520,9 @@ impl Chip {
     }
 }
 
-impl RenderOnce for Chip {
-    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl Chip {
+    fn draw(self, window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
         let leading = if self.selected {
             Some(tokens::Icon::Check)
@@ -527,13 +565,13 @@ impl RenderOnce for Chip {
             .flex()
             .flex_none()
             .items_center()
-            .gap(px(tokens::SPACE_1_5))
-            .h(px(tokens::POINTER.chip))
-            .px(px(tokens::SPACE_3))
+            .gap(px(t.space.s1_5))
+            .h(px(t.pointer.chip))
+            .px(px(t.space.s3))
             .rounded_full()
             // Present on every chip, and transparent until selected, so selecting does not
             // change the size.
-            .border(px(tokens::BORDER_WIDTH_THIN))
+            .border(px(t.border.width_thin))
             .border_color(if self.selected && !self.disabled {
                 color(c.chip_selected_border)
             } else {
@@ -541,9 +579,9 @@ impl RenderOnce for Chip {
             })
             .bg(color(background))
             .text_color(color(text))
-            .typography(tokens::TYPOGRAPHY_LABEL)
+            .typography(t.typography.label)
             .whitespace_nowrap()
-            .children(leading.map(|name| icon(name, IconSize::Sm)))
+            .children(leading.map(|name| icon(name).icon_size(IconSize::Sm)))
             .child(self.label)
             .when(!self.disabled, |chip| {
                 chip.track_focus(&focus.tab_index(0).tab_stop(true))
@@ -560,10 +598,26 @@ impl RenderOnce for Chip {
     }
 }
 
+impl Styled for Chip {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for Chip {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
+    }
+}
+
 /// A row of chips. It scrolls sideways when the chips do not fit, and never wraps. Which chips
 /// are selected is the app's business: the bar holds no state. Add the chips as children.
 #[derive(IntoElement)]
 pub struct ChipBar {
+    style: StyleRefinement,
     id: ElementId,
     label: SharedString,
     children: Vec<AnyElement>,
@@ -573,6 +627,7 @@ impl ChipBar {
     /// The label names the group for assistive technology.
     pub fn new(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             label: label.into(),
             children: Vec::new(),
@@ -586,23 +641,39 @@ impl ParentElement for ChipBar {
     }
 }
 
-impl RenderOnce for ChipBar {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
+impl ChipBar {
+    fn draw(self, _window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         // A scrolling row clips what it holds, and the focus ring of a chip lies outside the
         // chip. The row is this much larger on every side, and pulled back by as much, so the
         // ring has room and the chips stay where they were.
-        let room = px(tokens::SPACE_1);
+        let room = px(t.space.s1);
         div()
             .id(self.id)
             .role(Role::Group)
             .aria_label(self.label)
             .flex()
             .items_center()
-            .gap(px(tokens::SPACE_2))
+            .gap(px(t.space.s2))
             .p(room)
             .m(-room)
             .overflow_x_scroll()
             .children(self.children)
+    }
+}
+
+impl Styled for ChipBar {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for ChipBar {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }
 
@@ -638,6 +709,7 @@ impl TabItem {
 /// is only the row: the app shows the view that matches the value.
 #[derive(IntoElement)]
 pub struct Tabs {
+    style: StyleRefinement,
     id: ElementId,
     label: SharedString,
     items: Vec<TabItem>,
@@ -654,6 +726,7 @@ impl Tabs {
         items: impl IntoIterator<Item = TabItem>,
     ) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             label: label.into(),
             items: items.into_iter().collect(),
@@ -686,8 +759,9 @@ impl Tabs {
     }
 }
 
-impl RenderOnce for Tabs {
-    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl Tabs {
+    fn draw(self, window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
         let tabs = self
             .items
@@ -710,10 +784,10 @@ impl RenderOnce for Tabs {
                     .flex()
                     .items_center()
                     .justify_center()
-                    .gap(px(tokens::SPACE_2))
-                    .h(px(tokens::POINTER.tab))
-                    .px(px(tokens::SPACE_4))
-                    .typography(tokens::TYPOGRAPHY_LABEL)
+                    .gap(px(t.space.s2))
+                    .h(px(t.pointer.tab))
+                    .px(px(t.space.s4))
+                    .typography(t.typography.label)
                     .whitespace_nowrap()
                     .map(|tab| {
                         if self.full_width {
@@ -736,7 +810,7 @@ impl RenderOnce for Tabs {
                     .when_some(on_change, |tab, on_change| {
                         tab.on_click(move |_, window, cx| on_change(&value, window, cx))
                     })
-                    .children(item.icon.map(|name| icon(name, IconSize::Sm)))
+                    .children(item.icon.map(|name| icon(name).icon_size(IconSize::Sm)))
                     .child(item.label)
                     .when(selected, |tab| {
                         // A bar as well as a color, so the choice shows in the form.
@@ -746,7 +820,7 @@ impl RenderOnce for Tabs {
                                 .left_0()
                                 .right_0()
                                 .bottom_0()
-                                .h(px(tokens::BORDER_WIDTH_THICK))
+                                .h(px(t.border.width_thick))
                                 .bg(color(c.tabs_indicator)),
                         )
                     })
@@ -755,7 +829,7 @@ impl RenderOnce for Tabs {
             .collect::<Vec<_>>();
         // As in a chip bar: the scrolling row would clip the focus ring of a tab, so it is
         // this much larger on every side and pulled back by as much.
-        let room = px(tokens::SPACE_1);
+        let room = px(t.space.s1);
         div()
             .relative()
             .w_full()
@@ -767,7 +841,7 @@ impl RenderOnce for Tabs {
                     .left_0()
                     .right_0()
                     .bottom_0()
-                    .h(px(tokens::BORDER_WIDTH_THIN))
+                    .h(px(t.border.width_thin))
                     .bg(color(c.tabs_border)),
             )
             .child(
@@ -781,6 +855,21 @@ impl RenderOnce for Tabs {
                     .overflow_x_scroll()
                     .children(tabs),
             )
+    }
+}
+
+impl Styled for Tabs {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for Tabs {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }
 
@@ -799,8 +888,9 @@ pub enum SkeletonShape {
 /// technology passes over it: the view that shows skeletons says that it is loading.
 #[derive(IntoElement)]
 pub struct Skeleton {
+    style: StyleRefinement,
     id: ElementId,
-    shape: SkeletonShape,
+    shape: Option<SkeletonShape>,
     width: Option<Length>,
     height: Option<Length>,
 }
@@ -809,15 +899,16 @@ impl Skeleton {
     /// GPUI keeps the time of an animation under an id, so the skeleton takes one.
     pub fn new(id: impl Into<ElementId>) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
-            shape: SkeletonShape::default(),
+            shape: None,
             width: None,
             height: None,
         }
     }
 
     pub const fn shape(mut self, shape: SkeletonShape) -> Self {
-        self.shape = shape;
+        self.shape = Some(shape);
         self
     }
 
@@ -852,29 +943,38 @@ fn pulse(phase: f32) -> f32 {
     (1.0 - (phase * std::f32::consts::TAU).cos()) / 2.0
 }
 
-impl RenderOnce for Skeleton {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl Skeleton {
+    /// What the component draws. The app's style goes on the block before the pulse wraps it,
+    /// since an animated element takes no style.
+    fn draw(self, _window: &mut Window, cx: &mut App) -> AnyElement {
+        let t = theme(cx);
         let c = palette(cx);
         let block = div().flex_none().bg(color(c.skeleton_background));
-        let block = match self.shape {
+        let block = match self
+            .shape
+            .or_else(|| defaults(cx).skeleton.shape)
+            .unwrap_or_default()
+        {
             SkeletonShape::Text => block
                 .h(self
                     .height
-                    .unwrap_or_else(|| px(tokens::TYPOGRAPHY_BODY.size).into()))
+                    .unwrap_or_else(|| px(t.typography.body.size).into()))
                 .w(self.width.unwrap_or_else(|| relative(1.0).into()))
-                .rounded(px(tokens::RADIUS_SM)),
+                .rounded(px(t.radius.sm)),
             SkeletonShape::Rect => block
                 .when_some(self.height, |block, height| block.h(height))
                 .w(self.width.unwrap_or_else(|| relative(1.0).into()))
-                .rounded(px(tokens::RADIUS_MD)),
+                .rounded(px(t.radius.md)),
             SkeletonShape::Circle => {
                 let diameter = self
                     .height
                     .or(self.width)
-                    .unwrap_or_else(|| px(tokens::POINTER.avatar_md).into());
+                    .unwrap_or_else(|| px(t.pointer.avatar_md).into());
                 block.size(diameter).rounded_full()
             }
         };
+        let mut block = block;
+        block.style().refine(&self.style);
         // GPUI holds a repeating animation still under reduced motion; asking here as well
         // keeps the skeleton from registering one at all.
         if cx.reduce_motion() {
@@ -884,10 +984,22 @@ impl RenderOnce for Skeleton {
         block
             .with_animation(
                 self.id,
-                Animation::new(tokens::MOTION_DURATION_PULSE).repeat(),
+                Animation::new(t.motion.duration_pulse).repeat(),
                 move |block, phase| block.bg(mix(rest, highlight, pulse(phase))),
             )
             .into_any_element()
+    }
+}
+
+impl Styled for Skeleton {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for Skeleton {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        self.draw(window, cx)
     }
 }
 
@@ -904,22 +1016,22 @@ pub enum AvatarSize {
 }
 
 impl AvatarSize {
-    const fn diameter(self) -> f32 {
+    const fn diameter(self, t: &tokens::Theme) -> f32 {
         match self {
-            Self::Sm => tokens::POINTER.avatar_sm,
-            Self::Md => tokens::POINTER.avatar_md,
-            Self::Lg => tokens::POINTER.avatar_lg,
-            Self::Xl => tokens::POINTER.avatar_xl,
+            Self::Sm => t.pointer.avatar_sm,
+            Self::Md => t.pointer.avatar_md,
+            Self::Lg => t.pointer.avatar_lg,
+            Self::Xl => t.pointer.avatar_xl,
         }
     }
 
     /// The type role of the initials.
-    const fn typography(self) -> tokens::Typography {
+    const fn typography(self, t: &tokens::Theme) -> tokens::Typography {
         match self {
-            Self::Sm => tokens::TYPOGRAPHY_FOOTNOTE,
-            Self::Md => tokens::TYPOGRAPHY_LABEL,
-            Self::Lg => tokens::TYPOGRAPHY_BODY_STRONG,
-            Self::Xl => tokens::TYPOGRAPHY_TITLE,
+            Self::Sm => t.typography.footnote,
+            Self::Md => t.typography.label,
+            Self::Lg => t.typography.body_strong,
+            Self::Xl => t.typography.title,
         }
     }
 
@@ -943,23 +1055,23 @@ pub fn initials(name: &str, count: usize) -> String {
 
 /// The circle an avatar and the count at the end of a stack share. In a stack each has a ring
 /// in the color of the surface, which reads as a gap between it and the one it overlaps.
-fn avatar_circle(size: AvatarSize, ring: bool, c: &tokens::Colors) -> Div {
+fn avatar_circle(size: AvatarSize, ring: bool, t: &tokens::Theme, c: &tokens::Colors) -> Div {
     div()
         .relative()
         .flex()
         .flex_none()
         .items_center()
         .justify_center()
-        .size(px(size.diameter()))
+        .size(px(size.diameter(t)))
         .rounded_full()
-        .typography(size.typography())
+        .typography(size.typography(t))
         .when(ring, |circle| {
             // A shadow that only spreads: a ring outside the circle that takes no room.
             circle.shadow(vec![BoxShadow {
                 color: color(c.avatar_ring),
                 offset: point(px(0.0), px(0.0)),
                 blur_radius: px(0.0),
-                spread_radius: px(tokens::BORDER_WIDTH_THICK),
+                spread_radius: px(t.border.width_thick),
                 inset: false,
             }])
         })
@@ -969,8 +1081,9 @@ fn avatar_circle(size: AvatarSize, ring: bool, c: &tokens::Colors) -> Div {
 /// small size has room for one letter.
 #[derive(IntoElement)]
 pub struct Avatar {
+    style: StyleRefinement,
     name: SharedString,
-    size: AvatarSize,
+    size: Option<AvatarSize>,
     src: Option<ImageSource>,
     ring: bool,
 }
@@ -978,15 +1091,17 @@ pub struct Avatar {
 impl Avatar {
     pub fn new(name: impl Into<SharedString>) -> Self {
         Self {
+            style: StyleRefinement::default(),
             name: name.into(),
-            size: AvatarSize::default(),
+            size: None,
             src: None,
             ring: false,
         }
     }
 
-    pub const fn size(mut self, size: AvatarSize) -> Self {
-        self.size = size;
+    /// Named apart from `Styled::size`, which sets a width and a height.
+    pub const fn avatar_size(mut self, size: AvatarSize) -> Self {
+        self.size = Some(size);
         self
     }
 
@@ -1002,13 +1117,18 @@ impl Avatar {
     }
 }
 
-impl RenderOnce for Avatar {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl Avatar {
+    fn draw(self, _window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
-        avatar_circle(self.size, self.ring, c)
+        let size = self
+            .size
+            .or_else(|| defaults(cx).avatar.size)
+            .unwrap_or_default();
+        avatar_circle(size, self.ring, t, c)
             .bg(color(c.avatar_background))
             .text_color(color(c.avatar_text))
-            .child(initials(&self.name, self.size.letters()))
+            .child(initials(&self.name, size.letters()))
             // Over the initials, and drawn only once it has loaded, so the initials are what
             // shows until then and when it fails.
             .children(self.src.map(|src| {
@@ -1019,6 +1139,21 @@ impl RenderOnce for Avatar {
                     .rounded_full()
                     .object_fit(ObjectFit::Cover)
             }))
+    }
+}
+
+impl Styled for Avatar {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for Avatar {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }
 
@@ -1065,10 +1200,11 @@ impl From<SharedString> for Person {
 /// fit.
 #[derive(IntoElement)]
 pub struct AvatarStack {
+    style: StyleRefinement,
     id: ElementId,
     people: Vec<Person>,
     max: usize,
-    size: AvatarSize,
+    size: Option<AvatarSize>,
     label: Option<SharedString>,
 }
 
@@ -1080,10 +1216,11 @@ impl AvatarStack {
         people: impl IntoIterator<Item = impl Into<Person>>,
     ) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             people: people.into_iter().map(Into::into).collect(),
             max: 4,
-            size: AvatarSize::default(),
+            size: None,
             label: None,
         }
     }
@@ -1094,8 +1231,9 @@ impl AvatarStack {
         self
     }
 
-    pub const fn size(mut self, size: AvatarSize) -> Self {
-        self.size = size;
+    /// Named apart from `Styled::size`, which sets a width and a height.
+    pub const fn avatar_size(mut self, size: AvatarSize) -> Self {
+        self.size = Some(size);
         self
     }
 
@@ -1111,8 +1249,9 @@ const fn overflow(people: usize, max: usize) -> usize {
     people.saturating_sub(max)
 }
 
-impl RenderOnce for AvatarStack {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl AvatarStack {
+    fn draw(self, _window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
         let label = self.label.unwrap_or_else(|| {
             let names: Vec<&str> = self
@@ -1124,23 +1263,28 @@ impl RenderOnce for AvatarStack {
         });
         let hidden = overflow(self.people.len(), self.max);
         // Each one covers a quarter of the one before it.
-        let overlap = px(-self.size.diameter() / 4.0);
-        let size = self.size;
+        let size = self
+            .size
+            .or_else(|| defaults(cx).avatar_stack.size)
+            .unwrap_or_default();
+        let overlap = px(-size.diameter(t) / 4.0);
         let avatars = self
             .people
             .into_iter()
             .take(self.max)
             .map(|person| {
+                // A part of the stack, so the app's defaults for an avatar do not reach it.
                 Avatar {
+                    style: StyleRefinement::default(),
                     name: person.name,
-                    size,
+                    size: Some(size),
                     src: person.src,
                     ring: true,
                 }
                 .into_any_element()
             })
             .chain((hidden > 0).then(|| {
-                avatar_circle(size, true, c)
+                avatar_circle(size, true, t, c)
                     .bg(color(c.avatar_overflow_background))
                     .text_color(color(c.avatar_overflow_text))
                     .child(format!("+{hidden}"))
@@ -1166,6 +1310,21 @@ impl RenderOnce for AvatarStack {
     }
 }
 
+impl Styled for AvatarStack {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for AvatarStack {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
+    }
+}
+
 // ---------------------------------------------------------------- spinner
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -1176,16 +1335,73 @@ pub enum SpinnerSize {
     Lg,
 }
 
-/// Work of unknown length is going on. It takes the color of the text around it; set another
-/// with `.color`. The result is a GPUI Component spinner, which stands still when the system
-/// asks for reduced motion, and whose drawing comes from the assets the app registers
-/// (`gpui_kit::assets::Assets`).
-pub fn spinner(size: SpinnerSize) -> Spinner {
-    Spinner::new().with_size(px(match size {
-        SpinnerSize::Sm => tokens::POINTER.spinner_sm,
-        SpinnerSize::Md => tokens::POINTER.spinner_md,
-        SpinnerSize::Lg => tokens::POINTER.spinner_lg,
-    }))
+/// Work of unknown length is going on, drawn by GPUI Component's spinner, which stands still
+/// when the system asks for reduced motion, and whose drawing comes from the assets the app
+/// registers (`gpui_kit::assets::Assets`). It takes the color of the text around it; set another
+/// with `.color`. Its size is `.spinner_size`, or else the registered
+/// [`Defaults`](crate::Defaults), or else the middle one.
+pub fn spinner() -> Spinner {
+    Spinner {
+        style: StyleRefinement::default(),
+        size: None,
+        color: None,
+    }
+}
+
+/// What [`spinner`] returns.
+#[derive(IntoElement)]
+pub struct Spinner {
+    style: StyleRefinement,
+    size: Option<SpinnerSize>,
+    color: Option<Hsla>,
+}
+
+impl Spinner {
+    /// Named apart from `Styled::size`, which sets a width and a height.
+    pub const fn spinner_size(mut self, size: SpinnerSize) -> Self {
+        self.size = Some(size);
+        self
+    }
+
+    pub fn color(mut self, color: impl Into<Hsla>) -> Self {
+        self.color = Some(color.into());
+        self
+    }
+}
+
+impl Spinner {
+    fn draw(self, _window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
+        let size = self
+            .size
+            .or_else(|| defaults(cx).spinner.size)
+            .unwrap_or_default();
+        // GPUI Component's spinner takes no style, so the app's goes on a box around it.
+        div().flex_none().child(
+            KitSpinner::new()
+                .with_size(px(match size {
+                    SpinnerSize::Sm => t.pointer.spinner_sm,
+                    SpinnerSize::Md => t.pointer.spinner_md,
+                    SpinnerSize::Lg => t.pointer.spinner_lg,
+                }))
+                .when_some(self.color, |spinner, color| spinner.color(color)),
+        )
+    }
+}
+
+impl Styled for Spinner {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for Spinner {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
+    }
 }
 
 // ---------------------------------------------------------------- progress bar
@@ -1193,22 +1409,27 @@ pub fn spinner(size: SpinnerSize) -> Spinner {
 /// How far along something is, from 0 to 1. For work of unknown length use a spinner.
 #[derive(IntoElement)]
 pub struct ProgressBar {
+    style: StyleRefinement,
     value: f32,
 }
 
 impl ProgressBar {
-    pub const fn new(value: f32) -> Self {
-        Self { value }
+    pub fn new(value: f32) -> Self {
+        Self {
+            style: StyleRefinement::default(),
+            value,
+        }
     }
 }
 
-impl RenderOnce for ProgressBar {
-    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl ProgressBar {
+    fn draw(self, _window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
         div()
             .flex_none()
             .w_full()
-            .h(px(tokens::POINTER.progress))
+            .h(px(t.pointer.progress))
             .rounded_full()
             .overflow_hidden()
             .bg(color(c.progress_track))
@@ -1219,6 +1440,21 @@ impl RenderOnce for ProgressBar {
                     .rounded_full()
                     .bg(color(c.progress_fill)),
             )
+    }
+}
+
+impl Styled for ProgressBar {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for ProgressBar {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }
 
@@ -1275,6 +1511,7 @@ struct SliderWatch {
 /// are handled here.
 #[derive(IntoElement)]
 pub struct Slider {
+    style: StyleRefinement,
     id: ElementId,
     label: SharedString,
     value: f32,
@@ -1291,6 +1528,7 @@ impl Slider {
     /// is 0 to 100 in steps of 1 unless set.
     pub fn new(id: impl Into<ElementId>, label: impl Into<SharedString>, value: f32) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             label: label.into(),
             value,
@@ -1339,8 +1577,9 @@ impl Slider {
     }
 }
 
-impl RenderOnce for Slider {
-    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl Slider {
+    fn draw(self, window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
         let disabled = self.disabled;
         let (min, step) = (self.min, self.step);
@@ -1391,8 +1630,8 @@ impl RenderOnce for Slider {
         } else {
             0.0
         };
-        let thumb = px(tokens::POINTER.slider_thumb);
-        let track = px(tokens::POINTER.slider_track);
+        let thumb = px(t.pointer.slider_thumb);
+        let track = px(t.pointer.slider_track);
         // The thumb's center travels from end to end of the track, so the track reaches half
         // a thumb past the range on each side, and the thumb stays inside the slider.
         let half = thumb / 2.0;
@@ -1443,7 +1682,7 @@ impl RenderOnce for Slider {
                     .ml(-half)
                     .size(thumb)
                     .rounded_full()
-                    .border(px(tokens::BORDER_WIDTH_THICK))
+                    .border(px(t.border.width_thick))
                     .border_color(color(thumb_border))
                     .bg(color(c.slider_thumb))
                     .when(ring, |thumb| thumb.focus_ring_style(window, cx)),
@@ -1463,7 +1702,7 @@ impl RenderOnce for Slider {
                     .flex()
                     .items_center()
                     .w_full()
-                    .h(px(tokens::POINTER.target_min))
+                    .h(px(t.pointer.target_min))
                     .px(half)
                     .child(indicator),
             );
@@ -1471,7 +1710,7 @@ impl RenderOnce for Slider {
         let shown = self.show_value.then(|| {
             div()
                 .flex_none()
-                .typography(tokens::TYPOGRAPHY_DETAIL)
+                .typography(t.typography.detail)
                 .text_color(color(c.text_secondary))
                 // Figures of one width, so the label row does not shift as the value changes.
                 .font_features(FontFeatures(Arc::new(vec![("tnum".into(), 1)])))
@@ -1481,15 +1720,15 @@ impl RenderOnce for Slider {
         div()
             .flex()
             .flex_col()
-            .gap(px(tokens::SPACE_1))
+            .gap(px(t.space.s1))
             .w_full()
             .child(
                 div()
                     .flex()
                     .items_center()
                     .justify_between()
-                    .gap(px(tokens::SPACE_3))
-                    .child(field_label(self.label, disabled, c))
+                    .gap(px(t.space.s3))
+                    .child(field_label(self.label, disabled, t, c))
                     .children(shown),
             )
             .child(slider)
@@ -1521,6 +1760,21 @@ impl RenderOnce for Slider {
                         }
                     })
             })
+    }
+}
+
+impl Styled for Slider {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for Slider {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }
 
@@ -1633,6 +1887,7 @@ impl Styled for ListRow {
 
 impl RenderOnce for ListRow {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let t = theme(cx);
         let c = palette(cx);
         let title_color = if self.disabled {
             c.text_secondary
@@ -1642,28 +1897,23 @@ impl RenderOnce for ListRow {
         let on_click = self.on_click.filter(|_| !self.disabled);
         let (min_height, padding, title_style, description_style) = if self.compact {
             let title = if self.selected {
-                tokens::TYPOGRAPHY_LABEL
+                t.typography.label
             } else {
-                tokens::TYPOGRAPHY_DETAIL
+                t.typography.detail
             };
             (
-                tokens::POINTER.list_row_compact,
-                tokens::SPACE_1,
+                t.pointer.list_row_compact,
+                t.space.s1,
                 title,
-                tokens::TYPOGRAPHY_FOOTNOTE,
+                t.typography.footnote,
             )
         } else {
             let title = if self.selected {
-                tokens::TYPOGRAPHY_BODY_STRONG
+                t.typography.body_strong
             } else {
-                tokens::TYPOGRAPHY_BODY
+                t.typography.body
             };
-            (
-                tokens::POINTER.list_row,
-                tokens::SPACE_2,
-                title,
-                tokens::TYPOGRAPHY_DETAIL,
-            )
+            (t.pointer.list_row, t.space.s2, title, t.typography.detail)
         };
         // Secondary text does not read on the pressed step of the selected fill, so a
         // selected row keeps its hover color while pressed.
@@ -1690,10 +1940,10 @@ impl RenderOnce for ListRow {
             })
             .flex()
             .items_center()
-            .gap(px(tokens::SPACE_3))
+            .gap(px(t.space.s3))
             .w_full()
             .min_h(px(min_height))
-            .px(px(tokens::SPACE_4))
+            .px(px(t.space.s4))
             .py(px(padding));
         if self.title_hidden {
             row = row.justify_center().px(px(0.0)).children(self.leading);
@@ -1706,7 +1956,7 @@ impl RenderOnce for ListRow {
                         .min_w_0()
                         .flex()
                         .flex_col()
-                        .gap(px(tokens::SPACE_0_5))
+                        .gap(px(t.space.s0_5))
                         .child(
                             div()
                                 .typography(title_style)
@@ -1723,7 +1973,8 @@ impl RenderOnce for ListRow {
                 .children(self.trailing)
                 .when(self.chevron, |row| {
                     row.child(
-                        icon(tokens::Icon::ChevronRight, IconSize::Sm)
+                        icon(tokens::Icon::ChevronRight)
+                            .icon_size(IconSize::Sm)
                             .text_color(color(c.text_tertiary)),
                     )
                 });
@@ -1806,6 +2057,7 @@ fn toggle_expanded(
 /// a bordered card that opens on a spring.
 #[derive(IntoElement)]
 pub struct Accordion {
+    style: StyleRefinement,
     id: ElementId,
     items: Vec<AccordionItem>,
     expanded: Vec<SharedString>,
@@ -1816,6 +2068,7 @@ pub struct Accordion {
 impl Accordion {
     pub fn new(id: impl Into<ElementId>, items: impl IntoIterator<Item = AccordionItem>) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             items: items.into_iter().collect(),
             expanded: Vec::new(),
@@ -1847,11 +2100,12 @@ impl Accordion {
     }
 }
 
-impl RenderOnce for Accordion {
-    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl Accordion {
+    fn draw(self, window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
-        let hairline = px(tokens::BORDER_WIDTH_THIN);
-        let [x1, y1, x2, y2] = tokens::MOTION_EASING_STANDARD;
+        let hairline = px(t.border.width_thin);
+        let [x1, y1, x2, y2] = t.motion.easing_standard;
         let expanded = Rc::new(self.expanded);
         let items = self
             .items
@@ -1866,8 +2120,7 @@ impl RenderOnce for Accordion {
                 let progress = transition(
                     key("motion"),
                     if open { 1.0_f32 } else { 0.0 },
-                    Transition::new(tokens::MOTION_DURATION_NORMAL)
-                        .ease(cubic_bezier(x1, y1, x2, y2)),
+                    Transition::new(t.motion.duration_normal).ease(cubic_bezier(x1, y1, x2, y2)),
                     window,
                     cx,
                 )
@@ -1888,11 +2141,11 @@ impl RenderOnce for Accordion {
                     .aria_label(item.title.clone())
                     .flex()
                     .items_center()
-                    .gap(px(tokens::SPACE_3))
+                    .gap(px(t.space.s3))
                     .w_full()
-                    .min_h(px(tokens::POINTER.list_row))
-                    .px(px(tokens::SPACE_4))
-                    .py(px(tokens::SPACE_2))
+                    .min_h(px(t.pointer.list_row))
+                    .px(px(t.space.s4))
+                    .py(px(t.space.s2))
                     .hover(|row| row.bg(color(c.accordion_header_background_hover)))
                     .active(|row| row.bg(color(c.accordion_header_background_pressed)))
                     // A click does not move the focus here, as on a button, so the ring shows
@@ -1908,20 +2161,21 @@ impl RenderOnce for Accordion {
                             .flex_col()
                             .child(
                                 div()
-                                    .typography(tokens::TYPOGRAPHY_BODY_STRONG)
+                                    .typography(t.typography.body_strong)
                                     .text_color(color(c.text_primary))
                                     .child(item.title),
                             )
                             .children(item.description.map(|description| {
                                 div()
-                                    .typography(tokens::TYPOGRAPHY_DETAIL)
+                                    .typography(t.typography.detail)
                                     .text_color(color(c.text_secondary))
                                     .child(description)
                             })),
                     )
                     .child(
                         // Half a turn as the body opens: the chevron points up when open.
-                        icon(tokens::Icon::ChevronDown, IconSize::Sm)
+                        icon(tokens::Icon::ChevronDown)
+                            .icon_size(IconSize::Sm)
                             .text_color(color(c.accordion_icon))
                             .rotate(percentage(progress / 2.0)),
                     );
@@ -1936,9 +2190,9 @@ impl RenderOnce for Accordion {
                             key("reveal"),
                             progress,
                             div()
-                                .px(px(tokens::SPACE_4))
-                                .pb(px(tokens::SPACE_4))
-                                .typography(tokens::TYPOGRAPHY_BODY)
+                                .px(px(t.space.s4))
+                                .pb(px(t.space.s4))
+                                .typography(t.typography.body)
                                 .text_color(color(c.text_secondary))
                                 .child(item.content)
                                 .into_any_element(),
@@ -1965,6 +2219,21 @@ impl RenderOnce for Accordion {
     }
 }
 
+impl Styled for Accordion {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for Accordion {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
+    }
+}
+
 // ---------------------------------------------------------------- icon
 
 /// `Xs` fits inside a badge, `Sm` and `Md` sit beside text, `Lg` stands alone, and `Xl`
@@ -1980,35 +2249,94 @@ pub enum IconSize {
 }
 
 impl IconSize {
-    pub(crate) const fn side(self) -> f32 {
+    pub(crate) const fn side(self, t: &tokens::Theme) -> f32 {
         match self {
-            Self::Xs => tokens::POINTER.icon_xs,
-            Self::Sm => tokens::POINTER.icon_sm,
-            Self::Md => tokens::POINTER.icon_md,
-            Self::Lg => tokens::POINTER.icon_lg,
-            Self::Xl => tokens::POINTER.icon_xl,
+            Self::Xs => t.pointer.icon_xs,
+            Self::Sm => t.pointer.icon_sm,
+            Self::Md => t.pointer.icon_md,
+            Self::Lg => t.pointer.icon_lg,
+            Self::Xl => t.pointer.icon_xl,
         }
     }
 }
 
 /// An icon of the design system. It takes the color of the text around it; set another with
-/// `.text_color`.
-pub fn icon(icon: tokens::Icon, size: IconSize) -> Icon {
-    // The drawing is generated from design/icons, so no asset has to be registered for it.
-    Icon::default()
-        .data(icon.svg().as_bytes())
-        .size(px(size.side()))
-        .flex_none()
+/// `.text_color`. Its size is `.icon_size`, or else the registered
+/// [`Defaults`](crate::Defaults), or else the middle one.
+pub fn icon(name: tokens::Icon) -> IconElement {
+    IconElement {
+        name,
+        filled: false,
+        size: None,
+        rotation: None,
+        style: StyleRefinement::default(),
+    }
 }
 
 /// The icon with its shapes filled, so that a selected state shows in the form and not in the
 /// color alone: a heart that was pressed, a bookmark that is saved. Only for icons made of
 /// closed shapes.
-pub fn icon_filled(icon: tokens::Icon, size: IconSize) -> Icon {
-    Icon::default()
-        .data(icon.filled_svg().as_bytes())
-        .size(px(size.side()))
-        .flex_none()
+pub fn icon_filled(name: tokens::Icon) -> IconElement {
+    IconElement {
+        filled: true,
+        ..icon(name)
+    }
+}
+
+/// What [`icon`] and [`icon_filled`] return. Named apart from the icon names, `tokens::Icon`.
+#[derive(IntoElement)]
+pub struct IconElement {
+    name: tokens::Icon,
+    filled: bool,
+    size: Option<IconSize>,
+    rotation: Option<Radians>,
+    style: StyleRefinement,
+}
+
+impl IconElement {
+    /// Named apart from `Styled::size`, which sets a width and a height.
+    pub const fn icon_size(mut self, size: IconSize) -> Self {
+        self.size = Some(size);
+        self
+    }
+
+    /// Turns the drawing about its center, as a chevron does when what it opens opens.
+    pub fn rotate(mut self, radians: impl Into<Radians>) -> Self {
+        self.rotation = Some(radians.into());
+        self
+    }
+}
+
+impl Styled for IconElement {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for IconElement {
+    fn render(mut self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let size = self
+            .size
+            .or_else(|| defaults(cx).icon.size)
+            .unwrap_or_default();
+        // The drawing is generated from design/icons, so no asset has to be registered for it.
+        let drawing = if self.filled {
+            self.name.filled_svg()
+        } else {
+            self.name.svg()
+        };
+        // GPUI Component's icon keeps its color apart from its style, and paints over the
+        // style's with it.
+        let ink = self.style.text.color.take();
+        let mut icon = KitIcon::default()
+            .data(drawing.as_bytes())
+            .size(px(size.side(theme(cx))))
+            .flex_none()
+            .when_some(self.rotation, |icon, radians| icon.rotate(radians))
+            .when_some(ink, |icon, ink| icon.text_color(ink));
+        icon.style().refine(&self.style);
+        icon
+    }
 }
 
 #[cfg(test)]

@@ -1,8 +1,10 @@
-//! Acme design tokens as Rust constants.
+//! Acme design tokens as a Rust value.
 //!
 //! The values live in `design/tokens/*.json`. `mise run //:tokens` regenerates
-//! [`generated`](self) from them, and CI fails if the committed file is out of date. This crate
-//! has no dependencies, so any UI layer can convert the plain types below into its own.
+//! [`generated`](self) from them, and CI fails if the committed file is out of date. A [`Theme`]
+//! holds every token, and [`DEFAULT_THEME`] is the one the token files describe; a UI layer
+//! reads the theme it is given rather than one of them in particular. This crate has no
+//! dependencies, so any UI layer can convert the plain types below into its own.
 
 #![forbid(unsafe_code)]
 
@@ -34,11 +36,13 @@ pub enum Mode {
     Dark,
 }
 
-/// The color tokens for one [`Mode`].
-pub const fn colors(mode: Mode) -> &'static Colors {
-    match mode {
-        Mode::Light => &LIGHT,
-        Mode::Dark => &DARK,
+impl Theme {
+    /// The color tokens for one [`Mode`].
+    pub const fn colors(&self, mode: Mode) -> &Colors {
+        match mode {
+            Mode::Light => &self.light,
+            Mode::Dark => &self.dark,
+        }
     }
 }
 
@@ -74,10 +78,10 @@ impl Typography {
 
 // Checked when the crate compiles, so a token edit that breaks these cannot build.
 const _: () = {
-    assert!(TOUCH.control_md > POINTER.control_md);
+    assert!(DEFAULT_THEME.touch.control_md > DEFAULT_THEME.pointer.control_md);
     // WCAG 2.2 (2.5.8) for a pointer; the platform guidelines for a finger.
-    assert!(POINTER.target_min >= 24.0);
-    assert!(TOUCH.target_min >= 44.0);
+    assert!(DEFAULT_THEME.pointer.target_min >= 24.0);
+    assert!(DEFAULT_THEME.touch.target_min >= 44.0);
 };
 
 #[cfg(test)]
@@ -86,15 +90,16 @@ mod tests {
 
     #[test]
     fn line_height_is_whole_pixels() {
-        assert_eq!(TYPOGRAPHY_BODY.line_height_px(), 24.0);
-        assert_eq!(TYPOGRAPHY_DISPLAY.line_height_px(), 35.0);
+        let typography = DEFAULT_THEME.typography;
+        assert_eq!(typography.body.line_height_px(), 24.0);
+        assert_eq!(typography.display.line_height_px(), 35.0);
     }
 
     #[test]
     fn both_modes_are_generated() {
         assert_ne!(
-            colors(Mode::Light).background_base,
-            colors(Mode::Dark).background_base
+            DEFAULT_THEME.colors(Mode::Light).background_base,
+            DEFAULT_THEME.colors(Mode::Dark).background_base
         );
     }
 }

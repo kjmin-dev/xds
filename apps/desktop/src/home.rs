@@ -1,8 +1,8 @@
 //! The first window of the app. Replace it with your own.
 
-use acme_tokens as tokens;
 use acme_ui::{
-    Badge, BadgeTone, ButtonVariant, ControlSize, DesignPreview, button, card, color, palette, text,
+    Badge, BadgeTone, ButtonVariant, ControlSize, DesignPreview, TextTone, TextVariant, button,
+    card, color, palette, text, theme,
 };
 use gpui_kit::{
     App, AppContext as _, Bounds, Context, IntoElement, ParentElement as _, Render, Styled as _,
@@ -29,16 +29,17 @@ impl Home {
 
 impl Render for Home {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let t = theme(cx);
         let colors = palette(cx);
         div()
             .size_full()
             .flex()
             .flex_col()
-            .gap(px(tokens::SPACE_6))
-            .p(px(tokens::SPACE_6))
+            .gap(px(t.space.s6))
+            .p(px(t.space.s6))
             .bg(color(colors.background_base))
             .text_color(color(colors.text_primary))
-            .child(text("Acme", tokens::TYPOGRAPHY_DISPLAY))
+            .child(text("Acme").variant(TextVariant::Display))
             .child(
                 card(cx)
                     .child(
@@ -46,27 +47,23 @@ impl Render for Home {
                             .flex()
                             .items_center()
                             .justify_between()
-                            .child(text("Your app starts here", tokens::TYPOGRAPHY_HEADING))
+                            .child(text("Your app starts here").variant(TextVariant::Heading))
                             .child(Badge::new("GPUI").tone(BadgeTone::Accent)),
                     )
                     .child(
                         text(
                             "This window is apps/desktop/src/home.rs. Build it from the \
                              components in the acme-ui crate.",
-                            tokens::TYPOGRAPHY_BODY,
                         )
-                        .text_color(color(colors.text_secondary)),
+                        .variant(TextVariant::Body)
+                        .tone(TextTone::Secondary),
                     )
                     .child(
                         div().flex().child(
-                            button(
-                                "open-design-preview",
-                                "Open the design preview",
-                                ButtonVariant::Primary,
-                                ControlSize::Md,
-                                cx,
-                            )
-                            .on_click(|_, _, cx| DesignPreview::open(cx)),
+                            button("open-design-preview", "Open the design preview")
+                                .variant(ButtonVariant::Primary)
+                                .control_size(ControlSize::Md)
+                                .on_click(|_, _, cx| DesignPreview::open(cx)),
                         ),
                     ),
             )

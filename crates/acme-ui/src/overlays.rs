@@ -32,14 +32,14 @@ use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
     Anchor, Animation, AnimationExt as _, AnyElement, App, Bounds, BoxShadow, ClickEvent,
     DispatchPhase, Div, ElementId, Entity, FocusHandle, InteractiveElement as _, IntoElement,
-    KeyDownEvent, MouseButton, ParentElement, Pixels, RenderOnce, Role, ScrollHandle, SharedString,
-    Stateful, StatefulInteractiveElement as _, StyleRefinement, Styled as _, Task, WeakFocusHandle,
-    Window, anchored, canvas, deferred, div, point, px,
+    KeyDownEvent, MouseButton, ParentElement, Pixels, Refineable as _, RenderOnce, Role,
+    ScrollHandle, SharedString, Stateful, StatefulInteractiveElement as _, StyleRefinement, Styled,
+    Task, WeakFocusHandle, Window, anchored, canvas, deferred, div, point, px,
 };
 
 use crate::components::{ControlSize, field_frame, field_label, field_note, field_outline, shadow};
 use crate::controls::{ClickHandler, IconSize, Step, ValueHandler, focus_handle, icon, move_index};
-use crate::theme::{TypographyExt as _, color, palette};
+use crate::theme::{TypographyExt as _, color, palette, theme};
 
 /// Called when an overlay asks to be closed. Takes a reference, like the handlers of GPUI
 /// Component, so `cx.listener` fits.
@@ -51,9 +51,9 @@ const TOAST_PRIORITY: usize = 150;
 const TOOLTIP_PRIORITY: usize = 200;
 
 /// How an overlay comes in: over `motion.duration.normal`, slowing into place.
-fn entrance() -> Animation {
-    let [x1, y1, x2, y2] = tokens::MOTION_EASING_ENTER;
-    Animation::new(tokens::MOTION_DURATION_NORMAL).with_easing(cubic_bezier(x1, y1, x2, y2))
+fn entrance(t: &tokens::Theme) -> Animation {
+    let [x1, y1, x2, y2] = t.motion.easing_enter;
+    Animation::new(t.motion.duration_normal).with_easing(cubic_bezier(x1, y1, x2, y2))
 }
 
 /// A token shadow while its surface fades in. GPUI fades each thing it paints by itself, and
@@ -157,6 +157,7 @@ enum MenuEntry {
 /// window, moves the focus into it and gives the focus back.
 #[derive(IntoElement)]
 pub struct Menu {
+    style: StyleRefinement,
     id: ElementId,
     label: SharedString,
     trigger: Option<AnyElement>,
@@ -169,6 +170,7 @@ impl Menu {
     /// The label names the menu for assistive technology.
     pub fn new(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             label: label.into(),
             trigger: None,
@@ -253,6 +255,7 @@ fn menu_row(
     window: &mut Window,
     cx: &mut App,
 ) -> AnyElement {
+    let t = theme(cx);
     let c = palette(cx);
     let (text, mark, hover, pressed) = if item.disabled {
         (
@@ -278,7 +281,7 @@ fn menu_row(
     };
     let focused = !item.disabled && focus.is_focused(window);
     let on_select = item.on_select.clone();
-    let row_height = px(tokens::POINTER.list_row_compact);
+    let row_height = px(t.pointer.list_row_compact);
     let label = div().min_w_0().truncate().child(item.label.clone());
     div()
         .id(id)
@@ -291,20 +294,20 @@ fn menu_row(
         .flex()
         .flex_none()
         .items_center()
-        .gap(px(tokens::SPACE_2))
-        .px(px(tokens::SPACE_2))
-        .rounded(px(tokens::RADIUS_SM))
-        .typography(tokens::TYPOGRAPHY_DETAIL)
+        .gap(px(t.space.s2))
+        .px(px(t.space.s2))
+        .rounded(px(t.radius.sm))
+        .typography(t.typography.detail)
         .whitespace_nowrap()
         .text_color(color(text))
         .children(
             item.icon
-                .map(|name| icon(name, IconSize::Sm).text_color(color(mark))),
+                .map(|name| icon(name).icon_size(IconSize::Sm).text_color(color(mark))),
         )
         .map(|row| match &item.description {
             None => row.h(row_height).child(label.flex_1()),
             // Two lines: the row grows past the compact height to hold them.
-            Some(description) => row.min_h(row_height).py(px(tokens::SPACE_1)).child(
+            Some(description) => row.min_h(row_height).py(px(t.space.s1)).child(
                 div()
                     .flex_1()
                     .min_w_0()
@@ -315,7 +318,7 @@ fn menu_row(
                         div()
                             .min_w_0()
                             .truncate()
-                            .typography(tokens::TYPOGRAPHY_FOOTNOTE)
+                            .typography(t.typography.footnote)
                             .text_color(color(if item.disabled {
                                 c.menu_text_disabled
                             } else {
@@ -327,7 +330,7 @@ fn menu_row(
         })
         // A mark as well as a state for assistive technology, so the choice can be seen.
         .when(item.selected, |row| {
-            row.child(icon(tokens::Icon::Check, IconSize::Sm))
+            row.child(icon(tokens::Icon::Check).icon_size(IconSize::Sm))
         })
         .when(!item.disabled, |row| {
             row.track_focus(&focus.tab_index(0).tab_stop(true))
@@ -346,8 +349,9 @@ fn menu_row(
         .into_any_element()
 }
 
-impl RenderOnce for Menu {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
+impl Menu {
+    fn draw(self, _window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let id = self.id.clone();
         let label = self.label.clone();
         // The popover builds its content whenever it draws, so the entries are shared with it.
@@ -361,7 +365,7 @@ impl RenderOnce for Menu {
                 MenuAlign::Start => Anchor::TopLeft,
                 MenuAlign::End => Anchor::TopRight,
             })
-            .offset(px(tokens::SPACE_1))
+            .offset(px(t.space.s1))
             .default_open(self.default_open)
             .trigger(MenuTrigger {
                 label: self.label,
@@ -394,14 +398,29 @@ impl RenderOnce for Menu {
                         }
                         MenuEntry::Separator => div()
                             .flex_none()
-                            .my(px(tokens::SPACE_1))
-                            .h(px(tokens::BORDER_WIDTH_THIN))
+                            .my(px(t.space.s1))
+                            .h(px(t.border.width_thin))
                             .bg(color(c.menu_border))
                             .into_any_element(),
                     })
                     .collect::<Vec<_>>();
                 menu_surface(Role::Menu, label.clone(), rows, stops, None, cx)
             })
+    }
+}
+
+impl Styled for Menu {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for Menu {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }
 
@@ -416,6 +435,7 @@ fn menu_surface(
     scroll: Option<ScrollHandle>,
     cx: &App,
 ) -> Stateful<Div> {
+    let t = theme(cx);
     let c = palette(cx);
     let surface = div()
         .id("menu")
@@ -425,13 +445,13 @@ fn menu_surface(
         .flex_col()
         // Four times `space.12`: the least a menu is wide. Beyond that it is as wide as its
         // longest row.
-        .min_w(px(tokens::SPACE_12 * 4.0))
-        .p(px(tokens::SPACE_1))
-        .rounded(px(tokens::RADIUS_MD))
-        .border(px(tokens::BORDER_WIDTH_THIN))
+        .min_w(px(t.space.s12 * 4.0))
+        .p(px(t.space.s1))
+        .rounded(px(t.radius.md))
+        .border(px(t.border.width_thin))
         .border_color(color(c.menu_border))
         .bg(color(c.menu_background))
-        .shadow(shadow(tokens::SHADOW_RAISED))
+        .shadow(shadow(t.shadow.raised))
         .children(rows);
     let surface = match &scroll {
         Some(scroll) => surface.overflow_y_scroll().track_scroll(scroll),
@@ -499,6 +519,7 @@ const SELECT_ROWS: f32 = 8.0;
 /// into it, closes it and gives the focus back.
 #[derive(IntoElement)]
 pub struct Select {
+    style: StyleRefinement,
     id: ElementId,
     label: SharedString,
     options: Vec<SelectOption>,
@@ -519,6 +540,7 @@ impl Select {
         options: impl IntoIterator<Item = SelectOption>,
     ) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             label: label.into(),
             options: options.into_iter().collect(),
@@ -607,8 +629,9 @@ impl Selectable for SelectField {
 
 impl RenderOnce for SelectField {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let t = theme(cx);
         let c = palette(cx);
-        let radius = px(tokens::RADIUS_MD);
+        let radius = px(t.radius.md);
         let focus = focus_handle(&self.id, window, cx);
         let focused = !self.disabled && focus.is_focused(window);
         let (text, text_color) = match self.shown.clone() {
@@ -630,25 +653,26 @@ impl RenderOnce for SelectField {
                     .on_mouse_down(MouseButton::Left, |_, window, _| window.prevent_default())
             })
             .items_center()
-            .gap(px(tokens::SPACE_2))
-            .h(ControlSize::Md.height())
+            .gap(px(t.space.s2))
+            .h(ControlSize::Md.height(t))
             // As far from the edge as the text of a text field is.
-            .px(px(tokens::SPACE_3))
+            .px(px(t.space.s3))
             .child(
                 div()
                     .flex_1()
                     .min_w_0()
                     .truncate()
-                    .typography(tokens::TYPOGRAPHY_BODY)
+                    .typography(t.typography.body)
                     .text_color(color(text_color))
                     .child(text),
             )
             .child(
-                icon(tokens::Icon::ChevronsUpDown, IconSize::Sm)
+                icon(tokens::Icon::ChevronsUpDown)
+                    .icon_size(IconSize::Sm)
                     .text_color(color(c.field_placeholder)),
             );
         let (width, open) = (self.width, self.open);
-        field_outline(self.invalid, radius, c, frame)
+        field_outline(self.invalid, radius, t, c, frame)
             .w_full()
             .on_prepaint(move |bounds, window, _| {
                 // The list was built before the box was laid out. When the box has changed
@@ -667,8 +691,9 @@ struct ListScroll {
     placed: bool,
 }
 
-impl RenderOnce for Select {
-    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl Select {
+    fn draw(self, window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
         let chosen = self.value.as_ref().and_then(|value| {
             self.options
@@ -712,7 +737,7 @@ impl RenderOnce for Select {
                 // The surface is the menu's, drawn below.
                 .appearance(false)
                 .anchor(Anchor::TopLeft)
-                .offset(px(tokens::SPACE_1))
+                .offset(px(t.space.s1))
                 .default_open(self.default_open)
                 // The box fills the width of the field, and the list is anchored to it.
                 .trigger_style(StyleRefinement::default().w_full())
@@ -769,12 +794,10 @@ impl RenderOnce for Select {
                             )
                         })
                         .collect::<Vec<_>>();
-                    let inset = tokens::SPACE_1 + tokens::BORDER_WIDTH_THIN;
+                    let inset = t.space.s1 + t.border.width_thin;
                     let width = width.get();
                     menu_surface(Role::ListBox, label.clone(), list, stops, Some(scroll), cx)
-                        .max_h(px(
-                            tokens::POINTER.list_row_compact * SELECT_ROWS + inset * 2.0
-                        ))
+                        .max_h(px(t.pointer.list_row_compact * SELECT_ROWS + inset * 2.0))
                         // As wide as the field, once the field has been laid out.
                         .when(width > Pixels::ZERO, |list| list.min_w(width).w(width))
                 })
@@ -783,11 +806,26 @@ impl RenderOnce for Select {
         div()
             .flex()
             .flex_col()
-            .gap(px(tokens::SPACE_1))
+            .gap(px(t.space.s1))
             .w_full()
-            .child(field_label(self.label, self.disabled, c))
+            .child(field_label(self.label, self.disabled, t, c))
             .child(control)
-            .children(field_note(self.error, self.description, c))
+            .children(field_note(self.error, self.description, t, c))
+    }
+}
+
+impl Styled for Select {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for Select {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }
 
@@ -808,6 +846,7 @@ struct DialogFocus {
 /// press on the scrim, and draws over the rest of the window.
 #[derive(IntoElement)]
 pub struct Dialog {
+    style: StyleRefinement,
     id: ElementId,
     title: SharedString,
     description: Option<SharedString>,
@@ -821,6 +860,7 @@ pub struct Dialog {
 impl Dialog {
     pub fn new(id: impl Into<ElementId>, title: impl Into<SharedString>) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             title: title.into(),
             description: None,
@@ -868,8 +908,11 @@ impl ParentElement for Dialog {
     }
 }
 
-impl RenderOnce for Dialog {
-    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl Dialog {
+    /// What the component draws. The app's style goes on the surface before the entrance wraps
+    /// it, since an animated element takes no style.
+    fn draw(self, window: &mut Window, cx: &mut App) -> AnyElement {
+        let t = theme(cx);
         let c = palette(cx);
         let focus = window.use_keyed_state(self.id.clone(), cx, |_, cx| DialogFocus {
             handle: cx.focus_handle(),
@@ -895,27 +938,27 @@ impl RenderOnce for Dialog {
             return closed();
         }
 
-        let margin = px(tokens::SPACE_4);
+        let margin = px(t.space.s4);
         let scrolls = self.description.is_some() || !self.body.is_empty();
         let popup = DialogPopup::new()
             .flex()
             .flex_col()
-            .gap(px(tokens::SPACE_4))
+            .gap(px(t.space.s4))
             .w_full()
-            .max_w(px(tokens::POINTER.dialog))
+            .max_w(px(t.pointer.dialog))
             // The title and the actions stay; what is between them scrolls.
             .max_h(window.viewport_size().height - margin * 2.0)
-            .p(px(tokens::SPACE_6))
-            .rounded(px(tokens::RADIUS_LG))
-            .border(px(tokens::BORDER_WIDTH_THIN))
+            .p(px(t.space.s6))
+            .rounded(px(t.radius.lg))
+            .border(px(t.border.width_thin))
             .border_color(color(c.dialog_border))
             .bg(color(c.dialog_background))
             .text_color(color(c.dialog_text))
-            .typography(tokens::TYPOGRAPHY_BODY)
+            .typography(t.typography.body)
             .child(
                 DialogTitle::new()
                     .flex_none()
-                    .typography(tokens::TYPOGRAPHY_TITLE)
+                    .typography(t.typography.title)
                     .text_color(color(c.dialog_title))
                     .child(self.title.clone()),
             )
@@ -925,7 +968,7 @@ impl RenderOnce for Dialog {
                         .id("dialog-body")
                         .flex()
                         .flex_col()
-                        .gap(px(tokens::SPACE_4))
+                        .gap(px(t.space.s4))
                         .min_h_0()
                         .overflow_y_scroll()
                         .children(
@@ -941,21 +984,25 @@ impl RenderOnce for Dialog {
                         .flex()
                         .flex_none()
                         .justify_end()
-                        .gap(px(tokens::SPACE_2))
+                        .gap(px(t.space.s2))
                         .children(self.actions),
                 )
-            })
+            });
+        // An overlay takes the app's style on its surface.
+        let mut popup = popup;
+        popup.style().refine(&self.style);
+        let popup = popup
             // GPUI cannot scale what it has laid out, so of the fade and the slight scale the
             // dialog comes in with, the fade is what it does.
-            .with_animation("dialog-popup", entrance(), |popup, fade| {
+            .with_animation("dialog-popup", entrance(t), |popup, fade| {
                 popup
                     .opacity(fade)
-                    .shadow(fading_shadow(tokens::SHADOW_OVERLAY, fade))
+                    .shadow(fading_shadow(t.shadow.overlay, fade))
             });
         let scrim = DialogBackdrop::new()
             .size_full()
             .bg(color(c.scrim))
-            .with_animation("dialog-scrim", entrance(), |scrim, fade| {
+            .with_animation("dialog-scrim", entrance(t), |scrim, fade| {
                 scrim.opacity(fade)
             });
         let on_close = self.on_close;
@@ -979,6 +1026,18 @@ impl RenderOnce for Dialog {
     }
 }
 
+impl Styled for Dialog {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for Dialog {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        self.draw(window, cx)
+    }
+}
+
 // ---------------------------------------------------------------- toast
 
 /// The clock of a toast, kept from frame to frame.
@@ -996,23 +1055,25 @@ struct ToastTimer {
 /// It sits at the bottom of the window, over everything else, wherever it is put in the view.
 #[derive(IntoElement)]
 pub struct Toast {
+    style: StyleRefinement,
     id: ElementId,
     message: SharedString,
     open: bool,
     on_close: Option<CloseHandler>,
     action: Option<(SharedString, ClickHandler)>,
-    duration: Duration,
+    duration: Option<Duration>,
 }
 
 impl Toast {
     pub fn new(id: impl Into<ElementId>, message: impl Into<SharedString>) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             message: message.into(),
             open: false,
             on_close: None,
             action: None,
-            duration: tokens::MOTION_DURATION_TOAST,
+            duration: None,
         }
     }
 
@@ -1040,17 +1101,20 @@ impl Toast {
     /// How long the toast stays. `motion.duration.toast` unless set; zero keeps it until it
     /// is closed.
     pub const fn duration(mut self, duration: Duration) -> Self {
-        self.duration = duration;
+        self.duration = Some(duration);
         self
     }
 }
 
-impl RenderOnce for Toast {
-    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl Toast {
+    /// What the component draws. The app's style goes on the surface before the entrance wraps
+    /// it, since an animated element takes no style.
+    fn draw(self, window: &mut Window, cx: &mut App) -> AnyElement {
+        let t = theme(cx);
         let c = palette(cx);
         let timer =
             window.use_keyed_state((self.id.clone(), "timer"), cx, |_, _| ToastTimer::default());
-        let (open, duration) = (self.open, self.duration);
+        let (open, duration) = (self.open, self.duration.unwrap_or(t.motion.duration_toast));
         timer.update(cx, |timer, cx| {
             // The handler is new every frame; the clock calls the latest.
             timer.on_close.clone_from(&self.on_close);
@@ -1080,7 +1144,7 @@ impl RenderOnce for Toast {
             let focus = focus_handle(&id, window, cx);
             let focused = focus.is_focused(window);
             let on_close = self.on_close.clone();
-            let target = px(tokens::POINTER.target_min);
+            let target = px(t.pointer.target_min);
             div()
                 .id(id)
                 .role(Role::Button)
@@ -1092,8 +1156,8 @@ impl RenderOnce for Toast {
                 .justify_center()
                 .min_w(target)
                 .min_h(target)
-                .rounded(px(tokens::RADIUS_SM))
-                .typography(tokens::TYPOGRAPHY_LABEL)
+                .rounded(px(t.radius.sm))
+                .typography(t.typography.label)
                 .whitespace_nowrap()
                 .text_color(color(c.toast_action))
                 .on_mouse_down(MouseButton::Left, |_, window, _| window.prevent_default())
@@ -1115,28 +1179,31 @@ impl RenderOnce for Toast {
             .occlude()
             .flex()
             .items_center()
-            .gap(px(tokens::SPACE_4))
-            .max_w(px(tokens::POINTER.toast))
-            .py(px(tokens::SPACE_3))
-            .px(px(tokens::SPACE_4))
-            .rounded(px(tokens::RADIUS_MD))
+            .gap(px(t.space.s4))
+            .max_w(px(t.pointer.toast))
+            .py(px(t.space.s3))
+            .px(px(t.space.s4))
+            .rounded(px(t.radius.md))
             .bg(color(c.toast_background))
             .child(
                 div()
                     .flex_1()
                     .min_w_0()
-                    .typography(tokens::TYPOGRAPHY_DETAIL)
+                    .typography(t.typography.detail)
                     .text_color(color(c.toast_text))
                     .child(self.message),
             )
-            .children(action)
-            .with_animation("toast", entrance(), |surface, fade| {
-                surface
-                    // Up into place by `space.2`.
-                    .top(px(tokens::SPACE_2 * (1.0 - fade)))
-                    .opacity(fade)
-                    .shadow(fading_shadow(tokens::SHADOW_RAISED, fade))
-            });
+            .children(action);
+        // An overlay takes the app's style on its surface.
+        let mut surface = surface;
+        surface.style().refine(&self.style);
+        let surface = surface.with_animation("toast", entrance(t), |surface, fade| {
+            surface
+                // Up into place by `space.2`.
+                .top(px(t.space.s2 * (1.0 - fade)))
+                .opacity(fade)
+                .shadow(fading_shadow(t.shadow.raised, fade))
+        });
         let viewport = window.viewport_size();
         deferred(
             anchored().position(point(px(0.0), px(0.0))).child(
@@ -1151,12 +1218,24 @@ impl RenderOnce for Toast {
                     .flex()
                     .items_end()
                     .justify_center()
-                    .p(px(tokens::SPACE_4))
+                    .p(px(t.space.s4))
                     .child(surface),
             ),
         )
         .with_priority(TOAST_PRIORITY)
         .into_any_element()
+    }
+}
+
+impl Styled for Toast {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for Toast {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        self.draw(window, cx)
     }
 }
 
@@ -1194,6 +1273,7 @@ pub fn tooltip(
     child: impl IntoElement,
 ) -> Tooltip {
     Tooltip {
+        style: StyleRefinement::default(),
         id: id.into(),
         label: label.into(),
         shortcut: None,
@@ -1207,6 +1287,7 @@ pub fn tooltip(
 /// positioner places the tooltip and keeps it inside the window.
 #[derive(IntoElement)]
 pub struct Tooltip {
+    style: StyleRefinement,
     id: ElementId,
     label: SharedString,
     shortcut: Option<SharedString>,
@@ -1234,8 +1315,9 @@ impl Tooltip {
     }
 }
 
-impl RenderOnce for Tooltip {
-    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl Tooltip {
+    fn draw(self, window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+        let t = theme(cx);
         let c = palette(cx);
         let state = window.use_keyed_state(self.id.clone(), cx, |_, _| TooltipState::default());
         // Not a stop of its own: it is here to tell whether the focus is on the control inside.
@@ -1268,7 +1350,7 @@ impl RenderOnce for Tooltip {
                         state.delay = hovered.then(|| {
                             cx.spawn_in(window, async move |state, cx| {
                                 cx.background_executor()
-                                    .timer(tokens::MOTION_DURATION_TOOLTIP_DELAY)
+                                    .timer(t.motion.duration_tooltip_delay)
                                     .await;
                                 let _ = state.update_in(cx, |state, _, cx| {
                                     state.rested = true;
@@ -1306,29 +1388,29 @@ impl RenderOnce for Tooltip {
             return wrapper;
         }
 
-        let hairline = px(tokens::BORDER_WIDTH_THIN);
+        let hairline = px(t.border.width_thin);
         let popup = TooltipPopup::new("tooltip")
             .flex()
             .items_center()
-            .gap(px(tokens::SPACE_2))
-            .py(px(tokens::SPACE_1))
-            .px(px(tokens::SPACE_2))
-            .rounded(px(tokens::RADIUS_SM))
+            .gap(px(t.space.s2))
+            .py(px(t.space.s1))
+            .px(px(t.space.s2))
+            .rounded(px(t.radius.sm))
             .bg(color(c.tooltip_background))
             .text_color(color(c.tooltip_text))
-            .typography(tokens::TYPOGRAPHY_FOOTNOTE)
+            .typography(t.typography.footnote)
             .whitespace_nowrap()
             .child(self.label)
             .children(self.shortcut.map(|shortcut| {
                 // A box of its own, outlined in the color of the text.
                 div()
-                    .px(px(tokens::SPACE_1))
-                    .rounded(px(tokens::RADIUS_SM))
+                    .px(px(t.space.s1))
+                    .rounded(px(t.radius.sm))
                     .border(hairline)
                     .border_color(color(c.tooltip_text))
                     .child(shortcut)
             }));
-        let gap = px(tokens::SPACE_1);
+        let gap = px(t.space.s1);
         let placed = Positioner::side(bounds.get())
             .placement(match self.placement {
                 TooltipPlacement::Top => Placement::Top,
@@ -1356,5 +1438,20 @@ impl RenderOnce for Tooltip {
         wrapper
             .child(escape)
             .child(deferred(placed).with_priority(TOOLTIP_PRIORITY))
+    }
+}
+
+impl Styled for Tooltip {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for Tooltip {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }

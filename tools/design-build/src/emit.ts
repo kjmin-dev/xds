@@ -665,39 +665,114 @@ function rustColor(color: Rgba): string {
   return `Color::rgba(${color.r}, ${color.g}, ${color.b}, ${float(color.a)})`;
 }
 
-function rustConst(token: ValueToken): string {
-  const name = token.path.join("_").replaceAll("-", "_").toUpperCase();
+/** A shared value as a Rust type and a constant expression of it. */
+function rustValue(token: ValueToken): [type: string, value: string] {
   const { value } = token;
   switch (value.kind) {
     case "dimension":
-      return `pub const ${name}: f32 = ${float(value.px)};`;
+      return ["f32", float(value.px)];
     case "duration":
-      return `pub const ${name}: Duration = Duration::from_millis(${value.ms});`;
+      return ["Duration", `Duration::from_millis(${value.ms})`];
     case "number":
-      return `pub const ${name}: f32 = ${float(value.value)};`;
+      return ["f32", float(value.value)];
     case "fontWeight":
-      return `pub const ${name}: f32 = ${float(value.value)};`;
+      return ["f32", float(value.value)];
     case "fontFamily":
-      return `pub const ${name}: &[&str] = &[${value.families.map((family) => JSON.stringify(family)).join(", ")}];`;
+      return [
+        "&'static [&'static str]",
+        `&[${value.families.map((family) => JSON.stringify(family)).join(", ")}]`,
+      ];
     case "cubicBezier":
-      return `pub const ${name}: CubicBezier = [${value.points.map(float).join(", ")}];`;
+      return ["CubicBezier", `[${value.points.map(float).join(", ")}]`];
     case "shadow": {
       const { color, offsetX, offsetY, blur, spread } = value.shadow;
-      return (
-        `pub const ${name}: Shadow = Shadow { color: ${rustColor(color)}, ` +
-        `offset_x: ${float(offsetX)}, offset_y: ${float(offsetY)}, ` +
-        `blur: ${float(blur)}, spread: ${float(spread)} };`
-      );
+      return [
+        "Shadow",
+        `Shadow { color: ${rustColor(color)}, offset_x: ${float(offsetX)}, ` +
+          `offset_y: ${float(offsetY)}, blur: ${float(blur)}, spread: ${float(spread)} }`,
+      ];
     }
     case "typography": {
       const { sizePx, weight, lineHeight, letterSpacingPx } = value.typography;
-      return (
-        `pub const ${name}: Typography = Typography { size: ${float(sizePx)}, ` +
-        `weight: ${float(weight)}, line_height: ${float(lineHeight)}, ` +
-        `letter_spacing: ${float(letterSpacingPx)} };`
-      );
+      return [
+        "Typography",
+        `Typography { size: ${float(sizePx)}, weight: ${float(weight)}, ` +
+          `line_height: ${float(lineHeight)}, letter_spacing: ${float(letterSpacingPx)} }`,
+      ];
     }
   }
+}
+
+function rustField(path: string[]): string {
+  return path.join("_").replaceAll("-", "_");
+}
+
+/** A token's field in its group's struct. One that starts with a digit gets the group's initial. */
+function rustMember(group: string, token: ValueToken): string {
+  const name = rustField(token.path.slice(1));
+  return /^[0-9]/.test(name) ? group.charAt(0) + name : name;
+}
+
+/** The struct that holds one group of shared values: `space` is `SpaceTokens`. */
+function rustGroupStruct(group: string): string {
+  return `${pascal(group)}Tokens`;
+}
+
+/** The token types a theme value names, for its `use` line. */
+function rustTokenTypes(model: Model): string[] {
+  const types = [
+    "Color",
+    "Colors",
+    "Theme",
+    ...[...valueGroups(model).keys()].map(rustGroupStruct),
+  ];
+  if (model.sizes.length > 0) types.push("Sizes");
+  const kinds = new Set(model.values.map((token) => token.value.kind));
+  if (kinds.has("shadow")) types.push("Shadow");
+  if (kinds.has("typography")) types.push("Typography");
+  return types.sort();
+}
+
+/**
+ * A theme as a Rust constant: `pub const <NAME>: Theme = Theme { … };`. The token build writes
+ * the default theme with it, and `xds export-theme --format gpui` a theme file, so both have the
+ * same shape. Every token is set, so the value takes nothing from another theme.
+ */
+function rustThemeValue(model: Model, constant: string, doc: string[]): string[] {
+  const lines = doc.map((line) => (line ? `/// ${line}` : "///"));
+  lines.push(`pub const ${constant}: Theme = Theme {`);
+  for (const mode of MODES) {
+    lines.push(`    ${mode}: Colors {`);
+    for (const token of model.colors) {
+      lines.push(`        ${rustField(token.path)}: ${rustColor(token[mode])},`);
+    }
+    lines.push("    },");
+  }
+  if (model.sizes.length > 0) {
+    for (const mode of INPUT_MODES) {
+      lines.push(`    ${mode}: Sizes {`);
+      for (const token of model.sizes) {
+        lines.push(`        ${rustField(token.path)}: ${float(token[mode])},`);
+      }
+      lines.push("    },");
+    }
+  }
+  for (const [group, tokens] of valueGroups(model)) {
+    lines.push(`    ${rustField([group])}: ${rustGroupStruct(group)} {`);
+    for (const token of tokens) {
+      lines.push(`        ${rustMember(group, token)}: ${rustValue(token)[1]},`);
+    }
+    lines.push("    },");
+  }
+  lines.push("};");
+  return lines;
+}
+
+/** The constant a theme of this name is written as: `ocean` is `OCEAN_THEME`. */
+export function rustThemeConstant(name: string): string {
+  return `${camel(name)
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .toUpperCase()}_THEME`;
 }
 
 /**
@@ -713,8 +788,16 @@ function iconSvg(icon: Icon, fill: "none" | "currentColor"): string {
   );
 }
 
+/**
+ * Rust types with no UI-framework types, so the crate stays dependency-free: the tokens of one
+ * color mode in `Colors`, the sizes of one input device in `Sizes`, and one struct per group of
+ * shared values (`SpaceTokens`, `RadiusTokens`). A `Theme` holds a full set of them, and
+ * `DEFAULT_THEME` is the one the token files describe. A name that starts with a digit gets the
+ * first letter of its group in front, as in Kotlin: `theme.space.s4`. The module is declared
+ * with `#[rustfmt::skip]`, so the layout here does not have to match rustfmt's.
+ */
 export function emitRust(model: Model): string {
-  const field = (token: { path: string[] }) => token.path.join("_").replaceAll("-", "_");
+  const groups = valueGroups(model);
   const lines = [
     `// ${HEADER}`,
     "",
@@ -728,7 +811,7 @@ export function emitRust(model: Model): string {
   ];
   for (const token of model.colors) {
     if (token.description) lines.push(`    /// ${token.description}`);
-    lines.push(`    pub ${field(token)}: Color,`);
+    lines.push(`    pub ${rustField(token.path)}: Color,`);
   }
   lines.push(
     "}",
@@ -739,24 +822,10 @@ export function emitRust(model: Model): string {
     "        [",
   );
   for (const token of model.colors) {
-    lines.push(`            ("${kebab(token.path)}", self.${field(token)}),`);
+    lines.push(`            ("${kebab(token.path)}", self.${rustField(token.path)}),`);
   }
   lines.push("        ]", "    }", "}");
-  for (const mode of ["light", "dark"] as const) {
-    lines.push("", `pub const ${mode.toUpperCase()}: Colors = Colors {`);
-    for (const token of model.colors) {
-      lines.push(`    ${field(token)}: ${rustColor(token[mode])},`);
-    }
-    lines.push("};");
-  }
-  let group: string | undefined;
-  for (const token of model.values) {
-    const tokenGroup = token.path.slice(0, -1).join(".");
-    if (tokenGroup !== group) lines.push("");
-    group = tokenGroup;
-    if (token.description) lines.push(`/// ${token.description}`);
-    lines.push(rustConst(token));
-  }
+
   if (model.sizes.length > 0) {
     lines.push(
       "",
@@ -766,17 +835,45 @@ export function emitRust(model: Model): string {
     );
     for (const token of model.sizes) {
       if (token.description) lines.push(`    /// ${token.description}`);
-      lines.push(`    pub ${field(token)}: f32,`);
+      lines.push(`    pub ${rustField(token.path)}: f32,`);
     }
     lines.push("}");
-    for (const mode of INPUT_MODES) {
-      lines.push("", `pub const ${mode.toUpperCase()}: Sizes = Sizes {`);
-      for (const token of model.sizes) {
-        lines.push(`    ${field(token)}: ${float(token[mode])},`);
-      }
-      lines.push("};");
-    }
   }
+
+  for (const [group, tokens] of groups) {
+    lines.push(
+      "",
+      `/// The \`${group}\` tokens.`,
+      "#[derive(Debug, Clone, Copy, PartialEq)]",
+      `pub struct ${rustGroupStruct(group)} {`,
+    );
+    for (const token of tokens) {
+      if (token.description) lines.push(`    /// ${token.description}`);
+      lines.push(`    pub ${rustMember(group, token)}: ${rustValue(token)[0]},`);
+    }
+    lines.push("}");
+  }
+
+  lines.push(
+    "",
+    "/// A full set of token values: the colors of both modes, the sizes of both input devices and the shared values.",
+    "#[derive(Debug, Clone, Copy, PartialEq)]",
+    "pub struct Theme {",
+    "    pub light: Colors,",
+    "    pub dark: Colors,",
+  );
+  if (model.sizes.length > 0) lines.push("    pub pointer: Sizes,", "    pub touch: Sizes,");
+  for (const group of groups.keys()) {
+    lines.push(`    pub ${rustField([group])}: ${rustGroupStruct(group)},`);
+  }
+  lines.push("}", "");
+  lines.push(
+    ...rustThemeValue(model, "DEFAULT_THEME", [
+      "The theme the token files describe, which the components draw with unless they are given",
+      "another.",
+    ]),
+  );
+
   if (model.icons?.length) {
     lines.push(
       "",
@@ -820,6 +917,41 @@ export function emitRust(model: Model): string {
   }
   lines.push("");
   return lines.join("\n");
+}
+
+/**
+ * A theme as a Rust file of its own, for the GPUI components: `pub const <NAME>_THEME`, which an
+ * app registers with the components. Every token is written, so it takes nothing from the
+ * default theme. `tokensPath` is the path the token types are at: the library's
+ * (`xds_ui::tokens`), a project's crate (`acme_tokens`), or `crate` inside the tokens crate.
+ */
+export function emitRustTheme(
+  model: Model,
+  options: { name: string; source: string; tokensPath: string },
+): string {
+  if (!/^[a-z][a-z0-9-]*$/.test(options.name)) {
+    throw new TokenError(
+      `a theme name is lowercase letters, digits and hyphens: "${options.name}"`,
+    );
+  }
+  if (!options.tokensPath.split("::").every((part) => /^[A-Za-z_][A-Za-z0-9_]*$/.test(part))) {
+    throw new TokenError(`not a Rust path: "${options.tokensPath}"`);
+  }
+  const uses = model.values.some((token) => token.value.kind === "duration")
+    ? ["use std::time::Duration;", ""]
+    : [];
+  return [
+    `// Generated by xds from ${options.source}. Do not edit.`,
+    "",
+    ...uses,
+    `use ${options.tokensPath}::{${rustTokenTypes(model).join(", ")}};`,
+    "",
+    ...rustThemeValue(model, rustThemeConstant(options.name), [
+      `The ${options.name} theme, from ${options.source}. Register it with the components, as the`,
+      "theme of the whole app.",
+    ]),
+    "",
+  ].join("\n");
 }
 
 // ---------------------------------------------------------------- Dart

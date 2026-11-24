@@ -27,8 +27,8 @@ use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
     Anchor, AnyElement, App, Bounds, Div, Element, ElementId, Entity, FocusHandle, GlobalElementId,
     InspectorElementId, InteractiveElement as _, IntoElement, KeyDownEvent, LayoutId, MouseButton,
-    ParentElement as _, Pixels, RenderOnce, Role, SharedString, StatefulInteractiveElement as _,
-    StyleRefinement, Styled as _, Window, accesskit, div, px,
+    ParentElement as _, Pixels, Refineable as _, RenderOnce, Role, SharedString,
+    StatefulInteractiveElement as _, StyleRefinement, Styled, Window, accesskit, div, px,
 };
 
 use crate::components::{
@@ -39,7 +39,7 @@ use crate::date_range_picker::{
     BandEdge, DateRange, DayMarks, RangeChoice, RangeChoosing, day_marks, months_for_width,
     range_day_choice,
 };
-use crate::theme::{TypographyExt as _, color, palette};
+use crate::theme::{TypographyExt as _, color, palette, theme};
 
 // ---------------------------------------------------------------- dates
 
@@ -525,6 +525,7 @@ pub(crate) type DateHandler = Rc<dyn Fn(&NaiveDate, &mut Window, &mut App)>;
 /// Names, the medium form and the first day of the week follow the system's locale.
 #[derive(IntoElement)]
 pub struct DatePicker {
+    style: StyleRefinement,
     id: ElementId,
     label: SharedString,
     value: Option<NaiveDate>,
@@ -545,6 +546,7 @@ impl DatePicker {
     /// technology.
     pub fn new(id: impl Into<ElementId>, label: impl Into<SharedString>) -> Self {
         Self {
+            style: StyleRefinement::default(),
             id: id.into(),
             label: label.into(),
             value: None,
@@ -659,8 +661,9 @@ impl Selectable for DateField {
 
 impl RenderOnce for DateField {
     fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let t = theme(cx);
         let c = palette(cx);
-        let radius = px(tokens::RADIUS_MD);
+        let radius = px(t.radius.md);
         let focus = focus_handle(&self.id, window, cx);
         let focused = !self.disabled && focus.is_focused(window);
         let (text, text_color) = match self.shown {
@@ -687,22 +690,31 @@ impl RenderOnce for DateField {
                 frame.track_focus(&focus.tab_index(0).tab_stop(true))
             })
             .items_center()
-            .gap(px(tokens::SPACE_2))
-            .h(ControlSize::Md.height())
-            .px(px(tokens::SPACE_3))
+            .gap(px(t.space.s2))
+            .h(ControlSize::Md.height(t))
+            .px(px(t.space.s3))
             .child(
                 div()
                     .flex_1()
                     .min_w_0()
                     .truncate()
-                    .typography(tokens::TYPOGRAPHY_BODY)
+                    .typography(t.typography.body)
                     .text_color(color(text_color))
                     .child(text),
             )
             .child(
-                icon(tokens::Icon::Calendar, IconSize::Sm).text_color(color(c.field_placeholder)),
+                icon(tokens::Icon::Calendar)
+                    .icon_size(IconSize::Sm)
+                    .text_color(color(c.field_placeholder)),
             );
-        field_outline(self.invalid, radius, c, a11y_disabled(frame, self.disabled)).w_full()
+        field_outline(
+            self.invalid,
+            radius,
+            t,
+            c,
+            a11y_disabled(frame, self.disabled),
+        )
+        .w_full()
     }
 }
 
@@ -935,6 +947,7 @@ impl Calendar {
         window: &mut Window,
         cx: &mut App,
     ) -> AnyElement {
+        let t = theme(cx);
         let c = palette(cx);
         let months = self.months(window);
         let count = months.len() as u32;
@@ -966,7 +979,6 @@ impl Calendar {
             (self.id.clone(), "previous"),
             tokens::Icon::ChevronLeft,
             self.previous_label.clone(),
-            cx,
         )
         .control_size(ControlSize::Sm)
         .disabled(earlier)
@@ -976,7 +988,6 @@ impl Calendar {
             (self.id.clone(), "next"),
             tokens::Icon::ChevronRight,
             self.next_label.clone(),
-            cx,
         )
         .control_size(ControlSize::Sm)
         .disabled(later)
@@ -1008,16 +1019,18 @@ impl Calendar {
             .aria_label(self.label.clone())
             .flex()
             .flex_col()
-            .gap(px(tokens::SPACE_2))
-            .p(px(tokens::SPACE_3))
-            .rounded(px(tokens::RADIUS_LG))
-            .border(px(tokens::BORDER_WIDTH_THIN))
+            .gap(px(t.space.s2))
+            .p(px(t.space.s3))
+            .rounded(px(t.radius.lg))
+            .border(px(t.border.width_thin))
             .border_color(color(c.border_default))
             .bg(color(c.date_picker_background))
-            .shadow(shadow(tokens::SHADOW_RAISED))
+            .shadow(shadow(t.shadow.raised))
             .when_some(
                 match &self.choosing {
-                    Choosing::Range(range) => Some(range.summary(&self.id, &draft, self.locale, c)),
+                    Choosing::Range(range) => {
+                        Some(range.summary(&self.id, &draft, self.locale, t, c))
+                    }
                     Choosing::Day { .. } => None,
                 },
                 |calendar, summary| calendar.child(summary),
@@ -1026,7 +1039,7 @@ impl Calendar {
                 div()
                     .flex()
                     .items_start()
-                    .gap(px(tokens::SPACE_4))
+                    .gap(px(t.space.s4))
                     .children(columns),
             )
             // The popover lets Tab leave for the page behind, which would leave the calendar
@@ -1052,6 +1065,7 @@ impl Calendar {
         window: &mut Window,
         cx: &mut App,
     ) -> AnyElement {
+        let t = theme(cx);
         let c = palette(cx);
         let heading = self.locale.month_year(month);
         let key: SharedString = format!("{}-{}", month.year(), month.month()).into();
@@ -1060,7 +1074,7 @@ impl Calendar {
             button.unwrap_or_else(|| {
                 div()
                     .flex_none()
-                    .size(px(tokens::POINTER.control_sm))
+                    .size(px(t.pointer.control_sm))
                     .into_any_element()
             })
         };
@@ -1070,22 +1084,20 @@ impl Calendar {
             .flex()
             .items_center()
             .justify_between()
-            .px(px((tokens::POINTER.calendar_day
-                - tokens::POINTER.control_sm)
-                / 2.0))
+            .px(px((t.pointer.calendar_day - t.pointer.control_sm) / 2.0))
             .child(button_or_gap(previous))
             .child(
                 div()
                     .id((self.id.clone(), format!("heading-{key}")))
                     .role(Role::Heading)
                     .aria_label(heading.clone())
-                    .typography(tokens::TYPOGRAPHY_BODY_STRONG)
+                    .typography(t.typography.body_strong)
                     .text_color(color(c.date_picker_heading))
                     .child(heading.clone()),
             )
             .child(button_or_gap(next));
 
-        let side = px(tokens::POINTER.calendar_day);
+        let side = px(t.pointer.calendar_day);
         let weekdays = div()
             .id((self.id.clone(), format!("weekdays-{key}")))
             .role(Role::Row)
@@ -1099,8 +1111,8 @@ impl Calendar {
                         .flex()
                         .justify_center()
                         .w(side)
-                        .py(px(tokens::SPACE_1))
-                        .typography(tokens::TYPOGRAPHY_FOOTNOTE)
+                        .py(px(t.space.s1))
+                        .typography(t.typography.footnote)
                         .text_color(color(c.date_picker_weekday))
                         .child(initial)
                 },
@@ -1157,7 +1169,7 @@ impl Calendar {
         div()
             .flex()
             .flex_col()
-            .gap(px(tokens::SPACE_2))
+            .gap(px(t.space.s2))
             .child(header)
             .child(a11y_flags(grid, flags))
             .into_any_element()
@@ -1178,6 +1190,7 @@ impl Calendar {
         window: &mut Window,
         cx: &mut App,
     ) -> AnyElement {
+        let t = theme(cx);
         let c = palette(cx);
         // Outside `min`..`max` a day is out of reach. Inside, a range's start alone makes the
         // days the length forbids look disabled, while the keys still move over them.
@@ -1224,25 +1237,25 @@ impl Calendar {
             )
         };
         let group: SharedString = format!("day-{day}").into();
-        let side = tokens::POINTER.calendar_day;
-        let inset = px(tokens::SPACE_0_5);
+        let side = t.pointer.calendar_day;
+        let inset = px(t.space.s0_5);
         let circle = div()
             .id("circle")
             .size_full()
             .flex()
             .items_center()
             .justify_center()
-            .rounded(px(tokens::RADIUS_FULL))
+            .rounded(px(t.radius.full))
             // Today is told by a ring and bolder figures, so not by color alone.
             .typography(if today {
-                tokens::TYPOGRAPHY_BODY_STRONG
+                t.typography.body_strong
             } else {
-                tokens::TYPOGRAPHY_BODY
+                t.typography.body
             })
             .text_color(color(text))
             .when(today && !end, |circle| {
                 circle
-                    .border(px(tokens::BORDER_WIDTH_THIN))
+                    .border(px(t.border.width_thin))
                     .border_color(color(c.date_picker_today_border))
             })
             .when_some(rest, |circle, fill| circle.bg(color(fill)))
@@ -1262,7 +1275,7 @@ impl Calendar {
         // the end's, and is rounded where a week's row ends it.
         let band = marks.band.map(|band| {
             let half = px(side / 2.0);
-            let round = px(tokens::RADIUS_FULL);
+            let round = px(t.radius.full);
             div()
                 .absolute()
                 .top_0()
@@ -1360,6 +1373,7 @@ pub(crate) struct CalendarField {
 
 impl CalendarField {
     pub(crate) fn render(self, window: &mut Window, cx: &mut App) -> Div {
+        let t = theme(cx);
         let c = palette(cx);
         let locale = CalendarLocale::system();
         let today = Local::now().date_naive();
@@ -1402,7 +1416,7 @@ impl CalendarField {
                 // The surface is drawn by the calendar, from its own tokens.
                 .appearance(false)
                 .anchor(Anchor::TopLeft)
-                .offset(px(tokens::SPACE_1))
+                .offset(px(t.space.s1))
                 .default_open(self.default_open)
                 .trigger_style(StyleRefinement::default().w_full())
                 .track_focus(&focus)
@@ -1418,16 +1432,16 @@ impl CalendarField {
         div()
             .flex()
             .flex_col()
-            .gap(px(tokens::SPACE_1))
+            .gap(px(t.space.s1))
             .w_full()
-            .child(field_label(self.label, self.disabled, c))
+            .child(field_label(self.label, self.disabled, t, c))
             .child(control)
-            .children(field_note(self.error, self.description, c))
+            .children(field_note(self.error, self.description, t, c))
     }
 }
 
-impl RenderOnce for DatePicker {
-    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+impl DatePicker {
+    fn draw(self, window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
         let locale = CalendarLocale::system();
         CalendarField {
             id: self.id,
@@ -1449,6 +1463,21 @@ impl RenderOnce for DatePicker {
             },
         }
         .render(window, cx)
+    }
+}
+
+impl Styled for DatePicker {
+    fn style(&mut self) -> &mut StyleRefinement {
+        &mut self.style
+    }
+}
+
+impl RenderOnce for DatePicker {
+    fn render(mut self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let style = std::mem::take(&mut self.style);
+        let mut root = self.draw(window, cx);
+        root.style().refine(&style);
+        root
     }
 }
 

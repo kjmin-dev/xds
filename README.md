@@ -91,7 +91,7 @@ See the [CLI documentation](docs/cli.md#for-scripts-and-agents) for details on t
 
 See the [design system documentation](docs/design-system.md) for the rationale behind this structure and the conventions it adopts from current open-source design systems.
 
-xds reaches an app in two ways: by scaffolding, or as packages that an existing app installs from its platform's registry. Each release publishes the web and React Native components to npm ([the web library](docs/web-library.md), [the React Native library](docs/react-native-library.md)) and the Compose components to Maven Central ([the Compose library](docs/compose-library.md)). [xds as a library](docs/library.md) is the design for every registry: the names, the customization model, the version policy, and the order of work.
+xds reaches an app in two ways: by scaffolding, or as packages that an existing app installs from its platform's registry. Each release publishes the web and React Native components to npm ([the web library](docs/web-library.md), [the React Native library](docs/react-native-library.md)) and the Compose components to Maven Central ([the Compose library](docs/compose-library.md)). The GPUI components are built and checked as crates for crates.io, which they are not published to yet ([the GPUI library](docs/gpui-library.md)). [xds as a library](docs/library.md) is the design for every registry: the names, the customization model, the version policy, and the order of work.
 
 ## Working in this repository
 

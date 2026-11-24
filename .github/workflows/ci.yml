@@ -187,9 +187,9 @@ jobs:
       - run: mise run check:cli
 
   # The libraries' external consumer checks (check:libraries), as far as they run without an
-  # emulator or macOS, so that a change that breaks a library fails here rather than in the
-  # release, which runs them whole before it publishes. Each builds the CLI to scaffold its
-  # reference projects.
+  # emulator or macOS, and the GPUI library's, which runs on macOS, so that a change that breaks a
+  # library fails here rather than in the release, which runs them whole before it publishes.
+  # Each builds the CLI to scaffold its reference projects.
   library-web:
     name: Web library (${{ matrix.framework }})
     runs-on: ubuntu-latest
@@ -236,4 +236,16 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('kotlin/**') }}
           restore-keys: gradle-${{ runner.os }}-
       - run: mise run check:library-compose -- --platforms desktop
+
+  # GPUI draws the design preview with Metal, off screen.
+  library-gpui:
+    name: GPUI library (macOS)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+        with:
+          install_args: rust node
+      - uses: Swatinem/rust-cache@v2
+      - run: mise run check:library-gpui
   # @endif

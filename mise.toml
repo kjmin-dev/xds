@@ -241,8 +241,8 @@ run = "pnpm --filter @acme/docs build"
 # The libraries' external consumer checks. Each builds a library's packages, installs them in
 # new apps outside the repository and compares those apps' design previews with scaffolded ones,
 # pixel by pixel, with the default theme and with a custom one. The release workflow runs them
-# whole before it publishes; CI runs them on every change without what needs an emulator or
-# macOS (check:libraries). They need the network.
+# whole before it publishes; CI runs them on every change: on Linux without what needs an
+# emulator or macOS (check:libraries), and the GPUI check on macOS. They need the network.
 #
 # The web packages, in Google Chrome. docs/web-library.md says what it compares.
 [tasks."check:library-web"]
@@ -268,8 +268,16 @@ run = "node npm/react-native/consumer.ts"
 description = "Consume the Compose library from new desktop and Android apps and compare their design previews with a scaffolded project"
 run = "node maven/consumer.ts"
 
-# What CI runs of the three on every change: everything but the Android emulator and iOS. CI
-# runs them in jobs of their own, the web check in one for each framework.
+# The GPUI crates, packaged and consumed from a crate outside the repository, which draws the
+# design preview off screen. GPUI draws with Metal, so it runs on macOS only.
+# docs/gpui-library.md says what it compares.
+[tasks."check:library-gpui"]
+description = "Package the GPUI crates, consume them from a new crate and compare its design preview with a scaffolded project (macOS)"
+run = "node crates-io/consumer.ts"
+
+# What CI runs of the three on Linux on every change: everything but the Android emulator and
+# iOS. CI runs them in jobs of their own, the web check in one for each framework, and
+# check:library-gpui in one on macOS.
 [tasks."check:libraries"]
 description = "Run the libraries' consumer checks as CI does, without an emulator or iOS"
 depends = ["install"]

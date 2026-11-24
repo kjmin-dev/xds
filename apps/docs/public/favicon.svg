@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>xds</title>
+  <rect width="64" height="64" rx="14" fill="#4338ca"/>
+  <path fill="#fff" d="M8 16h16l14 16-14 16H8l14-16Z"/>
+  <path fill="#c7d2fe" d="m44 12 11 10-10 10-11-10Zm-3 22 13 14H40l-6-6Z"/>
+</svg>

@@ -20,6 +20,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "xds",
+      logo: { src: "./src/assets/xds-logo.svg", replacesTitle: true },
       description:
         "A cross-platform design system template: one set of design tokens, component libraries for web, desktop and mobile, and a CLI that scaffolds a project with the clients you pick.",
       defaultLocale: "root",

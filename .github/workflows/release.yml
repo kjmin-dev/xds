@@ -13,14 +13,16 @@ name: Release
 # consumer check passes on the desktop and on Android. That needs the MAVEN_CENTRAL_USERNAME and
 # MAVEN_CENTRAL_PASSWORD secrets, a Central Portal user token, and SIGNING_KEY and
 # SIGNING_PASSWORD, an ASCII-armored PGP secret key whose public key is on a key server. The
-# GPUI library's crates (xds-ui and xds-tokens) are built and checked the same way, and kept as
-# the run's gpui-crates artifact: publishing them to crates.io is not part of the release yet.
+# GPUI library's crates (xds-tokens and xds-ui) go to crates.io at the same version once their
+# consumer check passes on macOS. That needs the CARGO_REGISTRY_TOKEN secret, a crates.io API
+# token scoped to publish-new and publish-update.
 #
 # A run started by hand (Actions > Release > Run workflow, or `gh workflow run release.yml`) is a
 # rehearsal of a release from the commit it runs on, at the version in cli/Cargo.toml: every job
 # builds and checks what it would publish, and nothing is released or published. Each publishing
-# step is rehearsed instead: npm packs each package and must accept NPM_TOKEN, and Maven Central
-# validates the signed bundle, which the rehearsal then drops. It fails when a secret a release
+# step is rehearsed instead: npm packs each package and must accept NPM_TOKEN, Maven Central
+# validates the signed bundle, which the rehearsal then drops, and cargo packages the crates and
+# crates.io must let CARGO_REGISTRY_TOKEN publish them. It fails when a secret a release
 # needs is missing or refused, and its summary shows the GitHub release a tag would create.
 #
 # Actions are pinned to a commit, because a tag can be moved to other code, and these jobs can
@@ -498,3 +500,18 @@ jobs:
           name: gpui-crates
           path: crates-io/dist/*.crate
           if-no-files-found: error
+
+      # xds-tokens, then xds-ui, exactly as the check consumed them. A rerun after crates.io has a
+      # crate's version skips that crate. crates-io/publish.ts says how it publishes, and what a
+      # rehearsal checks instead.
+      - name: Publish
+        if: github.event_name == 'push'
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: mise exec -- node crates-io/publish.ts
+
+      - name: Rehearse publishing
+        if: github.event_name != 'push'
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: mise exec -- node crates-io/publish.ts --dry-run

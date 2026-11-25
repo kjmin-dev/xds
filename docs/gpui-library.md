@@ -7,7 +7,7 @@ The xds components for GPUI desktop apps are built as crates for crates.io. They
 | `xds-ui` | The components, the theme and defaults they draw with (`set_theme`, `set_defaults`) and the design preview. It re-exports `xds-tokens` as `xds_ui::tokens` and the GPUI Kit it is built for as `xds_ui::gpui_kit` |
 | `xds-tokens` | The token types (`Theme`, `Colors`, `Sizes` and one struct per group of shared values), `DEFAULT_THEME`, the preset themes in `themes`, and the icons. It has no dependencies |
 
-The crates are built and checked on every change and by the release workflow, and are not published yet: crates.io assigns a name at its first publication, and that step is not part of the release so far. Until then, an app builds them with `node crates-io/build.ts` and patches them in (see below), or takes the components through `xds create`.
+The crates are built and checked on every change, and the release workflow publishes them to crates.io once their check passes. A version on crates.io is never replaced, only yanked. To try the crates of a commit no release has published, an app builds them with `node crates-io/build.ts` and patches them in (see below), or takes the components through `xds create`.
 
 The GPUI channel has `preview` stability while GPUI is 0.x. crates.io has nothing like npm's dist-tags, so the crates carry the release's version as it is, and a 0.x version already lets a minor release break. GPUI keeps no compatibility between its releases, so each release of `xds-ui` is built for exactly one GPUI Kit, which it asks for with an exact requirement. This release is built for GPUI Kit 0.9.1 (GPUI 0.3.12 and GPUI Component 0.9.1) and Rust 1.100 or later, and checked on macOS, where the desktop target is checked.
 
@@ -118,9 +118,17 @@ A size is set with a method named for the component, because `Styled::size` sets
 
 `node crates-io/consumer.ts` (`mise run check:library-gpui`) is the external consumer check for this channel. It runs on macOS, where GPUI draws with Metal. It builds a new crate outside the repository, which has nothing of xds's but its dependency on `xds-ui` at the release version, served from the packaged crates in place of crates.io's (`[patch.crates-io]`), and on the GPUI Kit `xds-ui` is built for. The crate draws every page of the design preview and the preview with each overlay open, off screen, in both modes, with the same program a scaffolded project runs as `cargo run --package <name>-ui --example render_preview`, and compares each picture, pixel by pixel, with a project that `xds create` makes from this repository under the name `xds`. GPUI draws them on a clock that only the program moves, so the same components give the same pictures on the same Mac. The check repeats the comparison with a custom theme ([`npm/web/consumer/brand.json`](../npm/web/consumer/brand.json), which the web library's check uses too). The library's crate registers it with the constant `xds export-theme --format gpui` writes. The scaffolded project draws it with its token build. The check fails if the custom theme changes none of the library's pictures, which would show only that both sides ignore it.
 
-CI runs the check on every change, on macOS. The release workflow builds the crates with the release's own CLI, runs the check, and keeps the `.crate` files it checked as the run's `gpui-crates` artifact. Publishing them to crates.io comes later, as its own step of the release.
+CI runs the check on every change, on macOS. The release workflow builds the crates with the release's own CLI, runs the check, keeps the `.crate` files it checked as the run's `gpui-crates` artifact, and publishes them with `node crates-io/publish.ts`.
 
-### Trying the crates before they are published
+## How the crates are published
+
+`node crates-io/publish.ts` publishes `xds-tokens`, then `xds-ui`, with the `CARGO_REGISTRY_TOKEN` secret: an API token of an owner of both crates, scoped to `publish-new` and `publish-update`. cargo uploads only what it packages itself, so the script has cargo package the crates again from the project `build.ts` left in `crates-io/dist/.work`, without building them, and fails unless the files are byte for byte the ones the check consumed. cargo then publishes them and waits until crates.io serves `xds-tokens` before it publishes `xds-ui`, which asks for it. A version crates.io already has is skipped, so a rerun after a partial failure publishes the rest.
+
+With `--dry-run`, which a [rehearsal of the release](cli.md#rehearsing-a-release) passes, nothing is published: cargo goes up to the upload, and crates.io must accept the token for each crate. The script asks crates.io to publish each crate with an empty crate file. crates.io checks the token and its scopes for that crate before it reads the file, so a refused token is answered with an authentication error, and an accepted one with the refusal of the empty file. Nothing can be published that way.
+
+Once both crates exist, crates.io can take them from this repository's release workflow by [trusted publishing](https://rust-lang.github.io/rfcs/3691-trusted-publishing-cratesio.html) instead of a token. That needs the crates to exist first, so the first release publishes with the token.
+
+### Trying crates no release has published
 
 Build them, then point an app at them in its `Cargo.toml`:
 

@@ -13,7 +13,7 @@
 // and docs/gpui-library.md names, since GPUI keeps no compatibility between its releases.
 //
 // GPUI draws on macOS, the one platform the desktop target is checked on, so the crates are
-// built there. Nothing here publishes them.
+// built there. publish.ts publishes them.
 
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";

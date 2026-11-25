@@ -516,9 +516,9 @@ git push origin v0.1.0
 
 `.github/workflows/release.yml` builds the release binary for five targets (`aarch64-apple-darwin`, `x86_64-apple-darwin`, `x86_64-unknown-linux-musl`, `aarch64-unknown-linux-musl`, `x86_64-pc-windows-msvc`), attaches `xds-<target>.tar.gz` and its `.sha256` checksum to a GitHub release, and publishes the npm packages. Publishing requires an `NPM_TOKEN` repository secret, a token that may publish new packages without a one-time password.
 
-The same workflow publishes the libraries once their consumer checks pass: the web packages and the React Native package to npm, and the Compose library to Maven Central. Maven Central requires four more secrets: `MAVEN_CENTRAL_USERNAME` and `MAVEN_CENTRAL_PASSWORD`, a user token from the Central Portal account that owns the `io.github.kjmin-dev` namespace, and `SIGNING_KEY` and `SIGNING_PASSWORD`, an ASCII-armored PGP secret key and its passphrase. The key's public half must be on a public key server, where Central looks for it.
+The same workflow publishes the libraries once their consumer checks pass: the web packages and the React Native package to npm, the Compose library to Maven Central, and the GPUI crates to crates.io. crates.io requires `CARGO_REGISTRY_TOKEN`, an API token of the account that owns the crates, scoped to `publish-new` and `publish-update`. Maven Central requires four more secrets: `MAVEN_CENTRAL_USERNAME` and `MAVEN_CENTRAL_PASSWORD`, a user token from the Central Portal account that owns the `io.github.kjmin-dev` namespace, and `SIGNING_KEY` and `SIGNING_PASSWORD`, an ASCII-armored PGP secret key and its passphrase. The key's public half must be on a public key server, where Central looks for it.
 
-`npm/publish.ts` publishes each channel's npm packages in dependency order, and `maven/upload.ts` sends the Compose library to Central. Both skip a version the registry already has, so a release that failed partway can be run again.
+`npm/publish.ts` publishes each channel's npm packages in dependency order, `maven/upload.ts` sends the Compose library to Central, and `crates-io/publish.ts` publishes the GPUI crates. Each skips a version the registry already has, so a release that failed partway can be run again.
 
 To build the npm packages locally without publishing:
 
@@ -544,8 +544,7 @@ A run started by hand (also Actions > Release > Run workflow) is a rehearsal of 
 
 - npm packs every package as it would publish it, and must accept `NPM_TOKEN`;
 - the Compose library is signed with `SIGNING_KEY`, and Maven Central validates the bundle as it would before publishing it, including the namespace and the signatures against the key servers; the rehearsal then drops the deployment;
+- cargo packages the GPUI crates as it would publish them, and crates.io must let `CARGO_REGISTRY_TOKEN` publish each of them;
 - the summary of the GitHub release job shows the release the tag would create, with its files and notes.
-
-The GPUI library's crates are built and checked the same way in a rehearsal and for a tag, and kept as the run's `gpui-crates` artifact. Neither publishes them: crates.io is not part of the release yet ([the GPUI library](gpui-library.md)).
 
 The rehearsal fails when a secret is missing or refused, and names every one. It warns, without failing, when `CHANGELOG.md` has no section for the version yet or the version is already released.

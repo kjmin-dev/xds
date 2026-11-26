@@ -15,9 +15,9 @@ This repository is the xds template: a single set of design tokens, component li
 | `packages/ui-core` | What the web libraries share: the prop types, class recipes, and stylesheet of their components, the DOM helpers their behavior needs, the web design preview as data (`src/preview`), and the behavior tests that each of them runs. It imports no framework |
 | `apps/*`, `kotlin/*App`, `flutter/app` | Client apps, each with a design preview screen |
 | `cli`, `template.json` | The `xds` CLI and the manifest mapping repository paths to client targets |
-| `npm` | The npm packages of a release: the CLI's launchers, the build and consumer check of the web library (`npm/web`) and of the React Native library (`npm/react-native`), and their publication (`npm/publish.ts`) |
+| `npm` | The npm packages of a release, all under the `@xds` scope: the build and consumer check of the web library (`npm/web`) and of the React Native library (`npm/react-native`), and their publication (`npm/publish.ts`) |
 | `maven` | The Compose library of a release: its build into a Maven repository, its consumer check on the desktop and Android, and its upload to Maven Central (`maven/upload.ts`) |
-| `crates-io` | The GPUI library's crates: their packaging for crates.io and their consumer check on macOS |
+| `crates-io` | The GPUI library's crates: their packaging for crates.io, their consumer check on macOS, and their publication (`crates-io/publish.ts`) |
 
 ## Rules
 

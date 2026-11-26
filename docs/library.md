@@ -69,18 +69,18 @@ Decisions that hold for every channel:
 
 ## Names and ownership
 
-The maintainer owns the GitHub repository and npm scope. The crates.io and pub.dev package records were checked again on 2026-11-20. Those registries assign names on first publication. A lookup returning no package leaves ownership open.
+The maintainer owns the GitHub repository, the npm scope and the crates.io crates, which the first release published on 2026-11-25. The pub.dev package records were checked again on 2026-11-20. pub.dev assigns names on first publication. A lookup returning no package leaves ownership open.
 
 | Channel | Proposed | State | Notes |
 | --- | --- | --- | --- |
 | npm scope | `@xds` | Registered on 2026-11-16 as an npm organization of the maintainer | Every npm package is published under it |
-| npm packages | `@xds/react`, `@xds/solid`, `@xds/vue`, `@xds/svelte`, `@xds/core`, `@xds/tokens`, `@xds/react-native` | Held by the scope. The web packages are built by `npm/web/build.ts` and published with the CLI's release | The unscoped name `xds` is taken by an unrelated Vue state library, so nothing is published unscoped |
-| crates.io | `xds-ui`, `xds-tokens` | Unregistered. The release workflow builds, checks and publishes the L4 crates under these names | Claimed by the first release. Set `CARGO_REGISTRY_TOKEN` before it, then [rehearse the release](cli.md#rehearsing-a-release), which has crates.io accept the token for both crates. The unsuffixed `xds` belongs to another crate |
+| npm packages | `@xds/react`, `@xds/solid`, `@xds/vue`, `@xds/svelte`, `@xds/core`, `@xds/tokens`, `@xds/react-native` | Held by the scope. Published at 0.1.0 by the release of 2026-11-25 | The unscoped name `xds` is taken by an unrelated Vue state library, so nothing is published unscoped |
+| crates.io | `xds-ui`, `xds-tokens` | Registered: published at 0.1.0 by the release of 2026-11-25 | The unsuffixed `xds` belongs to another crate |
 | Maven Central | group `io.github.kjmin-dev`, artifact `xds-ui` | The group corresponds to the maintainer’s GitHub account. The release workflow builds and checks the artifacts | Verify the namespace in Central Portal and set the publishing secrets before the first tag, then [rehearse the release](cli.md#rehearsing-a-release), which has Central validate the signed artifacts. [Namespace verification](https://central.sonatype.org/register/namespace/) |
 | pub.dev | `xds_ui`, `xds_tokens` | Unregistered | Claim with the first functional L5 packages. A verified publisher needs a domain |
 | GitHub | `kjmin-dev/xds` | Owned | The source of truth for every channel |
 
-The Rust and Dart channels each need their first usable release before both package names can be recorded as held. pub.dev prohibits publication solely to reserve a name. [Cargo publishing guide](https://doc.rust-lang.org/cargo/reference/publishing.html), [pub.dev naming policy](https://pub.dev/policy#name-squatting).
+The Dart channel needs its first usable release before its package names can be recorded as held. pub.dev prohibits publication solely to reserve a name. [Cargo publishing guide](https://doc.rust-lang.org/cargo/reference/publishing.html), [pub.dev naming policy](https://pub.dev/policy#name-squatting).
 
 "xDS" is also the name of a family of service-mesh APIs. The scoped and suffixed names above avoid a clash in the registries; search results will still mix the two.
 
@@ -192,7 +192,7 @@ A change that needs trying before it is promised goes out as a prerelease of the
 
 ## Order of work
 
-Glass material tokens and the Flutter scaffold are in the template. The L0 contract, checker, version source and changelog are implemented. Registry ownership is recorded above. The CLI release workflow ships the binary and its npm launchers. Each library channel joins the same tag when its external consumer check passes. L1 is implemented: the release workflow builds the web packages, runs their consumer check (`npm/web/consumer.ts`) and publishes them with the CLI. L2 is implemented: the release workflow builds and signs the Compose library, runs its consumer check (`maven/consumer.ts`) on the desktop and on Android, and uploads it to Maven Central. L3 is implemented: the release workflow builds the React Native package, runs its consumer check (`npm/react-native/consumer.ts`) in an Expo app and in apps on the oldest and newest supported React Native, and publishes it to npm. The date picker draws its calendar from the tokens, so the package has no calendar peer. L4 is implemented: the release workflow packages the GPUI crates, runs their consumer check (`crates-io/consumer.ts`) on macOS, and publishes the checked crates to crates.io.
+Glass material tokens and the Flutter scaffold are in the template. The L0 contract, checker, version source and changelog are implemented. Registry ownership is recorded above. The release workflow ships the CLI binary to GitHub releases, and the CLI is not published to npm. Each library channel joins the same tag when its external consumer check passes. L1 is implemented: the release workflow builds the web packages, runs their consumer check (`npm/web/consumer.ts`) and publishes them. L2 is implemented: the release workflow builds and signs the Compose library, runs its consumer check (`maven/consumer.ts`) on the desktop and on Android, and uploads it to Maven Central. L3 is implemented: the release workflow builds the React Native package, runs its consumer check (`npm/react-native/consumer.ts`) in an Expo app and in apps on the oldest and newest supported React Native, and publishes it to npm. The date picker draws its calendar from the tokens, so the package has no calendar peer. L4 is implemented: the release workflow packages the GPUI crates, runs their consumer check (`crates-io/consumer.ts`) on macOS, and publishes the checked crates to crates.io.
 
 | Phase | Work | Done when | Depends on |
 | --- | --- | --- | --- |

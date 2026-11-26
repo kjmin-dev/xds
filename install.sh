@@ -40,9 +40,9 @@ detect_target() {
     # Statically linked against musl, so one build runs on every distribution.
     Linux) say "$arch-unknown-linux-musl" ;;
     MINGW* | MSYS* | CYGWIN* | Windows_NT)
-      fail "this installer does not cover Windows. Install with npm instead: npm install --global xds-cli"
+      fail "this installer does not cover Windows. Take xds-x86_64-pc-windows-msvc.tar.gz from https://github.com/kjmin-dev/xds/releases instead."
       ;;
-    *) fail "there is no xds build for $os. Builds exist for macOS and Linux; Windows installs with npm (npm install --global xds-cli)." ;;
+    *) fail "there is no xds build for $os. Builds exist for macOS, Linux and Windows (https://github.com/kjmin-dev/xds/releases)." ;;
   esac
 }
 

@@ -6,21 +6,7 @@ The template files are compiled directly into the binary. `xds` requires no netw
 
 ## Install
 
-### npm
-
-```sh
-npm install --global xds-cli
-xds --version
-```
-
-Or run it directly without installing globally:
-
-```sh
-npx xds-cli create my-app
-npm create xds@latest my-app
-```
-
-`xds-cli` is a small launcher script. The native binary comes from an optional platform-specific package that npm selects by `os` and `cpu`: `xds-cli-darwin-arm64`, `xds-cli-darwin-x64`, `xds-cli-linux-arm64`, `xds-cli-linux-x64`, or `xds-cli-win32-x64`. If you install with `--omit=optional`, npm skips the platform package and the launcher exits with an error message explaining why.
+The CLI is not on npm: xds publishes there only under the `@xds` scope, which holds the libraries.
 
 ### Installer script (macOS and Linux)
 
@@ -40,7 +26,15 @@ The script downloads the prebuilt binary for your machine from the latest [GitHu
 curl -fsSL https://raw.githubusercontent.com/kjmin-dev/xds/main/install.sh | XDS_VERSION=0.1.0 XDS_INSTALL_DIR=/usr/local/bin sh
 ```
 
-Prebuilt binaries are available for macOS (arm64, x86_64) and Linux (arm64, x86_64; statically linked so they run on any distribution). On Windows, install via npm.
+Prebuilt binaries are available for macOS (arm64, x86_64) and Linux (arm64, x86_64; statically linked so they run on any distribution). Windows takes the binary from the release.
+
+### Windows
+
+Download `xds-x86_64-pc-windows-msvc.tar.gz` from the latest [GitHub release](https://github.com/kjmin-dev/xds/releases), check it against the `.sha256` file beside it, and unpack `xds.exe` into a directory on your `PATH`:
+
+```powershell
+tar -xzf xds-x86_64-pc-windows-msvc.tar.gz
+```
 
 ### From source
 
@@ -505,7 +499,7 @@ No Rust code changes are needed when adding a stack that follows this structure.
 
 ## Releasing
 
-The release train uses the version in `cli/Cargo.toml` for the CLI, the generated theme contract and the npm packages. Run `mise run tokens` after changing that version. Add channel-labelled entries under `## Unreleased` in the root `CHANGELOG.md` as changes land. Before tagging, move those entries under a heading such as `## 0.1.0` and commit the changelog and generated contract. The tag workflow requires one nonempty section with the exact version and publishes that section as its release notes. A prerelease tag produces a GitHub prerelease and uses npm’s `next` tag.
+The release train uses the version in `cli/Cargo.toml` for the CLI, the generated theme contract and every library package. Run `mise run tokens` after changing that version. Add channel-labelled entries under `## Unreleased` in the root `CHANGELOG.md` as changes land. Before tagging, move those entries under a heading such as `## 0.1.0` and commit the changelog and generated contract. The tag workflow requires one nonempty section with the exact version and publishes that section as its release notes. A prerelease tag produces a GitHub prerelease and uses npm’s `next` tag.
 
 Push the matching tag when the release is ready.
 
@@ -514,23 +508,11 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-`.github/workflows/release.yml` builds the release binary for five targets (`aarch64-apple-darwin`, `x86_64-apple-darwin`, `x86_64-unknown-linux-musl`, `aarch64-unknown-linux-musl`, `x86_64-pc-windows-msvc`), attaches `xds-<target>.tar.gz` and its `.sha256` checksum to a GitHub release, and publishes the npm packages. Publishing requires an `NPM_TOKEN` repository secret, a token that may publish new packages without a one-time password.
+`.github/workflows/release.yml` builds the release binary for five targets (`aarch64-apple-darwin`, `x86_64-apple-darwin`, `x86_64-unknown-linux-musl`, `aarch64-unknown-linux-musl`, `x86_64-pc-windows-msvc`), and attaches `xds-<target>.tar.gz` and its `.sha256` checksum to a GitHub release. The CLI goes nowhere else.
 
-The same workflow publishes the libraries once their consumer checks pass: the web packages and the React Native package to npm, the Compose library to Maven Central, and the GPUI crates to crates.io. crates.io requires `CARGO_REGISTRY_TOKEN`, an API token of the account that owns the crates, scoped to `publish-new` and `publish-update`. Maven Central requires four more secrets: `MAVEN_CENTRAL_USERNAME` and `MAVEN_CENTRAL_PASSWORD`, a user token from the Central Portal account that owns the `io.github.kjmin-dev` namespace, and `SIGNING_KEY` and `SIGNING_PASSWORD`, an ASCII-armored PGP secret key and its passphrase. The key's public half must be on a public key server, where Central looks for it.
+The same workflow publishes the libraries once their consumer checks pass: the web packages and the React Native package to npm, which requires `NPM_TOKEN`, a token that may publish under the `@xds` scope without a one-time password; the Compose library to Maven Central, and the GPUI crates to crates.io. crates.io requires `CARGO_REGISTRY_TOKEN`, an API token of the account that owns the crates, scoped to `publish-new` and `publish-update`. Maven Central requires four more secrets: `MAVEN_CENTRAL_USERNAME` and `MAVEN_CENTRAL_PASSWORD`, a user token from the Central Portal account that owns the `io.github.kjmin-dev` namespace, and `SIGNING_KEY` and `SIGNING_PASSWORD`, an ASCII-armored PGP secret key and its passphrase. The key's public half must be on a public key server, where Central looks for it.
 
 `npm/publish.ts` publishes each channel's npm packages in dependency order, `maven/upload.ts` sends the Compose library to Central, and `crates-io/publish.ts` publishes the GPUI crates. Each skips a version the registry already has, so a release that failed partway can be run again.
-
-To build the npm packages locally without publishing:
-
-```sh
-mise run build:cli
-mkdir -p /tmp/xds-binaries/aarch64-apple-darwin
-cp target/dist/xds /tmp/xds-binaries/aarch64-apple-darwin/
-node npm/build-packages.mjs --binaries /tmp/xds-binaries      # writes npm/dist
-node npm/publish.ts cli --dry-run                             # packs them as npm would publish them, and checks NPM_TOKEN
-```
-
-The script builds a platform package for each Rust target binary it finds and stamps the version from `cli/Cargo.toml` onto every package. It replaces `npm/dist`, where the libraries' builds also write.
 
 ### Rehearsing a release
 

@@ -53,10 +53,9 @@ mise install
 cargo install --path cli
 ```
 
-릴리스가 배포된 이후에는 npm이나 설치 스크립트로 설치할 수 있습니다.
+릴리스된 버전은 설치 스크립트로 설치할 수 있습니다(macOS, Linux). Windows에서는 [최신 릴리스](https://github.com/kjmin-dev/xds/releases)에서 바이너리를 받으세요.
 
 ```sh
-npm install --global xds-cli        # 또는: npm create xds@latest my-app
 curl -fsSL https://raw.githubusercontent.com/kjmin-dev/xds/main/install.sh | sh
 ```
 

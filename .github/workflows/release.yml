@@ -4,11 +4,11 @@ name: Release
 #
 #   git tag v0.1.0 && git push origin v0.1.0
 #
-# The binaries go to a GitHub release, where install.sh finds them, and to npm as xds-cli, its
-# platform packages and create-xds. The web library's packages (@xds/react, @xds/solid,
-# @xds/vue, @xds/svelte, @xds/core and @xds/tokens) and the React Native library
+# The binaries go to a GitHub release, where install.sh finds them. The CLI is not published to
+# npm, where xds publishes only under the @xds scope. The web library's packages (@xds/react,
+# @xds/solid, @xds/vue, @xds/svelte, @xds/core and @xds/tokens) and the React Native library
 # (@xds/react-native) go to npm at the same version once their external consumer checks pass.
-# Publishing to npm needs the NPM_TOKEN secret. The Compose
+# Publishing to npm needs the NPM_TOKEN secret, a token that may publish under @xds. The Compose
 # library (io.github.kjmin-dev:xds-ui) goes to Maven Central at the same version once its
 # consumer check passes on the desktop and on Android. That needs the MAVEN_CENTRAL_USERNAME and
 # MAVEN_CENTRAL_PASSWORD secrets, a Central Portal user token, and SIGNING_KEY and
@@ -188,53 +188,6 @@ jobs:
             echo
             cat "$RUNNER_TEMP/release-notes.md"
           } >> "$GITHUB_STEP_SUMMARY"
-
-  npm:
-    name: npm packages
-    needs: release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: jdx/mise-action@6612f0ef07ed2a736cd1e00a94a065522dd41195 # v5.2.5
-        with:
-          install_args: node
-          # What is built here is published, so no tool comes from a cache another run wrote.
-          cache: false
-
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          path: archives
-          merge-multiple: true
-
-      # npm/build-packages.mjs wants one directory per Rust target with the binary inside.
-      - name: Unpack the binaries
-        run: |
-          for archive in archives/*.tar.gz; do
-            target="$(basename "$archive" .tar.gz)"
-            target="${target#xds-}"
-            mkdir -p "binaries/$target"
-            tar -xzf "$archive" -C "binaries/$target"
-          done
-
-      - name: Build the packages
-        run: mise exec -- node npm/build-packages.mjs --binaries binaries --require-all
-
-      # The platform packages, then xds-cli, then create-xds, under `latest`. npm/publish.ts
-      # says how it publishes, and what a rehearsal checks instead.
-      - name: Publish
-        if: github.event_name == 'push'
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: mise exec -- node npm/publish.ts cli
-
-      - name: Rehearse publishing
-        if: github.event_name != 'push'
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: mise exec -- node npm/publish.ts cli --dry-run
 
   web:
     name: Web library packages

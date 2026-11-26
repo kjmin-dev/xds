@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **CLI** — The CLI is no longer built for npm: `xds-cli`, its platform packages and `create-xds` are gone, and xds publishes on npm only under the `@xds` scope. Install it with `install.sh` on macOS and Linux, or take the binary from the GitHub release on Windows.
+
 ## 0.1.0
 
 - **GPUI library** — The GPUI channel's crates: `xds-ui` and `xds-tokens`, for GPUI Kit 0.9.1 exactly and Rust 1.100, `preview` while GPUI is 0.x, with the preset themes as constants in `xds_tokens::themes`. They are built and checked as the other channels' packages are: a crate outside the repository that takes them in place of crates.io's draws every page and overlay of the design preview off screen exactly as a scaffolded project does, with the default theme and a custom one. The release publishes them to crates.io after that check, and a rehearsal has crates.io accept the publishing token for both. See [the GPUI library](docs/gpui-library.md).

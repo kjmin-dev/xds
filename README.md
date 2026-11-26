@@ -53,10 +53,9 @@ mise install
 cargo install --path cli
 ```
 
-Once a release is published, you can install it via npm or the installer script:
+Or install a release with the installer script (macOS and Linux). On Windows, take the binary from the [latest release](https://github.com/kjmin-dev/xds/releases):
 
 ```sh
-npm install --global xds-cli        # or: npm create xds@latest my-app
 curl -fsSL https://raw.githubusercontent.com/kjmin-dev/xds/main/install.sh | sh
 ```
 

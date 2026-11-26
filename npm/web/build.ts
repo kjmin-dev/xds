@@ -21,6 +21,7 @@ import { build as viteBuild, type InlineConfig, type PluginOption } from "vite";
 import { emitThemeCss } from "../../tools/design-build/src/emit.ts";
 import { loadModel } from "../../tools/design-build/src/model.ts";
 import { listThemes } from "../../tools/design-build/src/themes.ts";
+import { PACKAGE_METADATA } from "../package-metadata.ts";
 import { releaseVersion } from "../release-version.ts";
 
 const root = resolve(import.meta.dirname, "../..");
@@ -528,11 +529,6 @@ async function manifest(
   files: string[],
 ) {
   const source = await readJson<Manifest>(join(root, PACKAGES[key].dir, "package.json"));
-  const launcher = await readJson<{
-    license: string;
-    bugs: string;
-    repository: { type: string; url: string };
-  }>(join(root, "npm/xds-cli/package.json"));
   const dependencies = Object.fromEntries(
     Object.entries(source.dependencies ?? {}).map(([name, version]) => [
       Object.values(PACKAGES).find(({ from }) => from === name)?.name ?? name,
@@ -555,10 +551,10 @@ async function manifest(
       "components",
       ...(key in { react: 1, solid: 1, vue: 1, svelte: 1 } ? [key] : []),
     ],
-    license: launcher.license,
+    license: PACKAGE_METADATA.license,
     homepage: "https://github.com/kjmin-dev/xds/blob/main/docs/library.md",
-    bugs: launcher.bugs,
-    repository: { ...launcher.repository, directory: PACKAGES[key].dir },
+    bugs: PACKAGE_METADATA.bugs,
+    repository: { ...PACKAGE_METADATA.repository, directory: PACKAGES[key].dir },
     type: "module",
     sideEffects: ["*.css"],
     exports: { ...exports, "./package.json": "./package.json" },

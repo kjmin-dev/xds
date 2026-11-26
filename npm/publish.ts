@@ -1,7 +1,8 @@
 // Publishes one channel's npm packages for a release, or rehearses it:
 //
-//   node npm/publish.ts <cli|web|react-native> [--dry-run]
+//   node npm/publish.ts <web|react-native> [--dry-run]
 //
+// Every package is under the @xds scope: nothing of xds is published under a name of its own.
 // The packages are the ones the channel's build wrote under npm/dist, and they go out in
 // dependency order, under the channel's dist-tag; a prerelease version goes out under `next`.
 // A version npm already has is skipped, so a rerun after a partial failure publishes the rest.
@@ -12,7 +13,7 @@
 // accepts. The rehearsal fails when it is missing or refused, after it has packed every package.
 
 import { spawnSync } from "node:child_process";
-import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
@@ -25,19 +26,6 @@ const REGISTRY = "https://registry.npmjs.org/";
 type Channel = { tag: string; packages: () => Promise<string[]> };
 
 const CHANNELS: Record<string, Channel> = {
-  // The platform packages, then xds-cli, which depends on them, then create-xds, which depends
-  // on xds-cli. build-packages.mjs fails a release that lacks a platform's binary.
-  cli: {
-    tag: "latest",
-    packages: async () => {
-      const entries = await readdir(dist, { withFileTypes: true });
-      const platforms = entries
-        .filter((entry) => entry.isDirectory() && entry.name.startsWith("xds-cli-"))
-        .map((entry) => entry.name)
-        .sort();
-      return [...platforms, "xds-cli", "create-xds"].map((name) => join(dist, name));
-    },
-  },
   // A preview channel while its behavior library, Zag.js 2, is a prerelease (docs/library.md,
   // "Stability levels"). The tokens, then what the frameworks share, then the frameworks.
   web: {

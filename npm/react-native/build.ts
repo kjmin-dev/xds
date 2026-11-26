@@ -16,6 +16,7 @@ import { parseArgs } from "node:util";
 import { emitTypeScriptTheme } from "../../tools/design-build/src/emit.ts";
 import { loadModel } from "../../tools/design-build/src/model.ts";
 import { listThemes } from "../../tools/design-build/src/themes.ts";
+import { PACKAGE_METADATA } from "../package-metadata.ts";
 import { releaseVersion } from "../release-version.ts";
 
 export const root = resolve(import.meta.dirname, "../..");
@@ -162,20 +163,15 @@ export async function buildPackage(out: string): Promise<string> {
   );
 
   const typed = (path: string) => ({ types: `./lib/${path}.d.ts`, default: `./lib/${path}.js` });
-  const launcher = JSON.parse(await readFile(join(root, "npm/xds-cli/package.json"), "utf8")) as {
-    license: string;
-    bugs: string;
-    repository: { type: string; url: string };
-  };
   const manifest = {
     name: NAME,
     version,
     description: "The xds design system's components for React Native and Expo apps.",
     keywords: ["design-system", "design-tokens", "components", "react-native", "expo"],
-    license: launcher.license,
+    license: PACKAGE_METADATA.license,
     homepage: "https://github.com/kjmin-dev/xds/blob/main/docs/react-native-library.md",
-    bugs: launcher.bugs,
-    repository: { ...launcher.repository, directory: "packages/ui-native" },
+    bugs: PACKAGE_METADATA.bugs,
+    repository: { ...PACKAGE_METADATA.repository, directory: "packages/ui-native" },
     type: "module",
     main: "./lib/index.js",
     types: "./lib/index.d.ts",

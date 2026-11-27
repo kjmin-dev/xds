@@ -185,12 +185,12 @@ async function tokens() {
     "tokens/colors.mdx",
     {
       title: "Colors",
-      description: "Every semantic and component color token, with its light and dark value.",
+      description: "All semantic and component color tokens in light and dark modes.",
       order: 1,
     },
     [
       NOTE("design/tokens"),
-      "Screens and components use the semantic colors. The component colors belong to one component each, on every platform. The raw palette is not listed: nothing outside the token files refers to it.",
+      "Screens and components use semantic color tokens; component tokens apply to a single component across every platform. The raw palette is omitted because nothing outside the token files references it directly.",
       "## Semantic colors",
       ...semantic.map((name) => `### ${title(name)}\n\n${colorTable(groups.get(name) ?? [])}`),
       "## Component colors",
@@ -208,12 +208,12 @@ async function tokens() {
     "tokens/typography.mdx",
     {
       title: "Typography",
-      description: "The type roles and the font tokens they are built from.",
+      description: "Typography roles and the font tokens behind them.",
       order: 2,
     },
     [
       NOTE("design/tokens/base.json"),
-      "Screens pick a role, never a raw size. A role is written as size / line height / weight.",
+      "Screens use typographic roles rather than raw font sizes. Each role is listed as size / line height / weight.",
       "## Roles",
       valueTable("typography"),
       "## Font",
@@ -225,13 +225,14 @@ async function tokens() {
     "tokens/sizes.mdx",
     {
       title: "Sizes and space",
-      description: "Control sizes for pointer and touch input, spacing, radius, borders and focus.",
+      description:
+        "Control sizes for pointer and touch input, plus spacing, radius, border, and focus tokens.",
       order: 3,
     },
     [
       NOTE("design/tokens"),
       "## Control sizes",
-      "Sizes depend on the input device, not on the width of the screen.",
+      "Control sizes scale by input device rather than viewport width.",
       table(
         ["Token", "Pointer", "Touch", "Use"],
         model.sizes.map((token) => [
@@ -254,7 +255,7 @@ async function tokens() {
     "tokens/motion-and-shadow.mdx",
     {
       title: "Motion and shadow",
-      description: "Durations, easing curves, the press scale and the three shadows.",
+      description: "Durations, easing curves, press scale, and shadow tokens.",
       order: 4,
     },
     [
@@ -262,7 +263,7 @@ async function tokens() {
       "## Motion",
       valueTable("motion"),
       "## Shadow",
-      "A shadow is written as offset x, offset y, blur, spread, then its color.",
+      "Shadows are listed as offset x, offset y, blur, spread, and color.",
       valueTable("shadow"),
     ].join("\n\n"),
   );
@@ -275,8 +276,8 @@ async function tokens() {
   );
   const parts: string[] = [
     NOTE("design/themes"),
-    "A theme is an accent ramp and a neutral ramp. The semantic colors refer to the palette by step, so swapping the two ramps recolors everything. Every theme passes every contrast check, because each step has the same relative luminance as the same step of `indigo`.",
-    "Apply one with `xds theme <name>` in a project, or `mise run theme <name>` in this repository.",
+    "Each theme defines an accent ramp and a neutral ramp. Semantic colors reference palette steps by index, so swapping the two ramps recolors the entire system. Every theme passes all WCAG contrast checks because each step matches the relative luminance of the corresponding step in `indigo`.",
+    "Apply a theme with `xds theme <name>` in a scaffolded project, or `mise run theme <name>` in this repository.",
   ];
   for (const theme of themes) {
     const themed = await loadModel(tokensDir, join(root, "design/themes", `${theme.name}.json`));
@@ -309,7 +310,7 @@ async function tokens() {
     "tokens/themes.mdx",
     {
       title: "Themes",
-      description: "The five color themes that ship with the template.",
+      description: "The five built-in color themes.",
       order: 5,
     },
     parts.join("\n\n"),
@@ -368,15 +369,15 @@ async function components() {
         ? {
             imports: 'import Demo from "../../../components/Demo.astro";',
             frame: `<Demo name="${component.slug}" title="${component.name} examples" />`,
-            text: "The frame above shows the real web components, in the mode this site is in.",
+            text: "The frame above shows the live web component in the site's current color mode.",
           }
         : {
             imports: 'import PhoneDemo from "../../../components/PhoneDemo.astro";',
             frame: `<PhoneDemo name="${component.slug}" title="${component.name} example" />`,
             // What a reader could take for the app and is not. One line: the Markdown copy
             // drops it with the frame.
-            text: "The frame above shows the real React Native component from `@acme/ui-native`, in the mode this site is in, drawn in this browser by react-native-web. It answers clicks, taps and the keyboard, but it is not a phone: the text is in the browser's system font, nothing that iOS or Android draws itself (the status bar, the home indicator, system animations) is there, and where a component takes one path on iOS and another on Android, here it takes neither.",
-            soon: "Pictures from the iOS and Android apps will follow.",
+            text: "The frame above shows the live React Native component from `@acme/ui-native`, rendered in the browser via react-native-web in the site's current color mode. It responds to clicks, taps, and keyboard input, though it is not a real device: text uses the browser's system font, native OS chrome (status bar, home indicator, system transitions) is absent, and iOS/Android platform branches do not run here.",
+            soon: "Screenshots from the iOS and Android apps will be added later.",
           };
     // With pictures from the real clients, the live example becomes the first of a row of tabs.
     const pictures = captures[component.name];
@@ -391,13 +392,13 @@ async function components() {
             'import PreviewTabs from "../../../components/PreviewTabs.astro";',
             live.imports,
             `<PreviewTabs name="${component.name}">\n${live.frame}\n</PreviewTabs>`,
-            `${live.text} The ${list(tabs)} ${tabs.length > 1 ? "tabs show pictures of the component taken from the real clients" : "tab shows a picture of the component taken from the real client"}.`,
+            `${live.text} The ${list(tabs)} ${tabs.length > 1 ? "tabs show screenshots captured from the native clients" : "tab shows a screenshot captured from the native client"}.`,
           ]
         : [live.imports, live.frame, live.soon ? `${live.text} ${live.soon}` : live.text]),
       ...(link
-        ? [`The [design preview](${link}) shows it next to every other web component.`]
+        ? [`See it alongside every other web component in the [design preview](${link}).`]
         : []),
-      "## When to use it",
+      "## Usage",
       component.guidance.map((line) => `- ${line}`).join("\n"),
       "## Example",
       `\`\`\`${component.exampleLanguage}\n${component.example}\n\`\`\``,
@@ -405,10 +406,10 @@ async function components() {
         ? [
             "## Options",
             component.demo === "native"
-              ? "The React Native component's props. Compose takes the same options under its own naming conventions."
+              ? "Props for the React Native component. Compose and Flutter expose the same options using their own naming conventions."
               : platforms.clients.some((client) => has(client.id) && client.input === "touch")
-                ? "The web component's props. The other platforms take the same options under their own naming conventions."
-                : "The web component's props. GPUI takes the same options under its own naming conventions.",
+                ? "Props for the web component. Other platforms expose the same options using their own naming conventions."
+                : "Props for the web component. GPUI exposes the same options using its own naming conventions.",
             table(
               ["Prop", "Type", "Notes"],
               component.props.map((prop) => [
@@ -450,16 +451,16 @@ async function components() {
     "components/index.mdx",
     {
       title: "All components",
-      description: "Every component, and which clients have it.",
+      description: "Complete list of components and platform availability.",
       order: 0,
     },
     [
       NOTE("design/components.json and template.json"),
       'import ComponentMatrix from "../../../components/ComponentMatrix.astro";',
-      "Every client has the same components under the same names, with three kinds of exception. Navigation made for touch (TopBar, TabBar and BottomSheet) is only on the touch clients, and hover help and the app sidebar (Tooltip and Sidebar) only on the pointer clients. Some components also look or open differently on some clients, or have an option that only some clients have: each component's Platforms section says how.",
-      "A client is a touch or a pointer client by what its components are designed for, not by where it runs: Compose is a touch client, and takes the pointer sizes on the desktop.",
+      "Every client implements the same components under the same names, with a few platform-specific exceptions. Touch navigation components (`TopBar`, `TabBar`, and `BottomSheet`) exist only on touch clients, while hover and desktop navigation components (`Tooltip` and `Sidebar`) exist only on pointer clients. Some components also differ in presentation or expose platform-specific options; see each component's Platforms section for details.",
+      "Clients are classified as touch or pointer by the interaction model their components target, not strictly by where they run: Compose is a touch client that switches to pointer sizes on desktop.",
       "<ComponentMatrix />",
-      "A desktop shell that wraps a web app, such as Electron or Tauri, has no column of its own: it has what the web library it wraps has.",
+      "Desktop shells that wrap a web app (Electron and Tauri) do not have separate columns—they inherit the components of the web library they wrap.",
     ].join("\n\n"),
   );
 }
@@ -477,7 +478,8 @@ await guide(
     {
       path: "install",
       title: "Install xds",
-      description: "Install the xds CLI with npm, the installer script, or from source.",
+      description:
+        "Install the xds CLI with the installer script, from a GitHub release, or from source.",
       take: ["Install"],
       intro: true,
     },
@@ -485,32 +487,32 @@ await guide(
       path: "commands",
       title: "Commands",
       description:
-        "xds list, create, add, themes and theme, and the read commands tokens, components, contrast and doctor.",
+        "Reference for xds list, create, add, themes, theme, tokens, components, contrast, check-theme, export-theme, and doctor.",
       take: ["Commands"],
     },
     {
       path: "targets-and-themes",
       title: "Targets and themes",
-      description: "The client stacks xds can scaffold and how color themes are applied.",
+      description: "Available client targets and how color themes are applied.",
       take: ["Targets", "Themes"],
     },
     {
       path: "agents",
       title: "For scripts and agents",
-      description: "JSON output, exit codes, AGENTS.md, the agent skill, and the xds mcp server.",
+      description: "JSON output, exit codes, AGENTS.md, the agent skill, and the xds MCP server.",
       take: ["For scripts and agents"],
     },
     {
       path: "template",
       title: "How the template works",
       description:
-        "How xds cuts the template down to the selected clients, and how to add a stack.",
+        "How xds filters the template for selected clients and how to add a new client stack.",
       take: ["How the template is filtered", "Adding a client stack"],
     },
     {
       path: "releasing",
       title: "Releasing",
-      description: "How a release of xds is built and published.",
+      description: "How xds binaries and platform libraries are built and published.",
       take: ["Releasing"],
     },
   ],
@@ -525,38 +527,38 @@ await guide(
       path: "overview",
       title: "How it fits together",
       description:
-        "One set of design tokens, compiled for each platform, and the same components on all of them.",
+        "Shared DTCG design tokens compiled for each platform, driving matching component libraries.",
       take: ["How it fits together"],
       intro: true,
     },
     {
       path: "standards",
       title: "Standards",
-      description: "The accessibility and platform standards the design system holds itself to.",
+      description: "Accessibility and platform standards enforced by the design system.",
       take: ["Standards"],
     },
     {
       path: "tokens",
       title: "Token structure",
-      description: "Source files, the three tiers of color, themes, typography and sizes.",
+      description: "Source files, color tiers, themes, typography, and size scales.",
       take: ["Tokens"],
     },
     {
       path: "components",
       title: "Component contract",
-      description: "What every platform's components share, and where the platforms differ.",
+      description: "Shared component specifications and documented platform differences.",
       take: ["Components"],
     },
     {
       path: "conventions",
       title: "Design conventions",
-      description: "Which conventions of current open-source design systems the look follows.",
+      description: "Visual conventions adopted from current open-source design systems.",
       take: ["Design conventions", "Keeping platforms consistent"],
     },
     {
       path: "limitations",
       title: "Known limitations",
-      description: "What the design system does not do yet.",
+      description: "Current gaps and known limitations in the design system.",
       take: ["Known limitations"],
     },
   ],

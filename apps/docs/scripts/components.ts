@@ -34,14 +34,14 @@ export const COMPONENTS: Component[] = [
   {
     slug: "button",
     name: "Button",
-    summary: "Starts an action.",
+    summary: "Triggers an action or toggles a state.",
     guidance: [
-      "Use `primary` for the one action a view is for, at most once per view. `secondary` is any other action, `ghost` one that should stay out of the way, and `danger` one that destroys something.",
-      "Label it with a verb.",
-      "Pressing it scales it down slightly, so the feedback does not depend on color.",
-      "A disabled button is recolored with its own tokens rather than faded. A loading button keeps its label and its colors, because the action was accepted.",
-      "`iconStart` and `iconEnd` draw an icon beside the label, in the label's color. A button with an icon and no label is a square: name it with `aria-label`.",
-      "Giving `selected` makes the button a toggle that reports its state to assistive technology. A selected `secondary` or `ghost` button is tinted and outlined and its `iconStart` is filled, so the state does not depend on color. `primary` and `danger` keep their look.",
+      "Use `primary` for the single main action on a view (at most once per view). Use `secondary` for standard actions, `ghost` for low-emphasis actions, and `danger` for destructive ones.",
+      "Label buttons with a clear verb.",
+      "Pressing a button scales it down slightly so press feedback does not rely on color alone.",
+      "Disabled buttons use dedicated disabled tokens instead of reduced opacity. Loading buttons keep their label and active colors while the action is in progress.",
+      "`iconStart` and `iconEnd` render icons alongside the label in the same color. An icon-only button renders as a square and requires an `aria-label`.",
+      "Passing `selected` turns the button into a toggle (`aria-pressed`). Selected `secondary` and `ghost` buttons show a tinted fill, accent border, and filled `iconStart`; `primary` and `danger` keep their fills.",
     ],
     example: `import { Button } from "@acme/ui";
 
@@ -60,43 +60,43 @@ export const COMPONENTS: Component[] = [
       {
         name: "size",
         type: '"sm" | "md" | "lg"',
-        description: "Defaults to `md`. The heights depend on the input device.",
+        description: "Defaults to `md`. Heights adapt to pointer vs. touch input.",
       },
       {
         name: "iconStart",
         type: "IconName",
-        description: "An icon in front of the label. 16 pixels, or 20 in a `lg` button.",
+        description: "Leading icon: 16px, or 20px in `lg` buttons.",
       },
-      { name: "iconEnd", type: "IconName", description: "An icon after the label." },
+      { name: "iconEnd", type: "IconName", description: "Trailing icon." },
       {
         name: "selected",
         type: "boolean",
         description:
-          "Given at all, the button is a toggle and sets `aria-pressed`. `true` draws a `secondary` or `ghost` button selected.",
+          "Enables toggle mode (`aria-pressed`). When `true`, styles `secondary` and `ghost` buttons as selected.",
       },
       { name: "disabled", type: "boolean", description: "" },
       {
         name: "loading",
         type: "boolean",
         description:
-          "Shows a spinner and ignores presses. The label stays and the spinner stands where `iconStart` was, so the button keeps its width.",
+          "Shows a spinner and disables clicks. Keeps the label visible and replaces `iconStart` so the button width stays stable.",
       },
       {
         name: "fullWidth",
         type: "boolean",
-        description: "Stretches to the width of its container.",
+        description: "Expands to fill the container width.",
       },
       { name: "type", type: '"button" | "submit" | "reset"', description: "Defaults to `button`." },
       { name: "onPress", type: "() => void", description: "" },
       {
         name: "aria-label",
         type: "string",
-        description: "Names the button for assistive technology when it has no text.",
+        description: "Accessible name required for icon-only buttons.",
       },
       {
         name: "children",
         type: "ReactNode",
-        description: "The label. Leave it out for a button that holds only an icon.",
+        description: "Button label. Omit for icon-only buttons.",
       },
     ],
     demo: "web",
@@ -105,14 +105,14 @@ export const COMPONENTS: Component[] = [
   {
     slug: "text-field",
     name: "TextField",
-    summary: "A labelled text field, of one line or several.",
+    summary: "Single-line or multi-line text input with a visible label.",
     guidance: [
-      "Always give it a visible label. Placeholder text is not a substitute: it disappears as soon as the person types.",
-      "An error replaces the description, turns the border red and makes it thicker.",
-      "Clear `error` as soon as the person edits the value. An invalid field blocks its form from being submitted, so an error left in place would block the corrected value too.",
-      "`leading` and `trailing` put an icon, a unit or a small button inside the box. They take the placeholder's color unless they set their own, and the box keeps its height.",
-      "`multiline` makes a text area `rows` lines tall that scrolls beyond that. Slots line up with its first line.",
-      "`maxLength` stops the field at that many characters and counts them under its end edge, on the same line as the description or the error.",
+      "Always provide a visible label. Placeholder text disappears as soon as the user types and cannot replace a label.",
+      "Setting `error` replaces `description` and switches to a thicker red border.",
+      "Clear `error` as soon as the user edits the field so an invalid state does not block submitting the corrected value.",
+      "`leading` and `trailing` place an icon, unit, or compact control inside the input without changing its height; they inherit the placeholder color unless styled otherwise.",
+      "`multiline` renders a textarea sized to `rows` lines that scrolls past that height. Slots align with the first line.",
+      "`maxLength` caps input length and displays a character counter on the trailing edge opposite the description or error.",
     ],
     example: `import { Icon, TextField } from "@acme/ui";
 
@@ -181,10 +181,10 @@ export const COMPONENTS: Component[] = [
   {
     slug: "text",
     name: "Text",
-    summary: "Text in one of the type roles.",
+    summary: "Typographic text styled by a semantic role.",
     guidance: [
-      "Pick a role with `variant`, never a raw font size. A role sets size, weight, line height and letter spacing together.",
-      "Choose the element with `as` for the document outline (`h1`, `h2`, `p`), not for looks.",
+      "Choose a role via `variant` instead of a raw font size; each role sets size, weight, line height, and letter spacing together.",
+      "Choose the HTML element via `as` for document semantics (`h1`, `h2`, `p`), independent of visual styling.",
     ],
     example: `import { Text } from "@acme/ui";
 
@@ -211,12 +211,12 @@ export const COMPONENTS: Component[] = [
   {
     slug: "badge",
     name: "Badge",
-    summary: "A short status or category.",
+    summary: "Compact label for a status or category.",
     guidance: [
-      "The words carry the meaning and the color only reinforces it, so a badge still reads for someone who cannot tell the tones apart.",
-      '`dot` adds a small mark for live states such as "connected", and `icon` a drawing in front of the words.',
-      "`overlay` is for a badge that sits on a picture: translucent black with white text, the same in both color modes.",
-      "For a number of things waiting, use a CountBadge.",
+      "The label should carry the meaning on its own; color only reinforces it.",
+      '`dot` adds a status indicator for live states such as "Connected", and `icon` places a 12px icon before the label.',
+      "`overlay` renders a translucent dark pill with white text for placement over images, unchanged across light and dark modes.",
+      "For numeric counts, use `CountBadge`.",
     ],
     example: `import { Badge } from "@acme/ui";
 
@@ -234,7 +234,7 @@ export const COMPONENTS: Component[] = [
       {
         name: "icon",
         type: "IconName",
-        description: "Drawn 12 pixels wide before the label, after the dot when there is one.",
+        description: "12px icon rendered before the label (after `dot` if both are set).",
       },
     ],
     demo: "web",
@@ -243,11 +243,11 @@ export const COMPONENTS: Component[] = [
   {
     slug: "count-badge",
     name: "CountBadge",
-    summary: "A count on an icon, an avatar or a button: unread messages, items in a cart.",
+    summary: "Numeric badge for unread counts or cart items on an icon, avatar, or button.",
     guidance: [
-      "Around a child it sits on the child's top end corner, overlapping it, and follows the layout direction. On its own it is laid out inline, as at the end of a list row.",
-      "A count of zero or less draws no badge. A count above `max` reads `99+`.",
-      'Say what is counted with `label`, such as "3 unread notifications". Without it assistive technology reads the number alone.',
+      "When wrapping a child, it overlaps the top-end corner and follows layout direction. Without children, it renders inline (for example, at the end of a `ListRow`).",
+      "Counts of `0` or less render nothing. Values above `max` display as `99+`.",
+      'Pass `label` (such as `"3 unread notifications"`) so screen readers announce context rather than a bare number.',
     ],
     example: `import { CountBadge, Icon } from "@acme/ui";
 
@@ -257,13 +257,21 @@ export const COMPONENTS: Component[] = [
 <CountBadge count={120} />`,
     exampleLanguage: "tsx",
     props: [
-      { name: "count", type: "number", description: "Required. Zero or less draws no badge." },
-      { name: "max", type: "number", description: "The largest number shown. Defaults to 99." },
-      { name: "label", type: "string", description: "What a screen reader says." },
+      { name: "count", type: "number", description: "Required. Values `<= 0` render nothing." },
+      {
+        name: "max",
+        type: "number",
+        description: "Maximum number shown before `+`. Defaults to `99`.",
+      },
+      {
+        name: "label",
+        type: "string",
+        description: "Accessible label announced by screen readers.",
+      },
       {
         name: "children",
         type: "ReactNode",
-        description: "What the count belongs to. The badge sits on its top end corner.",
+        description: "Optional anchor element; the badge overlays its top-end corner.",
       },
     ],
     demo: "web",
@@ -272,12 +280,12 @@ export const COMPONENTS: Component[] = [
   {
     slug: "banner",
     name: "Banner",
-    summary: "A message about the whole view or a section of it.",
+    summary: "Inline status message for a page or section.",
     guidance: [
-      "Each tone has its own mark shape, so the tone does not depend on color.",
-      "`warning` and `danger` interrupt a screen reader. `info` and `success` wait their turn.",
-      "`action` adds one small secondary button under the message, for the thing the person can do about it.",
-      "`onDismiss` adds a close control at the top end. The banner does not hide itself: the handler decides what happens to it.",
+      "Each tone uses a distinct icon shape so status does not rely on color alone.",
+      "`warning` and `danger` announce assertively to screen readers; `info` and `success` announce politely.",
+      "`action` adds a small secondary button beneath the message for a direct recovery or follow-up action.",
+      "`onDismiss` renders a close button at the top-end corner. The banner is controlled—the handler decides whether to unmount it.",
     ],
     example: `import { Banner } from "@acme/ui";
 
@@ -300,13 +308,13 @@ export const COMPONENTS: Component[] = [
       {
         name: "action",
         type: "{ label: string; onPress: () => void }",
-        description: "A small secondary button under the message.",
+        description: "Small secondary button shown below the message.",
       },
-      { name: "onDismiss", type: "() => void", description: "Shows a close control." },
+      { name: "onDismiss", type: "() => void", description: "Renders a dismiss button." },
       {
         name: "dismissLabel",
         type: "string",
-        description: "What a screen reader says for the close control. Defaults to `Dismiss`.",
+        description: "Accessible label for the dismiss button. Defaults to `Dismiss`.",
       },
     ],
     demo: "web",
@@ -315,13 +323,13 @@ export const COMPONENTS: Component[] = [
   {
     slug: "card",
     name: "Card",
-    summary: "A surface that groups related content.",
+    summary: "Elevated container for grouping related content.",
     guidance: [
-      "A hairline border and a subtle shadow separate it from the page. In dark mode, where shadows barely show, the lighter fill does that.",
-      "`flush` removes the padding, for a card that holds a list whose rows run edge to edge.",
-      "`media` puts a picture at the top, edge to edge and clipped to the card's top corners.",
-      "`onPress` makes the whole card one button, with a focus ring and its own hover and pressed fills. Put no other control inside it; it takes no `actions`.",
-      "`selected` replaces the hairline with a thicker accent outline without changing the card's size, so the state does not depend on color. Given at all on a pressable card, it also sets `aria-pressed`.",
+      "A hairline border and subtle shadow separate the card from the page in light mode; in dark mode, the lighter surface fill provides the separation.",
+      "`flush` removes internal padding and gaps—useful when wrapping edge-to-edge list rows.",
+      "`media` renders full-bleed media at the top, clipped to the card's top corners.",
+      "`onPress` turns the entire card into a single button with hover, pressed, and focus states. Do not nest interactive controls inside a pressable card; `actions` is ignored when `onPress` is set.",
+      "`selected` replaces the hairline border with a thicker accent outline without shifting layout, and sets `aria-pressed` on pressable cards.",
     ],
     example: `import { Button, Card } from "@acme/ui";
 
@@ -378,11 +386,11 @@ export const COMPONENTS: Component[] = [
   {
     slug: "spinner",
     name: "Spinner",
-    summary: "Says that something is in progress, for work of unknown length.",
+    summary: "Indeterminate loading indicator.",
     guidance: [
-      "It takes the color of the text around it.",
-      "With `label` it is announced to assistive technology. Without one it is decoration next to text that already says what is happening.",
-      "For work of known length, use a ProgressBar.",
+      "Inherits the surrounding text color.",
+      "Provide `label` to announce loading state to assistive technology; omit it when adjacent text already describes what is loading.",
+      "For operations with known progress, use `ProgressBar`.",
     ],
     example: `import { Spinner } from "@acme/ui";
 
@@ -390,7 +398,11 @@ export const COMPONENTS: Component[] = [
     exampleLanguage: "tsx",
     props: [
       { name: "size", type: '"sm" | "md" | "lg"', description: "Defaults to `md`." },
-      { name: "label", type: "string", description: "What a screen reader says." },
+      {
+        name: "label",
+        type: "string",
+        description: "Accessible label announced by screen readers.",
+      },
     ],
     demo: "web",
     preview: "Card",
@@ -398,10 +410,10 @@ export const COMPONENTS: Component[] = [
   {
     slug: "switch",
     name: "Switch",
-    summary: "Turns a setting on or off, and takes effect at once.",
+    summary: "Toggle for settings that take effect immediately.",
     guidance: [
-      "For a choice that is applied later, with a form, use a Checkbox.",
-      "The track holds 3:1 contrast against the page when off, so the control is visible before it is on.",
+      "For selections submitted later as part of a form, use `Checkbox`.",
+      "The track maintains 3:1 contrast against the page even when off.",
     ],
     example: `import { Switch } from "@acme/ui";
 
@@ -413,12 +425,12 @@ export const COMPONENTS: Component[] = [
       {
         name: "label",
         type: "string",
-        description: "Shown beside the switch. Pressing it toggles too.",
+        description: "Label beside the switch. Clicking it toggles the switch.",
       },
       {
         name: "aria-label",
         type: "string",
-        description: "Names the switch when there is no visible label.",
+        description: "Accessible name when no visible label is provided.",
       },
       { name: "disabled", type: "boolean", description: "" },
     ],
@@ -428,8 +440,8 @@ export const COMPONENTS: Component[] = [
   {
     slug: "checkbox",
     name: "Checkbox",
-    summary: "A choice that is applied later, with the form it belongs to.",
-    guidance: ["For a setting that takes effect at once, use a Switch."],
+    summary: "Binary selection applied when a form is submitted.",
+    guidance: ["For settings that take effect immediately, use `Switch`."],
     example: `import { Checkbox } from "@acme/ui";
 
 <Checkbox label="Remember me" checked={remember} onChange={setRemember} />`,
@@ -440,12 +452,12 @@ export const COMPONENTS: Component[] = [
       {
         name: "label",
         type: "string",
-        description: "Shown beside the box. Pressing it toggles too.",
+        description: "Label beside the checkbox. Clicking it toggles the checkbox.",
       },
       {
         name: "aria-label",
         type: "string",
-        description: "Names the checkbox when there is no visible label.",
+        description: "Accessible name when no visible label is provided.",
       },
       { name: "name", type: "string", description: "" },
       { name: "disabled", type: "boolean", description: "" },
@@ -456,10 +468,10 @@ export const COMPONENTS: Component[] = [
   {
     slug: "segmented-control",
     name: "SegmentedControl",
-    summary: "A choice between a few views or modes, all visible at once.",
+    summary: "Inline switcher for two to four mutually exclusive views or modes.",
     guidance: [
-      "The selected segment is outlined as well as filled, so the choice does not depend on telling two greys apart.",
-      "On the web it is a group of native radio buttons, so the arrow keys move between segments.",
+      "The active segment is raised with a border and shadow so selection does not rely on background contrast alone.",
+      "On the web, it renders native radio inputs so arrow keys move between segments.",
     ],
     example: `import { SegmentedControl } from "@acme/ui";
 
@@ -481,11 +493,15 @@ export const COMPONENTS: Component[] = [
       },
       { name: "value", type: "Value", description: "Required." },
       { name: "onChange", type: "(value: Value) => void", description: "Required." },
-      { name: "aria-label", type: "string", description: "Required. Says what is being chosen." },
+      {
+        name: "aria-label",
+        type: "string",
+        description: "Required. Accessible name for the group.",
+      },
       {
         name: "fullWidth",
         type: "boolean",
-        description: "Stretches to the width of its container.",
+        description: "Expands to fill the container width.",
       },
     ],
     demo: "web",
@@ -494,11 +510,11 @@ export const COMPONENTS: Component[] = [
   {
     slug: "avatar",
     name: "Avatar",
-    summary: "Stands for a person or a team by a picture, or by their initials when there is none.",
+    summary: "User or team image with automatic initials fallback.",
     guidance: [
-      "Assistive technology gets the full name, with or without a picture. The small size has room for one letter.",
-      "The initials show while the picture loads, and stay if it fails.",
-      "For several people in the room of one, use an AvatarStack.",
+      "Assistive technology receives the full `name` whether an image loads or not. The `sm` size displays a single initial.",
+      "Initials display while the image loads and remain visible if loading fails.",
+      "To display a compact group of avatars, use `AvatarStack`.",
     ],
     example: `import { Avatar } from "@acme/ui";
 
@@ -510,12 +526,12 @@ export const COMPONENTS: Component[] = [
       {
         name: "src",
         type: "string",
-        description: "The URL of a picture. It fills the circle, cropped to cover.",
+        description: "Image URL, cropped to fill the circle.",
       },
       {
         name: "size",
         type: '"sm" | "md" | "lg" | "xl"',
-        description: "Defaults to `md`. 24, 32, 40 and 56 pixels.",
+        description: "Defaults to `md` (`24`, `32`, `40`, or `56px`).",
       },
     ],
     demo: "web",
@@ -524,11 +540,11 @@ export const COMPONENTS: Component[] = [
   {
     slug: "avatar-stack",
     name: "AvatarStack",
-    summary: "Several people in the room of one: overlapping avatars, and a count of the rest.",
+    summary: "Overlapping group of avatars with an overflow count.",
     guidance: [
-      "Each avatar covers a quarter of the one before it, with a ring in the color of the surface between them, so put the stack on a surface.",
-      "When there are more people than `max`, a last circle counts those that did not fit.",
-      "Assistive technology gets one image named after everyone in it. Give a `label` when the list of names would be too long to listen to.",
+      "Each avatar overlaps the previous one by 25% with a surface-colored ring, so place the stack on a matching surface.",
+      "When `people.length` exceeds `max`, a trailing circle displays `+N` for the remaining count.",
+      "Exposed to assistive technology as a single image listing every name. Pass `label` when the full list would be too verbose.",
     ],
     example: `import { AvatarStack } from "@acme/ui";
 
@@ -545,14 +561,18 @@ export const COMPONENTS: Component[] = [
       {
         name: "people",
         type: "readonly { name: string; src?: string }[]",
-        description: "Required. In the order they are drawn.",
+        description: "Required. Rendered in order.",
       },
-      { name: "max", type: "number", description: "How many avatars to draw. Defaults to 4." },
+      {
+        name: "max",
+        type: "number",
+        description: "Maximum avatars shown before `+N`. Defaults to `4`.",
+      },
       { name: "size", type: '"sm" | "md" | "lg" | "xl"', description: "Defaults to `md`." },
       {
         name: "label",
         type: "string",
-        description: "Replaces the list of names that a screen reader says.",
+        description: "Custom accessible label overriding the generated list of names.",
       },
     ],
     demo: "web",
@@ -561,18 +581,18 @@ export const COMPONENTS: Component[] = [
   {
     slug: "progress-bar",
     name: "ProgressBar",
-    summary: "How far along something is.",
-    guidance: ["For work of unknown length, use a Spinner."],
+    summary: "Determinate progress indicator.",
+    guidance: ["For indeterminate work, use `Spinner`."],
     example: `import { ProgressBar } from "@acme/ui";
 
 <ProgressBar label="Upload" value={0.6} />`,
     exampleLanguage: "tsx",
     props: [
-      { name: "value", type: "number", description: "Required. From 0 to 1." },
+      { name: "value", type: "number", description: "Required. Progress from `0` to `1`." },
       {
         name: "label",
         type: "string",
-        description: "Required. A screen reader reads it with the percentage.",
+        description: "Required. Announced alongside the percentage by screen readers.",
       },
     ],
     demo: "web",
@@ -581,12 +601,12 @@ export const COMPONENTS: Component[] = [
   {
     slug: "icon",
     name: "Icon",
-    summary: "A drawing from the icon set, in the color of the text around it.",
+    summary: "SVG icon from the design system icon set, inheriting surrounding text color.",
     guidance: [
-      "An icon beside a label is decoration: leave `label` out and assistive technology skips it. An icon that stands alone needs a `label`.",
-      "`xs` fits inside a badge, `sm` and `md` sit beside text, `lg` stands alone, as in a tab bar, and `xl` illustrates, as in an empty state.",
-      "`filled` marks a selected state by form, so the state does not depend on color alone: a heart that was pressed, a bookmark that is saved. Use it only on icons made of closed shapes.",
-      "The icons are the SVG files in `design/icons`. Add one there and run `mise run tokens`.",
+      "Icons next to text are decorative—omit `label` so screen readers skip them. Standalone icons require `label`.",
+      "Use `xs` inside badges, `sm` and `md` inline with text, `lg` for standalone navigation icons (such as tab bars), and `xl` for illustrations like empty states.",
+      "`filled` adds a solid fill beneath the stroke to indicate active state by shape as well as color (for example, a liked heart or saved bookmark). Use it only on closed-shape icons.",
+      "Icons come from the SVG files in `design/icons`. Add a new SVG there and run `mise run tokens`.",
     ],
     example: `import { Icon } from "@acme/ui";
 
@@ -623,12 +643,12 @@ export const COMPONENTS: Component[] = [
   {
     slug: "list-row",
     name: "ListRow",
-    summary: "One line of a list or a settings screen.",
+    summary: "Single row for lists, navigation, or settings screens.",
     guidance: [
-      "Separate rows with a Divider, inside a `flush` Card.",
-      "`onPress` makes the whole row a button. Do not put another control in `trailing` then.",
-      "`selected` marks the row that is the current choice: tinted, with a heavier title, and reported with `aria-current`.",
-      "`compact` is a shorter row with smaller text, for dense lists such as a sidebar or a menu.",
+      "Separate adjacent rows with `Divider` inside a `flush` `Card`.",
+      "`onPress` turns the entire row into a button; do not place another interactive control in `trailing` when `onPress` is set.",
+      "`selected` highlights the active row with a tinted fill, bolder title, and `aria-current`.",
+      "`compact` reduces row height and text size for dense lists like menus and sidebars.",
     ],
     example: `import { Avatar, ListRow } from "@acme/ui";
 
@@ -666,13 +686,13 @@ export const COMPONENTS: Component[] = [
   {
     slug: "icon-button",
     name: "IconButton",
-    summary: "A button that holds only an icon.",
+    summary: "Square button displaying only an icon.",
     guidance: [
-      "Use it where the icon is familiar and room is short: a toolbar, the end of a row, the corner of a card. Where there is room, a Button with a label is clearer.",
-      "`label` is required. It is the accessible name, since there is no visible text. Add a Tooltip on pointer clients so that people who see the icon can read the name too.",
-      "It takes Button's variants, sizes and states. The default variant is `ghost`.",
-      "It is a square as tall as a Button of its size. Its pressable area is never smaller than the minimum target, even when the square is.",
-      "Giving `selected` makes it a toggle. A selected `secondary` or `ghost` icon button is tinted and outlined and its icon is filled.",
+      "Use for recognizable icons in tight spaces like toolbars, list rows, or card corners. When space allows, prefer a labeled `Button`.",
+      "`label` is required as the accessible name. Pair with a `Tooltip` on pointer clients so sighted users can also see the label.",
+      "Shares `Button`'s variants, sizes, and states, defaulting to `ghost`.",
+      "Hit area always meets the minimum target size even when the visual square is smaller.",
+      "Passing `selected` enables toggle mode (`aria-pressed`), tinting and outlining `secondary` and `ghost` buttons with a filled icon.",
     ],
     example: `import { IconButton } from "@acme/ui";
 
@@ -682,7 +702,7 @@ export const COMPONENTS: Component[] = [
     exampleLanguage: "tsx",
     props: [
       { name: "icon", type: "IconName", description: "Required." },
-      { name: "label", type: "string", description: "Required. The accessible name." },
+      { name: "label", type: "string", description: "Required. Accessible name." },
       {
         name: "variant",
         type: '"primary" | "secondary" | "ghost" | "danger"',
@@ -691,18 +711,18 @@ export const COMPONENTS: Component[] = [
       {
         name: "size",
         type: '"sm" | "md" | "lg"',
-        description: "Defaults to `md`. The icon is 16, 20 or 24 pixels.",
+        description: "Defaults to `md`. Icon renders at `16`, `20`, or `24px`.",
       },
       {
         name: "selected",
         type: "boolean",
-        description: "Given at all, the button is a toggle and sets `aria-pressed`.",
+        description: "Enables toggle mode and sets `aria-pressed`.",
       },
       { name: "disabled", type: "boolean", description: "" },
       {
         name: "loading",
         type: "boolean",
-        description: "Shows a spinner in the icon's place and ignores presses.",
+        description: "Replaces the icon with a spinner and disables clicks.",
       },
       { name: "onPress", type: "() => void", description: "" },
     ],
@@ -712,12 +732,12 @@ export const COMPONENTS: Component[] = [
   {
     slug: "chip",
     name: "Chip",
-    summary: "A choice that filters what is shown.",
+    summary: "Interactive filter pill.",
     guidance: [
-      "Use chips for filters that can be combined. Unlike a Badge, a chip is pressed.",
-      "A selected chip is tinted, outlined and marked with a check, which takes the place of `iconStart`. The state does not depend on color, and selecting does not change the chip's height.",
-      "The chip holds no state: pass `selected` and change it in `onPress`.",
-      "It is a toggle button, so assistive technology hears whether it is pressed.",
+      "Use chips for combinable filters. Unlike `Badge`, chips are interactive toggles.",
+      "Selected chips show a tinted fill, accent border, and checkmark (replacing `iconStart`) without changing height.",
+      "Controlled component: pass `selected` and update it in `onPress`.",
+      "Rendered as a toggle button (`aria-pressed`).",
     ],
     example: `import { Chip } from "@acme/ui";
 
@@ -731,7 +751,7 @@ export const COMPONENTS: Component[] = [
       {
         name: "iconStart",
         type: "IconName",
-        description: "An icon in front of the label. A selected chip shows a check instead.",
+        description: "Leading icon, replaced by a checkmark when selected.",
       },
       { name: "disabled", type: "boolean", description: "" },
     ],
@@ -741,12 +761,12 @@ export const COMPONENTS: Component[] = [
   {
     slug: "chip-bar",
     name: "ChipBar",
-    summary: "One row of chips that scrolls sideways.",
+    summary: "Horizontally scrolling single-row container for filter chips.",
     guidance: [
-      "Put the filters of a list in it, above the list.",
-      "The row never wraps. When the chips do not fit it scrolls sideways, without a visible scroll bar, so the content under it stays where it is.",
-      "The bar holds no state: which chips are selected is the app's business.",
-      "`label` names the group for assistive technology.",
+      "Place above a list to hold its filter chips.",
+      "Never wraps; scrolls horizontally without a visible scrollbar so content below stays aligned.",
+      "Stateless layout container—selection state lives in the parent.",
+      "`label` provides the accessible group name.",
     ],
     example: `import { Chip, ChipBar } from "@acme/ui";
 
@@ -756,8 +776,12 @@ export const COMPONENTS: Component[] = [
 </ChipBar>`,
     exampleLanguage: "tsx",
     props: [
-      { name: "label", type: "string", description: "Required. Says what the chips filter." },
-      { name: "children", type: "ReactNode", description: "Required. The chips." },
+      {
+        name: "label",
+        type: "string",
+        description: "Required. Accessible name for the filter group.",
+      },
+      { name: "children", type: "ReactNode", description: "Required. `Chip` items." },
     ],
     demo: "web",
     preview: "Chips",
@@ -765,13 +789,13 @@ export const COMPONENTS: Component[] = [
   {
     slug: "tabs",
     name: "Tabs",
-    summary: "Switches between views inside one screen.",
+    summary: "Horizontal tab bar for switching between views within a screen.",
     guidance: [
-      "For two to four short modes a SegmentedControl is lighter. Tabs are for more items, longer labels, or a row that may have to scroll.",
-      "The selected tab is underlined as well as darker, so the choice does not depend on color.",
-      "The row scrolls sideways when the tabs do not fit, without a visible scroll bar.",
-      "The component is only the row. The app shows the view that matches `value`.",
-      "On the web the arrow keys move between tabs.",
+      "For two to four short modes, `SegmentedControl` is lighter. Use `Tabs` for more items, longer labels, or horizontally scrollable navigation.",
+      "The active tab displays both darker text and an underline indicator so selection does not rely on color alone.",
+      "Scrolls horizontally without a visible scrollbar when tabs overflow.",
+      "Renders only the tab bar; the parent renders the panel matching `value`.",
+      "On the web, arrow keys move between tabs.",
     ],
     example: `import { Tabs } from "@acme/ui";
 
@@ -803,13 +827,13 @@ export const COMPONENTS: Component[] = [
   {
     slug: "menu",
     name: "Menu",
-    summary: "A list of actions that opens from a control.",
+    summary: "Contextual action list anchored to a trigger control.",
     guidance: [
-      "Use it for actions that do not deserve a button of their own. Keep the most used action outside the menu.",
-      "Choosing an item calls its `onSelect` and closes the menu. A press outside, Escape or Back closes it too.",
-      "Mark an action that destroys something with `danger` and put it last, after a separator.",
-      "A `selected` item shows a check at its end, so the state does not depend on color.",
-      "On the web the trigger has to be a Button or an IconButton. It reports that it opens a menu and whether the menu is open; the arrow keys move the highlight, Enter chooses, and focus returns to the trigger on close.",
+      "Use for secondary actions that do not need standalone buttons; keep the primary action visible outside the menu.",
+      "Selecting an item runs `onSelect` and closes the menu. Clicking outside, pressing Escape, or pressing Back also closes it.",
+      "Mark destructive items with `danger` and place them last after a separator.",
+      "Selected items display a trailing checkmark so state does not rely on color alone.",
+      "On the web, `trigger` must be a `Button` or `IconButton`. Arrow keys move focus, Enter activates an item, and focus returns to the trigger on close.",
     ],
     example: `import { IconButton, Menu } from "@acme/ui";
 
@@ -849,13 +873,13 @@ export const COMPONENTS: Component[] = [
   {
     slug: "dialog",
     name: "Dialog",
-    summary: "A window that interrupts the screen for a confirmation or a short task.",
+    summary: "Modal overlay for confirmations or focused short tasks.",
     guidance: [
-      "Use it when the person has to decide before going on. For a message that needs no answer, use a Banner or a Toast.",
-      "Word the title as the question and the actions as its answers: `Delete the report?`, `Cancel`, `Delete`. Put the main action last.",
-      "It does not close itself: `open` decides. Escape, Back and a press outside call `onClose`.",
-      "Set `dismissible` to false only for a question that must be answered. Then only an action closes the dialog.",
-      "It is a modal dialog named by its title and described by its description. Focus moves into it, stays inside it, and returns to where it was on close.",
+      "Use when the user must make a decision before continuing. For non-blocking messages, use `Banner` or `Toast`.",
+      "Frame the title as a clear question and the actions as direct answers (`Delete weekly report?`, `Cancel`, `Delete`), with the primary action last.",
+      "Controlled via `open`. Pressing Escape, Back, or the backdrop calls `onClose`.",
+      "Set `dismissible={false}` only when an explicit choice is required; Escape and backdrop clicks are then ignored.",
+      "Traps focus while open and restores focus to the previous element on close.",
     ],
     example: `import { Button, Dialog } from "@acme/ui";
 
@@ -877,24 +901,24 @@ export const COMPONENTS: Component[] = [
       {
         name: "onClose",
         type: "() => void",
-        description: "Required. Called on Escape and on a press outside the dialog.",
+        description: "Required. Called on Escape or backdrop click.",
       },
-      { name: "title", type: "string", description: "Required. Names the dialog." },
-      { name: "description", type: "string", description: "Describes the dialog." },
+      { name: "title", type: "string", description: "Required. Accessible dialog title." },
+      { name: "description", type: "string", description: "Accessible dialog description." },
       {
         name: "children",
         type: "ReactNode",
-        description: "The body. It scrolls when the dialog would be taller than the window.",
+        description: "Optional body content; scrolls if taller than the viewport.",
       },
       {
         name: "actions",
         type: "ReactNode",
-        description: "Buttons, in a row at the end edge.",
+        description: "Action buttons aligned to the trailing edge.",
       },
       {
         name: "dismissible",
         type: "boolean",
-        description: "Defaults to `true`. When false, Escape and a press outside do nothing.",
+        description: "Defaults to `true`. Set to `false` to disable Escape and backdrop dismissal.",
       },
     ],
     demo: "web",
@@ -903,13 +927,13 @@ export const COMPONENTS: Component[] = [
   {
     slug: "toast",
     name: "Toast",
-    summary: "A short message about what just happened, which leaves on its own.",
+    summary: "Transient confirmation message that dismisses automatically.",
     guidance: [
-      "Use it to confirm something the person just did, optionally with one action such as undoing it.",
-      "Do not put the only way to do something in a toast: it is gone in a few seconds. For a message that has to stay, use a Banner.",
-      "It does not close itself: `open` decides, and `onClose` is called when the time is up and after the action.",
-      "On the web the time does not run while the pointer is over the toast or focus is inside it.",
-      "It is announced politely and never takes focus.",
+      "Use to confirm a completed action, optionally with a quick follow-up such as `Undo`.",
+      "Never put the only path to an action inside a toast—it disappears after a few seconds. Use `Banner` for persistent notices.",
+      "Controlled via `open`; `onClose` fires when the timer expires or after the action is clicked.",
+      "On the web, the auto-dismiss timer pauses while the toast is hovered or focused.",
+      "Announced politely to screen readers without stealing focus.",
     ],
     example: `import { Toast } from "@acme/ui";
 
@@ -925,18 +949,19 @@ export const COMPONENTS: Component[] = [
       {
         name: "onClose",
         type: "() => void",
-        description: "Required. Called when the time is up and after the action.",
+        description: "Required. Called when the timer expires or after the action runs.",
       },
       { name: "message", type: "string", description: "Required." },
       {
         name: "action",
         type: "{ label: string; onPress: () => void }",
-        description: "Choosing it calls `onPress` and then `onClose`.",
+        description: "Optional action button; runs `onPress` then calls `onClose`.",
       },
       {
         name: "duration",
         type: "number",
-        description: "In milliseconds. Defaults to 5000. `0` keeps the toast until it is closed.",
+        description:
+          "Auto-dismiss delay in milliseconds. Defaults to `5000`; `0` disables auto-dismiss.",
       },
     ],
     demo: "web",
@@ -945,13 +970,13 @@ export const COMPONENTS: Component[] = [
   {
     slug: "tooltip",
     name: "Tooltip",
-    summary: "Names a control when the pointer rests on it or the keyboard focuses it.",
+    summary: "Short text hint shown on pointer hover or keyboard focus.",
     guidance: [
-      "Touch input has no hover, so nothing may depend on a tooltip.",
-      "Use it on a control that has no visible text, such as an IconButton, and say what the control does in a word or two.",
-      "It describes the control and is not its name: an IconButton still needs its `label`.",
-      "It appears after half a second under a pointer and at once on keyboard focus, and goes when the pointer leaves, focus leaves, or Escape is pressed.",
-      "It never holds anything pressable.",
+      "Touch devices have no hover, so never hide essential information in a tooltip.",
+      "Use on icon-only controls like `IconButton` to reveal a brief label and optional shortcut.",
+      "A tooltip supplements rather than replaces an accessible name—`IconButton` still requires `label`.",
+      "Appears after 500ms on hover, immediately on keyboard focus, and dismisses on pointer leave, blur, or Escape.",
+      "Never place interactive elements inside a tooltip.",
     ],
     example: `import { IconButton, Tooltip } from "@acme/ui";
 
@@ -960,17 +985,17 @@ export const COMPONENTS: Component[] = [
 </Tooltip>`,
     exampleLanguage: "tsx",
     props: [
-      { name: "label", type: "string", description: "Required. The text." },
-      { name: "shortcut", type: "string", description: "A key hint shown after the label." },
+      { name: "label", type: "string", description: "Required. Tooltip text." },
+      { name: "shortcut", type: "string", description: "Optional keyboard shortcut hint." },
       {
         name: "placement",
         type: '"top" | "bottom"',
-        description: "Defaults to `top`. It flips when there is no room.",
+        description: "Defaults to `top`; flips automatically when clipped.",
       },
       {
         name: "children",
         type: "ReactNode",
-        description: "Required. The control it describes: a Button or an IconButton.",
+        description: "Required. Trigger control (`Button` or `IconButton`).",
       },
     ],
     demo: "web",
@@ -979,12 +1004,12 @@ export const COMPONENTS: Component[] = [
   {
     slug: "skeleton",
     name: "Skeleton",
-    summary: "Holds the place of content that is loading.",
+    summary: "Placeholder block reserving space for loading content.",
     guidance: [
-      "Use skeletons in the shape of the content that is coming, so the screen does not jump when it arrives. For an action in progress, use a Spinner.",
-      "`text` is one line of body text, `rect` a block such as a picture, and `circle` an avatar.",
-      "It pulses, and stands still for people who ask for less motion.",
-      "It is hidden from assistive technology. The screen that shows skeletons says that it is loading, once.",
+      "Match the layout shape of incoming content to prevent layout shift. For actions in progress, use `Spinner`.",
+      "`text` matches a line of body copy, `rect` fits media or blocks, and `circle` fits avatars.",
+      "Pulses smoothly and stays static when reduced motion is enabled.",
+      "Hidden from assistive technology; announce loading state once on the enclosing container.",
     ],
     example: `import { Skeleton } from "@acme/ui";
 
@@ -1014,12 +1039,12 @@ export const COMPONENTS: Component[] = [
   {
     slug: "search-field",
     name: "SearchField",
-    summary: "A text field for a query.",
+    summary: "Pill-shaped input for search and filtering.",
     guidance: [
-      "Use it to search or filter what is on the screen. For a value that is saved with a form, use a TextField, which has a visible label.",
-      "`label` is required and is not shown: it is the accessible name. The search icon says what the field is for.",
-      "While there is a value, a control at the end clears it and keeps focus in the field. On the web Escape clears too.",
-      "`onSubmit` is called on Enter, or on the search key of a software keyboard.",
+      "Use for searching or filtering on-screen content. For form fields that save data, use `TextField` with a visible label.",
+      "`label` is required for accessibility and is visually hidden; the leading search icon indicates the field's purpose.",
+      "When non-empty, a trailing clear button resets the value and keeps focus in the input. On the web, Escape also clears the field.",
+      "`onSubmit` fires on Enter or the software keyboard's search key.",
     ],
     example: `import { SearchField } from "@acme/ui";
 
@@ -1050,13 +1075,13 @@ export const COMPONENTS: Component[] = [
   {
     slug: "radio-group",
     name: "RadioGroup",
-    summary: "One choice among a few, applied later with the form it belongs to.",
+    summary: "Single-choice selection from a small set of visible options.",
     guidance: [
-      "Use it for two to about six options that should all be seen at once. For a choice that takes effect at once among two to four options, a SegmentedControl is the usual pick; for a long list, a Select.",
-      "`label` is the group's visible legend and names it for assistive technology.",
-      "The chosen option has a thicker ring and a dot, so the choice does not depend on color. The whole row of an option is pressable, description included.",
-      "`error` shows under the options and is announced. Clear it when the choice changes.",
-      "On the web the options are native radio buttons: the arrow keys move between them.",
+      "Use for two to six options that should all remain visible. For immediate mode switching among two to four options, use `SegmentedControl`; for longer lists, use `Select`.",
+      "`label` renders as the group's visible legend and accessible name.",
+      "The selected option shows a thicker ring and center dot. The entire option row—including its description—is clickable.",
+      "`error` renders below the options and is announced to screen readers. Clear it when the selection changes.",
+      "On the web, options render as native radio inputs with arrow-key navigation.",
     ],
     example: `import { RadioGroup } from "@acme/ui";
 
@@ -1097,13 +1122,13 @@ export const COMPONENTS: Component[] = [
   {
     slug: "select",
     name: "Select",
-    summary: "A field for choosing one option from a list too long to show at once.",
+    summary: "Dropdown field for choosing one option from a long list.",
     guidance: [
-      "Closed, it looks like a TextField: a visible label, a description or an error under the box.",
-      "Pressed, the list opens under the field and as wide as it. The chosen option has a check.",
-      "Choosing an option calls `onChange` and closes the list. A press outside or Escape closes it too.",
-      "The field says that it opens a list and whether the list is open; the list is a list box with a selected option. On the web the arrow keys move, typing jumps to an option, and Enter chooses.",
-      "For two to about six options that should all be seen, use a RadioGroup.",
+      "When closed, it matches `TextField` with a visible label and a description or error beneath the box.",
+      "When opened, the listbox matches the trigger width and marks the active option with a checkmark.",
+      "Selecting an option calls `onChange` and closes the list; clicking outside or pressing Escape also closes it.",
+      "Exposes listbox ARIA state. On the web, arrow keys navigate options, typing jumps by prefix, and Enter selects.",
+      "For two to six options that should stay visible, use `RadioGroup`.",
     ],
     example: `import { Select } from "@acme/ui";
 
@@ -1147,13 +1172,13 @@ export const COMPONENTS: Component[] = [
   {
     slug: "date-picker",
     name: "DatePicker",
-    summary: "A field for choosing one day.",
+    summary: "Single-date calendar picker field.",
     guidance: [
-      "Closed, it looks like a Select: the chosen day in the language's medium form, such as Mar 10, 2026, or the placeholder, with a description or an error under the box.",
-      "Pressed, a calendar of one month opens under the field, on the chosen day, or on today while none is. Days before `min` or after `max` are dimmed and cannot be chosen. Today has a ring; the chosen day is a filled circle.",
-      "Choosing a day calls `onChange` with it as `YYYY-MM-DD` and closes the calendar. A press outside or Escape closes it without a choice, and the focus goes back to the field.",
-      "The field is a button that says it opens a dialog and whether it is open. In the calendar the arrow keys move a day or a week, Page Up and Page Down a month (a year with Shift), and Home and End to the first and the last day of the month, never past `min` or `max`. Tab goes round the month buttons and the focused day.",
-      "The names of the months and days, the form of the day and the first day of the week follow the language of the page, and on GPUI, Compose and React Native the system's. One day only, for a range there is DateRangePicker: there is no typing a date, and no month or year view.",
+      "When closed, it resembles `Select` and displays the selected date in the locale's medium format (for example, `Mar 10, 2026`), or `placeholder` when empty.",
+      "Opening shows a single-month calendar focused on the selected date (or today, clamped to `min`/`max`). Out-of-range dates are dimmed and disabled; today shows a ring and the selected date a filled circle.",
+      "Selecting a date calls `onChange` with `YYYY-MM-DD` and closes the calendar. Clicking outside or pressing Escape dismisses without changing the value and returns focus to the field.",
+      "In the calendar, arrow keys move by day or week, Page Up/Page Down move by month (with Shift for year), and Home/End jump to the start or end of the month within `min`/`max`. Tab cycles between the month buttons and the focused day.",
+      "Month names, weekday names, date formatting, and the first day of the week follow the page locale on web and the system locale on GPUI, Compose, and React Native. For date ranges, use `DateRangePicker`. Direct text input and month/year zoom views are not supported.",
     ],
     example: `import { DatePicker } from "@acme/ui";
 
@@ -1212,14 +1237,14 @@ export const COMPONENTS: Component[] = [
   {
     slug: "date-range-picker",
     name: "DateRangePicker",
-    summary: "A field for choosing a range of days, a start and an end.",
+    summary: "Calendar picker for selecting a start and end date range.",
     guidance: [
-      "Use it for a stay, a trip or a leave, where both ends are chosen together. Closed, it looks like a DatePicker and shows both days, saying what they share once: Mar 10 – 14, 2026.",
-      "Pressed, a calendar opens under the field on the start's month, or on today's while nothing is chosen: two months side by side where the window has room, one where it does not. A summary above the months names the two ends after `startLabel` and `endLabel`.",
-      "The first day pressed starts the range, and the band shows it to the day under the pointer or the keyboard's focus. The second day ends it: `onChange` gets both days as `YYYY-MM-DD` and the calendar closes. A day before the start starts again from there, as booking sites do. Over a chosen range, a press starts a new one.",
-      "`minLength` and `maxLength` count the days from the start to the end, the nights of a stay. While the end is chosen, the days they rule out cannot be chosen. With no `minLength`, the same day twice is a range of one day.",
-      "Escape or a press outside closes the calendar and drops a start without an end; the field keeps the chosen range. The keys are DatePicker's, and Page Up and Page Down move a month whether one or two are shown. Each month is a grid of its own, every day of the range is selected, and the ends are named by their labels.",
-      "Unavailable days inside the bounds, typing the dates and presets such as next week are not part of it.",
+      "Use for stays, trips, or leave ranges where both endpoints are picked together. When closed, it formats both dates cleanly, collapsing shared months or years (for example, `Mar 10 – 14, 2026`).",
+      "Opening shows two side-by-side months when space permits (or one on narrow viewports) beneath a summary bar labeled with `startLabel` and `endLabel`.",
+      "The first click sets the start date and previews the span as you hover or move focus; the second click sets the end date, fires `onChange` once with `{ start, end }` in `YYYY-MM-DD`, and closes the calendar. Clicking a date before the start resets the start there.",
+      "`minLength` and `maxLength` constrain the day span between start and end (for example, nights of a stay) and disable invalid end dates while picking. With no `minLength`, picking the same day twice creates a single-day range.",
+      "Escape or clicking outside cancels an incomplete selection and keeps the previous range. Keyboard navigation matches `DatePicker`, with Page Up/Page Down shifting by one month regardless of how many months are visible.",
+      'Blocked individual dates inside bounds, manual text entry, and preset shortcuts (such as "Next week") are not included.',
     ],
     example: `import { DateRangePicker } from "@acme/ui";
 
@@ -1309,12 +1334,12 @@ export const COMPONENTS: Component[] = [
   {
     slug: "slider",
     name: "Slider",
-    summary: "Picks a number in a range by dragging.",
+    summary: "Range control for picking a numeric value along a track.",
     guidance: [
-      "Use it where the exact number matters less than where it sits in the range, such as a volume. For an exact number, use a TextField.",
-      "Pressing the track moves the thumb there. Values snap to `step`.",
-      "`showValue` shows the current value at the end of the label's line.",
-      "It is a slider named by its label, with its value, minimum and maximum. Each arrow key moves it one step.",
+      "Use when relative position matters more than an exact figure (such as volume). For precise numeric input, use `TextField`.",
+      "Clicking the track jumps the thumb to that position; values snap to `step`.",
+      "`showValue` displays the current numeric value at the trailing end of the label row.",
+      "Exposes slider ARIA attributes (`min`, `max`, `value`), with arrow keys adjusting by one step.",
     ],
     example: `import { Slider } from "@acme/ui";
 
@@ -1341,34 +1366,34 @@ export const COMPONENTS: Component[] = [
   {
     slug: "thumbnail",
     name: "Thumbnail",
-    summary: "A picture in a fixed shape, for a video, an article or a product.",
+    summary: "Fixed-aspect-ratio image container for videos, articles, or products.",
     guidance: [
-      "It fills the width it is given and takes its height from `ratio`, cropping the picture to fill it.",
-      "While the picture loads, when it fails and without `src`, a placeholder with a picture mark shows.",
-      "`alt` describes the picture. An empty `alt` makes it decoration, as it is when a title beside it already says what it shows.",
-      "`badge` is short text on the bottom end corner, such as a duration. `progress` draws how much was watched across the bottom edge.",
+      "Fills the available width and derives height from `ratio`, cropping the image to cover.",
+      "Displays an image placeholder while loading, on error, or when `src` is omitted.",
+      "Pass descriptive `alt` text, or an empty string when adjacent text already describes the image.",
+      "`badge` renders a short overlay label (such as duration) in the bottom-end corner; `progress` draws a watch-progress bar along the bottom edge.",
     ],
     example: `import { Thumbnail } from "@acme/ui";
 
 <Thumbnail src={video.poster} alt="" badge="12:04" progress={0.35} />`,
     exampleLanguage: "tsx",
     props: [
-      { name: "src", type: "string | undefined", description: "The URL of the picture." },
+      { name: "src", type: "string | undefined", description: "Image URL." },
       {
         name: "alt",
         type: "string",
-        description: "Required. Describes the picture; an empty string makes it decoration.",
+        description: 'Required. Image description; pass `""` for decorative thumbnails.',
       },
       {
         name: "ratio",
         type: '"16:9" | "1:1" | "4:3" | "9:16"',
-        description: "Width to height. Defaults to `16:9`.",
+        description: "Aspect ratio. Defaults to `16:9`.",
       },
-      { name: "badge", type: "string", description: "Short text, such as a duration." },
+      { name: "badge", type: "string", description: "Short overlay text such as duration." },
       {
         name: "progress",
         type: "number",
-        description: "From 0 to 1. 0 draws no bar. With a badge, the badge moves above the bar.",
+        description: "Value from `0` to `1` (`0` hides the bar). Shifts `badge` upward when shown.",
       },
     ],
     demo: "web",
@@ -1377,13 +1402,13 @@ export const COMPONENTS: Component[] = [
   {
     slug: "media-card",
     name: "MediaCard",
-    summary: "A thumbnail with its title and details: a video in a feed, an article in a list.",
+    summary: "Thumbnail paired with a title and metadata for feeds or lists.",
     guidance: [
-      "`vertical` puts the thumbnail on top; `horizontal` puts it at the start, at 40% of the card's width.",
-      "The title takes at most two lines and each detail in `meta` one, then an ellipsis.",
-      "With `onPress` the whole card is one button, with no surface at rest. It is named by its title followed by its details.",
-      "`action` stays a control of its own, such as an IconButton or a Menu: pressing it does not press the card.",
-      "`leading` is shown in the vertical layout only, usually an Avatar.",
+      "`vertical` stacks the thumbnail on top; `horizontal` places it at the leading edge at 40% width.",
+      "Titles clamp to two lines and each `meta` entry clamps to one line with ellipsis.",
+      "With `onPress`, the entire card acts as a single button with no resting surface fill.",
+      "`action` remains an independent control (such as `IconButton` or `Menu`)—activating it does not trigger `onPress`.",
+      "`leading` (typically an `Avatar`) renders only in `vertical` layout.",
     ],
     example: `import { Avatar, IconButton, MediaCard } from "@acme/ui";
 
@@ -1436,10 +1461,10 @@ export const COMPONENTS: Component[] = [
   {
     slug: "section-header",
     name: "SectionHeader",
-    summary: "The title row of a group of content.",
+    summary: "Heading row introducing a content section, with an optional trailing action.",
     guidance: [
-      "The title is a heading at `level` for the document outline. Pick the level from the outline, not for looks.",
-      "`action` is a quiet small button at the end edge, such as `See all`. Its chevron points the other way in a right-to-left layout.",
+      "Renders the title as a heading at `level` (`h1`–`h6`). Choose `level` for document structure rather than visual size.",
+      "`action` renders a compact `ghost` button with a trailing chevron (such as `See all`) that mirrors automatically in RTL layouts.",
     ],
     example: `import { SectionHeader } from "@acme/ui";
 
@@ -1466,11 +1491,11 @@ export const COMPONENTS: Component[] = [
   {
     slug: "empty-state",
     name: "EmptyState",
-    summary: "What a screen says when it has nothing to show.",
+    summary: "Centered placeholder shown when a view has no content.",
     guidance: [
-      "Say what is missing in the title, and why or what will appear in the description.",
-      "Offer one action at most, the one that fills the screen.",
-      "It centers itself in its container, at most as wide as a dialog. The icon is decoration.",
+      "State what is missing in `title`, and explain why or what will appear in `description`.",
+      "Include at most one primary action to help populate the view.",
+      "Centers within its container (up to dialog width); the icon is decorative.",
     ],
     example: `import { Button, EmptyState } from "@acme/ui";
 
@@ -1482,10 +1507,14 @@ export const COMPONENTS: Component[] = [
 />`,
     exampleLanguage: "tsx",
     props: [
-      { name: "icon", type: "IconName", description: "Required. Drawn at the `xl` size." },
+      { name: "icon", type: "IconName", description: "Required. Rendered at `xl` size." },
       { name: "title", type: "string", description: "Required." },
       { name: "description", type: "string", description: "" },
-      { name: "action", type: "ReactNode", description: "Usually a Button." },
+      {
+        name: "action",
+        type: "ReactNode",
+        description: "Optional call to action, typically a `Button`.",
+      },
     ],
     demo: "web",
     preview: "Empty state",
@@ -1493,12 +1522,12 @@ export const COMPONENTS: Component[] = [
   {
     slug: "accordion",
     name: "Accordion",
-    summary: "Items whose bodies open and close under their titles.",
+    summary: "Collapsible list of sections that expand inline under their headers.",
     guidance: [
-      "Use it to shorten a page of answers or settings that are read one at a time. Content that everybody needs should not be hidden in one.",
-      "One item is open at a time unless `multiple` is set. `expanded` holds the open items' values; the app keeps it.",
-      "The chevron turns over on an open item, so the state does not depend on color. Opening and closing animate the height, and do not for people who ask for less motion.",
-      "Each title is a button that says whether its body is expanded and which body it controls.",
+      "Use for FAQs or secondary settings read one at a time; avoid hiding essential content inside an accordion.",
+      "Only one item stays open at a time unless `multiple` is enabled. `expanded` is controlled by the parent.",
+      "The chevron flips when expanded so state does not rely on color. Height animations are disabled when reduced motion is enabled.",
+      "Each header is a button exposing `aria-expanded` and `aria-controls`.",
     ],
     example: `import { Accordion } from "@acme/ui";
 
@@ -1520,13 +1549,13 @@ export const COMPONENTS: Component[] = [
       {
         name: "expanded",
         type: "readonly Value[]",
-        description: "Required. The values of the open items.",
+        description: "Required. Values of currently expanded items.",
       },
       { name: "onChange", type: "(expanded: Value[]) => void", description: "Required." },
       {
         name: "multiple",
         type: "boolean",
-        description: "Lets several items be open at once. Defaults to `false`.",
+        description: "Allow multiple items to be expanded simultaneously. Defaults to `false`.",
       },
     ],
     demo: "web",
@@ -1535,13 +1564,13 @@ export const COMPONENTS: Component[] = [
   {
     slug: "sidebar",
     name: "Sidebar",
-    summary: "The top-level places of an app used with a pointer.",
+    summary: "Top-level navigation rail for pointer-oriented apps.",
     guidance: [
-      "On touch, a TabBar holds the top-level places.",
-      "The current place is selected: tinted, its title heavier and its icon filled, so the place does not depend on color. Give it icons made of closed shapes.",
-      "`count` is how many things a place holds, in quiet text. For things waiting to be seen, put a CountBadge somewhere they are seen.",
-      "`collapsed` turns it into a rail of icons, each named by a Tooltip. The app decides when and keeps the state; `header` and `footer` have to fit the rail themselves.",
-      "It is navigation named by `label`, and the current row says it is the current page.",
+      "Pointer counterpart to `TabBar` on touch clients.",
+      "The active destination is tinted with a bolder label and a filled icon; use closed-shape icons for sidebar items.",
+      "`count` displays a muted item count. For unread alerts, place a `CountBadge` where it stays prominent.",
+      "`collapsed` shrinks the sidebar to an icon rail with tooltips. Collapse state is controlled by the app; `header` and `footer` should handle narrow widths.",
+      'Rendered as a `<nav>` landmark named by `label`, with `aria-current="page"` on the active item.',
     ],
     example: `import { Sidebar } from "@acme/ui";
 
@@ -1560,14 +1589,27 @@ export const COMPONENTS: Component[] = [
       {
         name: "sections",
         type: "readonly { title?: string; items: readonly { value: Value; label: string; icon: IconName; count?: number }[] }[]",
-        description: "Required. A section's title becomes a hairline while collapsed.",
+        description:
+          "Required. Section titles collapse into hairline dividers when `collapsed` is set.",
       },
-      { name: "value", type: "Value", description: "Required. The current place." },
+      { name: "value", type: "Value", description: "Required. Active destination." },
       { name: "onChange", type: "(value: Value) => void", description: "Required." },
-      { name: "label", type: "string", description: "Required. Names the navigation." },
-      { name: "collapsed", type: "boolean", description: "A rail of icons." },
-      { name: "header", type: "ReactNode", description: "At the top, such as the app's name." },
-      { name: "footer", type: "ReactNode", description: "At the bottom, such as an account row." },
+      {
+        name: "label",
+        type: "string",
+        description: "Required. Accessible navigation landmark label.",
+      },
+      { name: "collapsed", type: "boolean", description: "Renders as a compact icon rail." },
+      {
+        name: "header",
+        type: "ReactNode",
+        description: "Optional top slot (for example, app title or switcher).",
+      },
+      {
+        name: "footer",
+        type: "ReactNode",
+        description: "Optional bottom slot (for example, account row).",
+      },
     ],
     demo: "web",
     preview: "Sidebar",
@@ -1575,10 +1617,10 @@ export const COMPONENTS: Component[] = [
   {
     slug: "top-bar",
     name: "TopBar",
-    summary: "The bar at the top of a screen: where you are, and the way back.",
+    summary: "Navigation header showing the current screen title and optional back button.",
     guidance: [
-      "The default solid surface has the page’s background. On glass, give the trailing action an opaque fill.",
-      "It does not cover the status bar. Put it inside the safe area.",
+      'The default `solid` surface matches the page background. With `surface="glass"`, give trailing actions an opaque fill.',
+      "Place inside the top safe area so it does not overlap the status bar.",
     ],
     example: `import { Button, TopBar } from "@acme/ui-native";
 
@@ -1593,19 +1635,19 @@ export const COMPONENTS: Component[] = [
         name: "surface",
         type: '"solid" | "glass"',
         description:
-          "Defaults to solid. Glass samples a sibling GlassBackdrop inside a GlassScene.",
+          "Defaults to `solid`. `glass` samples a sibling `GlassBackdrop` inside a `GlassScene`.",
       },
       { name: "title", type: "string", description: "Required." },
-      { name: "onBack", type: "() => void", description: "Shows a back button." },
+      { name: "onBack", type: "() => void", description: "Renders a circular back button." },
       {
         name: "backLabel",
         type: "string",
-        description: "What a screen reader says for the back button. Defaults to `Back`.",
+        description: "Accessible label for the back button. Defaults to `Back`.",
       },
       {
         name: "trailing",
         type: "ReactNode",
-        description: "An action at the far end, such as a ghost button.",
+        description: "Optional trailing action such as a ghost button.",
       },
     ],
     demo: "native",
@@ -1613,11 +1655,11 @@ export const COMPONENTS: Component[] = [
   {
     slug: "tab-bar",
     name: "TabBar",
-    summary: "Switches between the top-level places of an app.",
+    summary: "Floating bottom navigation bar for top-level destinations on touch clients.",
     guidance: [
-      "Use it for three to five places.",
-      "It is a capsule that floats over the bottom of the screen, so give it a margin at the sides and below, inside the safe area.",
-      "The selected tab sits in a pill of its own, so the selection does not depend on color.",
+      "Use for three to five top-level destinations.",
+      "Floats as a capsule above the bottom edge; apply horizontal and bottom margins inside the safe area.",
+      "The active tab sits inside its own pill indicator so selection does not rely on color alone.",
     ],
     example: `import { TabBar } from "@acme/ui-native";
 
@@ -1635,12 +1677,12 @@ export const COMPONENTS: Component[] = [
         name: "surface",
         type: '"solid" | "glass"',
         description:
-          "Defaults to solid. Glass samples a sibling GlassBackdrop inside a GlassScene.",
+          "Defaults to `solid`. `glass` samples a sibling `GlassBackdrop` inside a `GlassScene`.",
       },
       {
         name: "items",
         type: "readonly { key: Key; label: string; icon: (color: string) => ReactNode }[]",
-        description: "Required. The icon is drawn above the label, 24 points square.",
+        description: "Required. Icons render at 24pt above each label.",
       },
       { name: "value", type: "Key", description: "Required." },
       { name: "onChange", type: "(key: Key) => void", description: "Required." },
@@ -1650,10 +1692,10 @@ export const COMPONENTS: Component[] = [
   {
     slug: "bottom-sheet",
     name: "BottomSheet",
-    summary: "A panel that slides up over the screen for a short task or a set of choices.",
+    summary: "Floating modal sheet that slides up from the bottom for short tasks or action lists.",
     guidance: [
-      "It floats: a margin separates it from the screen edges, and all four corners are rounded.",
-      "It closes on a tap outside, a drag down, or the back button.",
+      "Floats inset from the screen edges with all four corners rounded.",
+      "Dismisses on backdrop tap, downward drag, or the system back button.",
     ],
     example: `import { BottomSheet, Button } from "@acme/ui-native";
 
@@ -1666,20 +1708,19 @@ export const COMPONENTS: Component[] = [
         name: "surface",
         type: '"solid" | "glass"',
         description:
-          "Defaults to solid. Glass samples a sibling GlassBackdrop inside a GlassScene.",
+          "Defaults to `solid`. `glass` samples a sibling `GlassBackdrop` inside a `GlassScene`.",
       },
       { name: "open", type: "boolean", description: "Required." },
       {
         name: "onClose",
         type: "() => void",
-        description: "Required. Called when the person dismisses the sheet.",
+        description: "Required. Called when the sheet is dismissed.",
       },
       { name: "title", type: "string", description: "" },
       {
         name: "closeLabel",
         type: "string",
-        description:
-          "What a screen reader says for the area outside the sheet. Defaults to `Close`.",
+        description: "Accessible label for the dismiss scrim. Defaults to `Close`.",
       },
     ],
     demo: "native",

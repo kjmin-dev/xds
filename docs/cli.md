@@ -6,7 +6,7 @@ The template files are compiled directly into the binary. `xds` requires no netw
 
 ## Install
 
-The CLI is not on npm: xds publishes there only under the `@xds` scope, which holds the libraries.
+The CLI is not published to npm; the `@xds` npm scope is reserved for the component libraries.
 
 ### Installer script (macOS and Linux)
 
@@ -14,7 +14,7 @@ The CLI is not on npm: xds publishes there only under the `@xds` scope, which ho
 curl -fsSL https://raw.githubusercontent.com/kjmin-dev/xds/main/install.sh | sh
 ```
 
-The script downloads the prebuilt binary for your machine from the latest [GitHub release](https://github.com/kjmin-dev/xds/releases), verifies its SHA-256 checksum, and installs it to `~/.local/bin`. If that directory is not on your `PATH`, the script prints the line to add to your shell profile.
+The script downloads the prebuilt binary for your platform from the latest [GitHub release](https://github.com/kjmin-dev/xds/releases), verifies its SHA-256 checksum, and installs it to `~/.local/bin`. If that directory is not on your `PATH`, the script prints the export line to add to your shell profile.
 
 | Variable | Meaning | Default |
 | --- | --- | --- |
@@ -26,7 +26,7 @@ The script downloads the prebuilt binary for your machine from the latest [GitHu
 curl -fsSL https://raw.githubusercontent.com/kjmin-dev/xds/main/install.sh | XDS_VERSION=0.1.0 XDS_INSTALL_DIR=/usr/local/bin sh
 ```
 
-Prebuilt binaries are available for macOS (arm64, x86_64) and Linux (arm64, x86_64; statically linked so they run on any distribution). Windows takes the binary from the release.
+Prebuilt binaries are published for macOS (arm64, x86_64), statically linked Linux (arm64, x86_64), and Windows (x86_64).
 
 ### Windows
 
@@ -144,7 +144,7 @@ When `--title` contains spaces, `Acme` inside code identifiers is replaced with 
 
 ### Desktop shells
 
-`desktop-electron` and `desktop-tauri` open a selected web app on macOS, Windows or Linux. The same web routes, components and design preview run inside the shell. Electron ships Chromium. Tauri uses the system WebView and requires its platform development tools. [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) The macOS bundle requires 14.4 or later because the shared design preview uses `Object.groupBy`, added in Safari 17.4. [WebKit release notes](https://webkit.org/blog/15063/webkit-features-in-safari-17-4/)
+`desktop-electron` and `desktop-tauri` package a selected web app for macOS, Windows, and Linux, keeping the same routes, components, and design preview. Electron bundles Chromium; Tauri uses the OS WebView and requires the platform toolchain listed in the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/). On macOS, Tauri requires macOS 14.4 or later because the shared design preview uses `Object.groupBy` (introduced in [Safari 17.4](https://webkit.org/blog/15063/webkit-features-in-safari-17-4/)).
 
 ```sh
 xds create orbit --name orbit --targets desktop-electron --wrap web-solid --yes
@@ -210,7 +210,7 @@ Applied the sunset theme and regenerated the token files.
 
 When run in a terminal without a theme name, it opens the same interactive selector and live preview used by `create`, preselecting the project's active theme.
 
-`--dry-run` says whether the theme would change anything and writes nothing.
+`--dry-run` checks whether applying the theme would change any files without writing to disk.
 
 `theme` loads theme definitions and token files from the project directory rather than the embedded binary assets. Any custom themes added to `design/themes` appear in the selector, and the preview reflects any local edits to the project's semantic color tokens. The command works in any directory containing `design/tokens/palette.json` and `design/themes`, including a checkout of this template repository.
 
@@ -245,7 +245,7 @@ xds components Button --code                # with the source code
 
 This information comes from `design/components.json`, the component contract, which records each component's purpose, options, states, accessibility notes, and the source file and symbol that implement it on each client. In a project created with `xds create`, the contract is filtered down to that project's clients.
 
-Where clients differ in a way the contract's names do not show, the component has a `differences` list. Each entry names the `clients` it concerns, or an `input` (`pointer` or `touch`, from the targets in `template.json`) for every client designed for it, and a `kind`: `only` (an option, or one `value` of it, that only those clients have), `system` (the platform draws part of it, out of the tokens' reach), or `adapts` (it looks or opens differently for that input). `option` and `value` narrow it to one option, `status: "planned"` marks one not built yet, and `note` says what changes. `--json` and the MCP server return the entries as they are written.
+When clients differ in ways not captured by the shared contract names, the component includes a `differences` array. Each entry specifies either explicit `clients` or an `input` (`pointer` or `touch` from `template.json`), along with a `kind`: `only` (an option or `value` present only on those clients), `system` (a part rendered by the OS outside token control), or `adapts` (input-specific presentation or behavior). Optional `option` and `value` fields narrow the scope, `status: "planned"` flags unimplemented entries, and `note` explains the difference. Both `--json` and the MCP server return these entries verbatim.
 
 ### `xds contrast <foreground> <background>`
 
@@ -290,7 +290,7 @@ Exit code 0 means every pair passed in both modes. To see a failure, set the lig
 
 ### `xds export-theme <file>`
 
-Checks a theme file as `check-theme` does and, if every contrast pair passes, writes it for a client. By default it writes a stylesheet, which sets every token as a custom property on the elements that name the theme: the root element for the whole page, or any element for its contents. With `--format compose`, it writes a Kotlin file that holds the theme as a value for the Compose theme composable, with `--format react-native` a TypeScript module that holds it as a value for the React Native theme provider, and with `--format gpui` a Rust file that holds it as a constant for the GPUI components.
+Validates a theme file using the same checks as `check-theme` and, if all contrast pairings pass, exports it for a target client. The default format emits a CSS stylesheet defining custom properties scoped to the theme attribute (on the root element or any subtree). Pass `--format compose` for a Kotlin `Theme` value, `--format react-native` for a TypeScript `Theme` module, or `--format gpui` for a Rust `Theme` constant.
 
 ```sh
 xds export-theme brand.json -o brand.css
@@ -300,15 +300,14 @@ xds export-theme brand.json --format react-native -o brand.ts
 xds export-theme brand.json --format gpui -o src/brand.rs
 ```
 
-The theme is named after the file (`Brand Theme.json` becomes `brand-theme`) unless `--name` is given. Without `--out`, the file is written to stdout, or to the `css`, `kotlin`, `typescript` or `rust` field with `--json`. Outside a project, the stylesheet is for [the web library](web-library.md): its custom properties are `--xds-*`, it applies to `data-xds-theme="<name>"`, and it sits in the library's `xds.theme` cascade layer. In a project, the names use the project's name (`--orbit-*`, `data-orbit-theme`) and no layer, beside the project's own token file.
+The theme name defaults to the slugified filename (`Brand Theme.json` -> `brand-theme`) unless `--name` is passed. Without `--out`, output is written to stdout (or into the `css`, `kotlin`, `typescript`, or `rust` field when `--json` is passed).
 
-The Kotlin file declares `val <Name>Theme: Theme` (`brand` becomes `BrandTheme`), with every token's value, in the package `--package` names. Without `--package`, the package is `xds.themes`, or `<name>.themes` in a project. Outside a project, it refers to the types of [the Compose library](compose-library.md) (`xds.tokens`), and an app passes it as `XdsTheme(theme = BrandTheme)`. In a project, it refers to the project's own tokens (`orbit.tokens`), and the project's theme composable takes it the same way.
+- **CSS (default):** Outside a scaffolded project, targets [the web library](web-library.md) using `--xds-*` properties, `data-xds-theme="<name>"`, and the `xds.theme` cascade layer. Inside a project, uses the project prefix (`--orbit-*`, `data-orbit-theme`) with no layer.
+- **Compose (`--format compose`):** Declares `val <Name>Theme: Theme` (for example, `BrandTheme`) in `--package` (defaulting to `xds.themes`, or `<name>.themes` in a project). References `xds.tokens` from [the Compose library](compose-library.md) outside a project (`XdsTheme(theme = BrandTheme)`), or `<name>.tokens` inside a project.
+- **React Native (`--format react-native`):** Exports `const <name>Theme: Theme` (for example, `brandTheme`). Imports `Theme` from [the React Native library](react-native-library.md) outside a project (`<XdsTheme theme={brandTheme}>`), or from `@<name>/tokens` inside a project.
+- **GPUI (`--format gpui`):** Declares `pub const <NAME>_THEME: Theme` (for example, `BRAND_THEME`). References `xds_ui::tokens` from [the GPUI library](gpui-library.md) outside a project (`xds_ui::set_theme(&brand::BRAND_THEME, cx)`), or `<name>_ui::tokens` inside a project.
 
-The TypeScript module exports `const <name>Theme: Theme` (`brand` becomes `brandTheme`). Outside a project, `Theme` comes from [the React Native library](react-native-library.md), and an app passes the value as `<XdsTheme theme={brandTheme}>`. In a project, it comes from the project's tokens (`@orbit/tokens`), and the project's theme provider takes it the same way.
-
-The Rust file declares `pub const <NAME>_THEME: Theme` (`brand` becomes `BRAND_THEME`), with every token's value. Outside a project, `Theme` and the types it holds come from [the GPUI library](gpui-library.md) (`xds_ui::tokens`), and an app registers the constant as `xds_ui::set_theme(&brand::BRAND_THEME, cx)`. In a project, they come from the project's UI crate (`orbit_ui::tokens`), whose `set_theme` takes it the same way.
-
-A theme that fails a contrast check is not written. The command then exits with 1 and reports the failures as `check-theme` does.
+If any contrast check fails, nothing is written; the command exits with code 1 and prints the same failure report as `check-theme`.
 
 ### `xds doctor`
 
@@ -508,25 +507,29 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-`.github/workflows/release.yml` builds the release binary for five targets (`aarch64-apple-darwin`, `x86_64-apple-darwin`, `x86_64-unknown-linux-musl`, `aarch64-unknown-linux-musl`, `x86_64-pc-windows-msvc`), and attaches `xds-<target>.tar.gz` and its `.sha256` checksum to a GitHub release. The CLI goes nowhere else.
+`.github/workflows/release.yml` builds release binaries for five targets (`aarch64-apple-darwin`, `x86_64-apple-darwin`, `x86_64-unknown-linux-musl`, `aarch64-unknown-linux-musl`, `x86_64-pc-windows-msvc`) and attaches `xds-<target>.tar.gz` plus its `.sha256` checksum to the GitHub release.
 
-The same workflow publishes the libraries once their consumer checks pass: the web packages and the React Native package to npm, which requires `NPM_TOKEN`, a token that may publish under the `@xds` scope without a one-time password; the Compose library to Maven Central, and the GPUI crates to crates.io. crates.io requires `CARGO_REGISTRY_TOKEN`, an API token of the account that owns the crates, scoped to `publish-new` and `publish-update`. Maven Central requires four more secrets: `MAVEN_CENTRAL_USERNAME` and `MAVEN_CENTRAL_PASSWORD`, a user token from the Central Portal account that owns the `io.github.kjmin-dev` namespace, and `SIGNING_KEY` and `SIGNING_PASSWORD`, an ASCII-armored PGP secret key and its passphrase. The key's public half must be on a public key server, where Central looks for it.
+Once the consumer checks pass, the same workflow publishes the platform libraries:
 
-`npm/publish.ts` publishes each channel's npm packages in dependency order, `maven/upload.ts` sends the Compose library to Central, and `crates-io/publish.ts` publishes the GPUI crates. Each skips a version the registry already has, so a release that failed partway can be run again.
+- **npm (`NPM_TOKEN`):** Web and React Native packages under `@xds`, published in dependency order by `npm/publish.ts` (requires a token that can publish without OTP).
+- **Maven Central (`MAVEN_CENTRAL_USERNAME`, `MAVEN_CENTRAL_PASSWORD`, `SIGNING_KEY`, `SIGNING_PASSWORD`):** Compose library under `io.github.kjmin-dev`, uploaded by `maven/upload.ts`. `SIGNING_KEY` is an ASCII-armored PGP private key whose public half is uploaded to a public key server.
+- **crates.io (`CARGO_REGISTRY_TOKEN`):** GPUI crates, published by `crates-io/publish.ts` (requires a token scoped to `publish-new` and `publish-update`).
+
+Each publisher skips versions already present in its registry, so a partially failed release can be safely retried.
 
 ### Rehearsing a release
 
-Run the release workflow by hand on the commit you mean to tag, before tagging it and after changing a secret:
+Trigger the release workflow manually before tagging a release or after rotating secrets:
 
 ```sh
 gh workflow run release.yml --ref main
 ```
 
-A run started by hand (also Actions > Release > Run workflow) is a rehearsal of a release at the version in `cli/Cargo.toml`. Every job runs as it would for the tag: the five binaries are built, and each library is built and goes through its whole consumer check, on the Android emulator and for iOS too. Nothing is created or published. Each publishing step is rehearsed instead:
+A manual dispatch (or **Actions > Release > Run workflow**) rehearses the release at the version in `cli/Cargo.toml`. Every job runs end to end—building all five CLI binaries and running the full consumer checks (including Android emulator and iOS)—without creating or publishing anything:
 
-- npm packs every package as it would publish it, and must accept `NPM_TOKEN`;
-- the Compose library is signed with `SIGNING_KEY`, and Maven Central validates the bundle as it would before publishing it, including the namespace and the signatures against the key servers; the rehearsal then drops the deployment;
-- cargo packages the GPUI crates as it would publish them, and crates.io must let `CARGO_REGISTRY_TOKEN` publish each of them;
-- the summary of the GitHub release job shows the release the tag would create, with its files and notes.
+- npm packs every package and verifies `NPM_TOKEN`.
+- The Compose bundle is signed with `SIGNING_KEY`, validated by Maven Central (namespace and PGP key server lookup), and then dropped.
+- Cargo packages the GPUI crates and verifies publish permissions for `CARGO_REGISTRY_TOKEN`.
+- The GitHub release job summary previews the release notes and artifacts that a tag push would publish.
 
-The rehearsal fails when a secret is missing or refused, and names every one. It warns, without failing, when `CHANGELOG.md` has no section for the version yet or the version is already released.
+The dry run fails if any required secret is missing or rejected, listing each failure. Missing or already-released `CHANGELOG.md` entries emit a warning without failing the run.

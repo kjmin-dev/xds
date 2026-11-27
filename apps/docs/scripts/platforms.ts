@@ -197,9 +197,9 @@ export function clientsSentence(platforms: Platforms, component: Availability): 
     list(platforms.clients.filter(ids).map((client) => client.name));
   const has = (client: Client) => component.clients.includes(client.id);
   const { label } = reach(platforms, component);
-  if (label === "Every client") return `**Clients:** every client: ${names(has)}.`;
+  if (label === "Every client") return `**Clients:** all clients (${names(has)}).`;
   const why = label.startsWith("Only on") ? "" : ` (${label.toLowerCase()})`;
-  return `**Clients:** ${names(has)}${why}. Not on ${names((client) => !has(client))}.`;
+  return `**Clients:** ${names(has)}${why}. Not available on ${names((client) => !has(client))}.`;
 }
 
 /** The Platforms section of a component page, in Markdown that reads the same as text. */
@@ -231,7 +231,7 @@ export function platformsSection(platforms: Platforms, component: Availability):
       ].join("\n"),
     );
   }
-  parts.push("The [components index](/components/) shows every component against every client.");
+  parts.push("See the [components index](/components/) for the full client support matrix.");
   return parts.join("\n\n");
 }
 

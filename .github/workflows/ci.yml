@@ -140,7 +140,26 @@ jobs:
       - uses: jdx/mise-action@v5
         with:
           install_args: flutter java
+      # Avoid cold Maven Central downloads (which can hit HTTP 429 on shared runners) by reusing
+      # the Gradle cache. Falls back to the Kotlin job's cache when no Flutter entry exists yet.
+      - id: gradle-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-flutter-${{ runner.os }}-${{ hashFiles('flutter/app/android/**', 'mise.toml') }}
+          restore-keys: |
+            gradle-flutter-${{ runner.os }}-
+            gradle-${{ runner.os }}-
       - run: mise run //flutter:check
+      - if: github.ref == 'refs/heads/main' && steps.gradle-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ steps.gradle-cache.outputs.cache-primary-key }}
       # @if template
       - name: Record reference images for inspection
         if: failure()

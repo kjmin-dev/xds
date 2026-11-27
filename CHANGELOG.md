@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **GPUI library and scaffold** — What scrolls shows a scrollbar: a sidebar's places, a select's list, a dialog's body and the design preview draw GPUI Component's scrollbar, with no track and a thumb of `border.strong` that is `text.secondary` under the pointer. `set_mode` and `set_theme` now carry the tokens to the copy of its theme that GPUI Component draws the scrollbar, the resize handles and its text views from, which kept GPUI Component's own colors. [The GPUI library](docs/gpui-library.md#scrolling) shows how a view of the app draws the same scrollbar, and how to keep scrollbars in view. `mise run //desktop:render` keeps them in view, since they come and go on the real clock, which would make a picture depend on how long it took to draw.
 - **CLI** — The CLI is no longer built for npm: `xds-cli`, its platform packages and `create-xds` are gone, and xds publishes on npm only under the `@xds` scope. Install it with `install.sh` on macOS and Linux, or take the binary from the GitHub release on Windows.
 
 ## 0.1.0

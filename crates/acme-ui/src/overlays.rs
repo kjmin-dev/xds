@@ -27,6 +27,7 @@ use gpui_kit::base::{
 use gpui_kit::component::{
     Selectable, ThemeStyled as _,
     popover::{Popover, PopoverState},
+    scroll::ScrollableElement as _,
 };
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
@@ -796,10 +797,20 @@ impl Select {
                         .collect::<Vec<_>>();
                     let inset = t.space.s1 + t.border.width_thin;
                     let width = width.get();
-                    menu_surface(Role::ListBox, label.clone(), list, stops, Some(scroll), cx)
-                        .max_h(px(t.pointer.list_row_compact * SELECT_ROWS + inset * 2.0))
-                        // As wide as the field, once the field has been laid out.
-                        .when(width > Pixels::ZERO, |list| list.min_w(width).w(width))
+                    let list = menu_surface(
+                        Role::ListBox,
+                        label.clone(),
+                        list,
+                        stops,
+                        Some(scroll.clone()),
+                        cx,
+                    )
+                    .max_h(px(t.pointer.list_row_compact * SELECT_ROWS + inset * 2.0))
+                    // As wide as the field, once the field has been laid out.
+                    .when(width > Pixels::ZERO, |list| list.min_w(width).w(width));
+                    // The list shows only so many rows, and a row cut off at its edge is the one
+                    // hint that there are more. The scrollbar says how many and where it is.
+                    div().relative().child(list).vertical_scrollbar(&scroll)
                 })
                 .into_any_element()
         };
@@ -940,6 +951,38 @@ impl Dialog {
 
         let margin = px(t.space.s4);
         let scrolls = self.description.is_some() || !self.body.is_empty();
+        let scroll = window
+            .use_keyed_state((self.id.clone(), "body"), cx, |_, _| ScrollHandle::new())
+            .read(cx)
+            .clone();
+        // The scrollbar lies in the dialog's padding, clear of the body: the frame that holds it
+        // reaches this far into the padding, and the body inside is given the same room back.
+        let gutter = px(t.space.s4);
+        let body = scrolls.then(|| {
+            div()
+                .relative()
+                .flex()
+                .flex_col()
+                .min_h_0()
+                .mr(-gutter)
+                .child(
+                    div()
+                        .id("dialog-body")
+                        .flex()
+                        .flex_col()
+                        .gap(px(t.space.s4))
+                        .min_h_0()
+                        .pr(gutter)
+                        .overflow_y_scroll()
+                        .track_scroll(&scroll)
+                        .children(
+                            self.description
+                                .map(|description| DialogDescription::new().child(description)),
+                        )
+                        .children(self.body),
+                )
+                .vertical_scrollbar(&scroll)
+        });
         let popup = DialogPopup::new()
             .flex()
             .flex_col()
@@ -962,22 +1005,7 @@ impl Dialog {
                     .text_color(color(c.dialog_title))
                     .child(self.title.clone()),
             )
-            .when(scrolls, |popup| {
-                popup.child(
-                    div()
-                        .id("dialog-body")
-                        .flex()
-                        .flex_col()
-                        .gap(px(t.space.s4))
-                        .min_h_0()
-                        .overflow_y_scroll()
-                        .children(
-                            self.description
-                                .map(|description| DialogDescription::new().child(description)),
-                        )
-                        .children(self.body),
-                )
-            })
+            .children(body)
             .when(!self.actions.is_empty(), |popup| {
                 popup.child(
                     div()

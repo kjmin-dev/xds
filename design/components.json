@@ -1388,7 +1388,19 @@
           "source": "flutter/ui/lib/src/modals.dart",
           "symbol": "Dialog"
         }
-      }
+      },
+      "differences": [
+        {
+          "clients": [
+            "web-react",
+            "web-solid",
+            "web-vue",
+            "web-svelte"
+          ],
+          "kind": "system",
+          "note": "The browser draws the scrollbar of a body that does not fit, in its own colors and by the platform's rule for when one shows. GPUI draws its own in the dialog's padding: no track, and a thumb of `color.border.strong`, which is `color.text.secondary` under the pointer."
+        }
+      ]
     },
     {
       "name": "Toast",
@@ -1725,6 +1737,16 @@
           "input": "touch",
           "kind": "adapts",
           "note": "Its options open as full list rows of a BottomSheet titled with `label`, instead of a popup as wide as the field. A tap outside, a drag down or Back closes it without choosing. Compose on the desktop opens the popup, as the pointer clients do."
+        },
+        {
+          "clients": [
+            "web-react",
+            "web-solid",
+            "web-vue",
+            "web-svelte"
+          ],
+          "kind": "system",
+          "note": "The browser draws the scrollbar of the list, thin and tinted with the text color where the browser allows. GPUI draws its own over the list's edge: no track, and a thumb of `color.border.strong`, which is `color.text.secondary` under the pointer."
         }
       ]
     },
@@ -2194,7 +2216,19 @@
           "source": "crates/acme-ui/src/navigation.rs",
           "symbol": "Sidebar"
         }
-      }
+      },
+      "differences": [
+        {
+          "clients": [
+            "web-react",
+            "web-solid",
+            "web-vue",
+            "web-svelte"
+          ],
+          "kind": "system",
+          "note": "The browser draws the scrollbar of the places when they do not fit, in its own colors and by the platform's rule for when one shows. GPUI draws its own over the sidebar's padding: no track, and a thumb of `color.border.strong`, which is `color.text.secondary` under the pointer."
+        }
+      ]
     },
     {
       "name": "EmptyState",

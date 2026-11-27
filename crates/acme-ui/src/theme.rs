@@ -166,6 +166,10 @@ pub fn set_mode(mode: tokens::Mode, cx: &mut App) {
     // GPUI Component paints this color under every window's root. Each view paints its own
     // background instead, so a window with a translucent or blurred backdrop keeps it.
     theme.tokens.background = gpui_kit::gpui::transparent_black().into();
+    // A scrollbar lies over whatever surface scrolls, so its track takes that surface's color
+    // by having none of its own.
+    theme.scrollbar = gpui_kit::gpui::transparent_black();
+    theme.tokens.scrollbar = theme.scrollbar.into();
 
     theme.font_family = family;
     theme.font_size = px(registered.typography.body.size);
@@ -238,13 +242,66 @@ pub fn set_mode(mode: tokens::Mode, cx: &mut App) {
         warning_foreground = c.background_base;
         info = c.status_info;
         info_foreground = c.background_base;
+
+        // The scrollbar's thumb: an interface part, so it stands 3:1 from every surface at
+        // rest, and darkens to a text color under the pointer and while it is dragged.
+        scrollbar_thumb = c.border_strong;
+        scrollbar_thumb_hover = c.text_secondary;
     }
+    // GPUI Component keeps a third copy of its theme for what its base layer draws: the
+    // scrollbar, the resize handles and its text views. `Theme::change` made that copy from
+    // GPUI Component's own colors, before the tokens went in above, so it is made again.
+    Theme::sync_base(cx);
     cx.refresh_windows();
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{SYSTEM_UI_FONT, first_drawn, gpui_weight};
+    use acme_tokens as tokens;
+    use gpui_kit::TestAppContext;
+    use gpui_kit::base::Theme as BaseTheme;
+    use gpui_kit::component::Theme;
+    use gpui_kit::component::scroll::ScrollbarMode;
+
+    use super::{SYSTEM_UI_FONT, color, first_drawn, gpui_weight, init, set_mode, set_theme};
+
+    /// GPUI Component draws the scrollbar, the resize handles and its text views from a copy of
+    /// its theme that only it writes. That copy has to follow the tokens too, in both modes.
+    #[gpui_kit::test]
+    fn the_copy_gpui_component_keeps_of_its_theme_takes_the_tokens(cx: &mut TestAppContext) {
+        cx.update(|cx| {
+            init(cx);
+            for mode in [tokens::Mode::Light, tokens::Mode::Dark] {
+                set_mode(mode, cx);
+                let c = tokens::DEFAULT_THEME.colors(mode);
+                let base = BaseTheme::global(cx);
+                assert_eq!(base.tokens.colors.foreground, color(c.text_primary));
+                assert_eq!(base.tokens.colors.border, color(c.border_default));
+                assert_eq!(base.resizable.handle, Some(color(c.border_default)));
+
+                let theme = Theme::global(cx);
+                assert_eq!(theme.scrollbar_thumb, color(c.border_strong));
+                assert_eq!(theme.scrollbar_thumb_hover, color(c.text_secondary));
+            }
+        });
+    }
+
+    /// When scrollbars show is the app's choice, or the system's. A change of mode or of theme
+    /// leaves it alone.
+    #[gpui_kit::test]
+    fn a_change_of_mode_keeps_when_scrollbars_show(cx: &mut TestAppContext) {
+        cx.update(|cx| {
+            init(cx);
+            Theme::set_scrollbar_mode(ScrollbarMode::Always, cx);
+            set_mode(tokens::Mode::Dark, cx);
+            set_theme(&tokens::DEFAULT_THEME, cx);
+            assert_eq!(Theme::global(cx).scrollbar_mode, ScrollbarMode::Always);
+            assert_eq!(
+                BaseTheme::global(cx).scrollbar.mode(),
+                ScrollbarMode::Always
+            );
+        });
+    }
 
     const FAMILIES: &[&str] = &[
         "Pretendard Variable",

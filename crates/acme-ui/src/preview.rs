@@ -16,6 +16,7 @@ use gpui_kit::base::ElementExt as _;
 use gpui_kit::component::{
     Disableable as _,
     input::{InputState, TextareaState},
+    scroll::ScrollableElement as _,
 };
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
@@ -2400,13 +2401,19 @@ impl Render for DesignPreview {
             );
 
         div()
-            .id("design-preview")
+            .relative()
             .size_full()
-            .overflow_y_scroll()
-            .track_scroll(&self.scroll)
             .bg(color(colors.background_base))
             .text_color(color(colors.text_primary))
-            .child(page)
+            .child(
+                div()
+                    .id("design-preview")
+                    .size_full()
+                    .overflow_y_scroll()
+                    .track_scroll(&self.scroll)
+                    .child(page),
+            )
+            .vertical_scrollbar(&self.scroll)
     }
 }
 

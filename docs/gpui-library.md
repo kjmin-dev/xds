@@ -53,6 +53,39 @@ fn main() {
 
 `init` sets up GPUI Component and registers the default theme with the app, which it applies to GPUI Component's own theme too. The color mode follows the system's appearance when the app starts. The design preview is `DesignPreview::open(cx)`. It shows every token and component as a scaffolded app's design window does.
 
+## Scrolling
+
+GPUI draws no scrollbar of its own: an element with `overflow_y_scroll` scrolls and shows nothing that says so. The components draw GPUI Component's scrollbar where they scroll (a sidebar's places, a select's list, a dialog's body, and the design preview), with no track and a thumb in the theme's colors: `border.strong` at rest, which stands 3:1 from every surface, and `text.secondary` under the pointer and while it is dragged.
+
+A view of the app that scrolls draws the same scrollbar. Keep the scroll position in a `ScrollHandle`, and put the scrollbar on a frame around the scrolling element, since a scrollbar inside it would scroll away with the content:
+
+```rust
+use xds_ui::gpui_kit::component::scroll::ScrollableElement as _;
+use xds_ui::gpui_kit::{
+    InteractiveElement as _, IntoElement, ParentElement as _, ScrollHandle,
+    StatefulInteractiveElement as _, Styled as _, div,
+};
+
+fn page(scroll: &ScrollHandle, content: impl IntoElement) -> impl IntoElement {
+    div()
+        .relative()
+        .size_full()
+        .child(
+            div()
+                .id("page")
+                .size_full()
+                .overflow_y_scroll()
+                .track_scroll(scroll)
+                .child(content),
+        )
+        .vertical_scrollbar(scroll)
+}
+```
+
+The frame takes the place of the scrolling element in the layout. As a flex item it also takes that element's `flex_1()` and `min_h_0()`: without a minimum height of zero, a flex item grows to its content and never scrolls.
+
+When scrollbars show is GPUI Component's setting, which `init` takes from the system: while scrolling where the system hides scrollbars, and under the pointer otherwise. `Theme::set_scrollbar_mode(ScrollbarMode::Always, cx)`, with `xds_ui::gpui_kit::component::{Theme, scroll::ScrollbarMode}`, keeps them in view, and `set_mode` and `set_theme` leave the choice alone.
+
 ## Customization
 
 The layers below follow [Customization](library.md#customization). GPUI has no context that reaches a part of a window together with the overlays opened from it: a menu, a select's list or a dialog is drawn after the rest of the window, outside the element that opened it. So the mode, the theme and the defaults are registered with the app and apply to all of it, as GPUI Component's own theme does. Each can change while the app is running, and the windows redraw.
@@ -116,7 +149,7 @@ A size is set with a method named for the component, because `Styled::size` sets
 - packages both with `cargo package`, which builds each from its packaged sources as crates.io will serve them, against the other as packaged;
 - fails unless `xds-ui` asks for exactly the GPUI Kit this repository pins (`gpui-kit = "=0.9.1"` in `Cargo.toml`), and this page tells an app to write the same requirement.
 
-`node crates-io/consumer.ts` (`mise run check:library-gpui`) is the external consumer check for this channel. It runs on macOS, where GPUI draws with Metal. It builds a new crate outside the repository, which has nothing of xds's but its dependency on `xds-ui` at the release version, served from the packaged crates in place of crates.io's (`[patch.crates-io]`), and on the GPUI Kit `xds-ui` is built for. The crate draws every page of the design preview and the preview with each overlay open, off screen, in both modes, with the same program a scaffolded project runs as `cargo run --package <name>-ui --example render_preview`, and compares each picture, pixel by pixel, with a project that `xds create` makes from this repository under the name `xds`. GPUI draws them on a clock that only the program moves, so the same components give the same pictures on the same Mac. The check repeats the comparison with a custom theme ([`npm/web/consumer/brand.json`](../npm/web/consumer/brand.json), which the web library's check uses too). The library's crate registers it with the constant `xds export-theme --format gpui` writes. The scaffolded project draws it with its token build. The check fails if the custom theme changes none of the library's pictures, which would show only that both sides ignore it.
+`node crates-io/consumer.ts` (`mise run check:library-gpui`) is the external consumer check for this channel. It runs on macOS, where GPUI draws with Metal. It builds a new crate outside the repository, which has nothing of xds's but its dependency on `xds-ui` at the release version, served from the packaged crates in place of crates.io's (`[patch.crates-io]`), and on the GPUI Kit `xds-ui` is built for. The crate draws every page of the design preview and the preview with each overlay open, off screen, in both modes, with the same program a scaffolded project runs as `cargo run --package <name>-ui --example render_preview`, and compares each picture, pixel by pixel, with a project that `xds create` makes from this repository under the name `xds`. GPUI draws them on a clock that only the program moves, so the same components give the same pictures on the same Mac. The scrollbars, which GPUI Component shows and hides on the real clock, are kept in view for the pictures. The check repeats the comparison with a custom theme ([`npm/web/consumer/brand.json`](../npm/web/consumer/brand.json), which the web library's check uses too). The library's crate registers it with the constant `xds export-theme --format gpui` writes. The scaffolded project draws it with its token build. The check fails if the custom theme changes none of the library's pictures, which would show only that both sides ignore it.
 
 CI runs the check on every change, on macOS. The release workflow builds the crates with the release's own CLI, runs the check, keeps the `.crate` files it checked as the run's `gpui-crates` artifact, and publishes them with `node crates-io/publish.ts`.
 

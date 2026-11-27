@@ -9,10 +9,11 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 use acme_tokens as tokens;
+use gpui_kit::component::scroll::ScrollableElement as _;
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
     AnyElement, App, ElementId, FontFeatures, InteractiveElement as _, IntoElement,
-    ParentElement as _, Refineable as _, RenderOnce, Role, SharedString,
+    ParentElement as _, Refineable as _, RenderOnce, Role, ScrollHandle, SharedString,
     StatefulInteractiveElement as _, StyleRefinement, Styled, Window, div, px,
 };
 
@@ -151,7 +152,7 @@ impl Sidebar {
 }
 
 impl Sidebar {
-    fn draw(self, _window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
+    fn draw(self, window: &mut Window, cx: &mut App) -> impl IntoElement + Styled {
         let t = theme(cx);
         let c = palette(cx);
         let collapsed = self.collapsed;
@@ -249,6 +250,10 @@ impl Sidebar {
         // row. The area is this much larger on every side, and pulled back by as much, so the
         // ring has room and the rows stay where they were.
         let room = px(t.space.s1);
+        let scroll = window
+            .use_keyed_state((self.id.clone(), "scroll"), cx, |_, _| ScrollHandle::new())
+            .read(cx)
+            .clone();
         div()
             .id(self.id.clone())
             .role(Role::Navigation)
@@ -268,16 +273,31 @@ impl Sidebar {
                     .map(|header| div().flex().flex_none().child(header)),
             )
             .child(
+                // The frame takes the area's place in the sidebar and holds the scrollbar, which
+                // would scroll away with the places if it were inside the area. On the right the
+                // area reaches the sidebar's edge, so the scrollbar lies in the padding there.
                 div()
-                    .id((self.id, "places"))
+                    .relative()
                     .flex_1()
                     .min_h_0()
                     .flex()
                     .flex_col()
-                    .p(room)
                     .m(-room)
-                    .overflow_y_scroll()
-                    .children(sections),
+                    .mr(-inset)
+                    .child(
+                        div()
+                            .id((self.id, "places"))
+                            .flex_1()
+                            .min_h_0()
+                            .flex()
+                            .flex_col()
+                            .p(room)
+                            .pr(inset)
+                            .overflow_y_scroll()
+                            .track_scroll(&scroll)
+                            .children(sections),
+                    )
+                    .vertical_scrollbar(&scroll),
             )
             .children(
                 self.footer

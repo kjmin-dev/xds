@@ -52,6 +52,9 @@ fn main() {
     );
     cx.update(|cx| {
         acme_ui::init(cx);
+        // Freeze repeating animations (spinners, skeletons) and snap oneshot entrances to their
+        // end state so two runs never differ by a frame of animation jitter.
+        cx.set_reduce_motion(true);
         Theme::set_scrollbar_mode(ScrollbarMode::Always, cx);
     });
 

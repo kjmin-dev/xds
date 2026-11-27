@@ -1,11 +1,11 @@
 ---
 title: Hosting this site
-description: How to build and deploy the documentation site and the web design preview, and serve them from your own domain.
+description: Build and deploy the documentation site and web design preview on Cloudflare Workers or GitHub Pages.
 ---
 
-This documentation site is an [Astro Starlight](https://starlight.astro.build) project located in `apps/docs`. It only lives in the template repository; `xds create` never copies it into a generated project.
+This documentation site is an [Astro Starlight](https://starlight.astro.build) project in `apps/docs`. It lives only in the template repository; `xds create` never copies it into generated projects.
 
-Next to it, this repository deploys the web app in `apps/web` so that the documentation can link to its design preview at `/design`. Generated projects get the web app but not the deployment: `template.json` excludes `apps/web/wrangler.jsonc` and the workflow that deploys it.
+Alongside it, the repository deploys the React web app in `apps/web` so the docs can link to its live design preview at `/design`. Generated projects include `apps/web` without the deployment config (`template.json` excludes `apps/web/wrangler.jsonc` and `.github/workflows/preview.yml`).
 
 | Site | Address | Source | Workflow |
 | --- | --- | --- | --- |
@@ -19,7 +19,7 @@ mise run //docs:dev      # http://localhost:4321
 mise run //docs:build    # writes apps/docs/dist
 ```
 
-Before either command runs, `scripts/generate.ts` generates the pages whose source files live elsewhere in the repository:
+Both commands run `scripts/generate.ts` first to sync pages whose sources live elsewhere in the repository:
 
 | Pages | Source |
 | --- | --- |
@@ -28,71 +28,71 @@ Before either command runs, `scripts/generate.ts` generates the pages whose sour
 | Components | `apps/docs/scripts/components.ts` |
 | `/install.sh` | `install.sh` |
 
-The build also generates `/llms.txt`, `/llms-full.txt`, and `/llms-small.txt`, along with a Markdown copy of every English page at the same path with `.md` replacing the trailing slash (for example, `/components/button.md`).
+The build also outputs `/llms.txt`, `/llms-full.txt`, and `/llms-small.txt`, plus a plain Markdown version of every English page with `.md` replacing the trailing slash (for example, `/components/button.md`).
 
-Every component page opens with a live example. A web component's is the real component from `packages/ui`, written in `src/demos/index.tsx` and served at `/demo/<name>/`. The touch-only components (TopBar, TabBar and BottomSheet) have no web version, so theirs is a small app screen written in `src/demos/native.tsx` with the React Native components from `packages/ui-native`, drawn in the browser by [react-native-web](https://necolas.github.io/react-native-web/) and served at `/demo-native/<name>/`. The page shows it in a frame shaped like a phone, so a bottom sheet covers the frame rather than the page. `scripts/react-native-web.ts` gives Vite the resolution that Metro uses for the web, and `pnpm --filter @acme/docs test` checks those examples in headless Google Chrome: their tab order, roles, selection, focus trap and shadow. The frame follows the site's color mode, not the operating system's, through `ColorSchemeOverride` from `@acme/ui-native/scheme`.
+Each component page starts with a live example. Web components render directly from `packages/ui` via `src/demos/index.tsx` at `/demo/<name>/`. Touch-only components (`TopBar`, `TabBar`, and `BottomSheet`) have no web implementation, so they render a small screen built with `@acme/ui-native` via [react-native-web](https://necolas.github.io/react-native-web/) at `/demo-native/<name>/`, framed at phone dimensions so bottom sheets stay contained inside the frame. `scripts/react-native-web.ts` configures Vite to match Metro's web module resolution, and `pnpm --filter @acme/docs test` verifies tab order, roles, selection, focus trapping, and shadows in headless Google Chrome. The frame tracks the site's color mode rather than the OS preference through `ColorSchemeOverride` from `@acme/ui-native/scheme`.
 
-The sidebar and the page of every web component link to the design preview, at the address in the `PREVIEW_SITE` environment variable. When the variable is unset, the links point to the web app's dev server (`mise run //web:dev`). When it is set to an empty string, as it is in a deployment from a repository without a `PREVIEW_SITE` variable, the site has no links to the preview. The build fails if a component names a section that the design preview does not have.
+The sidebar and web component pages link to the design preview using the `PREVIEW_SITE` environment variable. When `PREVIEW_SITE` is unset, links point to the local dev server (`mise run //web:dev`). When set to an empty string (such as in a fork without `PREVIEW_SITE` configured), preview links are omitted. The build fails if a component references a preview section that does not exist.
 
 ## Deploy to Cloudflare Workers
 
-`apps/docs/wrangler.jsonc` and `apps/web/wrangler.jsonc` deploy each app's `dist` directory as static assets. Because no Worker script runs, requests do not count toward the free plan's daily limit.
+`apps/docs/wrangler.jsonc` and `apps/web/wrangler.jsonc` serve each app's `dist` directory as static assets. Because no Worker script executes on requests, traffic does not count against the free plan's daily Worker limit.
 
-To deploy from your machine, build first, then run the deploy task. Wrangler uses the account you logged in to with `wrangler login`.
+To deploy locally, build first and run the deploy task. Wrangler uses the account from `wrangler login`:
 
 ```sh
 mise run check:docs && mise run deploy:docs
 mise run //web:build && mise run deploy:preview
 ```
 
-The workflows in `.github/workflows/docs.yml` and `.github/workflows/preview.yml` do not run until you configure them:
+The GitHub Actions workflows in `.github/workflows/docs.yml` and `.github/workflows/preview.yml` stay inactive until configured:
 
 1. Create a Cloudflare API token as described in [The API token](#the-api-token).
-2. In the repository settings, create an environment named `cloudflare`. Under its deployment branches, allow only `main`. Add the token as the environment secret `CLOUDFLARE_API_TOKEN` and your account ID as the environment secret `CLOUDFLARE_ACCOUNT_ID`. Use environment secrets, not repository secrets, so that only a run on `main` can read them.
-3. Set the repository variables `DOCS_SITE` and `PREVIEW_SITE` to the addresses of the two sites, such as `https://xds.example.com` and `https://preview.xds.example.com`. Canonical links, the sitemap, `llms.txt`, and the links between the two sites are built from these values.
-4. Run the "Docs" and "Preview" workflows manually from the Actions tab.
-5. To deploy automatically on every push to `main`, set the repository variables `DOCS_DEPLOY` and `PREVIEW_DEPLOY` to `true`.
+2. In repository settings, create an environment named `cloudflare` restricted to the `main` branch. Add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as environment secrets (not repository secrets) so only runs on `main` can access them.
+3. Set repository variables `DOCS_SITE` and `PREVIEW_SITE` to your site URLs (for example, `https://xds.example.com` and `https://preview.xds.example.com`). Canonical links, the sitemap, `llms.txt`, and cross-site links derive from these values.
+4. Trigger the "Docs" and "Preview" workflows manually from the Actions tab.
+5. To deploy automatically on every push to `main`, set repository variables `DOCS_DEPLOY` and `PREVIEW_DEPLOY` to `true`.
 
 ### The API token
 
-Cloudflare cannot limit a token to one Worker. A token that can deploy these two sites can replace every Worker in the account, so give it only the permissions the deployment needs:
+Cloudflare API tokens cannot be scoped to a single Worker—a token that can deploy these sites can overwrite any Worker in the account. Restrict it to the minimum permissions required:
 
 | Scope | Permission | Resources |
 | --- | --- | --- |
-| Account | Workers Scripts: Edit | Only the account that holds the sites |
-| Zone | Workers Routes: Edit | Only the zone of the sites' hostnames |
+| Account | Workers Scripts: Edit | Only the account that hosts the sites |
+| Zone | Workers Routes: Edit | Only the zone for the site hostnames |
 
-The "Edit Cloudflare Workers" template also works, but it adds access to KV, R2, and Pages, which the deployment never uses. Set an expiry date, and replace the token when it expires.
+The "Edit Cloudflare Workers" template works too, but it grants access to KV, R2, and Pages that these deployments do not use. Set an expiration date and rotate the token before it expires.
 
 ### How the workflows protect the token
 
-The repository is public, so the workflows assume that anyone can read them and open a pull request.
+Because the repository is public, the workflows assume anyone can inspect them and open pull requests:
 
-- No deployment workflow runs for a pull request, and GitHub never passes secrets to a pull request from a fork.
-- The secrets belong to the `cloudflare` environment, which accepts only runs on `main`. A workflow changed on another branch cannot read them.
-- Each workflow builds in one job and deploys in another. The build job runs the code of every dependency and has no secret. The deploy job has the token, and runs only Wrangler on the files the build job uploaded.
-- Wrangler is a dependency of `tools/deploy`, so `pnpm-lock.yaml` pins it and everything it depends on by checksum. The deploy job installs it with `--frozen-lockfile --ignore-scripts` and restores no tool cache.
-- Every action is pinned to a commit. `.github/dependabot.yml` proposes newer commits once a month.
-- The account ID is a secret only so that GitHub masks it in the public logs. Neither `wrangler.jsonc` file contains it.
+- Deployment workflows never run on pull requests, and GitHub does not expose secrets to fork PRs.
+- Secrets live in the `cloudflare` environment, which only allows deployments from `main`.
+- Build and deploy run in separate jobs. The build job runs dependency code without access to secrets; the deploy job holds the token and only runs Wrangler against the uploaded artifact.
+- Wrangler is pinned in `tools/deploy` and locked by checksum in `pnpm-lock.yaml`. The deploy job installs it with `--frozen-lockfile --ignore-scripts` and disables tool caching.
+- Every GitHub Action is pinned to a commit SHA, updated monthly by `.github/dependabot.yml`.
+- `CLOUDFLARE_ACCOUNT_ID` is stored as a secret solely so GitHub masks it in public logs; neither `wrangler.jsonc` embeds it.
 
-Never commit `.wrangler/` or `.dev.vars`: the first names your Cloudflare account, and the second holds local secrets. Both are in `.gitignore`.
+Do not commit `.wrangler/` or `.dev.vars`—`.wrangler/` stores account metadata and `.dev.vars` holds local secrets. Both are listed in `.gitignore`.
 
-## Use a domain of your own
+## Use a custom domain
 
-Each `wrangler.jsonc` attaches its site to one hostname as a Workers Custom Domain: `xds.studiocyf.app` for the documentation and `preview.xds.studiocyf.app` for the design preview. On deploy, Cloudflare creates the DNS record and a certificate for each hostname.
+Each `wrangler.jsonc` binds its site to a Workers Custom Domain (`xds.studiocyf.app` for docs, `preview.xds.studiocyf.app` for the design preview). Cloudflare provisions the DNS record and TLS certificate automatically on deploy.
 
-- The domain must be a zone in the same Cloudflare account, and the hostnames must not already have a CNAME record. Do not create DNS records for them yourself.
-- Each hostname gets its own certificate, so a hostname two levels below the zone, such as `preview.xds.example.com`, works without Advanced Certificate Manager. Universal SSL covers only one level of subdomain, and browsers open `.app` domains only over HTTPS.
-- Both files set `workers_dev` and `preview_urls` to `false`, so each site has only one address and nothing is published under the account's `workers.dev` subdomain.
+- The domain must be a zone in the same Cloudflare account, and neither hostname may already have a CNAME record. Do not create DNS records manually.
+- Custom Domains issue a dedicated certificate per hostname, so nested subdomains like `preview.xds.example.com` work without Advanced Certificate Manager. (Universal SSL only covers one subdomain level, and browsers enforce HTTPS on `.app` domains.)
+- Both configs set `workers_dev` and `preview_urls` to `false` so each site has a single canonical URL and nothing is exposed on `workers.dev`.
 
-In a fork, replace each `pattern` with a hostname in your own zone, and update `DOCS_SITE` and `PREVIEW_SITE` to match. To use the `workers.dev` addresses instead, remove the `routes` entries and set `workers_dev` to `true`. The sites are then served at `xds-docs.<your-subdomain>.workers.dev` and `xds-preview.<your-subdomain>.workers.dev`.
+In a fork, replace each `pattern` with a hostname in your zone and update `DOCS_SITE` and `PREVIEW_SITE` to match. To use `workers.dev` URLs instead, remove the `routes` entries and set `workers_dev` to `true`; the sites will be served at `xds-docs.<your-subdomain>.workers.dev` and `xds-preview.<your-subdomain>.workers.dev`.
 
-The documentation site also serves the installer script:
+The documentation site also serves the CLI installer script:
 
 ```sh
 curl -fsSL https://xds.studiocyf.app/install.sh | sh
 ```
 
-## GitHub Pages instead
+## GitHub Pages
 
-You can also host the site for free on GitHub Pages, which does not require your domain's DNS to be on Cloudflare. Build the site with `mise run //docs:build`, upload `apps/docs/dist` using `actions/upload-pages-artifact`, and deploy it with `actions/deploy-pages`. To use a custom subdomain, add the domain in the repository's Pages settings and create a CNAME record pointing to `kjmin-dev.github.io`. Note that GitHub Pages ignores the `_headers` file, so `/install.sh` is served with whatever content type GitHub assigns, and browsers keep the built scripts and stylesheets for the ten minutes GitHub Pages gives every file, rather than for good.
+You can host the site on GitHub Pages instead, without moving DNS to Cloudflare. Build with `mise run //docs:build`, upload `apps/docs/dist` using `actions/upload-pages-artifact`, and deploy with `actions/deploy-pages`. For a custom subdomain, configure it in the repository's Pages settings and point a CNAME record to `kjmin-dev.github.io`. Note that GitHub Pages ignores `_headers`, so `/install.sh` uses GitHub's default content type and static assets inherit its 10-minute cache lifetime instead of immutable caching.

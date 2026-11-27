@@ -22,7 +22,7 @@ export default defineConfig({
       title: "xds",
       logo: { src: "./src/assets/xds-logo.svg", replacesTitle: true },
       description:
-        "A cross-platform design system template: one set of design tokens, component libraries for web, desktop and mobile, and a CLI that scaffolds a project with the clients you pick.",
+        "Cross-platform design system template with shared DTCG tokens, component libraries for web, desktop, and mobile, and a CLI for scaffolding.",
       defaultLocale: "root",
       locales: {
         root: { label: "English", lang: "en" },
@@ -36,7 +36,7 @@ export default defineConfig({
         starlightLlmsTxt({
           projectName: "xds",
           description:
-            "xds is a cross-platform design system template. Design tokens in DTCG format are compiled to CSS, Tailwind, TypeScript, Rust and Kotlin; the same components exist for React, Solid, Vue and Svelte (web), GPUI (desktop), React Native and Compose Multiplatform; and the `xds` CLI scaffolds a project with the chosen clients and color theme.",
+            "xds is a cross-platform design system template. DTCG design tokens compile to CSS, Tailwind, TypeScript, Rust, Kotlin, and Dart; matching component libraries ship for React, Solid, Vue, and Svelte (web), GPUI (desktop), React Native, Compose Multiplatform, and Flutter; and the `xds` CLI scaffolds a project with your chosen targets and color theme.",
           // The Korean pages translate the English ones; one language is enough for a model.
           exclude: ["ko/**"],
           // A component page's chips repeat its Platforms section, which says it in words, and

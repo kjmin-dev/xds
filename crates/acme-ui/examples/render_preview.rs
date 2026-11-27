@@ -10,6 +10,10 @@
 //! this program moves it. So two builds of the components that draw the same pixels give the
 //! same files on the same Mac, which is what the library's consumer check compares
 //! (`crates-io/consumer.ts` in the xds repository).
+//!
+//! The scrollbars are the exception: GPUI Component shows and hides them on the real clock. The
+//! pictures keep them in view, so that a scrollbar is in a picture or not by what the components
+//! draw, never by how long the picture took.
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -17,6 +21,8 @@ use std::time::Duration;
 
 use acme_tokens::Mode;
 use acme_ui::{DesignPreview, PreviewOverlay};
+use gpui_kit::component::Theme;
+use gpui_kit::component::scroll::ScrollbarMode;
 use gpui_kit::{
     AnyWindowHandle, AppContext as _, Bounds, Entity, VisualTestAppContext, WindowBounds,
     WindowOptions, point, px, size,
@@ -46,6 +52,7 @@ fn main() {
     );
     cx.update(|cx| {
         acme_ui::init(cx);
+        Theme::set_scrollbar_mode(ScrollbarMode::Always, cx);
     });
 
     let mut written = 0;

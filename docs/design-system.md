@@ -347,6 +347,7 @@ Platform differences:
 | Disabled controls | Web, mobile, and Compose recolor disabled controls with dedicated tokens; on the GPUI desktop client, GPUI Component dims buttons, switches, and checkboxes with opacity |
 | An invalid field | Web and mobile thicken the field border; desktop draws a second outline around the field |
 | The banner's mark | Web renders a shape icon; desktop and mobile render a letter inside a circle |
+| Scrollbars | The browser draws them on the web, in its own colors except on a select's list, which tints them with the text color; the GPUI desktop client draws GPUI Component's, with a thumb of `border.strong` |
 
 ### The design preview
 

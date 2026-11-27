@@ -78,6 +78,11 @@ const PAIRS: Pair[] = [
   ...on("border.strong", SURFACES, PART),
   ...on("border.focus", SURFACES, PART),
   ...on("accent.default", SURFACES, PART),
+  // The thumb of a scrollbar where the client draws its own (GPUI): at rest and under a pointer,
+  // over the page and over each surface of a component that scrolls.
+  ...["border.strong", "text.secondary"].flatMap((thumb) =>
+    on(thumb, [...SURFACES, "sidebar.background", "menu.background", "dialog.background"], PART),
+  ),
 
   // Components: the pairings a component actually draws, whatever they alias today.
   ...["primary", "secondary", "danger"].flatMap((variant) =>
